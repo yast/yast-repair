@@ -338,8 +338,8 @@
       // iterate the splitted version-numbers
       while(index < max)
       {
-	  n_1 = tointeger(select(v_1, index, "0"));
-	  n_2 = tointeger(select(v_2, index, "0"));
+	  n_1 = tointeger (v_1[index]:"0");
+	  n_2 = tointeger (v_2[index]:"0");
 
 	  if (n_1 > n_2)
 	  {

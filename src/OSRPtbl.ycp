@@ -309,11 +309,11 @@ Partition table was not successfully repaired.
   define list<map> read_part_list_from_floppy(string target)``{
     return (list<map>) WFM::Read(.local.ycp, build_file_name(target)+".ycp");
   }
-  
+
   /**
    * Show
    */
-  define list<map> FoundPtblDialog( list<map> partitions, string dev, string repair_tool, boolean whole_mbr )``{
+  define list<map> FoundPtblDialog (list<map> partitions, string dev, string repair_tool, boolean whole_mbr )``{
 
      y2milestone("Found partitions for recovering %1", partitions );
 
@@ -326,19 +326,18 @@ Partition table was not successfully repaired.
       string label_whole  = _("Restore the Entire Master Boot Record");
 
       list<term> items = [];
-      foreach(map n,partitions , ``{
+      foreach (map n,partitions, {
 
-	if (select( n["region"]:[],1,0) != 1)
+	if (n["region",1]:0 != 1)
 	{
+	    map mdev	= Storage::GetMainDev (dev);
 	    items = add (items, `item (`id(sformat("%1", n["nr"]:1)),
 			s_ignore_label,
 			dev + n["nr"]:1,
 			n["fsid"]:131,
-			sformat("%1", select (n["region"]:[],0,0)),
-			sformat("%1", (integer) select (n["region"]:[],1,0) +
-				      (integer) select (n["region"]:[],0,0) -1),
-			ByteToHumanString (n["region",1]:0 *
-			    lookup (Storage::GetMainDev( dev), "cyl_size",0))
+			sformat ("%1", n["region",0]:0),
+			sformat ("%1", n["region",1]:0 + n["region",0]:0 - 1),
+			ByteToHumanString (n["region",1]:0 * mdev["cyl_size"]:0)
 	    ));
 	}
       });
@@ -411,9 +410,9 @@ in the table and press \"Recover\".
     {
 	ret = UI::UserInput();
 
-	string current_item   = (string) UI::QueryWidget(`id(`table), `CurrentItem);
-	string current_value  = select (
-	    (term)UI::QueryWidget(`id(`table), `Item(current_item)), 1, "");
+	string current_item = (string)UI::QueryWidget(`id(`table),`CurrentItem);
+	term it = (term) UI::QueryWidget (`id(`table), `Item (current_item));
+	string current_value = it[1]:"";
 
 	map current_part = find (map part, partitions, ``(
 	    sformat("%1", part["nr"]:"") == current_item ));
@@ -453,9 +452,11 @@ in the table and press \"Recover\".
 
 	if ( ret == `ok )
 	{
-	    recover = filter (map n, partitions, ``(select ((term)
-		UI::QueryWidget(`id(`table), `Item(sformat("%1", n["nr"]:1))),
-		1, "") == s_recover_label ));
+	    recover = filter (map n, partitions, {
+		term it	= (term) UI::QueryWidget (
+		    `id(`table), `Item(sformat("%1", n["nr"]:1)));
+		return (it[1]:"" == s_recover_label);
+	    });
 
 	    y2milestone( "all selected items %1", recover );
 
@@ -605,13 +606,14 @@ have gpart suggest the partition table.
 		      revert = fdisk_call( target_scrpath, new_to_recover );
 		  }
 		  
-		  if (revert )	
+		  if (revert )
 		  {
 		      if (CheckRestoredPtbl(target, target_scrpath ) ) {
-			  return `ok;  
+			  return `ok; 
 		      }
 		  }
-		      
+
+		  // error message
 		  Report::Error(_("
 Restoring the partition table
 was not successful.
@@ -623,21 +625,22 @@ suggest the partition table.
 	      }
 	  }
 	  else
-	  {		  
-	      Report::Error(sformat(_("
+	  {
+	      // error message
+	      Report::Error (_("
 Either no floppy disk is inserted in
 the drive or the inserted floppy is not
 correctly formatted. Insert
 another floppy disk and try again or
 have gpart suggest the partition table.
-"), target));
+"));
 	  }
-	  
+
 	  OSRFloppy::Close();
       }
       return `cancel;
   }
-  
+
   /**
    * Cat the fsid from a line.
    */
@@ -676,28 +679,31 @@ have gpart suggest the partition table.
   /**
    * Dialog with expert gpart options.
    */
-  define symbol expert_restore_with_gpart()``{
+  define symbol expert_restore_with_gpart() {
 
-      string full_label 	= _("Full Scan");
-      string start_label 	= _("Start Detection");
-      string start_sector_label = _("Start Sector");
-      string end_sector_label   =  _("End Sector");
 
-      
-      gpart_expert_options = "";
-      integer cyl_count    = lookup( Storage::GetMainDev(target), "cyl_count", 0 );
+    // checkbox label
+    string full_label		= _("Full Scan");
+    // button label
+    string start_label		= _("Start Detection");
 
-      map symbol_2_option = $[
-			      `extended: 	"-E",
-			      `skip_errors: 	"-e",
-			      `full_scan:	"-f" 
-      ];
+    map maindev			= Storage::GetMainDev (target);
+    integer cyl_count		= maindev["cyl_count"]:0;
+    gpart_expert_options	= "";
 
-      string help_text = _("<P>
+    map symbol_2_option = $[
+	`extended		: "-E",
+	`skip_errors		: "-e",
+	`full_scan		: "-f"
+    ];
+
+    // help text label
+    string help_text = _("<P>
 <B>Help for Expert Mode</B>
 </P>
-") +	
-	  OSRPopup::build_label_description( full_label, _("
+") +
+	// help text (restorng partition)
+	OSRPopup::build_label_description (full_label, _("
 <P>When a possible partition is found,
 gpart normally skips all sectors this entry seems
 to occupy and continues the scan from the end of
@@ -705,34 +711,20 @@ the last possible partition. The disk scan can take
 quite a while if this option is given. Be patient.</P>
 "));
 
-	  //OSRPopup::build_label_description( start_sector_label, _("The fist sector. Potentially useful if a partition is looked for at
-//the end of a large disk.")) + 
-	  //  OSRPopup::build_label_description( end_sector_label, _("");
-      
-	  
-	  
-      
-      
       UI::OpenDialog( `HBox(
 			    `HWeight(2, `RichText(`id(`help),  help_text )),
 			    `HWeight(4,
 				     `HBox(
 					    `HSpacing(2),
 					    `VBox(
+						    // headline label
 						  `Heading(_("Select the Scan Options for gpart:")),
 						  `VSpacing(3),
+						  // checkbox label
 						  `Left(`CheckBox(`id(`extended),    _("Do Not Try To &Identify Extended Partition Tables"))),
+						  // checkbox label
 						  `Left(`CheckBox(`id(`skip_errors), _("Do Not &Skip Disk Read Errors"))),
 						  `Left(`CheckBox(`id(`full_scan),  full_label  )),
-						  //`VSpacing(0.5),
-						  //`VBox(`Left(`Label(_("Choose sectors:"))),
-						  //`HBox(`IntField(`id(`start_sector), start_sector_label , 0, cyl_count -1,  0),
-						  //      `IntField(`id(`end_sector),   end_sector_label    ,0, cyl_count - 1, cyl_count - 1))),
-						  //`VBox(`Left(`Label(_("Set the disk geometry:"))),
-						  //	`HBox(`IntField(`id(`c_g), _("Cylinders"), 0,100,0),
-						  //	      `IntField(`id(`h_g), _("Heads"), 0,100,0),
-						  //	      `IntField(`id(`s_g), _("Sectors"), 0,100,0)
-						  //	      )),
 						  `VSpacing(4),
 						  `HBox(
 							`PushButton(`id(`ok), start_label ),
@@ -826,7 +818,9 @@ quite a while if this option is given. Be patient.</P>
   /**
    * return partition information (to be shown to user)
    */
-  define string partition_info (map part, string dev ) ``{
+  define string partition_info (map part, string dev) {
+
+      map maindev	= Storage::GetMainDev (dev);
       return
 	// partition info 1/3, %1,%2 are numbers
 	sformat (_("cylinders %1-%2, "),
@@ -834,9 +828,8 @@ quite a while if this option is given. Be patient.</P>
 	// partition info 2/3, %1 is partition ID (number)
 	sformat(_("ID %1, "),  part["fsid"]:131) +
 	// partition info 3/3, %1 is partition size (number)
-	sformat(_("size %1"), ByteToHumanString (
-	    part["region",1]:0 * lookup (Storage::GetMainDev(dev),"cyl_size",0)
-	));
+	sformat (_("size %1"), ByteToHumanString (
+	    part["region",1]:0 * maindev["cyl_size"]:0));
     }
 
   /**
@@ -1156,8 +1149,8 @@ system performance and the hard disk size.")
 	        else if (issubstring( line, "chs:"))
 	        {
 		    map geometry = gpart_cat_geometry( line );
-	            integer s    = lookup( geometry["start"]:$[], "c", 0);
-	            integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
+	            integer s    = geometry["start","c"]:0;
+	            integer l    = geometry["end","c"]:0 - s + 1;
 	            partition["region"] = [s,l];
 		}
 	        partition["nr"]		= index +1;
@@ -1168,8 +1161,7 @@ system performance and the hard disk size.")
 
 	    index = index + 1;
 
-	    if (select(partition["region"]:[],1,0) != 0 &&
-	        partition["fsid"]:0 != 0 )
+	    if (partition["region",1]:0 != 0 && partition["fsid"]:0 != 0)
 	    {
 		found_partitions = add(found_partitions, partition );
 	    }

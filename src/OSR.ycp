@@ -234,8 +234,8 @@
 	  // get the module name and its requirements
 	  module_name          = module_name_list[ index]:"";
 
-	  module_requires_list = lookup( module_maps[ module_name ]:$[],  "requires", []);
-	  module_provides_list = lookup( module_maps[ module_name ]:$[] , "provides", []);
+	  module_requires_list = module_maps [module_name,"requires"]:[];
+	  module_provides_list = module_maps [module_name,"provides"]:[];
 
 	  // check if the requirements of the current module are resolved by the global provides
 	  if ( OSRSystem::IsSubSet(module_requires_list, union( global_provides_list, module_provides_list )))
@@ -605,7 +605,7 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 
 	    // count the total number of detection methods
 	    number_of_detection_methods = number_of_detection_methods + size (
-		filter (map v, lookup(module_detection_methods, mod, []), ``(
+		filter (map v, module_detection_methods[mod]:[], ``(
 		    contains (OSRCommon::detect_group_list, v["group"]:"" ))
 		));
 	});

@@ -73,7 +73,7 @@
 
       if ( ! StorageDevices::FloppyPresent )
       {
-	  //TODO check english
+	  // error message
 	  string message = _("
 No floppy device was detected. Loading a
 file from a removable device is not possible.

@@ -312,7 +312,7 @@
       // create the radio buttons dynamically referring to the item_list
       while (i >= 0 && i < size(item_list))
       {
-	string item = select(item_list, i, "");
+	string item = item_list[i]:"";
 
 	// if the current radio button is the default enable it
 	term rb  = `Left (
@@ -335,7 +335,7 @@
       {
 	  integer current = (integer)
 	    UI::QueryWidget(`id(`rb_group), `CurrentButton);
-	  result	  = select (item_list, current, default );
+	  result	  = item_list[current]:default;
       }
       else {
 	  result = "";
