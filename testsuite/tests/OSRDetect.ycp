@@ -1,0 +1,156 @@
+/**
+ *  Test for running automatic detection
+ *  Jiri Suchomel <jsuchome@suse.cz>
+ *  $Id$
+ */
+
+{
+    // testedfiles: OSRRepairUI.ycp OSR.ycp OSRCommon.ycp osr_module_partition.ycp OSRFstab.ycp
+
+    include "testsuite.ycp";
+
+    map I_READ = $[
+	"probe" : $[
+	    "cdrom"	: $[
+		"manual"	: [],
+	    ],
+	    "is_uml"	: false,
+	    "floppy"	: $[
+		"manual"	: [ $[] ] // 1 floppy for "init_floppy" method
+	    ],
+	    "architecture"	: ""
+	],
+	"proc"	: $[
+	    "modules"	: $[]
+	],
+	"target" : $[
+	    "size"	: -1,
+	    "tmpdir"	: "/tmp/",
+	],
+	"product"	: $[
+	    "features"	: $[
+		"USE_DESKTOP_SCHEDULER"	: "",
+		"IO_SCHEDULER"		: "",
+		"UI_MODE"		: "",
+		"ENABLE_AUTOLOGIN"	: "",
+		"EVMS_CONFIG"		: ""
+	    ],
+	],
+    ];
+
+    map I_EXEC = $[
+	"target": $[
+	    "bash_output" : $[],
+	],
+    ];
+    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+
+    import "Mode";
+
+    Mode::SetTest ("testsuite");
+
+    import "OSR";
+    import "OSRCommon";
+    import "OSRStatus";
+
+    map READ	= $[
+	"target" : $[
+	    "yast2"	: $[],
+	    "size"	: 1,
+	    "string"	: "/dev/hda3 / reiserfs acl,user_xattr 1 1",//fstab
+	    "tmpdir"	: "/tmp/",
+	    "ycp"	: $[],
+	],
+	"md"	: $[
+	    "config"	: $[],
+	],
+	"lvm"	: $[
+	    "vg"	: $[],
+	    "pv"	: $[],
+	],
+	"evms"	: $[
+	    "container"	: [],
+	    "volume"	: [],
+	],
+	"probe" : $[
+	    "boot_disk"	: "",
+	    "disk"	: [],
+	    "floppy"	: [ $[] ],
+	],
+	"proc"	: $[
+	    "swaps"	: [ ],
+	    "mounts"	: [ $["file": "/" , "spec": "/dev/hda3"],
+			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
+	],
+	"etc"	: $[
+	    "mtab"	: [ $["file": "/"] ]
+	],
+	"sysconfig"	: $[
+	    "kernel"	: $[
+		"INITRD_MODULES"	: "",
+	    ],
+	    "bootloader": $[
+		"LOADER_TYPE"		: "grub",
+	    ],
+	    "language"	: $[
+		"RC_LANG"		: "",
+		"DEFAULT_LANGUAGE"	: "",
+		"ROOT_USES_LANG"	: "",
+		"LANGUAGES"		: "",
+	    ],
+	],
+	"xml"		: $[],
+	"grub"		: [],
+    ];
+    map WRITE	= $[];
+    map EXEC	= $[
+	"target": $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    DUMP (sformat ("global entries: %1", OSRCommon::global_entries));
+    TEST (``(OSR::Init ()), [READ, WRITE, EXEC], 0);
+    DUMP (sformat ("global entries (keys): %1", maplist (
+	string k, map m, (map<string,map>)OSRCommon::global_entries, ``(k))));
+
+    DUMP (sformat ("detect group: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::SelectDefaultDetectGroups ()), [READ, WRITE, EXEC], 0);
+
+    DUMP (sformat ("detect group: %1", OSR::DetectGroupList ()));
+
+    DUMP ("----------------- start detection [no hard disk found]: ------");
+
+    TEST (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
+
+    DUMP ("--------------------------------------------------------------");
+
+    DUMP (sformat ("--- status: %1", OSRStatus::status));
+
+    DUMP (sformat ("--- failed in module: %1", OSRCommon::current_module_name));
+
+    DUMP ("----------------- start detection [hard disks now ok]: --------");
+
+    READ["target","yast2"]	= $[
+	"/dev/hda": $[
+	    "device"	: "/dev/hda",
+	    "partitions": [
+		$[
+		    "detected_fs":`reiser,
+		    "device"	: "/dev/hda3",
+		    "mount"	: "/",
+		    "nr"	: 3
+		],
+		$[
+		    "fsid" : 130,
+		    "device"	: "/dev/hda0",
+		    "nr"	: 1
+		]
+	    ]
+	]
+    ];
+
+    TEST (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
+
+}

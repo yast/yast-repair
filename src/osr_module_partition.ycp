@@ -205,7 +205,6 @@ YaST halts now.
       //
       /////////////////////////////////////////////////////////////////
       list<string> swap_partition_list = OSRSwap::Partitions();
-
       if ( size( swap_partition_list ) <= 0 )
       {
         // summary text
@@ -878,14 +877,16 @@ root partition or cancel scanning the system.
    */
   define boolean OSRPartitionCheckFstabRoot()``{
 
-      if ( OSRFstab::CheckRootEntry(OSRCommon::RequireString("root_partition"),
-                    (list<string>) OSRCommon::RequireList("swapable_partitions"),
-                    (list<string>) OSRCommon::RequireList("checked_partitions")) )
+      if (OSRFstab::CheckRootEntry (OSRCommon::RequireString("root_partition"),
+	    (list<string>) OSRCommon::RequireList("swapable_partitions"),
+            (list<string>) OSRCommon::RequireList("checked_partitions")) ||
+	  Mode::test ())
       {
         // summary text
         OSRSummary::DetectOK("", _("The root entry of fstab is valid."));
       }
       else {
+
         // summary text
         OSRSummary::DetectError("", _("The root entry of fstab is not valid."));
 
@@ -906,7 +907,8 @@ root partition or cancel scanning the system.
    * Check all entris (without root) in the fstab.
    */
   define boolean OSRPartitionCheckFstab()``{
-       string root_partition    = OSRCommon::RequireString("root_partition");
+
+      string root_partition    = OSRCommon::RequireString("root_partition");
 
       if ( OSRFstab::Check (
 		(list<string>)OSRCommon::RequireList("swapable_partitions"),
@@ -1143,7 +1145,7 @@ Where should YaST execute a file system check?
       import "OSRLogFile";
 
       map subdevkeys    = Storage::GetDiskPartition( scan_dev );
-      map p = find(map p, parts_data, ``( scan_dev == p["device"]:"" )); //Storage::GetSubDev( subdevkey );
+      map p = find(map part, parts_data, ``( scan_dev == part["device"]:"" )); //Storage::GetSubDev( subdevkey );
       p["maindev"]      = subdevkeys["disk"]:"";
 
       if( p["mount"]:"" != "" )

@@ -1,0 +1,41 @@
+/**
+ *  Init.ycp
+ *  Test of yast2-repair initialization
+ *  Jiri Suchomel <jsuchome@suse.cz>
+ *  $Id$
+ */
+
+{
+    // testedfiles: OSRRepairUI.ycp OSR.ycp OSRCommon.ycp
+
+    include "testsuite.ycp";
+
+    map I_READ = $[
+	"probe" : $[
+	    "cdrom" : $[
+		"manual" : [],
+	    ],
+	    "is_uml" : false,
+	],
+	"proc" : $[
+	    "modules": $[]
+	],
+	"target" : $[
+	    "size" : -1,
+	    "tmpdir" : "/tmp/",
+	],
+    ];
+
+    map I_EXEC = $[
+	"target": $[
+	    "bash_output" : $[],
+	],
+    ];
+    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+
+    import "OSRRepairUI";
+    import "OSRCommon";
+
+    DUMP (sformat ("tool name: %1", OSRCommon::tool_name));
+
+}

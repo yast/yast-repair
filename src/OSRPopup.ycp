@@ -240,7 +240,7 @@
     // is returned,
     // in detection-mode no window is displayed and false (== Skip)
     // is returned -> only detection, no repair
-    if (OSRMode::automatic || OSRMode::detection )
+    if (OSRMode::automatic || OSRMode::detection)
     {
 	return true;
     }

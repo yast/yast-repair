@@ -964,7 +964,6 @@ press \"Yes\".
 		fstab_defaults ["pts", "spec"]:""
 	    ]
 	);
-
       dev2check = (list<string>) union (dev2check,
 	maplist (map d, StorageDevices::cddrives,
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
@@ -997,7 +996,6 @@ press \"Yes\".
 	  if (! contains (valid_lines, lnr))
 	      check_fstab_line(lnr);
       });
-
       // check all mountable partitions + swap + usb+ proc +...
       foreach (string p, devices2check(), ``{
 	  y2milestone("-----check partition and usb,proc,pts %1", p);
@@ -1897,7 +1895,9 @@ lines, press \"Yes\".
     list<symbol> ret = [];
 
     if (Mode::test ())
+    {
 	return `ok;
+    }
 
     if (size (missing_devs) > 0) {
 	y2milestone ("-------------- missing devices: %1", missing_devs);
@@ -1936,7 +1936,6 @@ lines, press \"Yes\".
 
     ResetSettings();
     y2milestone("check root fstab entry");
-
     swapable_partition_list	= tswapable_partition_list;
     checked_partitions		= tchecked_partitions;
     boolean ret			= false;

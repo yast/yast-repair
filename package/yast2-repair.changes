@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec  1 12:24:30 CET 2004 - jsuchome@suse.cz
+
+- basic testsuite added
+- 2.11.3 
+
+-------------------------------------------------------------------
 Thu Nov  4 10:26:41 CET 2004 - jsuchome@suse.cz
 
 - lookup and select calls replaced by []

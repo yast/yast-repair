@@ -15,8 +15,6 @@
     textdomain "repair";
 
     import "Kernel";
-    import "Packages";
-    import "PackageCallbacks";
     import "Mode";
     import "Report";
     import "Wizard";
@@ -195,6 +193,10 @@ is not possible.</P>
 
     define list<string> get_minimal_selection () ``{
 
+	if (Mode::test ())
+	{
+	    return [ "test" ];
+	}
 	if (minimal_selection == [] || minimal_selection == nil)
 	{
 	    minimal_selection = (list<string>)
@@ -215,6 +217,10 @@ is not possible.</P>
      * Open the package database.
      */
     global define boolean OpenPkg( string root )``{
+
+	if (Mode::test ()) return true;
+
+	import "Packages";
 
 	y2milestone("Open pkg database with target system  -%1-", root );
 	if (root != "" && root != nil ) root_mountpoint = root;
@@ -284,6 +290,8 @@ database or reverting a backup.
      * @return true if product are the same
      */
     global define boolean CheckProductVersions () {
+
+	if (Mode::test ()) return true;
 
 	integer source_id	= 1;
 
@@ -767,6 +775,9 @@ install the missing packages.</P>
      * @param reset Clear missing_packages before start verifying.
      */
     global define symbol VerifyPackages(string root, string what , boolean expert_mode, boolean reset )``{
+
+	if (Mode::test ())
+	    return `next;
 
 	if (root != "" && root != nil )
 	{

@@ -13,6 +13,7 @@
     module "OSRSystem";
 
     import "Installation";
+    import "Mode";
     import "Report";
 
     import "OSRStatus";
@@ -40,7 +41,7 @@
      */
     global define boolean ChangeRoot(string new_root )``{
 
-      if( new_root != root )
+      if( new_root != root && ! Mode::test())
       {
 	  y2milestone("changing root environment from %1 to %2",root, new_root);
 
@@ -111,52 +112,4 @@ system was not successful."));
     }
 
 
-  /**
-   *  Checks if the first specified list (of strings) is a subset of
-   *  the second one. The sequence of entries in the lists is nonrelevant.
-   *
-   *  For internal use only.
-   *  See the testsuite.
-   *
-   *  @example OSRIsSubSet([], ["a", "b"]) -> true;
-   *  @example OSRIsSubSet(["a"], ["a", "b"]) -> true;
-   *  @example OSRIsSubSet(["c"], ["a", "b"]) -> false;
-   *  @example OSRIsSubSet(["a", "b", "c"], ["a", "b"]) -> false;
-   *  @param list The first list.
-   *  @param list The second list.
-   *  @return True if all elements of l1 are contained in l2 or if l1 is empty.
-   */
-  global define boolean IsSubSet(list l1, list l2) ``{
-
-      integer index = 0;
-
-      // remove duplicate entries and sort the lists
-      l1 = toset(l1);
-      l2 = toset(l2);
-
-      // check special cases
-      if ((size(l1) < 0) || (size(l2) < 0))   return false;
-
-      else if (size(l1) > size(l2))  return false;
-
-      else if ((size(l1) == 0)) return true;
-
-      else if (size(l1) <= size(l2))
-      {
-	  // this is the main subset-checker
-	  while ((index >= 0) && (index < size(l1)))
-	  {
-	      if (!contains (l2, l1[index]:""))
-	      {
-		  return false;
-	      }
-	      index = index + 1;
-	  }
-	  return true;
-      }
-      else
-      {
-	  return false;
-      }
-  };
 }

@@ -19,6 +19,7 @@
   import "OSRExecute";
   import "OSRPopup";
 
+  import "Mode";
   import "Storage";
   import "Partitions";
 
@@ -119,7 +120,7 @@ repair.</p>
 
       foreach(string partition_item, partition_list, ``{
 
-	  if ( contains(already_swapped_on, partition_item) )
+	  if (contains(already_swapped_on, partition_item) || Mode::test ())
 	  {
 	      // this partition is already swapped on,so it seems to be swapable
 	      swap_possible_list = add( swap_possible_list, partition_item );

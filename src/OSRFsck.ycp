@@ -189,14 +189,6 @@
    */
   global define list<map> PossiblePartitions()``{
 
-      if ( Mode::test () )
-      {
-	return [
-	    $[ "maindev"	: "/dev/hda1" ],
-	    $[ "maindev"	: "/dev/hda2" ]
-	];
-      }
-
       list<map> partitions =	[];
 
       foreach(string dev, map target, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{

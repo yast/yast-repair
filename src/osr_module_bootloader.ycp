@@ -140,22 +140,10 @@
 
       //Change root back to / for Boot::Set()
       OSRSystem::SetOrgRoot();
-//      Boot::Set();
-      Bootloader::Propose();
+      if (!Mode::test ())
+	Bootloader::Propose();
       OSRSystem::SetTargetRoot();
 
-      // compare expected with actual boot, root device
-      /*
-      y2milestone("Boot::Set() new root %1 and boot %2 device", Boot::RootPartitionDevice, Boot::BootPartitionDevice);
-      if( Boot::BootPartitionDevice != OSRBoot::boot_device )
-      {
-      y2error(" boot_device and Boot::BootPartitionDevice differ");
-      }
-      if( Boot::RootPartitionDevice != OSRBoot::root_device )
-      {
-      y2error(" boot_device and Boot::RootPartitionDevice differ");
-      }
-      */
       string root_device = Bootloader::getRootDevice();
       string boot_device = Bootloader::getBootDevice();
       y2milestone("Boot::Set() new root %1 and boot %2 device", root_device,
@@ -391,7 +379,7 @@ these packages.
             mergestring(OSRBoot::PackageVersionStrings(bootloader,
                 OSRBoot::BootloaderPackages(bootloader)), "<br>")));
 
-      OSRCommon::ProvideBoolean("bootloader_packages_version", true);
+	OSRCommon::ProvideBoolean("bootloader_packages_version", true);
       }
       else {
         OSRSummary::DetectError("",
