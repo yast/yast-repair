@@ -32,7 +32,6 @@
 
 //    include "lilo/routines.ycp";
     textdomain "repair";
-    
 
     /**
      * Configuration files needed by every boot loader
@@ -391,7 +390,6 @@
      *        what = "verify"    if all packages are not damaged
      */
     global define boolean CheckLoaderPackages(string loader, string root, string what )``{
-	include "require.ycp";
 
 	if( loader 	!= "") bootloader 	= loader;
 	if( root 	!= "") root_mountpoint	= root;
@@ -402,15 +400,15 @@
 
 	// check all needed packages
 	foreach(string package, BootloaderPackages( bootloader ), ``{
-	    
+
 	    if( what == "installed" )
 	    {
-		if(! IsPackageInstalled ( package ) ) {
+		if(! Pkg::IsProvided ( package ) ) {
 		    missing_packages = add(missing_packages, package);
 		}
 		else {
 		    y2milestone("installed package %1", package );
-		}	
+		}
 		// TODO check dependencies
 	    }
 	    else if ( what == "verify" )
@@ -459,7 +457,7 @@
      * Install all missing package if the user accept.
      */
     global define symbol InstallLoaderPackage(string loader, string root, string install_reason )``{
-	include "require.ycp";
+//	include "require.ycp"; FIXME: why??
 
 	if( loader 	!= "" ) bootloader 	= loader;
 	if( root 	!= "" ) root_mountpoint	= root;
@@ -513,7 +511,6 @@ Press Repair to install these packages.
 
 	//add found modules to Boot::initrdModules
 	foreach(string m, storage_initrd, ``{
-//	    Boot::AddInitrdModule (m, "");
         Initrd::AddModule (m, "");
 	});
 
@@ -768,7 +765,6 @@ contains no errors, press Cancel.
 	if ( ! regexpmatch(grub_device, ".fd.*"))
 	{
 //	    ret = grub2Lilo(grub_device );
-    // TODO FIXME: check this!
     BootGRUB::readDeviceMap();
     ret = BootGRUB::grubDev2unixDev(grub_device);
 	}
@@ -845,25 +841,28 @@ contains no errors, press Cancel.
      * Test if stage1 exist.
      */
     define boolean check_grub_stage1( string stage1 )``{
-	if ( stage1 == "" ) 
+	if ( stage1 == "" )
 	{
 	    stage1 = bootloader_config_check[bootloader, "stage1"]:"";
 	}
-	return OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, stage1 ));
+    // FIXME: file can be on other partition! (= grub_root) -> hack:
+	return OSRExecute::Command(.local.bash, sformat(
+        "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage1));
     }
 
     /**
      * Test if stage2 exist.
      */
     define boolean check_grub_stage2(string stage2)``{
-	return OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, stage2 ));
+    // FIXME: file can be on other partition! (= grub_root) -> hack:
+	return OSRExecute::Command(.local.bash, sformat(
+        "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage2 ));
     }
 
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // grub menu file checks 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+    ///////////////////////////////////////////////////////////////////////////
+    // grub menu file checks
+    ///////////////////////////////////////////////////////////////////////////
+
     /**
      * Checks the keys of one map.
      */
@@ -878,7 +877,7 @@ contains no errors, press Cancel.
 	});
 	return ! error_found;
     }
-    
+
     /**
      * Check the keys of the specified map.
      * @param entries = $["color":"white/blue black/light-gray",
@@ -972,7 +971,7 @@ contains no errors, press Cancel.
 	    menu_dev  = substring(menu, 0, findfirstof(menu, ")") +1 );
 	    menu_path = substring(menu, findfirstof(menu, ")") +1 );
 	}
-	y2milestone("menu_path %1, menu_dev %2, menu: %3",menu_path,menu_devmenu);
+	y2milestone("menu_path %1, menu_dev %2, menu: %3",menu_path,menu_dev,menu);
 	
 	if( menu_dev != "" && ! exists_grub_device(menu_dev ) )
 	{
@@ -980,7 +979,8 @@ contains no errors, press Cancel.
 	    y2error("grub menu device not found %1", menu);
 	    return false;
 	}
-	if( !  OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, menu_path )))
+	if(!OSRExecute::Command(.local.bash, sformat(
+        "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, menu_path)))
 	{
 	    invalid_config_files = add(invalid_config_files, menu_path );
 	    y2error("grub menu file not found: %1",menu_path);
@@ -1002,7 +1002,7 @@ contains no errors, press Cancel.
 
 	    // check keys in the grub menu file
 	    boolean ret = check_grub_global_options(global_options) && check_grub_menu_entries(sections);
-		
+
 	    if( ! ret )
 	    {
 		y2error("the grub menu file is not valid");
@@ -1013,7 +1013,6 @@ contains no errors, press Cancel.
     }
 
 
-    
     /**
      * Check the grub device map.
      */
@@ -1034,10 +1033,10 @@ contains no errors, press Cancel.
 	    invalid_config_files = add(invalid_config_files, bootloader_config_check[bootloader, "device_map"]:"" );
 	    return false;
 	}
-		
+
 	list maps = filter (string e, splitstring (dev_map, "\n"), ``(e != ""));
 	maps      = maplist (string e, maps, ``{return filter (string f, splitstring (e, " \t"), ``(f != ""));});
-	
+
 	boolean error_found = false;
 	foreach (string e, maps, ``{
 	    if ( ! error_found )
@@ -1051,16 +1050,16 @@ contains no errors, press Cancel.
 		if( error_found ) y2error("grub device map: device not found %1",  select (e, 0, ""));
 	    }
 	});
-	
+
 	if ( error_found == nil || error_found  )
 	{
 	    invalid_config_files = add(invalid_config_files,  bootloader_config_check[bootloader, "device_map"]:"" );
-	    
+
 	    return false;
 	}
 	return true;
     }
-    
+
     /**
      * Check the sysntax of grub configuration files:
      * /boot/grub/device.map
@@ -1076,7 +1075,7 @@ contains no errors, press Cancel.
 	// (hd1)   /dev/hdb
 	boolean grub_device_map = check_grub_device_map();
 	if ( ! grub_device_map ) { y2error("grub decide map contains errors2");		grub_device_map = false; }
-	
+
 	/* systax of grub_conf
 	  $["addr":"0x8000",  "device":"(hd0)", "discswitch":true, "menu":"(hd0,2)/boot/grub/menu.lst",
 	    "root":"(hd0,2)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/boot/grub/stage1",
@@ -1085,25 +1084,45 @@ contains no errors, press Cancel.
     string conf_file_contens = SCR::Read(.target.string,
         bootloader_config_check[bootloader, "config_file"]:"");
 	map grub_conf = BootGRUB::parseGrubConf(conf_file_contens);
-	boolean grub_device 	= check_grub_device(grub_conf["device"]:"" );
-	boolean grub_root   	= check_grub_root(grub_conf["root"]:"" );
-	boolean grub_addr   	= check_grub_addr(grub_conf["addr"]:"" );
-//	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:"");
-	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:false);
-	boolean grub_stage1 	= check_grub_stage1(grub_conf["stage1"]:"");
-	boolean grub_stage2 	= check_grub_stage2(grub_conf["stage2"]:"");
+	boolean grub_device	    = check_grub_device(grub_conf["device"]:"" );
+	boolean grub_root       = check_grub_root(grub_conf["root"]:"" );
+	boolean grub_addr       = check_grub_addr(grub_conf["addr"]:"" );
+	boolean grub_discheck	= check_grub_discswitch(grub_conf["discswitch"]:false);
+	boolean grub_stage1	    = check_grub_stage1(grub_conf["stage1"]:"");
+	boolean grub_stage2	    = check_grub_stage2(grub_conf["stage2"]:"");
 
 	// if grub_XXX is nil -> set false;
-	if ( ! grub_device )     { y2error("grub conf device entry is invalid"); 	grub_device = false; }
-	if ( ! grub_root   )     { y2error("grub conf root entry is invalid");   	grub_root   = false; }
-	if ( ! grub_addr   )     { y2error("grub conf addr entry is invalid");   	grub_addr   = false; }
-	if ( ! grub_discheck)    { y2error("grub conf discswitch entry is invalid"); 	grub_discheck = false;} 
-	if ( ! grub_stage1 )     { y2error("grub conf state1 is invalid"); 		grub_stage1 = false; }
-	if ( ! grub_stage2 )     { y2error("grub conf state2 is invalid");	 	grub_stage2 = false; }
+	if ( ! grub_device ) {
+        y2error("grub conf device entry is invalid");
+        grub_device = false;
+    }
+	if ( ! grub_root   ) {
+        y2error("grub conf root entry is invalid");
+        grub_root   = false;
+    }
+	if ( ! grub_addr   ) {
+        y2error("grub conf addr entry is invalid");
+        grub_addr   = false;
+    }
+	if ( ! grub_discheck) {
+        y2error("grub conf discswitch entry is invalid");
+        grub_discheck = false;
+    }
+	if ( ! grub_stage1 ) {
+        y2error("grub conf state1 is invalid");
+        grub_stage1 = false;
+    }
+	if ( ! grub_stage2 ) {
+        y2error("grub conf state2 is invalid");
+        grub_stage2 = false;
+    }
 
 	// check grub menu file default /boot/grub/menu.lst
-	boolean grub_menu  	= check_grub_menu(grub_conf["menu"]:"" );
-	if ( ! grub_menu   )     { y2error("gurb  menu  is invalid");            	grub_menu   = false; }
+	boolean grub_menu	= check_grub_menu(grub_conf["menu"]:"" );
+	if ( ! grub_menu   ) {
+        y2error("grub menu is invalid");
+        grub_menu = false;
+    }
 
 
 	if( grub_device && grub_root && grub_addr && grub_menu && grub_discheck && grub_stage1 && grub_stage2 && grub_device_map )
@@ -1120,7 +1139,7 @@ contains no errors, press Cancel.
 	    {
 		menu_path = substring(menu_path , findfirstof(menu_path, ")") +1 );
 	    }
-	    
+
 	    help_text = _("
 <p>A default GRUB installation needs three
 configuration files:</p>
@@ -1177,7 +1196,7 @@ is bootable, press Cancel.
 	error_message 		= "";
 	help_text 		= "";
 	invalid_config_files 	= [];
-	
+
 	if(! eval( bootloader_config_check[bootloader, "config_check" ]:``{
 	    y2error("check boot loader config not support");
 	    bootloader_error_found = true;
@@ -1196,31 +1215,11 @@ is bootable, press Cancel.
      */
     global define symbol repair_grub_config()``{
 
-/*
-	symbol ret  	     	     = `next;
-	list(string) possible_loader =  ["grub", "lilo"];
-
-//	if ( ! contains( possible_loader, Boot::LoaderType ))
-	if ( ! contains( possible_loader, Bootloader::getLoaderType ))
-	{
-//	    Boot::LoaderType = possible_loader[0]:"";
-	    Bootloader::setLoaderType (possible_loader[0]:"");
-	}
-
-    string type = OSRPopup::RadioButtonGroup( _("Select Boot Loader Type"),
-						_("Select the type of the new boot loader."),
-						possible_loader, Bootloader::getLoaderType(), false );
-
-//	if ( Boot::LoaderType == "" ) return `abort ;
-	if ( type == "" ) return `abort ;
-	Bootloader::setLoaderType (type);
-*/
-
-	// change root for boot loader module call
-	OSRSystem::ChangeRoot("/");
+	// change root for boot loader module call - why??
+//	OSRSystem::ChangeRoot("/"); // FIXME -> this can cause bad detection??
 	Bootloader::setLoaderType (nil);
     Bootloader::Reset();
-    Bootloader::Propose();
+    Bootloader::Propose(); // does not read current configuration...
 	map retmap = CallFunction(`bootloader_proposal("AskUser", $[]));
     symbol ret = retmap["workflow_sequence"]:`next;
 
@@ -1229,25 +1228,12 @@ is bootable, press Cancel.
         // message popup: wait for action
 	    UI::OpenDialog(`Label(_("Saving new boot loader configuration...")));
 
-	    // get list of bootable 'foreign' primary partitions
-	    // ["<device> <comment>", "<device> <comment>", ...]
-        /*
-        -- this should be done in Propose
-	    list foreign_primaries = Storage::GetForeignPrimary();
-
-	    // boot concept
-	    if (foreign_primaries != nil)
-	    {
-		Boot::others = foreign_primaries;
-	    }
-        */
-
-	    OSRSystem::ChangeRoot( root_mountpoint );
+//	    OSRSystem::ChangeRoot( root_mountpoint );
 
 	    // prepare environment for saving boot loader settings
 	    string destproc = "/proc";
 	    SCR::Execute (.target.mkdir, destproc, 0755);
-	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");   
+	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
         Progress::off();
@@ -1255,11 +1241,10 @@ is bootable, press Cancel.
         Progress::on();
 
 	    UI::CloseDialog();
-	    if ( g_ret ) {
-        // message popup
-		Report::Message(_("\nThe boot loader was installed successfully.
+	    if ( g_ret )
+            // message popup
+		    Report::Message(_("\nThe boot loader was installed successfully.
 "));
-	    }
 
 	    SCR::Execute (.target.umount, "/proc");
 	    WFM::Execute(.local.umount, root_mountpoint + "/proc" );

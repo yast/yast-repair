@@ -376,7 +376,8 @@ Error during initialization.
       while((index >= 0) && (index < size( module_function_list)))
       {
 	  // the result of this evaluation is the module_map of the specific module
-	  map result_map = CallFunction( module_function_list[index]:`Empty() );
+	  map result_map =
+        CallFunction( module_function_list[index]: ``{ return $[]; } );
 
 	  if ((result_map == nil) || (result_map == $[]))
 	  {
@@ -422,7 +423,7 @@ of module: %1. YaST systemr epair halts now!",
 	  
 	  global_entries   = union( global_entries,  result_map["global_entries"]:$[]);
 
-	  OSRDirect::AddEntries( result_map["direct_methods"]:[], module_function_list[index]:`Empty()  );
+	  OSRDirect::AddEntries( result_map["direct_methods"]:[], module_function_list[index]:`Empty()  ); // FIXME: Empty is not good default...
 	  
 	  // delete the detect_methods from the result_map (it should not appear in the osr_map)
 	  result_map = filter(`k, `v, result_map, ``(k != "detect_methods" &&
@@ -543,8 +544,8 @@ modules were successfully solved.
 	      {
 		  // next step can not be executed - skip execution
 		  
-		  OSRLogFile::Add(sformat("Detection mehtod with the summery :%1 could not be executed.
-The conditions are not complied.",module_detection_methods["summery"]:"")); 
+		  OSRLogFile::Add(sformat("Detection method with the summary :%1 could not be executed.
+The conditions are not complied.",module_detection_methods["summary"]:"")); 
 		      
 		  y2error("Skip detection method (requires not solved ) %1", lookup(method_map , "method", ``(osr_empty())));
 		  return true;
@@ -579,10 +580,10 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
 		      boolean ret = eval( lookup(current_reset_map , "method", ``(osr_empty()) ) );
 		      if(ret == true )
 		      {
-			  y2milestone("%1 : was successfull", current_reset_map["summery"]:"");
+			  y2milestone("%1 : was successfull", current_reset_map["summary"]:"");
 		      }
 		      else {
-			  y2milestone("%1 : was not successfull", current_reset_map["summery"]:"");
+			  y2milestone("%1 : was not successfull", current_reset_map["summary"]:"");
 		      }
 		  }
 	      }

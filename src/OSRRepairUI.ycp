@@ -753,6 +753,7 @@ Then select one proposal or cancel the repair. </P>
   }
 
 
+  // TODO: why LanguageDialog is not called before InitDialog?
   define symbol LanguageDialog()``{
       symbol ret = `next;
       do
@@ -786,7 +787,7 @@ global define symbol OsrMainDialog() ``{
     
     map aliases = $[
 		    "abort"  		: ``(AbortDialog() ),
-		    "start"		: ``(StartDialog() ),
+            "start"		: ``(StartDialog() ),
 		    "scan_options"	: ``(ScanOptionsDialog()),
 		    "direct_repair"	: ``(RepairToolsDialog()),
 		    "detect"		: ``(DetectDialog()),
@@ -827,7 +828,7 @@ global define symbol OsrMainDialog() ``{
         ]
     ];
 
-    
+
     if( Mode::initial )
     {
 	aliases["language"]  =  ``(LanguageDialog());

@@ -51,7 +51,6 @@
       Wizard::CreateDialog();
   }
 
-
   // ===== Init the Rescue System =================================
   symbol ret = OSRRepairUI::InitDialog();
 

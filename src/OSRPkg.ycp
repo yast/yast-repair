@@ -181,8 +181,7 @@ is not possible.</P>
 
 		architecture_packages = Packages::ComputeSystemPackageList();
 		y2milestone("Add architecture packages %1", architecture_packages );
-	
-			
+
 		//reset root environment
 		OSRSystem::ChangeRoot(root);
 
@@ -210,8 +209,7 @@ database or reverting a backup.
 	}
 	return target_initialized && source_initialized;
     }
-    
-    
+
     /**
      * Return false if db files are missing.
      * Save missing files in the list not_found_files.
@@ -630,7 +628,6 @@ install the missing packages.</P>
 
         minimal = Pkg::SelectionContent("Minimal", false, "");
         minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
-        //y2internal ("minimal: %1", minimal);
 
         //Packages::ComputeSystemPackageList();
 

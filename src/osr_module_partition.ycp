@@ -803,7 +803,7 @@ partition %1"), part)
           boolean fs_ok    = OSRFsck::Check( p );
           symbol  used_fs  = Storage::GetSubDevParam(Storage::GetSubDevKey( p["maindev"]:"", p["nr"]:0 ), "detected_fs" );
 
-          if ( fs_ok )
+          if ( fs_ok == true )
           {
             OSRSummary::DetectOK(summary_header,
                 // summary text, %1 is device, %2 file system type

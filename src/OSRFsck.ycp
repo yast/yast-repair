@@ -204,7 +204,7 @@
 	  
 	  foreach(symbol fs, map fs_map, fsck_map, ``{
 	      if ( fs != used_fs ) {
-		  if( eval( fs_map["find"]:`Empty()) )
+		  if( eval( fs_map["find"]:``{ return false; }))
 		  {
 		      new_used_fs = fs;
 		  }
@@ -224,7 +224,7 @@
       
       if ( used_fs != `unknown && used_fs != nil ) {
 	  // start check
-	  if( eval( lookup( fsck_map[used_fs]:$[], "check", `Empty() )))
+	  if( eval( fsck_map[used_fs, "check"]:``{ return false;}))
 	  {
 	      y2milestone("file system check successful executed");
 	      return true;
@@ -584,7 +584,7 @@ repair.</p>
 	  boolean ret = true;
 	  if( ! Mode::test )
 	  {
-	      ret = eval( lookup( fsck_map[used_fs]:$[], "repair", `Empty() ));
+	      ret = eval( fsck_map[used_fs, "repair"]:``{ return false;});
 	  }
 	  
 	  UI::CloseDialog();

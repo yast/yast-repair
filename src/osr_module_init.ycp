@@ -144,7 +144,7 @@ devices for later use.
   }
 
   global define boolean OSRInitTarget()``{
-
+//FIXME: value of "repair_target" is not used anywhere!!
       // summary text
       OSRSummary::DetectOK("", _("Target system initialized."));
 
