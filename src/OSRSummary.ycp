@@ -211,7 +211,7 @@ color
       if (UI::WidgetExists(`id(`details)))
 	  show_details = (boolean) UI::QueryWidget(`id(`details), `Value );
 
-      foreach (string group, list entries, summary, ``{
+      foreach (string group, list<map<string,any> > entries, (map<string,list<map<string,any> > >)summary, ``{
 
 	if (group == finish_key )
 	{
@@ -225,7 +225,7 @@ color
 	    string summary_text	= "";
 	    list<string> summary_list	= [];
 
-	    foreach (map entry, entries, ``{
+	    foreach (map<string,any> entry, entries, ``{
 
 		if (g_priority<OSRStatus::Priority(entry["status"]:"detect_ok"))
 		{
@@ -323,7 +323,7 @@ color
     map current_detect_map = OSRCommon::current_detect_map;
 
     list summary_entries = summary [current_detect_map["group"]:""]:[];
-    summary_entries = filter (map entry, summary_entries, ``(
+    summary_entries = filter (map<string,any> entry, (list<map<string,any> >)summary_entries, ``(
 	entry["header"]:"" != header ));
 
     /**

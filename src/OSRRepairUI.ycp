@@ -361,7 +361,7 @@ table or verify the package database.
 
       term left_box  = `VBox(`VSpacing(2));
       term right_box = `VBox(`VSpacing(2));
-      foreach( map option, start_dialog_entries, ``{
+      foreach( map<string,any> option, (list<map<string,any> >)start_dialog_entries, ``{
 	  left_box  = add( left_box,  `VWeight(10, `Left(`Label(option["description"]:""))));
 	  right_box = add( right_box, `VWeight(10, `Left(`PushButton(`id( option["symbol"]:`nothing ), `opt(`hstretch) , option["headline"]:"" ))));
       });
@@ -866,7 +866,8 @@ global define symbol OsrMainDialog() ``{
 	],
     ];
 
-    return WizardSequencer(aliases, sequence);
+    return WizardSequencer(aliases, sequence); //FIXME include
+//    return `back;
 }
 
 }//EOF

@@ -383,7 +383,7 @@ of module: %1. YaST system repair halts now!",
 	    module_function_list[index]:"");
 
 	  // delete the detect_methods from the result_map (it should not appear in the osr_map)
-	  result_map = filter (string k, any v, result_map, ``(
+	  result_map = filter (string k, any v, (map<string,any>) result_map, ``(
 	    k != "detect_methods" &&
 	    k != "static_provides" &&
 	    k != "global_entries"  &&
@@ -437,7 +437,7 @@ modules were successfully solved.
 
     // Add init groups ("mode" == "forall" )  to OSRCommon::detect_group_list
     return (list<string>) maplist (string m, map vv,
-	filter (string k, map v, OSRCommon::global_entries, ``(
+	filter (string k, map<string,any> v, (map<string,map<string,any> >)OSRCommon::global_entries, ``(
 	    v["mode"]:"" == "forall" )),
 	``( m ));
   }
@@ -456,7 +456,7 @@ modules were successfully solved.
    */
   define boolean requires_not_provided(list<string> requires )``{
     return !OSRSystem::IsSubSet (
-	    requires, maplist (string k, any v, global_provides,``(k)));
+	    requires, maplist (string k, any v, (map<string,any>)global_provides,``(k)));
   }
 
   /**
@@ -466,11 +466,11 @@ modules were successfully solved.
   define boolean requires_in_detection_group(list<string> requires )``{
 
     boolean req_not_in_detection_group = false;
-    foreach (string module_name, list module_detect_list,
-						module_detection_methods,``{
+    foreach (string module_name, list<map<string,any> > module_detect_list,
+	    (map<string,list<map<string,any> > >)module_detection_methods,``{
 
 	list<map> required_module_detection_methods = (list<map>)
-	    filter (map detect_method, module_detect_list, ``(
+	    filter (map<string,any> detect_method, module_detect_list, ``(
 		size (union (detect_method["provides"]:[], requires)) <
 		size (merge (detect_method["provides"]:[], requires)))
 	    );
@@ -1092,8 +1092,8 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
   global define integer CountGroupDetectMethodes( string group ) ``{
       integer counter = 0;
 
-      foreach(map module_name, list detect_maps, module_detection_methods, ``{
-	  foreach(map detect_map, detect_maps, ``{
+      foreach(any module_name, list<map<string,any> > detect_maps, (map<any,list<map<string,any> > >) module_detection_methods, ``{
+	  foreach(map<string,any> detect_map, detect_maps, ``{
 	      if( detect_map["group"]:"" == group ) counter = counter +1;
 	  });
       });
@@ -1172,7 +1172,7 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
   global define list<string> GroupKeys()``{
 
     return (list<string>)
-	maplist(string k, map v, OSRCommon::global_entries, ``( k ));
+	maplist(string k, map<any,any> v, (map<string,map<any,any> >)OSRCommon::global_entries, ``( k ));
   }
 
   /**

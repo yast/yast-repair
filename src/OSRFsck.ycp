@@ -161,9 +161,9 @@
       fs_kernel_modules     = [];
 
       list all_supportet_fs = maplist (symbol fs, map details,
-	    FileSystems::GetAllFileSystems(false, false ), ``(fs) );
+	    (map<symbol,map<any,any> >)FileSystems::GetAllFileSystems(false, false ), ``(fs) );
 
-      foreach (symbol fs, all_supportet_fs , ``{
+      foreach (symbol fs, (list<symbol>) all_supportet_fs , ``{
 	  fs_kernel_modules = (list<string>) union (
 	    fs_kernel_modules, FileSystems::GetNeededModules (fs));
       });
@@ -198,7 +198,7 @@
 
       list<map> partitions =	[];
 
-      foreach(string dev, map target, Storage::GetTargetMap(), ``{
+      foreach(string dev, map target, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
 	  foreach(map p, target["partitions"]:[],``{
 
 	      if ( p["delete"]:false == false &&
@@ -499,7 +499,7 @@ global define boolean Check(map part ) ``{
 	used_fs            = `unknown;
 	symbol new_used_fs = `unknown;
 
-	foreach (symbol fs, map fs_map, fsck_map, ``{
+	foreach (symbol fs, map fs_map, (map<symbol,map<string,any> >)fsck_map, ``{
 	    if ( fs != used_fs ) {
 		find_fs = fs_map["find"]:OSRCommon::False;
 		if (find_fs ())

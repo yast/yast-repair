@@ -106,8 +106,8 @@
 
   global define string PriorityStr(integer priority ) ``{
 
-      list status_list = maplist (string key, map val, status_map,``(val));
-      map pr_map = (map) find (map v, status_list,
+      list status_list = maplist (string key, map val, (map<string,map<any,any> >) status_map,``(val));
+      map pr_map = (map<string,any>) find (map<string,any> v, (list<map<string,any> >)status_list,
 	``( v["priority"]:1 == priority ));
       if ( pr_map != nil && pr_map != $[] )
 	  return pr_map["status_text"]:"detect_ok";
@@ -116,9 +116,9 @@
 
   global define string PriorityKey(integer priority ) ``{
 
-      list status_list = maplist (string key, map val, status_map,
+      list status_list = maplist (string key, map val,(map<string,map<any,any> >) status_map,
 	``( add (val, "key", key ) ));
-      map pr_map = (map) find (map v, status_list,
+      map pr_map = (map<string,any>) find (map<string,any> v, (list<map<string,any> >)status_list,
 	``( v["priority"]:1 == priority ));
       if ( pr_map != nil && pr_map != $[] )
 	  return pr_map["key"]:"";

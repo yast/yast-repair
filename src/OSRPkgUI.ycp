@@ -411,7 +411,7 @@ YaST verifies packages now."))),
 	{
 	    if (tab_pkg_status == "" ) tab_pkg_status = HTML::Bold("...");
 
-	    foreach (string key,  map line, pkg_data, ``{
+	    foreach (string key,  map line, (map<string,map<string,any> >)pkg_data, ``{
 
 		string color       = ( OSRPkgVerify::GreenPackageProblems(pkg_name, line ) == "" ) ? "red" : "green" ;
 		string file_status = HTML::Link(HTML::Bold(HTML::Colorize( line["status"]:"",  color)),  key );
@@ -472,7 +472,7 @@ YaST verifies packages now."))),
 	verified_text		 = "";
 	set_verify_text_header();
 
-	foreach (string pkg_name, map pkg_data, OSRPkgVerify::verified_packages,
+	foreach (string pkg_name, map pkg_data, (map<string,map<any,any> >) OSRPkgVerify::verified_packages,
 	``{
 	    update( pkg_name, pkg_data, false );
 	});
@@ -492,7 +492,7 @@ YaST verifies packages now."))),
 		contains (OSRPkgVerify::not_successful_verified, pkg_name)
 	    ] ]
 	);
-	foreach (string pkg, boolean reinstall , ret , ``{
+	foreach (string pkg, boolean reinstall, (map<string,boolean>) ret , ``{
 
 	    if (reinstall)
 	    {
@@ -622,7 +622,7 @@ the unsatisfied dependencies.
 		status = substring(status, 1);
 	    }
 	    
-	    foreach(list t, modes, ``{
+	    foreach(list t, (list<list<any> >)modes, ``{
 	
 		if (contains(not_passed, t[0]:"" ))
 		{
@@ -636,14 +636,14 @@ the unsatisfied dependencies.
 	    });
 
 	    string help_text = "";
-	    foreach(list d,  modes_help, ``{
+	    foreach(list d,  (list<list<any> >)modes_help, ``{
 		help_text = help_text  + "<P><B><BIG>" + d[0]:"" + "</BIG></B></P>" + "<P>" +d[1]:"" +"</P>";
 	    });
 	    string headline = sformat(_("Overview of the Executed Tests for the Package:  %1."),pkg_name);
 
 	    //get the minimal length of the headline and add blanks for the layout.
 	    integer minimal_size = 0;
-	    foreach(list mode, modes, ``{ minimal_size = ( minimal_size < size(mode[1]:"")) ? size(mode[1]:"") : minimal_size;});
+	    foreach(list mode, (list<list<any> >)modes, ``{ minimal_size = ( minimal_size < size(mode[1]:"")) ? size(mode[1]:"") : minimal_size;});
 	    minimal_size = minimal_size *2 - size(headline);
 	    y2milestone("minimal size %1", minimal_size);
 	    while( minimal_size > 0 )
