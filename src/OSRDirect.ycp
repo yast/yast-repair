@@ -199,8 +199,12 @@
 	    UI::BusyCursor();
 
 	    // really eval method
+	    /*
 	    if (method_data["client"]:"" != "")
 		WFM::CallFunction (method_data["client"]:"");
+	    FIXME this makes nothing, because clients do not do any work
+	    when no parameter is given
+	    */
 
 	    symbol () f = method_data["method"]:OSRCommon::SymbolError;
 	    ret = f ();
