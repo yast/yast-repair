@@ -1033,10 +1033,11 @@ and recover %1."),
 			    y2error("no free primary slot found. locical search not supported");
 			    // error popup, %1 is paritition number, %2 info
 			    Report::Error(sformat(_("
-Recovering the paritition %1 ( %2 ) is not
+Recovering the partition %1 (%2) is not
 possible. The partition number conflicts
-with an existing paritition. Solving the
-conflict is not possible."), part["nr"]:0, partition_info (part, target)));
+with an existing partition. Solving the
+conflict is not possible.
+"), part["nr"]:0, partition_info (part, target)));
 
 			    UI::ChangeWidget(`id(part["device"]:""), `Value, false);
 			    ret = `again;
