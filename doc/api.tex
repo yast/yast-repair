@@ -11,17 +11,22 @@ error-detection and repair. The framework consists of the following files
 in the directory \verb+y2m_os_repair/src/+\\
 
 \begin{tabular}{p{5cm}p{5cm}}
-\verb+osr.ycp+          & \verb+osr_popup.ycp+\\
-\verb+osr_provides.ycp+ & \verb+osr_module_progress.ycp+\\
-\verb+osr_system.ycp+   & \verb+osr_global_progress.ycp+\\
-\verb+osr_api.ycp+      & \verb+osr_log_file.ycp+\\
-\verb+osr_summary.ycp+  & \verb+osr_module_list.ycp+\\\\
+\verb+osr.ycp+               & \verb+osr_popup.ycp+\\
+\verb+osr_system.ycp+        & \verb+osr_provides.ycp+\\
+\verb+osr_api.ycp+           & \verb+osr_summary.ycp+\\
+\verb+osr_module_list.ycp+   & \verb+OSRLogFile.ycp+\\
+\verb+OSRModuleProgress.ycp+ & \verb+OSRGlobalProgress.ycp+\\\\
 \end{tabular}
+
+The files with upper-cased letters are special \verb+ycp+-files. They behave
+like {\em classes} in object-oriented programming languages. See the
+documentation in \verb+libycp/doc/modules.html+.\\
 
 Module files so far are\\
 
 \begin{tabular}{p{5cm}p{5cm}}
 \verb+osr_module_init.ycp+ & \verb+osr_module_lilo.ycp+\\
+\verb+osr_module_partition.ycp+ & \\
 \end{tabular}
 
 \section{Developing a new module}
@@ -32,16 +37,20 @@ A new module is named \verb+osr_module_<name>+ and is placed in a file
 
 To make the new module present to the framework a new
 entry like \verb+`osr_module_<name>()+ has to be added to the file
-\verb+osr_module_list.ycp+. This file contains all detection modules and
-is read by the framework on startup.
+\verb+osr_module_list.ycp+. This file contains all detection modules
+and is read by the framework on startup. The sequence of module-names
+is not stringent here.
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
-[
-`osr_module_init(),
-`osr_module_lilo()
-]
+{
+  return [
+    `osr_module_init(),
+    `osr_module_partition(),
+    `osr_module_lilo()
+  ];
+}
 \end{verbatim}}
 \end{boxitpara}
 \caption{Contents of the file {\tt osr\_module\_list.ycp} so far}
@@ -76,7 +85,7 @@ The key \verb+"headline"+ stores the headline to be displayed in the left
 RichText-widget of the main window.
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
 map osr_module_lilo = $[
      "name"                  :  "osr_module_lilo",
@@ -94,7 +103,7 @@ one after another, so the double-quotes are needed here. The sequence of
 the items in this list is stringent and equals the evaluation-sequence.
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
      "detect_methods"   :  [
           ``(OSRLiloCheckPackage()),
@@ -121,7 +130,7 @@ file-contents in \verb+/tmp/osr_global_provides+. See the code example
 \ref{requires}.\\
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
      "requires"         :  [
           "disk_device_list",
@@ -146,7 +155,7 @@ are solved. The sequence of execution will be $\left\{ C, A, B \right\}$.
 See the code example \ref{example}.\\
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
 map osr_module_A : $[
      "name"     : "osr_module_A",
@@ -181,10 +190,10 @@ map osr_module_C : $[
 \end{program}
 
 Values provided by this module are stored in the module-map at the key
-\verb+"provides"+. See code \ref{provides}.
+\verb+"provides"+. See code example \ref{provides}.
 
 \begin{program}[h!]
-\begin{boxitpara}{box 0.7 setgray fill}
+\begin{boxitpara}{box 0.9 setgray fill}
 {\footnotesize \begin{verbatim}
      "provides"         : $[
           "lilo_package_is_installed" : $[
