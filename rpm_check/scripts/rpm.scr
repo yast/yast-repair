@@ -1,23 +1,25 @@
 /**
  * File:
- *   runtime.scr
+ *   rpm.scr
  * Summary:
- *   SCR Agent for reading username information
+ *   SCR Agent for working with Red Hat Package Manager (rpm)
+ *   and creating/reading "rpm difference Data Base" (rpm_dDB)
+ *
  * Access:
- *   read-only
+ *   read-write
  * Authors:
- *   Unknown <yast2-hacker@suse.de>
+ *   Maksym Borovytskiy <maxxx@suse.de>
  * See:
  *   libscr
- *   man whoami
- * Example:
- *   Read(.runtime.username)
- *   ("root")
+ *   man rpm
+ *   rpm_check docs
+ *   rpm_check sources
  **
- * 
+ *
  * $Id$
  *
- * <p>Script that reads username with `whoami`</p>
+ * <p>agent for verifying of rpm-packages and manage 
+ * rpm_dDB (rpm difference Data Base)</p>
  */
 .rpm
 

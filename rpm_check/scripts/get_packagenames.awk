@@ -1,23 +1,26 @@
+# used by ag_rpm (rpm agent)
 # on stdin have to be attached the stream from common.pkd 
 BEGIN{
-	bool_section_begins = 0;
+	section_now = 0;
 	count = 0;
-	# the min_file_name -variable must be specified by calling programm (awk's option -v <var_name>=<value>)
-	# min_file_name - file MUST exists, otherwise it results endless loop 
+	# the min_file_name-variable must be specified by calling programm (awk's option -v <var_name>=<value>)
+	# min_file_name - file MUST exists, otherwise it results _endless_ loop! 
+	# ag_rpm (rpm agent) checks these conditions
 	while(getline < min_file_name ){
 		if( $0 ~ /^Llatsniot:/)
-			bool_section_begins = 0;
+			section_now = 0;
 		else{
 											# exclude comments
-			if ((bool_section_begins == 1) && ($0 !~ /^ *#/)){
+			if ((section_now == 1) && ($0 !~ /^ *#/)){
 				min_rpms[$0] = 0; # save rpm_names as keys and the dummy-value 0
 				count++;
 			}else
-				if( $0 ~ /^Toinstall:/) bool_section_begins = 1;
+				if( $0 ~ /^Toinstall:/) section_now = 1;
 		}
 	}
-	if (count == 0) { #ERROR: no one package found
-		print "get_packagenames.awk: ERROR: NO rpm names in file "min_rpms" found !!! " > "/dev/stderr";
+	if( count == 0){
+		# ERROR: no one package found
+		print "get_packagenames.awk: ERROR: NO rpm names in file "min_file_name" found !!! " > "/dev/stderr";
 		exit 2;
 	}
 }
@@ -27,8 +30,6 @@ match($0, /^Filename: */) > 0 {
 	# match for a rpm-package (.rpm - extension)
 	if( rpm_name ~ /\.rpm *$/){
 		sub(/\.rpm */, "", rpm_name);
-		if( rpm_name in min_rpms){
-			print rpm_name ;
-		}
+		if( rpm_name in min_rpms) print rpm_name ;
 	}
 }
