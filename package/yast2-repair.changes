@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 26 16:14:09 CET 2004 - jsuchome@suse.cz
+
+- correct values for cdrom and floppy in fstab
+- 2.9.7
+
+-------------------------------------------------------------------
 Mon Mar 22 11:27:33 CET 2004 - jsuchome@suse.cz
 
 - correctly set 'misc' wizard icon
