@@ -180,7 +180,7 @@
     /**
      * Default settings for /etc/grub.conf
      */
-    map grub_conf_defaults = $[ "discswitch"	: true,
+    map grub_conf_defaults = $[ "discswitch"	: "d",
 				"addr"		: "0x8000"];
 
     /**
@@ -834,11 +834,11 @@ contains no errors, press \"Skip\".
     /**
      *
      */
-    define boolean check_grub_discswitch (boolean discswitch)``{
+    define boolean check_grub_discswitch (string discswitch)``{
 
-	if (discswitch)
+	if (discswitch != "")
 	{
-	    if (discswitch != grub_conf_defaults["discswitch"]:false)
+	    if (discswitch != grub_conf_defaults["discswitch"]:"")
 	    {
 		y2error("grub discswitch (%1) changed not default %2",
 		    discswitch,  grub_conf_defaults["discswitch"]:"");
@@ -1109,7 +1109,7 @@ contains no errors, press \"Skip\".
 	boolean grub_device	= check_grub_device(grub_conf["device"]:"" );
 	boolean grub_root       = check_grub_root(grub_conf["root"]:"" );
 	boolean grub_addr       = check_grub_addr(grub_conf["addr"]:"" );
-	boolean grub_discheck	= check_grub_discswitch(grub_conf["discswitch"]:false);
+	boolean grub_discheck	= check_grub_discswitch(grub_conf["discswitch"]:"");
 	boolean grub_stage1	    = check_grub_stage1(grub_conf["stage1"]:"");
 	boolean grub_stage2	    = check_grub_stage2(grub_conf["stage2"]:"");
 
