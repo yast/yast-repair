@@ -1568,7 +1568,7 @@ system check is not possible.
 		// message popup %1 is partition, %2 filesystem type name
 		Report::Message(sformat(_("
 The partition %1 contains
-non-linux file system \"%2\".
+the non-Linux file system \"%2\".
 No partitions checks were done.
 "),scan_dev, FileSystems::GetName( used_fs, "unkonwn") ));
 	    else

@@ -686,7 +686,7 @@ data needed for booting the Linux system.
 Press \"Repair\" to have YaST generate a new
 configuration file. 
 
-If you sure that your configuration file
+If you are sure your configuration file
 contains no errors, press \"Skip\".
 ");
 	    return false;
@@ -1166,7 +1166,7 @@ contains errors.
 Press \"Repair\" to have YaST generate a new
 configuration.
 
-If you sure your configuration
+If you are sure your configuration
 contains no errors and your system
 is bootable, press \"Skip\".
 ");

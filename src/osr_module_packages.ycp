@@ -209,7 +209,7 @@ selection.</P>
                       $[
                     "name"      : "direct_methods_verify_packages",
                                       // module method acton label
-                    "button_text"   : _("Verify installed software"),
+                    "button_text"   : _("Verify Installed Software"),
                                       // module method description
                     "description"   : _("
 If you have problems with some installed
