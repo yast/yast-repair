@@ -282,7 +282,7 @@
 	term protocol	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
 
 	dialogs = add( dialogs,
-		       `HBox(`VSpacing(15),
+		       `HBox(`VSpacing(20),
 			     `VBox(
 				   `HSpacing(80),
 				   show_ok_term,
@@ -375,6 +375,56 @@ YaST verifies packages now."))),
     }
 
     /**
+     * Update the list of files, which failed during package verification
+     * returns contents of the richtext
+     */
+    define string update_files (string pkg_name, list<map> pkg_data) {
+
+	string ret			= "";
+	string tab_pkg_name_color	= contains (
+	    OSRPkgVerify::not_successful_verified, pkg_name) ? "red" : "blue" ;
+	string line_sf			= "<li>%1 %2 %3</li>%4";
+	string align			= "";
+	if (has_progress_widget)
+	{
+	    align	= "align=right";
+	    line_sf	= "<tr><td  colspan=2 align=right> %1</td>
+				<td>%2</td>
+                                <td %4>%3</td>
+			   </tr>";
+	}
+
+	foreach (map line, pkg_data, {
+
+	    string color	= line["green_status"]:"" == ""? "red": "green";
+	    string file_status	=
+	        HTML::Bold (HTML::Colorize (line["status"]:"", color));
+	    string file		= line["file"]:"";
+	    string config_file	= boolean2string (line["config_file"]:false);
+
+	    if (!has_progress_widget)
+	    {
+		file		= fill (file, 50, ".") + "..";
+		config_file	= fill (config_file, 7, ".");
+	    }
+
+	    if (line["more"]:false)
+	    {
+		file		= HTML::Link (
+		    // last entry of file list (cut because of length)
+		    HTML::Colorize (_("more..."), tab_pkg_name_color),
+		    pkg_name + "_more_packages"
+		);
+		config_file	= "";
+		file_status	= "";
+	    }
+
+	    ret = ret + sformat(line_sf, file, config_file, file_status, align);
+	});
+	return ret;
+    }
+
+    /**
      * Add a new package entry to the internal list and the displayed text.
      * Update the process bar too.
      * Afterwards call repaint define.
@@ -390,60 +440,36 @@ YaST verifies packages now."))),
 	    OSRPkgVerify::not_successful_verified, pkg_name) ? "red" : "blue" ;
 	string tab_pkg_name		= HTML::Link (HTML::Bold (
 	    HTML::Colorize (pkg_name, tab_pkg_name_color)), pkg_name);
-	string line_sf			= "<li>%1 %2 %3</li>%4";
-	string align			= "";
-	if (has_progress_widget)
-	{
-	    align	= "align=right";
-	    line_sf	= "<tr><td  colspan=2 align=right> %1</td>
-				<td>%2</td>
-                                <td %4>%3</td>
-			   </tr>";
-	}
-
 
 	boolean ok	= size (OSRPkgVerify::verify_data) == 0;
 	if (ok)
 	{
-	    tab_pkg_status = HTML::Link (HTML::Bold (
-		HTML::Colorize ("ok", "blue")), pkg_name2ok_key(pkg_name));
+	    tab_pkg_status = HTML::Link (
+		HTML::Bold (HTML::Colorize ("ok", "blue")),
+		pkg_name2ok_key (pkg_name)
+	    );
 	}
 	else
 	{
 	    if (tab_pkg_status == "" ) tab_pkg_status = HTML::Bold("...");
-
-	    foreach (string key, map line, OSRPkgVerify::verify_data, {
-
-		string color	= line["green_status"]:"" == ""? "red": "green";
-		string file_status =
-		    HTML::Bold (HTML::Colorize (line["status"]:"", color));
-		string file        = line["file"]:"";
-		string config_file = boolean2string (line["config_file"]:false);
-
-		if (!has_progress_widget)
-		{
-		    file	= fill (line["file"]:"", 50, ".") + "..";
-		    config_file = fill (config_file, 7, ".");
-		}
-		tab_body = tab_body + sformat (line_sf,
-		    file, config_file, file_status, align);
-	    });
+	    tab_body	= update_files (pkg_name, OSRPkgVerify::verify_data);
 	}
 
-	if (has_progress_widget)
-	{
-	    line_sf = "<tr><th>%1</th>
+	string line_sf = "<tr><th>%1</th>
                                     <th></th>
                                     <th></th>
                                     <th %4> %2</th> %3
                                 </tr>";
-	}
-	else {
-	    string n1    = HTML::Bold (_("Package:"));
-	    string n2    = HTML::Bold (ok ? "": _("Files:")) + "<br>";
-	    line_sf	 =
+	string align	= "align=right";
+
+	if (!has_progress_widget)
+	{
+	    string n1	= HTML::Bold (_("Package:"));
+	    string n2   = HTML::Bold (ok ? "": _("Files:")) + "<br>";
+	    line_sf	=
 		"<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
 	    tab_pkg_name = tab_pkg_name + fill ("", 60 - size(pkg_name), ".");
+	    align	= "";
 	}
 
 	string table	=
@@ -458,11 +484,63 @@ YaST verifies packages now."))),
 	return repaint();
     }
 
+    /**
+     * Show the complete ouptput of package verification
+     * (in the summary, it is limited to OSRPkgVerify::max_files entries)
+     */
+    define symbol show_complete_verify_list (string pkg_name) {
+
+	UI::OpenDialog (`HBox (
+	    `HSpacing (3),
+	    `VSpacing (OSRPkgVerify::max_files + 10),
+	    `VBox (
+		`HSpacing(80),
+		`VSpacing (1),
+		// label - %1 is package name; file list (=result) will follow
+		`Label (sformat (_("Result of package '%1' verification"),
+		    pkg_name)),
+		`VSpacing (1),
+		`RichText (`id (`files), `opt(`vstretch, `autoScrollDown), ""),
+		`PushButton (`id(`ok), Label::OKButton())
+	    ),
+	    `HSpacing(3)
+	));
+
+	UI::BusyCursor ();
+
+	OSRExecute::CommandOutput (.local.bash,
+	    sformat("LANG=ENG /bin/rpm --root %2 -V %1", pkg_name,
+	    OSRPkgVerify::root_for_verification));
+
+	map out = OSRPkgVerify::convert_verify_output (
+	    pkg_name, OSRExecute::stdout, true);
+
+	string start	= "";
+	string end	= "";
+        if (has_progress_widget)
+	{
+	    start	= sformat (
+		"<table><tr>
+		    <th colspan=2 align=right>%1</th>
+		    <th>%2</th>
+		    <th align=right>%3</th>
+		</tr>",
+		_("Files "), _("Configuration File"), _("Status"));
+	    end		= "</table>";
+	}
+	UI::ChangeWidget (`id(`files), `Value,
+	    start + update_files (pkg_name, out["verify_data"]:[]) + end);
+
+	UI::NormalCursor ();
+	UI::UserInput ();
+	UI::CloseDialog ();
+	return `again;
+    }
 
     /**
      * popup with the summary of the package
      */
-    define symbol show_package_details (string pkg_name)``{
+    define symbol show_package_details (string pkg_name) {
 	// popup headline
 	map ret = OSRPopup::CheckBoxDialog (_("Package Details:"),
 	    Pkg::PkgSummary (pkg_name),
@@ -488,6 +566,7 @@ YaST verifies packages now."))),
 	return `next;
     }
 
+
     /**
      * Toggle the pause button between pause and continue.
      */
@@ -508,146 +587,6 @@ YaST verifies packages now."))),
 	    }
 	}
     }
-
-    /**
-     * Show the details of a package in a new dialog.
-     * @param pkg_name The name of the package e.g.: filesystem
-     * @param file	The file (of this package) which user clicked on
-     *
-    define symbol show_verify_details (string pkg_name, string file) {
-
-	map pkg_data = OSRPkgVerify::GetVerifiedFile (pkg_name, file);
-
-	string status		= pkg_data["status"]:"";
-	if (status == OSRPkgVerify::missing )
-	{
-	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
-	    Popup::AnyMessage(sformat(_("The file %1 is missing."), pkg_data["file"]:""),
-sformat(_("The file %1 is part of the
-package %2, but was not found.
-"), pkg_data["file"]:"", pkg_name ));
-
-	}
-	else if (status == OSRPkgVerify::unsatisfied )
-	{
-	    //rpm output e.g.: unsatisfied dependencies for SDL_mixer-1.2.4-55: libvorbisfile.so.3
-	    Popup::AnyMessage(_("Unsatisfied Dependencies:"),
-sformat("
-%1
-
-Please close the YaST2 system check and
-start the YaST2 software module to solve
-the unsatisfied dependencies.
-", pkg_data["file"]:""));
-
-	}
-	else if (status != "")
-	{
-	    list<string> special = [];
-	    string header = "";
-	    string line   = "";
-	    string end    =  "</table>";
-	    if (has_progress_widget)
-	    {
-		special = [ "width=400", "width=20", "width=270", "width=110"];
-		header = sformat("<table %4><tr><th %5>%1 <th %6>%2 <th %7>%3</tr>",
-				 HTML::Bold(_("Key")),
-				 HTML::Bold(_("Description")),
-				 HTML::Bold(_("Status")),
-				 special[0]:"", special[1]:"",special[2]:"", special[3]:"" );
-		header = header + "<tr><th><hr><td><hr><td><hr></tr>";
-		line  = "<tr><th %4>%1<td %5>%2<td %6>%3</tr>";
-	    }
-	    else {
-		line = "<br><li>%1: %2: %3</li>";
-		end  = "";
-	    }
-	    string  body		= "";
-	    list    not_passed		= [];
-	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
-
-	    if (pkg_data["green_status"]:"" != "" )
-	    {
-		string green_status = pkg_data["green_status"]:"";
-		y2milestone("green status of the package %1", green_status );
-		string message = OSRPkgVerify::unimportant2help [green_status]:"";
-		y2milestone("message : %1" ,message );
-	    }
-
-	    //build table with test information.
-	    while ( size( status ) != 0 )
-	    {
-		string c = substring(status, 0,1);
-		if (c != "." && c != "?")
-		{
-		    not_passed = add(not_passed, c );
-		}
-		else if (c == "?")
-		{
-		    not_passed = add(not_passed, modes[( 8 - size(status)) ,0]:"");
-		}
-		status = substring(status, 1);
-	    }
-
-	    foreach (list t, modes, ``{
-
-		if (contains(not_passed, t[0]:"" ))
-		{
-		    body     = body + sformat(line, t[0]:"", t[1]:"", HTML::Colorize(_("Test not passed"), problem_color),
-					      special[1]:"",special[2]:"", special[3]:"");
-		}
-		else {
-		    body     = body + sformat(line, t[0]:"", t[1]:"", HTML::Colorize(_("Test passed"), "blue"),
-					      special[1]:"", special[2]:"", special[3]:"");
-		}
-	    });
-
-	    // headline (package details popup) %1 is package name
-	    string headline = sformat(_("Overview of the Executed Tests for the Package %1"),pkg_name);
-
-	    //get the minimal length of headline and add blanks for the layout.
-	    integer minimal_size = 0;
-	    foreach (list mode, modes, ``{
-		minimal_size = ( minimal_size < size(mode[1]:"")) ?
-		    size(mode[1]:"") : minimal_size;
-	    });
-	    minimal_size = minimal_size *2 - size(headline);
-	    y2debug("minimal size %1", minimal_size);
-	    while( minimal_size > 0 )
-	    {
-		headline = headline +" ";
-		minimal_size = minimal_size -1;
-	    }
-
-	    UI::OpenDialog (`HBox (
-		    `HSpacing(3),
-		    `VSpacing(20),
-		    `VBox(
-			`VWeight(10,`Heading(headline)),
-			`VSpacing(1),
-			`VWeight(10, `VBox (`Left(
-			    // label (show file name of some package)
-			    `Label(_("Corresponding File of the Package:"))),
-			    `Left(
-			    `Label(`opt(`outputField),pkg_data["file"]:""))
-			    )
-			),
-			`VSpacing(0.5),
-			`VWeight(60, `RichText( header + body  + end )),
-			`VSpacing(0.5),
-			`PushButton(`id(`ok), Label::OKButton())
-		    ),
-		    `HSpacing(3)
-	    ));
-
-	    UI::UserInput();
-	    UI::CloseDialog();
-
-	}
-	return `again;
-    }
-    */
-
 
     /**
      * Eval the user input.
@@ -710,6 +649,16 @@ Verifying the packages %1 was successful.
 		toggle_pause_button();
 		return `continue;
 	    }
+	}
+	else if (issubstring (input, "_more_packages"))
+	{
+	    string pkg_name = substring (input,0,find (input,"_more_packages"));
+	    if (!OSRPkgVerify::PackageVerified (pkg_name))
+	    {
+		y2warning ("strange, package %1 not verified", pkg_name);
+		return `again;
+	    }
+	    show_complete_verify_list (pkg_name);
 	}
 	else
 	{

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec  6 15:32:12 CET 2004 - jsuchome@suse.cz
+
+- by default, show only limited number of files from failing package
+  verification, but enable to see the full list in a new popup 
+
+-------------------------------------------------------------------
 Wed Dec  1 12:24:30 CET 2004 - jsuchome@suse.cz
 
 - basic testsuite added
