@@ -14,7 +14,6 @@
 
     textdomain "repair";
 
-    import "HTML";
     import "Kernel";
     import "OSRExecute";
     import "OSRLogFile";
@@ -98,10 +97,18 @@ _("The test failure seems to be caused by an incorrectly built package.")
     integer verified_counter			= 0;
 
     // data of package currently verified
-    global map<string,map> verify_data		= $[];
+    global list<map> verify_data		= [];
 
     global list<string> not_successful_verified	= [];
 
+    /**
+     * maximum of file entries shown in detailed pkg verification summary
+     * (necessary because of potential large memory requirements)
+     */
+    global integer max_files		= 10;
+
+    // mount point to root fs
+    global string root_for_verification	= "";
 
     /**
      * Verified packages after a new installation.
@@ -116,7 +123,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
      */
     global define void Reset()``{
 	verified_packages	= $[];
-	verify_data		= $[];
+	verify_data		= [];
 	verified_counter	= 0;
 	not_successful_verified = [];
     }
@@ -198,7 +205,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
 		return;
 	    }
 	});
-	y2milestone("all allowed: %1; current status %2; found: %3",
+	y2debug ("all allowed: %1; current status %2; found: %3",
 	    allowed_erros, status, found);
 
 	return found;
@@ -352,12 +359,12 @@ _("The test failure seems to be caused by an incorrectly built package.")
      *
      *
      */
-    define boolean convert_verify_output (
-	string pkg_name, string verify_output_string)
+//    define boolean convert_verify_output ( string pkg_name, string verify_output_string)
+    global define map convert_verify_output (
+	string pkg_name, string verify_output_string, boolean full_list)
     {
 
-	verify_data			= $[];
-	integer	 key                    = 0;
+	list pkg_data			= [];
 	integer build_problem_counter   = 0;
 	integer verify_output_counter   = 0;
 	list<string> verify_output_list =
@@ -368,64 +375,76 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	    if (size (verify_output) > 1)
 	    {
 		verify_output_counter = verify_output_counter  +1 ;
-		key = key +1 ;
-		string pkg_key = sformat("%1%2%3", pkg_name, separator, key);
+		string pkg_key =
+		    sformat("%1%2%3",pkg_name, separator,verify_output_counter);
+		map file_data	= $[];
 		if (substring (verify_output, 0, size(missing) )  == missing )
 		{
-		    verify_data [ pkg_key ]  = $[
-			"config_file"  : issubstring (
-			    substring (verify_output, size(missing),
+		    file_data = $[
+			"config_file"	: issubstring (
+			    substring (verify_output, size (missing),
 				findfirstof(verify_output, "/")- size(missing)),
-			    "c" ),
-			"file"	: substring(
+			    "c"),
+			"file"		: substring (
 			    verify_output, findfirstof(verify_output, "/")),
-		      "status"	: missing
+			"status"	: missing
 		    ];
 		}
 		else if (substring(verify_output, 0, size(unsatisfied ))
 			 == unsatisfied )
 		{
-		    verify_data [ pkg_key ] =
-		    $[ "config_file" : false,
-		       "file"	: substring(verify_output, size(unsatisfied)),
-		       "status"	: unsatisfied
+		    file_data = $[
+			"config_file"	: false,
+			"file"	: substring(verify_output, size(unsatisfied)),
+			"status"	: unsatisfied
 		    ];
 		}
 		else if (findfirstnotof(substring(verify_output,0,8), possible)
 			 == nil )
 		{
-		    verify_data [ pkg_key ] =
-		    $[ "config_file": issubstring (
+		    file_data = $[
+			"config_file"	: issubstring (
 			    substring (verify_output, 8,
-				findfirstof(verify_output, "/") - 8 ),
-			     "c" ),
-		       "file"	: substring(verify_output,
-			    findfirstof(verify_output, "/")),
-		       "status"	: substring(verify_output, 0,8)
+			        findfirstof(verify_output, "/") - 8 ),
+			    "c" ),
+			"file"		: substring (verify_output,
+			    findfirstof (verify_output, "/")),
+			"status"	: substring (verify_output, 0,8)
 		    ];
 		}
 		else
 		{
-		    y2error(" not known output");
-		    verify_data[pkg_key] =  $[ "status" : "unknown" ];
+		    y2error ("unknown output");
+		    file_data	=  $[ "status" : "unknown" ];
 		}
 
-		verify_data [pkg_key, "green_status"] =
-		    GreenPackageProblems (pkg_name, verify_data[pkg_key]:$[]);
+		file_data ["green_status"] =
+		    GreenPackageProblems (pkg_name, file_data);
 
-		if (verify_data[pkg_key, "green_status"]:"" != "")
+		if (file_data["green_status"]:"" != "")
 		{
 		    build_problem_counter = build_problem_counter +1;
+		}
+
+		if (full_list || verify_output_counter <= max_files)
+		{
+		    pkg_data = add (pkg_data, file_data);
+		}
+		else if (verify_output_counter == max_files + 1)
+		{
+		    pkg_data = add (pkg_data, $["more": true]);
 		}
 	    }
 	});
 
-	verified_packages [pkg_name]	= true;
-	verified_counter		= verified_counter + 1;
 
-	// return false if the package was not verified successfully.
-	return (build_problem_counter == verify_output_counter ||
-		(build_problem_counter == 0 && size(verify_output_string)<= 1));
+	return $[
+	    // false if the package was not verified successfully.
+	    "ok"		:
+		(build_problem_counter == verify_output_counter ||
+		(build_problem_counter == 0 && size(verify_output_string)<= 1)),
+	    "verify_data"	: pkg_data
+	];
     }
 
     /**
@@ -433,6 +452,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
      */
     global define boolean Verify (string p, string root_mountpoint) ``{
 
+	root_for_verification	= root_mountpoint;
 	build_update_problems_map();
 
 	y2milestone("-----------verifying package %1", p );
@@ -442,12 +462,16 @@ _("The test failure seems to be caused by an incorrectly built package.")
 
 	y2milestone("-----------package %1 verified", p);
 
-	boolean package_ok = convert_verify_output (p, OSRExecute::stdout);
+	map converted	= convert_verify_output (p, OSRExecute::stdout, false);
+	boolean ok	= converted["ok"]:false;
+	verify_data	= converted["verify_data"]:[];
 
-	if (! package_ok)
+	verified_packages [p]	= true;
+	verified_counter	= verified_counter + 1;
+
+	if (!ok)
 	    not_successful_verified = add (not_successful_verified, p);
-
-	return package_ok;
+	return ok;
     }
 
 
