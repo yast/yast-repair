@@ -326,7 +326,7 @@ display repair proposals.
 				 ],
 
 				 // Second entry - customise analyse (headline)
-				$["headline"    :  _("&Customize Repair"),
+				$["headline"    :  _("&Customized Repair"),
 				  "symbol"      : `scan_repair_options,
 				  // manual analysis description 1/2
 				  "description" : _("Select parts of system analyzation
