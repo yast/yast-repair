@@ -1,5 +1,0 @@
-{
-	string rpm_name = "xf86";
-	map packagestat = SCR(`Read(.rpm.rpm_stat, rpm_name));
-	SCR(`Write(.dumpto.tmp.rpm_stat_tmp, packagestat));
-}
