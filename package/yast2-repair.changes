@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Fri Mar  7 17:03:19 CET 2003 - jsuchome@suse.de
+
+- fix of ncurses dialog of verified packages (#24572)
+- fix of ncurses dialog with gpart (#24642)
+- removed repair.y2cc (#24618)
+- finding: hack if absolute path is not defined
+- fixed default lookup values
+- removed "chroot /" before calling bootloader config
+- do not use require.ycp (caused InitTarget with / while root is in /mnt)
+- fixed unloading modules (wrong parameters to remove)
+- 2.7.4
+
+-------------------------------------------------------------------
 Mon Mar  3 13:04:47 CET 2003 - jsuchome@suse.de
 
 - corrected texts from proofreading

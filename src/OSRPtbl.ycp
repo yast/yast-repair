@@ -937,37 +937,29 @@ conflict is not possible.
 			      ret = `again;
 			  }
 		      }
-		  } 
+		  }
 	      });
-	  }	
-      } until( ret == `ok || ret == `cancel );	      
+	  }
+      } until( ret == `ok || ret == `cancel );
 
-      
     UI::CloseDialog();
     return recover;
   }
 
 
-
-      
-      
-
-
-
-  
   /**
    * Restoring a partition tables with gpart.
    */
   global define symbol RestoreWithGpart(boolean compare_mode )``{
-      
-      ///////////////////////////////////////////////////////////////////////////////////
+
+      /////////////////////////////////////////////////////////////////////////
       //
       //  Repair partition table with gpart
       //
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
 
-      list(map) found_partitions  	= [];
-      string gpart_file      		= SCR::Read(.target.tmpdir) + "/gpart";
+      list(map) found_partitions	= [];
+      string gpart_file	= SCR::Read(.target.tmpdir) + "/gpart";
 
       WFM::Execute(.local.bash, sformat("if /usr/bin/test -e %1; then /bin/rm %1; else /bin/echo %1 not exist; fi;", gpart_file));
       string gpart_command   = "/usr/bin/gpart " + gpart_expert_options +" " + target;
@@ -979,40 +971,41 @@ system performance and the hard disk size.
 
       term contents  = `HBox(`HSpacing(0.5),
 			     `VBox(
+                   // label text
 				   `Left(`HBox(`HWeight(30, `Heading(_("Search for Lost Partitions"))),
 					 `HWeight(30, `HSpacing(4)))),
 				   `VSpacing(1),
 				   `Left(`Label(message )),
+                   // label text
 				   `Left(`Label(_("Hard Disk: ") +  target )),
 				   `VSpacing(0.5),
-				   `DownloadProgress( _("Progress:"), gpart_file, 200 ),
+				   UI::HasSpecialWidget(`DownloadProgress) ?
+                        `DownloadProgress( _("Progress:"), gpart_file, 200 ):
+                        `VSpacing(0),
 				   `VSpacing(1),
+                   // button label
 				   `HBox(`PushButton(`id(`start) , _("Start")),
-					 `PushButton(`id(`cancel),CancelButtonLabel() )
+					     `PushButton(`id(`cancel),CancelButtonLabel() )
 					 )),
 			     `HSpacing(0.5)
 			     );
-  
-      if ( ! UI::HasSpecialWidget(`DownloadProgress) )
-      {	
-	  contents = `Label( message );
-      }
-
 
       UI::OpenDialog( contents );
 
-      
       if( UI::UserInput() != `start )
       {
-	  UI::CloseDialog();
-	  return `cancel;
+	    UI::CloseDialog();
+	    return `cancel;
       }
       UI::ChangeWidget(`id(`start), `Enabled, false);
-      
-      
+      UI::ChangeWidget(`id(`cancel), `Enabled, false);
+      //TODO action cannot be cancelled!
+
+      UI::BusyCursor();
       if ( OSRExecute::CommandProgress(.target.bash_output, gpart_command ,gpart_file))
       {
 	  string file = WFM::Read(.local.string, gpart_file );
+y2warning ("file: %1", file);
 	  // display the results in a window
 	  string partitions_out = substring(file,
 					    find(file, "\nPrimary partition(1)"),
@@ -1032,44 +1025,41 @@ system performance and the hard disk size.
 					    find(partitions_out, "\nPrimary partition(3)"),
 					    (find(partitions_out, "\nPrimary partition(4)") -
 					     find(partitions_out, "\nPrimary partition(3)")));
-	  
+
 	  string partition4 = substring(partitions_out,
 					    find(partitions_out, "\nPrimary partition(4)"),
 					    (size(partitions_out) -
 					     find(partitions_out, "\nPrimary partition(4)")));
-	  
+
 	  list(string) gpart_partitions = [partition1, partition2, partition3, partition4];
 
-
-	      
 	  integer index  = 0;
 	  while ((index >= 0) && (index < size(gpart_partitions)))
 	  {
 	      map partition = $[];
-		  
+
 	      string p = gpart_partitions[index]:"";
 	      list(string) p_list = splitstring(p, "\n");
 
-			      
 	      foreach(string line, p_list, ``{
+		    if (issubstring(line, "type: "))
+		    {
+		        partition["fsid"] = gpart_cat_fsid(line );
+		    }
+		    else if( issubstring( line, "chs:"))
+		    {
+                map geometry = gpart_cat_geometry( line );
+		        integer s    = lookup( geometry["start"]:$[], "c", 0);
+		        integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
+		        partition["region"] = [s,l];
+            }
 
-		  if (issubstring(line, "type: "))
-		  {
-		      partition["fsid"] = gpart_cat_fsid(line );
-		  }
-		  else if( issubstring( line, "chs:"))
-		  {
-		      map geometry = gpart_cat_geometry( line );
-		      integer s    = lookup( geometry["start"]:$[], "c", 0);
-		      integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
-		      partition["region"] = [s,l];
-		  }
-      
-		  partition["nr"] 	= index +1;
-		  partition["type"]  	= `primary;
-		  partition["create"]   = true;
-		  partition["device"]   = Storage::GetDeviceName( target, index + 1);
-	      });      
+		    partition["nr"]	= index +1;
+		    partition["type"]	= `primary;
+		    partition["create"]   = true;
+		    partition["device"]   = Storage::GetDeviceName( target, index + 1);
+	      });
+
 	      index = index + 1;
 
 	      if( select(partition["region"]:[],1,0) != 0 &&
@@ -1077,10 +1067,10 @@ system performance and the hard disk size.
 	  }
       }
 
-  
       UI::CloseDialog();
-   
-      
+      UI::NormalCursor();
+
+
       if ( found_partitions == [] ) {
 
 	  Report::Error(sformat(_("
@@ -1092,16 +1082,16 @@ that, enter the cylinder values
 in fdisk or the partitioning tool.
 "), target ));
 	  return `error;
-	  
+
       }
       else {
-	  
+
 	  //if ( ! compare_mode )
 	  //{
 	  // torecover = FoundPtblDialog( found_partitions, target, "Gpart" ,false);
 	  // }
 	  //else {
-	  map compared 	      =  compare_found_with_existing( found_partitions, Storage::GetMainDevParam(target, "partitions" ), target );
+	  map compared	      =  compare_found_with_existing( found_partitions, Storage::GetMainDevParam(target, "partitions" ), target );
 	  list(map) torecover =  ComparePtblDialog( compared, target , "Gpart" );
 	      //}
 
@@ -1304,12 +1294,14 @@ skip the repair.
 	  symbol selected = UI::QueryWidget(`id(`rb), `CurrentButton);
 	
 	  if( ret == `help ) {
-	      UI::LongTextPopup( OSRPopup::help_headline , `RichText( eval(lookup( repair_methods[selected]:$[], "help",``(`Empty() )))), 50, 20);
+	      UI::LongTextPopup( OSRPopup::help_headline,
+            // FIXME Empty or return Empty?
+            `RichText( eval( repair_methods[selected,"help"]:``(`Empty() ))), 50, 20);
 	  }
 	  else if ( ret == `ok ) {
 	      UI::CloseDialog();
-	      ret = eval(lookup( repair_methods[ selected ]:$[],"method",``(`Empty() )));
-	      
+	      ret = eval( repair_methods[ selected, "method"]:``{ return `error;});
+
 	      // if ret == `cancel || `abort || `error 
 	      if ( ret != `ok )  {
 		  if ( ! OSRPopup::OpenMainRepairDialog( sformat(_("Repair partition table %1."),target ), error_text, r_options ))

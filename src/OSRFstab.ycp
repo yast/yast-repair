@@ -598,7 +598,7 @@ press \"Yes\".
       }
 
       if ( ret == $[] || ret == nil ) {
-	  ret =  select( maplist(`n,`m, filter(`k, `e, StorageDevices::zipDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)),
+	  ret =  select( maplist(`n,`m, filter(`k, `e, StorageDevices::ZipDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)),
 			 ``(m)),0,$[]);
 	  if ( ret != $[] && ret != nil ) ret["found"] = "zip";
       }
@@ -888,7 +888,7 @@ press \"Yes\".
 
       dev2check = union( dev2check, maplist(map d, StorageDevices::cddrives,     ``(d["dev_orig"]:(d["dev_name"]:""))));
       dev2check = union( dev2check, maplist(map d, StorageDevices::FloppyDrives, ``(d["dev_orig"]:(d["dev_name"]:""))));
-      dev2check = union( dev2check, maplist(`k,`d, StorageDevices::zipDrives, ``(d["dev_orig"]:(d["dev_name"]:""))));
+      dev2check = union( dev2check, maplist(`k,`d, StorageDevices::ZipDrives, ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       return dev2check;
   }

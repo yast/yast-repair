@@ -185,8 +185,8 @@
 	    UI::BusyCursor();
 	    
 	    // really eval method
-	    CallFunction(method_data["client"]:`Empty());
-	    ret =  eval(method_data["method"]:``(y2error("direct mehtod no found")));
+	    CallFunction(method_data["client"]:``{ return false;});
+	    ret =  eval(method_data["method"]:``(y2error("direct method not found")));
 
 	    OSRSystem::SetOrgRoot();
 
