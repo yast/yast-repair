@@ -400,6 +400,7 @@ YaST verified %1 packages successful.
       OSRFstab::Reset();
       OSRPkg::Reset();
       
+      
       y2milestone("Direct package check");
       return ret;
   }
