@@ -1,6 +1,6 @@
 /**
  *  Test for running customized detection: check fstab entries
- *  Jiri Suchomel <jsuchome@suse.cz>
+ *  Author:	Jiri Suchomel <jsuchome@suse.cz>
  *  $Id$
  */
 
