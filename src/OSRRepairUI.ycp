@@ -530,26 +530,25 @@ and select one. If no entry matches your problem,
 go back and start the automatic analysis.</P>
 ");
 
-    term   contents = OSRDirect::OptionMenu();
+    term contents = OSRDirect::OptionMenu();
 
-    Wizard::SetContentsButtons(tool_dialog_caption ,contents,help_text,BackButtonLabel(), exit_label );
+    Wizard::SetContentsButtons(tool_dialog_caption, contents, help_text,
+	BackButtonLabel(), NextButtonLabel() );
 
     any ret = `next;
     repeat {
 	ret = UI::UserInput();
 
 	if( is(ret, string )) {
-	    symbol rret = OSRDirect::EvalDirectMethod(ret );
+	    symbol rret = OSRDirect::EvalDirectMethod (ret);
 
 	    // get a abort return from custom_part or a other tool
 	    if ( rret == `abort ) return `really_abort;
 
-	    Wizard::SetContentsButtons(tool_name,contents,help_text,BackButtonLabel(), exit_label );
 	}
-    } until ( ret == `next || ret == `abort  || ret == `back || ret == `cancel  );
+    } until ( ret == `next || ret == `abort  || ret == `back || ret == `cancel);
 
     return ret;
-    
   }
 
   
@@ -812,10 +811,10 @@ global define symbol OsrMainDialog() ``{
 	"abort" : $[
 		    `yes: `abort
         ],
-    // TODO: does it work in Mode::init?
-    "finish": $[
-            `yes: `finish
-    ],
+	// TODO: does it work in Mode::init?
+	"finish": $[
+		`yes: `finish
+	],
 	"start"	: $[
 		    `abort 			: "abort",
 		    `scan_repair  		: "detect",
@@ -823,7 +822,6 @@ global define symbol OsrMainDialog() ``{
 		    `direct_repair 		: "direct_repair",
 		    `error			: `error,	
 		    `cancel			: "abort",
-//		    `next			: "abort"
 		    `next			: "finish"
 	],
 	"scan_options" : $[
@@ -835,7 +833,8 @@ global define symbol OsrMainDialog() ``{
 	"direct_repair" : $[
 			    `abort 		: "abort",
 			    `really_abort	: `abort,
-			    `next  		: "abort",
+//			    `next		: `back,
+			    `next		: "start",
 			    `error 		: `error,
 			    `cancel 		: "abort"
 	],
