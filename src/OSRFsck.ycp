@@ -303,9 +303,7 @@
 
       // success
       //label = ""
-      //uuid = ad743076-12b8-452b-86c0-2e62918479ae
-
-      
+      //uuid = ad743076-12b8-452b-86c0-2e62918479ae  
       if ( issubstring(OSRExecute::stdout, "label") &&
 	   issubstring(OSRExecute::stdout, "uuid" ) )
       {
@@ -337,7 +335,7 @@
 	  y2error("The file %1 could not be deleted.", OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
 
       
-      string  command        	= sformat("cd %1; /sbin/logdump %2", OSRLogFile::GetTmpDir(), check_partition );
+      string  command        	= sformat("cd %1; /sbin/jfs_logdump %2", OSRLogFile::GetTmpDir(), check_partition );
       boolean is_jfs 		= OSRExecute::CommandOutput(.local.bash, command );
 
       // check_jfs is 0 !! -> read jfslog.dmp

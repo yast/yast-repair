@@ -35,8 +35,7 @@
    * Only for define ComputesDetectMethodSequence ! not global.
    */
   list global_provides_list		= [];
-
-
+  
   /**
    * Only for define Detect. Contains the current module index.
    * osrmodule_init       -> 0
@@ -52,9 +51,7 @@
    * ..
    */
   integer index_detect  = 0;
-
-
-  
+ 
   /**
    * The global_provides map contains entries created during the system scan.
    * The different detection methods access to the global_provides map to get
@@ -84,7 +81,6 @@
    * $["root_mountpoint":"/mnt"]
    */
   map static_provides			= $[];
-  
   
   /**
    * A map with all lists of detect-methods-entries. The function-names have to be enclosed in
@@ -126,7 +122,6 @@
    * ["osr_module_init", "osr_module_partition"]
    */
    list(string) module_sequence			= [];
-
 
   /**
    * Date of all rescue modules
@@ -249,9 +244,6 @@
   }
 
   
- 
-
-
   /**
    * Computes the sequence of the detection methods of a module. 
    */
@@ -290,7 +282,6 @@
       return ret;
   }
 
-  
   /**
    *  This method resolves the requirements and provides of the modules and computes
    *  the correct sequence of detection modules.
@@ -854,10 +845,7 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
 	      }
 	      else
 	      {
-		  y2error("not a valid status: %1", OSRStatus::status );
-		  // not loop!
-		  //index_detect = index_detect + 1;
-		  
+		  y2error("not a valid status: %1", OSRStatus::status );	  
 	      }
  
 	      OSRSummary::FinishNewEntry();
@@ -904,8 +892,6 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
    *  @return boolean True.
    */
   global define boolean ProvideList(string name, list value) ``{
-
-      //map provides_map         = $[ "type" : "list", "value" : value, "status" : "known" ];
       global_provides	       = add(global_provides, name, value ); //provides_map  );
       return true;
   };
@@ -921,7 +907,6 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
    *  @return boolean True.
    */
   global define boolean ProvideMap(string name, map value) ``{
-
       global_provides	= add(global_provides, name, value );
       return true;
   };
@@ -937,8 +922,6 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
    *  @return boolean True.
    */
   global define boolean ProvideString(string name, string value) ``{
-
-      //map provides_map	= $[ "type" : "string", "value" : value, "status" : "known" ];
       global_provides	= add(global_provides, name,value ); // provides_map  );
       return true;
   };
@@ -954,8 +937,6 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
    *  @return boolean True.
    */
   global define boolean ProvidePath(string name, path value) ``{
-
-      //map provides_map	= $[ "type" : "path", "value" : value, "status" : "known" ];
       global_provides	= add(global_provides, name, value ); //provides_map  );
       return true;
   };
@@ -971,8 +952,6 @@ The conditions are not complied.",module_detection_methods["summery"]:""));
    *  @return boolean True.
    */
   global define boolean ProvideBoolean(string name, boolean value) ``{
-
-      //map provides_map	= $[ "type" : "boolean", "value" : value, "status" : "known" ];
       global_provides	= add(global_provides, name,value); // provides_map  );
       return true;
   };

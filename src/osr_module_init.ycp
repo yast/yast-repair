@@ -29,8 +29,6 @@
   
   /**
    *  argument handling
-   *  example: "y2bignfat osr_lilo.ycp '(.init)' qt" for init_mode
-   *  or:      "CallFunction(`osr_lilo(.init));
    */
   integer arg_n = 0;
   
@@ -88,15 +86,6 @@
   //////////////////////////////////////////////////////////////////////
 
   /**
-   *  Offers some neccesary values from the map user_settings from inst_startup.ycp to
-   *  the global map osr_map.
-   *
-   *  Provides: map target_map,
-   *            string repair_target,
-   *            string floppy_device,
-   *            boolean has_floppy
-   * 
-   *  @return map The result map.
    */
   global define boolean OSRInitSelectFloppy() ``{
        

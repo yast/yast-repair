@@ -13,7 +13,6 @@
   
     module "OSRSystem";
 
-
     import "Installation";
     import "Report";
     import "FileSystems";
@@ -87,31 +86,7 @@
       if( new_root != root )
       {
 	  y2milestone("changing root environment to %1", new_root );
-
-	  if( new_root != "/" )
-	  {
-	      /*
-	      // check if system mount points exist before change root.
-	      boolean not_found = false;
-	      foreach( string mountp, FileSystems::system_m_points , ``{
-
-		  string dir = new_root + mountp;
-		  if( root != "/" ) dir = mountp;
-		  
-		  if( ! not_found && size( SCR::Dir( topath(dir) )) == 0 )
-		  {
-		      // one system mount point not found
-		      not_found = true;
-		  }
-	      });
-	      if( not_found )
-	      {
-		  y2error("not all needed system mount points for change root found");
-		  return false;
-	      }
-	      */
-	  }
-	  
+  
 	  WFM::SCRClose ( Installation::scrHandle );
 	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
 	  

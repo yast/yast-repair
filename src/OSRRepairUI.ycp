@@ -7,16 +7,13 @@
  * $Id$
  */
 {
-
   module "OSRRepairUI";
 
- 
   /**
    * The name of the repair and rescue tool.
    */
   global string tool_name   = _("YaST System Repair");
-
-  
+ 
   import "Mode";
   import "Wizard";
   import "Progress";
@@ -38,9 +35,6 @@
   include "ui/common_popups.ycp";
   
   textdomain "repair";
-
- 
-  
   
   /**
    * detected is true if the scan and requires sequencer is finished and
@@ -49,11 +43,6 @@
    */
   boolean detected 		= false;
   
-  /**
-   * Saves the last selected option for the start dialog.
-   */
-  //symbol last_selected_dialog   = `scan_repair;
-
   string exit_label		= "&Exit";
   
   /**
@@ -66,7 +55,10 @@
   string tool_dialog_caption		=  "";
 
   boolean initialized 			= false;
-
+  
+  /**
+   *
+   */
   global define void OSRRepairUI()``{
 
       // build captions
@@ -156,105 +148,90 @@
 	if( ! OSRMode::script ) Progress::NextStage ();
 
 
-      // Start the client "inst_startup.ycp" if the rescue-system is launched from
-      // a running Linux-system, else the module inst_startup.ycp was already launched.
-	//if (!Mode::initial && !Mode::cont )
-	//{
-	  if ( ! Mode::test ) {
-	      // from inst_startup.yccp
-	      // --------------------------------------------------------------
-	      //				    Floppy
-	      // --------------------------------------------------------------
-
-	      if (!(Arch::s390 || Arch::board_iseries))
-	      {
-		  // give user feedback what's happening
-		  StorageDevices::FloppyReady ();
-
-		  if (! OSRMode::script ){
-
-		      Progress::NextStage();
-		      if ( eval (abort) ) return `abort;
-		  }
-	      }
-
-	      // --------------------------------------------------------------
-	      //			     Hard disk controllers
-	      // 1. Probe
-	      // 2. Initialize (module loading)
-	      // --------------------------------------------------------------
-
-	      if (StorageControllers::Probe() <= 0)
-	      {
-		  // Oops, no storage controllers ?
-		  // no storage controllers found, where are the hard disks attached ?
-		  UI::MessagePopup(_("No hard disks were found. 
+	// Start the client "inst_startup.ycp" if the rescue-system is launched from
+	// a running Linux-system, else the module inst_startup.ycp was already launched.
+	if ( ! Mode::test ) {
+	
+	    if (!(Arch::s390 || Arch::board_iseries))
+	    {
+		// give user feedback what's happening
+		StorageDevices::FloppyReady ();
+		
+		if (! OSRMode::script ){
+		    
+		    Progress::NextStage();
+		    if ( eval (abort) ) return `abort;
+		}	
+	    }
+	    
+	    // --------------------------------------------------------------
+	    //			     Hard disk controllers
+	    // 1. Probe
+	    // 2. Initialize (module loading)
+	    // --------------------------------------------------------------
+	    
+	    if (StorageControllers::Probe() <= 0)
+	    {
+		// Oops, no storage controllers ?
+		// no storage controllers found, where are the hard disks attached ?
+		UI::MessagePopup(_("No hard disks were found. 
 Please check your hardware!
 "));
 
-		  return `abort;
-	      }
-	      else {
-		  if (! OSRMode::script ){
+		return `abort;
+	    }
+	    else {
+		if (! OSRMode::script ){
 
-		      Progress::NextStage();
-		      if ( eval (abort) ) return `abort;
-		  }	
-	      }
-
-	      
-	      StorageControllers::Initialize();
-	      ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM", Mode::manual, true);
-	      if (! OSRMode::script ){
-		  
-		  Progress::NextStage();
-		  if ( eval (abort) ) return `abort;
-	      }
+		    Progress::NextStage();
+		    if ( eval (abort) ) return `abort;
+		}	
+	    }
 
 	      
-	      // --------------------------------------------------------------
-	      //				  Hard disks
-	      // --------------------------------------------------------------
+	    StorageControllers::Initialize();
+	    ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM", Mode::manual, true);
+	    if (! OSRMode::script ){
+		
+		Progress::NextStage();
+		if ( eval (abort) ) return `abort;
+	    }
+
+	      
+	    // --------------------------------------------------------------
+	    //				  Hard disks
+	    // --------------------------------------------------------------
 
 	    
-	      map targetMap = StorageDevices::Probe (true);
-	      if (size (targetMap) == 0)
-	      {
-		  UI::ErrorPopup(_("No hard disks were found.
+	    map targetMap = StorageDevices::Probe (true);
+	    if (size (targetMap) == 0)
+	    {
+		UI::ErrorPopup(_("No hard disks were found.
 Please check your hardware!
 "));
 		  
-		  return `abort;
-	      }
-	      else {
-		  if (! OSRMode::script ){
-
-		      Progress::NextStage();
-		      if ( eval (abort) ) return `abort;
-		  }	
-	      }
+		return `abort;
+	    }
+	    else {
+		if (! OSRMode::script ){
+		    
+		    Progress::NextStage();
+		    if ( eval (abort) ) return `abort;
+		}		
+	    }
 
 	      
-	      if (!(Arch::s390 || Arch::board_iseries))
-	      {
-		  Hotplug::StartUSB ();
-		  if (! OSRMode::script ){
-
-		      Progress::NextStage();
-		      if ( eval (abort) ) return `abort;
-		  }	 
-	      }
-	  }
-	  //}
-	  //    else {
-	  //	  if (! OSRMode::script ){
-	  //	      Progress::NextStage();
-	  //	      Progress::NextStage();
-	  //	      Progress::NextStage();
-	  //	      Progress::NextStage();
-	  //	  }   
-  
-
+	    if (!(Arch::s390 || Arch::board_iseries))
+	    {
+		Hotplug::StartUSB ();
+		if (! OSRMode::script ){
+		    
+		    Progress::NextStage();
+		    if ( eval (abort) ) return `abort;
+		}	 
+	    }
+	}
+ 
       //Probe cdroms and floppy
       if( ! Mode::test )
       {
@@ -284,7 +261,6 @@ Please check your hardware!
   global define string build_label_description(string label, string description )``{
       return sformat(_("<P><B>%1</B><BR>%2</P>"), mergestring(splitstring(label, "&"),""), description); 
   }
-
   
   /**
    * Build a selection box with all scan and repair groups.
@@ -293,7 +269,6 @@ Please check your hardware!
     return `MultiSelectionBox(`id(`options), "S&elect scan and repair options:", OSR::GroupItems(mode)); 
   }
   
-
   /**
    * Set the wizard button.
    */
@@ -303,8 +278,6 @@ Please check your hardware!
       UI::ChangeWidget(`id(`back ),`Enabled, back );
       UI::ChangeWidget(`id(`next ),`Enabled, next );
   }
-  
-
   
  /**
   * The start dialog let the user select how the system should be analysed.
@@ -388,11 +361,7 @@ table or verify the package database.")
 					  ))
 		       );
 
-
-      // TODO replace exit with ExitButtonLabel() if Label exists!!
       Wizard::SetContentsButtons(start_dialog_caption,contents,help_text,BackButtonLabel(), exit_label );
-
-
       UI::SetFocus(`id(`scan_repair));
 
       if( ! Mode::initial )
@@ -450,7 +419,6 @@ for you.") +
 	  build_label_description( unselect_all_label, _("Unselect all entries in the list."));
       
    
-
       term contents  = `HBox(`HSpacing(2),
 			   `VBox(
 				 `VSpacing(1),
@@ -494,11 +462,11 @@ for you.") +
 	    UI::ReplaceWidget(`id(`rp), build_multi_selection_box(mode ));
 	    UI::SetFocus(`id(`options));
 	}
+	
 	// user press the help button
 	else if ( ret == `help	)
 	{    
 	    string selected = UI::QueryWidget(`id(`options),  `CurrentItem );  
-
 	    map item_info   = OSR::GetGroupMap(selected);
 	    
 	    UI::LongTextPopup(item_info["text"]:"",`RichText(item_info["help"]:""), 60, 15 );
@@ -569,7 +537,7 @@ please go back and start the automatically analyse.</P>");
 
     return ret;
     
-}
+  }
 
   
   /**
@@ -770,6 +738,10 @@ possibility to select one proposal or cancel the reapir. </P>") +
   }
 
 
+  define symbol LanguageDialog()``{
+      return WFM::CallFunction(`inst_language(false, true, true));
+  }
+  
   /**
    *  AbortDialog
    **/
@@ -790,6 +762,8 @@ Really abort %1?
  * Manage the sequence of the different dialogs.
  */
 global define symbol OsrMainDialog() ``{
+
+    
     map aliases = $[
 		    "abort"  		: ``(AbortDialog() ),
 		    "start"		: ``(StartDialog() ),
@@ -832,6 +806,17 @@ global define symbol OsrMainDialog() ``{
 		     `cancel: `cancel
         ]
     ];
+
+    
+    if( Mode::initial )
+    {
+	aliases["language"]  =  ``(LanguageDialog());
+	sequence["language"] =  $[
+				  `abort	: `abort,
+				  `next		: "start"
+	];
+	sequence["ws_start"] = "language";
+    }
 
     return WizardSequencer(aliases, sequence);
 }

@@ -7,7 +7,6 @@
  *
  * Author:
  *   Johannes Buchhold <jbuch@suse.de>
- *   ( old popups form Michael Koehrmann <curry@suse.de> )
  *
  * $Id$
  */
@@ -54,7 +53,6 @@
 		   `HSpacing(1)	
 		   );
   }
-
   
   /**
    * Layout for some following dialog.
@@ -153,8 +151,6 @@
       return ret;
   }
 
-
-
   /**
    * Open the base dialog to suggest modify.
    */
@@ -199,8 +195,6 @@
       UI::SetFocus(`id(`ok));
       return ret;
   }
-
-
   
   /**
    * Dialog to change one field in the fstab.
@@ -581,8 +575,4 @@ Do you really want to continue?
 
       return ret_list;
   }
-
-  
-
-
 }

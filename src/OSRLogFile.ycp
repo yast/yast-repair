@@ -63,9 +63,6 @@
 
       // set the class attribute file to the specified file name
       file = new_file;
-	  
-      // remove the old logfile if it exists
-      //SCR::Execute(.target.bash, sformat("/bin/rm -f %1 2> /dev/null", new_file));
 
       // write the actual date to the log file
       if ( WFM::Execute(.local.bash,  sformat("/bin/date >> %1; echo >> %1", new_file))  == 0 )
@@ -86,7 +83,6 @@
    *  @return string The name of the global log file.
    */
   global define string GetLogFileName() ``{
-
       return file;
   };
   

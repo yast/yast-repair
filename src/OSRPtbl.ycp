@@ -266,7 +266,6 @@ partition table of the device %1."), target );
 	  y2milestone("restoring was successful. Reread Storage");
 	  // o.k., partition table successfully reverted.
 	  Storage::ReReadTargetMap();
-
 	  
 	  Report::Message(_("
 Partition table successfully repaired.
@@ -459,7 +458,6 @@ and how to revert it."), target);
    
       // this can't be repaired without a floppy drive, so the user must not be asked again
       // to repair via floppy
-      // TODO: read from other medium than floppy, eventually from y2c_backup (later)
       if ( ! OSR::RequireBoolean("has_floppy"))
       {
 	  // display that no floppy drive was detected

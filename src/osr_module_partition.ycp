@@ -428,7 +428,6 @@ YaST halts now."));
 
   /**
    *  Checks the mbr's of all harddisks. 
-   *
    *  @return boolean 
    */
   global define boolean OSRPartitionCheckDisks() ``{
@@ -592,8 +591,6 @@ YaST halts now."));
 	  }
 	  else
 	  {
-	      // TODO check englisch
-	      // TODO what is in installed system ?? 
 	      if( ! UI::YesNoHeadlinePopup(sformat(_("Activate swap partition %1"), swap),
 					   sformat(_("
 The partition %1 has the file system id 130 and
@@ -629,8 +626,6 @@ partition.
 	  }
       });
 
-
-      // REPAIR
       if ( size ( swapon_notpossible_list ) != 0 ) {
 	  foreach(string part, swapon_notpossible_list, ``{
 	      OSRSummary::DetectError(

@@ -51,18 +51,15 @@
 				],
 				"grub"  : [ $[ "pkgname" 	: "grub",
 					       "pkgversion" 	: "0.92-69"
-					    ]//,
-					    //  $[ "pkgname"	: "gfxboot",
-					    //    "pkgversion" 	: "1.9-34"
-					    // ]
+					    ]
 				],
 				"silo"  : [], //"SILO",
-				"milo"  : [],//"MILO",
+				"milo"  : [], //"MILO",
 				"aboot" : [], //"aboot",^
 				"elilo" : [], //"ELILO",
 				"mips"  : [], //"dvh",
 				"s390"  : [], //"zipl",
-				"ppc"   : [] //"boot loader"
+				"ppc"   : []  //"boot loader"
     ];
 
 
@@ -83,12 +80,12 @@
 						     "menu"	    : "/boot/grub/menu.lst"
 				    ],
 				    "silo"  : $[], //"SILO",
-				    "milo"  : $[],//"MILO",
+				    "milo"  : $[], //"MILO",
 				    "aboot" : $[], //"aboot",
 				    "elilo" : $[], //"ELILO",
 				    "mips"  : $[], //"dvh",
 				    "s390"  : $[], //"zipl",
-				    "ppc"   : $[] //"boot loader"
+				    "ppc"   : $[]  //"boot loader"
     ];
 
     list valid_grub_menu_enties = [];
@@ -112,8 +109,7 @@
 			   "unhide"	,
 			   "gfxmenu"	,
     ];
-    
-
+   
     list grub_menu_only = [
 		      "default" 	,
 		      "fallback"	,
@@ -162,7 +158,6 @@
 		      "uppermem"	,
 		      "vbeprobe"	
     ];
-
     
     /**
      * Default settings for /etc/grub.conf
@@ -176,7 +171,6 @@
     string config_backup_path 		= "/bootloader";
     boolean backup_created    		= false;
 
-
     /**
      * Error message if the check defines found an error
      */
@@ -186,6 +180,16 @@
      * Help text if the check defines found an error
      */
     string help_text     		= "";
+    
+    /**
+     * The name of the boot loader 
+     */
+    string  bootloader		  	= "";
+    
+    /**
+     * A list with all invalid configuration files.
+     */
+    list(string) invalid_config_files 	= [];
 
     /**
      * A list of all not installed boot loader packages
@@ -198,12 +202,6 @@
     global string  root_mountpoint	 = Installation::destdir;
 
     /**
-     * The name of the boot loader 
-     */
-    string  bootloader		  	= "";
-
-
-    /**
      * The root device e.g.: /dev/hda2
      */
     global string  root_device		= "";
@@ -213,19 +211,17 @@
      */
     global string  boot_device		= "";
 
-    /**
-     * A list with all invalid configuration files.
-     */
-    list(string) invalid_config_files 	= [];
-
-
     global boolean bootloader_error_found = false;
     
-
     global list(string) not_valid_files = [];
 
     global list current_initrd_modules = [];
+
+
     
+    /**
+     * Reset module settings.
+     **/
     global define void Reset()``{
 	not_valid_files 	= [];
 	bootloader_error_found 	= false;
@@ -239,8 +235,7 @@
 	current_initrd_modules  = [];
 	//not backup_created
     }
-    
-    
+      
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Package data access functions
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,19 +276,19 @@
 	}
     }
 
-      /**
-   *  Compares the two specified version numbers. Each version number has to be a string
-   *  of the form "21.6-34", "34.4.3", ...
-   *
-   *  API function.
-   *  See the testsuite.
-   *
-   *  @param string version_1 The first version-number as string.
-   *  @param string version_2 The second version-number as string.
-   *  @return boolean True if the first version number is newer than the second one.
-   *  @example if (!OSRVersionIsHigherOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
-   */
-  global define boolean VersionIsHigherOrEqual( string version_1, string version_2  ) ``{
+    /**
+     *  Compares the two specified version numbers. Each version number has to be a string
+     *  of the form "21.6-34", "34.4.3", ...
+     *
+     *  API function.
+     *  See the testsuite.
+     *
+     *  @param string version_1 The first version-number as string.
+     *  @param string version_2 The second version-number as string.
+     *  @return boolean True if the first version number is newer than the second one.
+     *  @example if (!OSRVersionIsHigherOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
+     */
+    global define boolean VersionIsHigherOrEqual( string version_1, string version_2  ) ``{
 
       list(string)    v_1   = [];
       list(string)    v_2   = [];
@@ -411,8 +406,7 @@
 		}
 		else {
 		    y2milestone("installed package %1", package );
-		}
-		
+		}	
 		// TODO check dependencies
 	    }
 	    else if ( what == "verify" )
@@ -466,7 +460,6 @@
 	if( loader 	!= "" ) bootloader 	= loader;
 	if( root 	!= "" ) root_mountpoint	= root;
 
-	
 	string help_text 	= build_packages_help( missing_packages );
 	string error_message  	= sformat(_("
 %1
@@ -481,9 +474,7 @@ Press Repair to install these packages.
 
 	    OSRPkg::root_mountpoint  = root;
 	    OSRPkg::missing_packages = missing_packages;
-	    return OSRPkg::InstallMissing(false);
-	    
-	 
+	    return OSRPkg::InstallMissing(false);	 
 	}
 	else
 	{
@@ -509,10 +500,6 @@ Press Repair to install these packages.
 	y2milestone("current initrd_modules %1", current_initrd_modules);
 
 	Boot::initrdModules = [];
-	    
-	//OSRFstab added the root mount point to the target_map (Storage).
-	//Storage::GetRootInitrdModules select root partition
-	//and returned the needed initrd modules.
 	
 	list storage_initrd = Storage::GetRootInitrdModules();
 	y2milestone(" found initrd modules %1",storage_initrd );
@@ -523,7 +510,6 @@ Press Repair to install these packages.
 	});
 
 	//add initrd modules for mixed devices
-	//to Boot::initrdModules
 	list ide_recorders = StorageDevices::ProbeIDERecorders ();
 	y2milestone("found ide_recorders %1",ide_recorders);
 	Kernel::IDERecorders (ide_recorders);
@@ -538,7 +524,6 @@ Press Repair to install these packages.
 	
 	if (size( missing ) > 0)
 	{
-	    //TODO write a help text
 	    help_text = _("
 The variable INITRD_MODULES contains the list of modules
 to be added to the initial ramdisk by calling the script \"mk_initrd\"
@@ -654,6 +639,7 @@ to create a new configuration file.");
      * Check the lilo conf file.
      */
     define boolean check_lilo_config()``{
+
 	// Be careful: use the mountpoint of the root partition for execution of this command!
 	string command = sformat("%1/sbin/lilo -r %1 -t -v", root_mountpoint );
 	
@@ -735,6 +721,7 @@ contains no errors press the cancel button.
      * Check if a device (grub syntax) exist.
      */
     define boolean exists_grub_device(string grub_device )``{
+
 	//"device":"(hd0)"
 	if( exists_device(grubDev2LiloDev( grub_device )))
 	{
@@ -779,7 +766,6 @@ contains no errors press the cancel button.
 	y2milestone("check grub device: %1", grub_device);
 	if ( grub_device == "") return true;
 	return exists_grub_device(grub_device);
-	//TODO more device checks??
     }
     
     /**
@@ -813,12 +799,10 @@ contains no errors press the cancel button.
 	
 	if( addr != grub_conf_defaults["addr"]:""){
 	    y2error("grub addr (%1) changed not default %2",addr,  grub_conf_defaults["addr"]:"");
-	    //TODO check if error or not
 	}
 	return true;
     }
 
-        
     /**
      *
      */
@@ -827,7 +811,6 @@ contains no errors press the cancel button.
 	{
 	    if( discswitch != grub_conf_defaults["discswitch"]:""){
 		y2error("grub discswitch (%1) changed not default %2",discswitch,  grub_conf_defaults["discswitch"]:"");
-		//TODO check if error or not
 	    }
 	}
 	return true;
@@ -848,10 +831,6 @@ contains no errors press the cancel button.
      * Test if stage2 exist.
      */
     define boolean check_grub_stage2(string stage2)``{
-	//if ( stage2 == "" )
-	//{
-	//    stage2 = bootloader_config_check[bootloader, "stage2"]:"";
-	//}
 	return OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, stage2 ));
     }
 
@@ -866,7 +845,6 @@ contains no errors press the cancel button.
     define boolean check_grub_menu_entry_map(map entries)``{
 	boolean error_found = false;
 	foreach(string key, string value, entries ,``{
-	    y2milestone("----- checking key %1",key );
 	    if( ! contains(valid_grub_menu_enties, key ))
 	    {
 		y2error("key -%1- not found - no valid key", key);
@@ -1181,8 +1159,10 @@ is bootable press the cancel button.
      * Repair a damaged grub configuration.
      */
     global define symbol repair_grub_config()``{
+	
 	symbol ret  	     	     = `next;
 	list(string) possible_loader =  ["grub", "lilo"];
+
 	if ( ! contains( possible_loader, Boot::LoaderType ))
 	{
 	    Boot::LoaderType = possible_loader[0]:"";
@@ -1196,41 +1176,31 @@ is bootable press the cancel button.
 	
 	// change root for boot loader module call
 	OSRSystem::ChangeRoot("/");
-
-	y2milestone("repair need initrd_modules in Boot %1", Boot::initrdModules );
 	ret = CallFunction(`inst_bootloader(true,true));
-	
-	y2milestone("inst_bootload
-er returned %1", ret );
+
 	if( ret == `next )
 	{
 	    UI::OpenDialog(`Label(_("Saving new boot loader configuration ...")));
+
 	    // get list of bootable 'foreign' primary partitions
 	    // ["<device> <comment>", "<device> <comment>", ...]
 	    list foreign_primaries = Storage::GetForeignPrimary();
 
-	    // --------------------------------------------------------------
 	    // boot concept
 	    if (foreign_primaries != nil)
 	    {
 		Boot::others = foreign_primaries;
 	    }
 
-
-	    y2milestone("saving boot loader settings ");
-
 	    OSRSystem::ChangeRoot( root_mountpoint );
+	    
 	    // prepare environment for saving boot loader settings
 	    string destproc = "/proc";
 	    SCR::Execute (.target.mkdir, destproc, 0755);
-	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
-
-	    //OSRSystem::ChangeRoot( root_mountpoint );
-	    
+	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");   
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
 	    Boot::Save();
-	    
 	    boolean g_ret = Boot::Write();
 	    
 	    UI::CloseDialog();
