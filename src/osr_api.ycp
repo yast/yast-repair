@@ -522,9 +522,9 @@
    *  API function,
    *
    *  @return map The value of the osr_map in a previous run, $[] if the file could not be read.
-   *  @example map old_osr_map = OSRMapReadFloppy();
+   *  @example map old_osr_map = OSRReadFloppy();
    */
-  global define OSRMapReadFloppy() ``{
+  global define OSRReadFloppy() ``{
 
       boolean file_read        = false;
       //boolean user_read_floppy = true;
@@ -613,7 +613,7 @@ floppy-drive and press Load.");
 		  boolean has_floppy    = true;
 		  string  floppy_device = "";
 
-		  has_floppy    = lookup(user_settings, "has_floppy", false);
+		  has_floppy    = lookup(user_settings, "has_floppy", true);
 		  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
 
 		  if (has_floppy)
@@ -679,9 +679,9 @@ floppy-drive and press Load.");
    *  API function,
    *
    *  @return boolean True if the osr_map was written correctly to the file "osr_map.ycp" on floppy-disk.
-   *  @example boolean write_ok = OSRMapWriteFloppy();
+   *  @example boolean write_ok = OSRWriteFloppy();
    */
-  global define OSRMapWriteFloppy() ``{
+  global define OSRWriteFloppy() ``{
 
       boolean file_written      = false;
       boolean user_write_floppy = true;
@@ -696,11 +696,11 @@ floppy-drive and press Load.");
       help_text = help_text + _("<p>Press <b>Next</b> to halt the <b>YaST2 OS Repair</b>.</p>");
 
       UI(``{
-	  term contents    = `Empty();
-	  term load_button = `Empty();
-	  term label       = `Empty();
+	  term contents     = `Empty();
+	  term store_button = `Empty();
+	  term label        = `Empty();
 
-	  load_button = `PushButton(`id(`osr_floppy_button), `opt(`default), _("&Store system-information"));
+	  store_button = `PushButton(`id(`osr_floppy_button), `opt(`default), _("&Store system-information"));
 	  label       = `Label(`id(`osr_floppy_label), `opt(`default), _("You can store the whole system-information
 to a floppy-disk. This can be helpful for
 later system-checks.
@@ -720,7 +720,7 @@ and press Store."));
 								label,
 								`VSpacing(1),
 								`HCenter(
-									 load_button
+									 store_button
 									 ),
 								`VSpacing(1)
 								),
@@ -755,8 +755,10 @@ and press Store.");
 		  boolean has_floppy    = true;
 		  string  floppy_device = "";
       
-		  has_floppy    = lookup(user_settings, "has_floppy", false);
+		  has_floppy    = lookup(user_settings, "has_floppy", true);
 		  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
+
+		  //OSRPopupDisplayQuick(sformat("has_floppy: %1", has_floppy), 2000);
       
 		  if (has_floppy)
 		  {
@@ -769,6 +771,38 @@ and press Store.");
 		      // correctly, otherwise the file /media/floppy/osr_map.ycp is saved to harddisk!
 		      if (mounted)
 		      {
+			  // save all partition-tables to floppy
+			  map target_map = GetDisks();
+
+			  // iterate all harddisks
+			  foreach(`target, `values, target_map, ``{
+
+			      // target = "/dev/sda" -> disk_name = "sda"
+			      string disk_name = select(splitstring(target, "/"), (size(splitstring(target, "/"))-1));
+
+			      // set the dd-command
+			      string command = sformat("dd if=%1 of=/media/floppy/%2.ptbl bs=512 count=1", target, disk_name);
+			      
+			      // do it!
+			      // the partition-table of "/dev/sda" is saved to the file "sda.ptbl" on floppy
+			      integer dd_result = WFM::Execute(.local.bash, command);
+
+			      //OSRPopupDisplayQuick(sformat("command: %1\ndd_result: %2", command, dd_result), 3000);
+
+			      if (dd_result == 0)
+			      {
+				  integer dd_written = SCR::Read(.target.size, "/media/floppy/" + disk_name + ".ptbl");
+
+				  if (dd_written != 512)
+				  {
+				      y2error("file %1 not written correctly to floppy", "/media/floppy/" + disk_name + ".ptbl");
+
+				      OSRPopupDisplayQuick(sformat(_("The partition-table of disk %1
+was not written correctly to floppy."), target), 1000);
+				  }
+			      }
+			  });
+
 			  boolean file_write = WFM::Write(.local.ycp, "/media/floppy/osr_map.ycp", osr_map);
 
 			  // get osr_map from floppy as test
@@ -802,7 +836,7 @@ and press Store.");
 
       if (user_input == `osr_floppy_button)
       {
-	  old_osr_map = return_map;
+	  //old_osr_map = return_map;
 	  user_input  = `next;
       }
 
