@@ -128,7 +128,12 @@ is not possible.</P>");
 	root_mountpoint		= "";
 	missing_packages 	= [];
 
+	architecture_packages = [];
+	package_db_repaired = false;
+	reinstalled_packages    = [];
+	install_missing_dialog_data = [];
 
+	
 	if( target_initialized )
 	{
 	    target_initialized = ! Pkg::TargetFinish ();

@@ -120,7 +120,7 @@
   global define term Create( symbol local_richtext_widget, string text ) ``{
 
       richtext_widget = local_richtext_widget;
-      return ( `RichText(`id(richtext_widget),  text ));
+      return ( `RichText(`id(richtext_widget), `opt(`autoScrollDown),  text ));
   }
   
   /**

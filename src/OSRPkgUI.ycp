@@ -175,8 +175,6 @@ modified. it is indication
      * Reset all (not static)  module settings.
      */
     global define void Reset()``{
-
-	set_verify_text_header();
 	
 	// Reset values
 	show_ok         	= true;
@@ -184,7 +182,12 @@ modified. it is indication
 	package_count		= 0;
 	expert_mode		= false;
 	dialogs			= [];
+	protocol_mode		= false;
+	verified_text	 	= "";
+	verified_text_ok 	= "";
 
+	OSRProgress::Reset();
+	set_verify_text_header();
 	
     }
 
@@ -261,7 +264,7 @@ modified. it is indication
 	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &details"), expert_mode );
 	term progress_bar     =  OSRProgress::CreateProgressBar(package_progress_bar,  check_string(),  package_count  );
 	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Show successful verified &packages too"),  show_ok));
-	term protocol 	      =  `RichText(`id(package_widget), `opt(`vstretch )  , (show_ok ) ? verified_text_ok : verified_text );
+	term protocol 	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
 
 	dialogs = add( dialogs,
 		       `HBox(`VSpacing(15),
