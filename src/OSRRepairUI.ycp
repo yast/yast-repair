@@ -498,10 +498,12 @@ for you.
 		list(string) greq = OSR::CheckGroupRequires();
 		
 		if( size(greq) != 0 ) {
-		    UI::OpenDialog(`Label(_("
+		    UI::OpenDialog(`opt(`decorated), `HBox(
+		    `HSpacing (0.5), `Label(_("
 YaST is resolving the dependencies
 between the selected groups...
-")));
+")),
+		    `HSpacing(0.5)));
 		    sleep(2000);
 		    UI::CloseDialog();
 		    UI::ChangeWidget(`id(`options), `SelectedItems, union(OSR::DetectGroupList(), greq));

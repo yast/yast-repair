@@ -117,7 +117,8 @@ YaST verifies all package that belong
 to the minimal selection. If
 discrepancies appear, YaST suggests
 reinstalling the damaged packages.</P>
-")
+"),
+                         "requires" : [ "packages_db_check"]
                       ]
       ];
 

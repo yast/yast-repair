@@ -48,53 +48,61 @@
 
   textdomain "repair";
 
-  string remove_label   	= _("Remove");
-  string ignore_label   	= _("Ignore");
-  string replace_label 		= _("Replace");
-  string create_label   	= _("Create");
+  string remove_label		= _("Remove");
+  string ignore_label		= _("Ignore");
+  string replace_label		= _("Replace");
+  string create_label		= _("Create");
 
   string device_label    	= _("Device");
   string mount_label     	= _("Mount point");
   string create_mp_label 	= _("Create Mount Point");
   string state_label     	= _("State");
-  string fstab_line_label 	= _("Fstab Line");  
-  
-  string b_ignore_label	    	= _("&Ignore");
-  string b_create_label    	= _("&Create");
-  string b_remove_label     	= _("&Remove");
-  string b_change_mp_label  	= _("Change &Mount Point");
-  string b_replace_label    	= _("R&eplace");
+  string fstab_line_label 	= _("Fstab Line");
 
-  global list(string) system_mount_points =  [ "/dev", "/lib", "/bin", "/etc", "/sbin" ];
-  
+  // button label
+  string b_ignore_label		= _("&Ignore");
+  // button label
+  string b_create_label		= _("&Create");
+  // button label
+  string b_remove_label		= _("&Remove");
+  // button label
+  string b_change_mp_label	= _("Change &Mount Point");
+  // button label
+  string b_replace_label	= _("R&eplace");
+
+  global list(string) system_mount_points =
+    [ "/dev", "/lib", "/bin", "/etc", "/sbin" ];
+
   /**
    * The path
    */
   global string tabpath	= "/etc/fstab";
 
   /**
-   * The default fstab entries for proc, usb, ...	
-   * FIXME: these are not sufficient...see e.g. windows partitions (umask, gid)
+   * The default fstab entries for proc, usb, ...
    */
-  map defs 	= $[
-		    "pts" 	: ["devpts", 	"/dev/pts",  	"devpts", 	"mode=0620,gid=5", 	"0",   "0"],
-		    "proc"	: ["proc",  	"/proc",     	"proc",   	"defaults",        	"0",   "0"],
-		    "usb"	: ["usbdevfs",	"/proc/bus/usb", "usbdevfs", 	"noauto", 		"0",   "0"],
-		    "swap"	: ["",		"swap",	    	"swap",		"pri=42", 		"0",   "0"],
-		    "cdrom"	: ["",		"",    		"auto",		"ro,noauto,user,exec",  "0",   "0"],
-		    "floppy"	: ["",		"",   		"auto",		"noauto,user,sync",     "0",   "0"],
-		    "root"	: ["",		"",		"auto",		"defaults", 		"1",   "1"],
-		    "zip"	: ["", 		"", 		"auto", 	"noauto,user", 		"0",   "0"],
-		    "dev"	: ["",		"",	     	"auto", 	"noauto,user",		"0",   "0"],
-		    "nfs"	: ["", 		"", 		"nfs",		"defaults",		"0",   "0"]	
-  ];
-  
+  map defs = $[
+    "pts":	["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
+    "proc":	["proc", "/proc", "proc", "defaults", "0", "0"],
+    "usb":	["usbdevfs", "/proc/bus/usb", "usbdevfs", "noauto", "0", "0"],
+    "swap":	["", "swap", "swap", "pri=42", "0", "0"],
+    "cdrom":	["", "", "auto", "ro,noauto,user,exec", "0", "0"],
+    "floppy":	["", "", "auto", "noauto,user,sync", "0", "0"],
+    "root":	["", "", "auto", "defaults", "1", "1"],
+    "zip":	["", "", "auto", "noauto,user", "0", "0"],
+    "dev":	["", "", "auto", "noauto,user", "0", "0"],
+    "nfs":	["", "", "nfs", "defaults", "0", "0"]
+    ];
+
   /**
    * All allowed mount options
-   * FIXME: not sufficient: see hacks in check_fs_mntops()
+   * There are not sufficient e.g. for NTFS partitions, see hacking
+   * in check_fs_mntops()
    */
-  list(string) mn_opts = ["async","atime","auto","defaults","dev","exec","noatime","noauto","nodev","noexec",
-			  "nosuid","nouser","remount","ro","rw","suid","sync","dirsync","user","users" ];
+  list(string) mn_opts = [
+    "async","atime","auto","defaults","dev","exec", "noatime","noauto","nodev",
+    "noexec", "nosuid","nouser","remount","ro","rw", "suid","sync","dirsync",
+    "user","users" ];
 
   /**
    * All digits
@@ -113,7 +121,6 @@
 		     5: "passno" ];
 
 
-   
   /**
    * Partitions which are swapable
    */
@@ -475,6 +482,19 @@ press \"Yes\".
       return true;
   }
 
+    /**
+     * check the existence of special fstab options (used for dos/windows FS)
+     * for options, see Storage::AddMountPointsForWinParts()
+     * FIXME not clean solution
+     */
+    define boolean doswindows_options (string option) ``{
+
+	return (
+	    issubstring (o, "iocharset=") || issubstring (o, "gid=") ||
+            issubstring (o, "umask=") || issubstring (o, "nls=") ||
+            issubstring (o, "code="));
+    }
+
   /**
    * Check the mount options (fourth) entry in a fstab line.
    */
@@ -482,16 +502,11 @@ press \"Yes\".
       if( line[3]:"" == nil || line[3]:"" == "" ) return false;
 
       list(string) opts  = splitstring(remove_blacks(line[3]:"" ), "," );
-      // TODO FIXME: why only some of options (=mn_opts) are supported?
       list unsupported = filter( string o, opts, ``{
             if (contains(mn_opts, o))
                  return false;
-            // hack for other values
-            // see Storage::AddMountPointsForWinParts()
-            else if (issubstring (o, "iocharset=") || issubstring (o, "gid=") ||
-                     issubstring (o, "umask=") || issubstring (o, "nls=") ||
-                     issubstring (o, "code="))
-                return false;
+	    else if (doswindows_options (o))
+		return false;
             else
                 return true;
       });
@@ -1388,68 +1403,78 @@ for the device %1:
    * Dialog for all fstab entries with not existing devices.
    */
   define symbol SuggestRemoveSpecDialog()``{
-      list(integer) rm_entries 	  = suggest_remove_spec();      
-      
+      list(integer) rm_entries = suggest_remove_spec();
+
       if( size( rm_entries) == 0 ) return `ok;
-      
-      string help_text =  OSRRepairUI::build_label_description( state_label,  sformat(_("
+
+      // help text
+      string help_text = OSRRepairUI::build_label_description (state_label, sformat(_("
 The status of a listed line can be switched between
 %1 and %2. YaST only removes fstab entries if the the status of the
 corresponding line is %2.
 "), ignore_label, remove_label )) +
-						
-	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("\nChange the status of the line to %1
+
+	OSRRepairUI::build_label_description( b_ignore_label, sformat(_("\nChange the status of the line to %1
 "), ignore_label)) +
 
-	  OSRRepairUI::build_label_description( b_remove_label, sformat(_("\nChange the status of the line to %1
+	OSRRepairUI::build_label_description( b_remove_label, sformat(_("\nChange the status of the line to %1
 "), remove_label));
 
-      
-	  
-      
-      OSRPopup::OpenSuggestDialog( _("Remove fstab Entries:"),
-				   _("
+    OSRPopup::OpenSuggestDialog(
+	// dialog caption
+	_("Remove fstab Entries:"),
+	// dialog text
+	_("
 Could not find existing devices for the following fstab lines.
-Select the lines in the table and  change the status
-to remove the lines from fstab.
+Select the lines in the table and change the status
+if you want to remove the lines from fstab.
 "),
-				   help_text,
-				   `VBox(`Left(`Label(_("Invalid or Obsolete Lines in fstab:"))),
-					 `Table(`id(`table), `header(state_label, fstab_line_label ), remove_spec_items(rm_entries, ignore_label)),
-					 `Left(`HBox(`PushButton(`id(`ignore), b_ignore_label ),
-						     `PushButton(`id(`remove), b_remove_label )))
-					 ), 50	 );
-      UI::SetFocus(`id(`table));
+	help_text,
+	`VBox(
+	    // label (table will follow)
+	    `Left(`Label(_("Invalid or Obsolete Lines in fstab:"))),
+	    `Table(`id(`table),
+		`header(state_label, fstab_line_label ),
+		remove_spec_items(rm_entries, ignore_label)),
+	    `Left(`HBox(
+		`PushButton(`id(`ignore), b_ignore_label ),
+		`PushButton(`id(`remove), b_remove_label )))
+	), 50);
 
-    symbol ret       = `ok;
-    repeat {
+    UI::SetFocus(`id(`table));
+
+    symbol ret = `ok;
+    repeat
+    {
 	ret = UI::UserInput();
 	integer current_item  = UI::QueryWidget(`id(`table), `CurrentItem);
-	
-	if ( ret == `ignore ) {
-	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), ignore_label );
+
+	if ( ret == `ignore )
+	{
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), ignore_label);
 	}
-	else if ( ret == `remove ) {
-	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), remove_label );
+	else if ( ret == `remove )
+	{
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), remove_label);
 	}
-	else if( ret == `ok ) {
+	else if( ret == `ok )
+	{
 	    list(integer) rm_list = [];
-	    foreach(integer e, rm_entries, ``{
-		if ( select( UI::QueryWidget(`id(`table), `Item(e)), 1, "") == remove_label ) {
+	    foreach (integer e, rm_entries, ``{
+		if ( select( UI::QueryWidget(`id(`table), `Item(e)), 1, "") == remove_label )
+		{
 		    rm_list = add(rm_list, e);
 		}
 	    });
 	    y2milestone("lines to remove %1", rm_list);
 	    AsciiFile::RemoveLines(fstab, rm_list );
 	}
-	
-    } until( ret == `ok || ret == `cancel );	      
-    
+    } until( ret == `ok || ret == `cancel );
+
     UI::CloseDialog();
-    return ret;      
+    return ret;
   };
 
-  
   /**
    * Find all fstab lines with at least one invalid position
    */
@@ -1800,6 +1825,7 @@ if you press \"Save\".</P>
       }
 
       
+y2internal ("-------------- not-valid: %1", not_valid_lines);
       if( size( not_valid_lines ) > 0 ) {
 	  ret = add( ret, SuggestCreateMp());
 	  ret = add( ret, SuggestRemoveSpecDialog());
