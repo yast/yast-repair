@@ -77,9 +77,8 @@
 	  // delete the old progress_file, if it exists
 	  command  = sformat("if test -f %1; then rm %1; fi", file);
 	  //log_file = OSRLogFile::GetFile();
-	  //OSRExecuteCommand(command, log_file);
 	  SCR::Execute(.target.bash, command);
-
+	  
 	  /*
 	  UI::ChangeWidget(`id(WFM::module_progress_id), `Label,        WFM::label);
 	  UI::ChangeWidget(`id(WFM::module_progress_id), `Filename,     WFM::file);
@@ -121,7 +120,6 @@
 	  // delete the old progress_file, if it exists
 	  //log_file = OSRLogFile::GetFile();
 	  command  = sformat("if test -f %1; then rm %1; fi", file);
-	  //OSRExecuteCommand(command, log_file);
 	  SCR::Execute(.target.bash, command);
 
 	  return (
@@ -157,7 +155,6 @@
           // delete the old progress_file, if it exists
 	  command  = sformat("if test -f %1; then rm %1; fi", file);
 	  //log_file = lookup(osr::osr_map, "osr_log_file", "/tmp/osr.log");
-	  //OSRExecuteCommand(command, log_file);
 	  SCR::Execute(.target.bash, command);
 
 	  return UI::ChangeWidget(`id(WFM::module_progress_id), `Filename, WFM::file);
@@ -240,6 +237,7 @@
 
 	  command = sformat("echo \"%1\" >> %2", fill, file);
 	  result  = SCR::Execute(.target.bash, command);
+	  
 	  return ( result == 0);
       }
       else
@@ -287,6 +285,7 @@
 
 	      command = sformat("echo \"%1\" >> %2", fill, file);
 	      result  = SCR::Execute(.target.bash, command);
+	      
 	      return (result == 0);
 	  }
 	  else
