@@ -49,14 +49,14 @@
     /**
      * All allowed rpm test options with description.
      */ 
-    list modes =  [["S",	_("The file size")			],
-		   ["M",	_("The file mode")			],
-		   ["5",	_("The MD5 checksum of the file")  	],
-		   ["D",	_("The file major and minor number")	],
-		   ["L",	_("The file symbolic link content")	],
-		   ["U",	_("The owner of the file")		],
-		   ["G",	_("The file group")			],
-		   ["T",	_("The last modification time")		]
+    list modes =  [["S",	_("The File Size")			],
+		   ["M",	_("The File Mode")			],
+		   ["5",	_("The MD5 Checksum of the File")  	],
+		   ["D",	_("The File Major and Minor Number")	],
+		   ["L",	_("The File Symbolic Link Content")	],
+		   ["U",	_("The Owner of the File")		],
+		   ["G",	_("The File Group")			],
+		   ["T",	_("The Last Modification Time")		]
     ];
 
     /** TODO write the help
@@ -75,9 +75,9 @@
 		       [_("Symbolic Link") ,
 			_("TODO") ],
 		       [_("Modification Time") ,
-			_("Linux keep track of the date and time that a file was last modified.
-YaST2 compare the date of the file with the saved one in the package database. If the two dates the file was
-modified. it is indication
+			_("Linux keeps track of the date and time that a file was last modified.
+YaST2 compares the date of the file with the saved one in the package database. If the two dates differ, the file was
+modified.
 ")]
     ];
 	 
@@ -155,9 +155,9 @@ modified. it is indication
                                </tr>", special[1]:"");
 
 	    verified_text_ok = sformat( header, 
-					HTML::Bold(_("Package name")),
+					HTML::Bold(_("Package Name")),
 					HTML::Bold(_("Files ")),
-					HTML::Bold(_("Configuration file")),
+					HTML::Bold(_("Configuration File")),
 					HTML::Bold(_("Status")),
 					special[0]:"",
 					special[1]:"" );
@@ -263,7 +263,7 @@ modified. it is indication
 	term ok_cancel_button =  `PushButton( `id(ok_or_cancel_key),  CancelButtonLabel());
 	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &details"), expert_mode );
 	term progress_bar     =  OSRProgress::CreateProgressBar(package_progress_bar,  check_string(),  package_count  );
-	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Show successful verified &packages too"),  show_ok));
+	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Also Show Successfully Verified &Packages"),  show_ok));
 	term protocol 	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
 
 	dialogs = add( dialogs,
@@ -518,8 +518,8 @@ YaST verifies packages now."))),
     }
     
     define symbol show_package_details(string pkg_name )``{
-	map ret = OSRPopup::CheckBoxDialog(_("Package details:"), Pkg::PkgSummary(input),
-					[[ pkg_name , _("Reinstall the package"),
+	map ret = OSRPopup::CheckBoxDialog(_("Package Details:"), Pkg::PkgSummary(input),
+					[[ pkg_name , _("Reinstall the Package"),
 					  contains(OSRPkgVerify::not_successful_verified, pkg_name ) ]]);
 	foreach(string pkg, boolean reinstall , ret , ``{
 	    if( reinstall )
@@ -559,14 +559,15 @@ YaST verifies packages now."))),
 	    // TODO write more
 	    UI::AnyMessagePopup(sformat(_("The file %1 is missing."), pkg_data["file"]:""),
 sformat(_("The file %1 is part of the
-package %2 but was not found."), pkg_data["file"]:"", pkg_name ));
+package %2, but was not found.
+"), pkg_data["file"]:"", pkg_name ));
 
 	}
 	else if (status == OSRPkgVerify::unsatisfied )
 	{
 	    //rpm output e.g.: unsatisfied dependencies for SDL_mixer-1.2.4-55: libvorbisfile.so.3
 	    // TODO write more
-	    UI::AnyMessagePopup(_("Unsatisfied dependencies:"),
+	    UI::AnyMessagePopup(_("Unsatisfied Dependencies:"),
 sformat("
 %1
 
@@ -602,7 +603,7 @@ the unsatisfied dependencies.
 	    
 	    string  body  		= "";
 	    list    not_passed 		= [];
-	    term    config_term  	= `Label(_("YaST suggest to reinstall this package."));
+	    term    config_term  	= `Label(_("YaST suggests reinstalling this package."));
 	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
 
 	    if( pkg_data["green_status"]:"" != "" )
@@ -646,7 +647,7 @@ the unsatisfied dependencies.
 	    foreach(list d,  modes_help, ``{
 		help_text = help_text  + "<P><B><BIG>" + d[0]:"" + "</BIG></B></P>" + "<P>" +d[1]:"" +"</P>";
 	    });
-	    string headline = sformat(_("Overview of the executed tests for the package:  %1."),pkg_name);
+	    string headline = sformat(_("Overview of the Executed Tests for the Package:  %1."),pkg_name);
 
 	    //get the minimal length of the headline and add blanks for the layout.
 	    integer minimal_size = 0;
@@ -668,7 +669,7 @@ the unsatisfied dependencies.
 				 `VBox(
 				      `VWeight(10,`Heading(headline)),
 		 		      `VSpacing(1),
-				      `VWeight(10, `VBox(`Left(`Label(_("Corresponding file of the package:"))),
+				      `VWeight(10, `VBox(`Left(`Label(_("Corresponding File of the Package:"))),
 							 `Left(`Label(`opt(`outputField),  pkg_data["file"]:""))
 							 )
 					       
@@ -725,8 +726,7 @@ the unsatisfied dependencies.
 	    // want really cancel.
 	    if( package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
 	    {
-		if( ! UI::YesNoPopup(_("
-Really cancel verify packages?
+		if( ! UI::YesNoPopup(_("\nReally cancel package verification?
 ")))
 		{
 		    return `again;

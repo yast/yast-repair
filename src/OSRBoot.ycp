@@ -474,7 +474,7 @@ Press Repair to install these packages.
 "),install_reason, mergestring( missing_packages, "\n" ));
 	      
 	
-	if( OSRPopup::Repair(_("Boot loader package missing"), error_message, help_text)) {
+	if( OSRPopup::Repair(_("Boot loader package missing."), error_message, help_text)) {
 
 	    OSRPkg::root_mountpoint  = root;
 	    OSRPkg::missing_packages = missing_packages;
@@ -536,18 +536,18 @@ Press Repair to install these packages.
 	{
 	    help_text = _("
 The variable INITRD_MODULES contains the list of modules
-to be added to the initial ramdisk by calling the script \"mk_initrd\"
-Example are drivers for scsi-controllers and lvm or reiserfs.
+to add to the initial ramdisk by calling the script \"mk_initrd\"
+Examples are drivers for SCSI controllers and LVM or reiserfs.
 ");
 	    error_message = sformat(_("
 The file %1 contains a list
-of modules to be added to the initial
+of modules to add to the initial
 ramdisk by calling the script \"mk_initrd\".
-YaST missing the following modules:
+YaST is missing the following modules:
 
 %2
 
-Please press \"Repair\" to add the the missing
+Press \"Repair\" to add the missing
 modules to the initial ramdisk.
 "), needed_config_files["initrd"]:"", mergestring( missing , "\n" ));
 
@@ -562,7 +562,7 @@ modules to the initial ramdisk.
      * Wirte initrd modules and call mk_initrd
      */
     global define symbol RepairInitrdModules()``{
-	if ( ! OSRPopup::Repair(_("Initrd modules missing"), error_message, help_text) ) {
+	if ( ! OSRPopup::Repair(_("Initrd modules missing."), error_message, help_text) ) {
 		return `cancel;
 	}
 	boolean ret           = true;
@@ -590,7 +590,7 @@ modules to the initial ramdisk.
             any retAsk = UI::AskShowLog();
             if ( retAsk )
             {
-                UI::ShowFilePopup( _("The output of the script mk_initrd:"), "/var/log/YaST2/y2logmk_initrd" );
+                UI::ShowFilePopup( _("The Output of the Script mk_initrd:"), "/var/log/YaST2/y2logmk_initrd" );
             }
         }
 	if( ret ) return `ok;
@@ -618,20 +618,22 @@ modules to the initial ramdisk.
 
 _("<p>The boot loader configuration file contains
 defective data. Depending on the boot loader
-type the syntax of the configuration file.
-differ. </p>");
+type, the syntax of the configuration file
+differs. </p>
+");
 
 	    error_message = _("
 The main configuration file of the boot loader was
 not found. 
 
 If you changed the boot loader configuration
-manual and the system starts correctly please
-skip these dialog and continue the detection
+manually and the system starts correctly, 
+skip this dialog and continue the detection
 sequence.
 If you never changed anything affecting
-the boot loader please press the repair button
-to create a new configuration file.");
+the boot loader, press Repair
+to create a new configuration file.
+");
 
 	    invalid_config_files = add(invalid_config_files,  bootloader_config_check[bootloader, "config_file"]:"");
 	    bootloader_error_found = true;
@@ -665,25 +667,27 @@ to create a new configuration file.");
 
 	    help_text = _("
 <p>The command /sbin/lilo -t checks the syntax
-of the lilo boot loader configuration file.</p>") +
+of the LILO boot loader configuration file.</p>
+") +
 
-_("<p>These command return an error. This means that
-your system is not bootable generally.
+_("<p>This command returns an error. This normally means 
+your system is not bootable.
 
-YaST recommend to create a new configuration
-file.</P>");
+It is recommended to create a new configuration
+file.</P>
+");
 
 	    error_message = _("
 The syntax of the boot loader configuration
 file is not valid. 
 The configuration file contains defective
-data needed for booting the linux system.
+data needed for booting the Linux system.
 
-Press Repair to let YaST guess a new
+Press Repair to have YaST generate a new
 configuration file. 
 
 If you sure that your configuration file
-contains no errors press the cancel button.
+contains no errors, press Cancel.
 ");
 	    return false;
 	}
@@ -1116,36 +1120,40 @@ contains no errors press the cancel button.
 	    }
 	    
 	    help_text = _("
-<p>A default gurb installation need three
-configuration files:</p>") +
+<p>A default GRUB installation needs three
+configuration files:</p>
+") +
 
 sformat("<p>%1</p>", mergestring([ bootloader_config_check[bootloader, "device_map"]:"",
 				   bootloader_config_check[bootloader, "config_file"]:"",
 				   menu_path
 				   ],"<br>")) +
 		
-_("<P>YaST found the following file(s) which
-are not valid:</p>") +
+_("<P>YaST found the following file or files
+that are not valid:</p>
+") +
 		
 sformat("<p>%1</p>", mergestring(invalid_config_files, "<br>")) +
 		
-_("<p>This means that your system is not
-bootable generally.</p>") +
+_("<p>This generally means that your system is not
+bootable.</p>
+") +
 
-_("<p>YaST recommend to create a new boot
-loader configuration.</p>");
+_("<p>Creating a new boot loader
+configuration is recommended.</p>
+");
 
 		  
 	    error_message = _("
 The configuration of the boot loader
 contains errors. 
 
-Press Repair to let YaST guess a new
+Press Repair to have YaST generate a new
 configuration.
 
-If you sure that your configuration
+If you sure your configuration
 contains no errors and your system
-is bootable press the cancel button.
+is bootable, press Cancel.
 ");
 	    
 	    return false;
@@ -1197,8 +1205,8 @@ is bootable press the cancel button.
 	    Bootloader::setLoaderType (possible_loader[0]:"");
 	}
 
-    string type = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
-						_("Please select the type of the new boot loader"),
+    string type = OSRPopup::RadioButtonGroup( _("Select Boot Loader Type"),
+						_("Select the type of the new boot loader."),
 						possible_loader, Bootloader::getLoaderType(), false );
 
 //	if ( Boot::LoaderType == "" ) return `abort ;
@@ -1217,7 +1225,7 @@ is bootable press the cancel button.
 	if( ret == `next )
 	{
         // message popup: wait for action
-	    UI::OpenDialog(`Label(_("Saving new boot loader configuration ...")));
+	    UI::OpenDialog(`Label(_("Saving new boot loader configuration...")));
 
 	    // get list of bootable 'foreign' primary partitions
 	    // ["<device> <comment>", "<device> <comment>", ...]
@@ -1247,8 +1255,7 @@ is bootable press the cancel button.
 	    UI::CloseDialog();
 	    if ( g_ret ) {
         // message popup
-		Report::Message(_("
-Installing the boot loader was successful.
+		Report::Message(_("\nThe boot loader was installed successfully.
 "));
 	    }
 
@@ -1266,7 +1273,7 @@ Installing the boot loader was successful.
 	if ( loader != "" ) bootloader = loader;
 	if ( show_message  )
 	{
-	    if ( ! OSRPopup::Repair(_("Boot loader error detected"), error_message, help_text) ) {
+	    if ( ! OSRPopup::Repair(_("Boot loader error detected."), error_message, help_text) ) {
 		return `cancel;
 	    }
 	}
@@ -1287,29 +1294,31 @@ Installing the boot loader was successful.
     global define symbol InstallNewLoader()``{
 
 	error_message = _("
-YaST can not found a valid boot loader
-installation. Therefore YaST suggest
-to install a new boot loader.
+YaST cannot find a valid boot loader
+installation. Therefore, installing
+a new boot loader is recommended.
 
-If you sure that your system boots
-currectly it is not neccesary to
+If you are sure your system boots
+correctly, it is not necessary to
 reinstall the boot loader.
 
-Otherwise please press the \"Repair\"
-button to install a new boot loader.
+Otherwise, press \"Repair\"
+to install a new boot loader.
 ");
 
 	help_text = _("
 <P>The boot loader is the first thing
-which you should see after you turned
-on a computer with a linux installion.
-Starting a linux system without
-a boot loader is not possible.</P>") +
+you should see after you turn
+on a computer with a Linux installation.
+Starting a Linux system without
+a boot loader is not possible.</P>
+") +
  
 _("<P>If you have installed more than
-one operating system on a computer
-the boot loader let choose you
-which system should be started.</P>");
+one operating system on a computer,
+the boot loader allows you to select
+which system to start.</P>
+");
 	bootloader = "";
 	return RepairConfig("",true);
     }
@@ -1335,20 +1344,20 @@ file.
 	list(string) t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
 
 	error_message = sformat(_("
-YaST can not found following 
-configuration file(s):
+YaST cannot find the following 
+configuration file or files:
 
 %1
 
-Therefore YaST suggest
-to install a new boot loader.
+Therefore, installing a new
+boot loader is recommended.
 
-If you sure that your system boots
-currectly it is not neccesary to
+If you are sure your system boots
+correctly, it is not necessary to
 reinstall the boot loader.
 
-Otherwise please press the \"Repair\"
-button to install a new boot loader.
+Otherwise, press \"Repair\"
+to install a new boot loader.
 "), mergestring(maplist(string file, not_valid_files, ``(file)), "\n"));
 	
 	

@@ -61,7 +61,7 @@
 
       osr_module_finish = $[
 		   "name"           :  "osr_module_finish",
-		   "headline"       :  _("Finishing"),
+		   "headline"       :  _("Finishing..."),
 		   "summary"        :  [],
 		   "test_mode_summary" : [
 					  $["header" : "Finish", "description" : "o.k.", "error" : false],
@@ -118,8 +118,8 @@
 
 		  OSRSummaryDetectOK(
 				     module_name,
-				     sformat(_("Umounting partition %1 from %2"), partition, mountpoint),
-				     _("Umount succeeded")
+				     sformat(_("Unmounting partition %1 from %2..."), partition, mountpoint),
+				     _("Unmount succeeded.")
 				     );
 	      }
 	      else
@@ -128,8 +128,8 @@
 
 		  OSRSummaryDetectProblem(
 					module_name,
-					sformat(_("Umounting partition %1 from %2"), partition, mountpoint),
-					_("Umount failed")
+					sformat(_("Unmounting partition %1 from %2..."), partition, mountpoint),
+					_("Unmount failed.")
 					);
 	      }
 	      // remove the last element from the list

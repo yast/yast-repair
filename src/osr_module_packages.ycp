@@ -40,70 +40,74 @@
       y2milestone("OSRPackagesInit");
 
       string common_package_texts = _("The most common way to add a new program or library
-to a linux system is to install a new package.
-In doing so the install routine copy all files of the
-package to the target and register the package in
-the package database.");
+to a Linux system is to install a new package.
+In doing so, the install routine copies all files of the
+package to the target and registers the package in
+the package database.
+");
 
       // %1 add one more sentence
       string verify_package_text = sformat(_("
 %1
-The package database administrate all
-information of the installed software packages.
+The package database administers all
+information about the installed software packages.
 Verifying a package means that the information
-of the package database about a package will be
-compared with the really installed files.
+in the package database about a package will be
+compared with the actual installed files.
 "), common_package_texts );
 
       map global_menu_entries = $[
 				  "packages_db_check" :
-					  $[ "text"	: _("Check package database"),
+					  $[ "text"	: _("Check Package Database"),
 					     "help"	: sformat(_("
 <P><B>What is the package database?</B><BR>
-The package database administrate all
-information of the installed software packages.
+The package database administers all
+information about the installed software packages.
 %1
-Thereby it is possible to remove the package later.</P>"), common_package_texts ) +
+This makes it possible to remove the package later.</P>
+"), common_package_texts ) +
  
-_("<P><B>Check package database</B><BR>
-YaST checks all files which contains to the
+_("<P><B>Check Package Database</B><BR>
+YaST checks all files that pertain to the
 package database. If some files are missing
-or the package database can not be opened
-YaST allows to rebuild the database or to
-revert a backup.</P>
+or the package database cannot be opened,
+YaST allows rebuilding the database or
+reverting to a backup.</P>
 ")
 					  ],
 				  "packages_selection" :
-					  $[ "text"	: _("Check minimal package selection"),
+					  $[ "text"	: _("Check Minimal Package Selection"),
 					     "help"	: sformat(_("
 
 <P><B>What is the minimal package selection?</B><BR>
 %1
-SuSE linux needs at least some packages for
+SuSE Linux needs at least some packages for
 the basic system functionality. Without these
-packages the system is not executable.</P>"), common_package_texts ) +
+packages, the system is not executable.</P>
+"), common_package_texts ) +
 
-_("<P><B>Check minimal package selection</B><BR>
-YaST checks if all for a minimal installation
-required software packages are installed. If
-some packages are missing YaST propose to
-install the missing packages.</P>
+_("<P><B>Check Minimal Package Selection</B><BR>
+YaST checks if all packages of a minimal installation
+are installed. If
+some packages are missing, YaST proposes
+installing the missing packages.</P>
 "),
 					     "requires" : [ "packages_db_check"]
 					  ],
 				  "packages_verify_base" :
 					  $[
-					    "text"	: _("Verify base packages (time consuming)"),
+					    "text"	: _("Verify Base Packages (time consuming)"),
 					    "help"	: sformat(_("
-<P><B>What means verify packages?</B><BR>
+<P><B>What does verify packages mean?</B><BR>
 %1
-</P>"), verify_package_text ) + 
+</P>
+"), verify_package_text ) + 
 
-_("<P><B>Verify base package</B><BR>
-YaST verifies all package which belongs
-to the minimal selection and if
-discrepancies appear YaST suggest to
-reinstall the damaged packages.</P>
+_("<P><B>Verify Base Package</B><BR>
+YaST verifies all package that belong
+to the minimal selection. If
+discrepancies appear, YaST suggests
+reinstalling the damaged packages.</P>
 ")
 					
 					  ]
@@ -113,17 +117,18 @@ reinstall the damaged packages.</P>
       {
 	  global_menu_entries[ "packages_verify_all" ] =
 					  $[
-					    "text"	: _("Verify all installed packages (very time consuming)"),
+					    "text"	: _("Verify All Installed Packages (very time consuming)"),
 					    "help"      : sformat(_("
-<P><B>What means verify packages?</B><BR>
+<P><B>What does verify packages mean?</B><BR>
 %1
-</P>"), verify_package_text ) + 
+</P>
+"), verify_package_text ) + 
 
-_("<P><B>Verify all installed packages</B><BR>
-YaST verify all installed packages and if
-discrepancies appear YaST suggest to
-reinstall the damaged packages. Verifying
-all packages is very time consuming. Therefore
+_("<P><B>Verify All Installed Packages</B><BR>
+YaST verifies all installed packages. If
+discrepancies appear, YaST suggests
+reinstalling the damaged packages. Verifying
+all packages is very time consuming. Therefore,
 this menu entry does not belong to the default
 selection.</P>
 "),
@@ -139,7 +144,7 @@ selection.</P>
 		  "global_entries"    : global_menu_entries,
 		  "static_provides"	: $[],
 		  "reset_methods"      : [
-					  $["summary"	: _("Reset package check settings"),
+					  $["summary"	: _("Reset Package Check Settings"),
 					    "method"	: ``(OSRPackagesReset()),
 					    "provides"	: 10
 					  ]
@@ -147,7 +152,7 @@ selection.</P>
 		  // the sequence of the detection methods of this module
 		  "detect_methods"    :  [
 					  $[ "name"	: "mount_all",
-					     "summary"  : _("Mounting all partitions"),
+					     "summary"  : _("Mounting all partitions..."),
 					     "method"   : ``(OSRPackagesMountAll()),
 					     "requires" :  [ "fstab_checked" ],
 					     "provides" :  [ "mounted_all" ],
@@ -155,7 +160,7 @@ selection.</P>
 					     "progress" : 10
 					  ],
 					  $[ "name"	: "find_package_db",
-					     "summary"  : _("Searching for package database"),
+					     "summary"  : _("Searching for package database..."),
 					     "method"   : ``(OSRPackagesDBFind()),
 					     "requires" :  [ "mounted_all" 	],
 					     "provides" :  [ "package_db_found" ],
@@ -163,7 +168,7 @@ selection.</P>
 					     "progress" : 10
 					  ],
 					  $[ "name"	: "find_minimal_selection",
-					     "summary"  : _("Searching for minimal required package"),
+					     "summary"  : _("Searching for minimal required packages..."),
 					     "method"   : ``(OSRPackagesCheckMinimumSelection()),
 					     "requires" :  [ "package_db_found" ],
 					     "provides" :  [ "package_minimal_selection" ],
@@ -171,7 +176,7 @@ selection.</P>
 					     "progress" : 10
 					  ],
 					  $[ "name"	: "verify_base_packages",
-					     "summary"  : _("Verifying base packages"),
+					     "summary"  : _("Verifying base packages..."),
 					     "method"   : ``(OSRPackagesVerifyPackages("base")),
 					     "requires" :  [ "package_minimal_selection" ],
 					     "provides" :  [ "package_base_verified" ],
@@ -183,10 +188,10 @@ selection.</P>
 		  "direct_methods" : [
 				      $[
 					"name"		: "direct_methods_verify_packages",
-					"button_text"	: _("Verify installed software ..."),
+					"button_text"	: _("Verifying installed software..."),
 					"description" 	: _("
 If you have problems with some installed
-applications select this button to check
+applications, select this to check
 all software packages.
 "),
 					"method"		: ``(OSRDirectPackageCheck()),
@@ -201,7 +206,7 @@ all software packages.
       {
 	  ret[ "detect_methods" ] = add(  ret[ "detect_methods" ]:[], 
 					  $[ "name"	    : "verify_all_packages",
-					     "summary"  : _("Verifying all installed packages"),
+					     "summary"  : _("Verifying all installed packages..."),
 					     "method"   : ``(OSRPackagesVerifyPackages("all")),
 					     "requires" :  [ "package_minimal_selection" ],
 					     "provides" :  [ "package_all_verified" ],
@@ -241,7 +246,7 @@ all software packages.
       
       if( mounted == nil )
       {
-	  OSRSummary::DetectError("",_("Target system was not initialized"));
+	  OSRSummary::DetectError("",_("Target system was not initialized."));
 	  OSRStatus::Cancel();
 	  return false;
       }
@@ -250,14 +255,14 @@ all software packages.
       if( size(failed) > 0 )
       {
 	  
-	  OSRSummary::DetectProblem("", sformat(_("Following devices can not be mounted:<br>%1"),
+	  OSRSummary::DetectProblem("", sformat(_("Following devices cannot be mounted:<br>%1"),
 						mergestring(maplist(map mpe, failed, ``(sformat("%1",mpe["partition"]:""))), "<br>")));
 
 
 	  // TODO check what is todo
       }
       else {
-	  OSRSummary::DetectOK("", _("Target system initialized"));
+	  OSRSummary::DetectOK("", _("Target system initialized."));
       }
       
       OSR::ProvideBoolean("mounted_all", true );
@@ -278,16 +283,16 @@ all software packages.
       ///////////////////////////////////////////////////////////////////////////////////
       if ( OSRPkg::CheckDB( OSRSystem::TargetRoot() ) )
       {
-	  OSRSummary::DetectOK("",_("Package database was found"));
+	  OSRSummary::DetectOK("",_("Package database was found."));
 	  OSR::ProvideBoolean("package_db_found", true);
       }
       else {
-	  OSRSummary::DetectError("", _("No package database was found"));	  
+	  OSRSummary::DetectError("", _("No package database was found."));	  
 	  OSRSummary::SetRepairSummary(OSRPkg::RepairDB(),
-				       _("Initializing new package database"),
-				       _("Initializing new package database was successful"),
-				       _("Initializing new package database was skiped"),
-				       _("Initializing new package database was not successful"));
+				       _("Initializing new package database..."),
+				       _("Successfully initialized new package database."),
+				       _("Skipped initializing new package database."),
+				       _("Initialization of the new package database was not successful."));
 
       }
       return true;
@@ -305,16 +310,16 @@ all software packages.
       ///////////////////////////////////////////////////////////////////////////////////
       if ( OSRPkg::CheckMinimum("")) 
       {
-	  OSRSummary::DetectOK("",_("All minimal required packages were found"));
+	  OSRSummary::DetectOK("",_("All minimal required packages were found."));
 	  OSR::ProvideBoolean("package_minimal_selection", true);
       }
       else {
-	  OSRSummary::DetectError("", _("Some packages of the minimal requirement were missing"));	  
+	  OSRSummary::DetectError("", _("Some packages of the minimal requirement were missing."));	  
 	  OSRSummary::SetRepairSummary(OSRPkg::InstallMissing(true),
-				       _("Installation of missing packages"),
-				       _("Installation of missing packages were successful"),
-				       _("Installation of missing packages were skiped"),
-				       _("Installation of missing packages were not successful"));
+				       _("Install Missing Packages"),
+				       _("Installation of missing packages was successful."),
+				       _("Installation of missing packages was skipped."),
+				       _("Installation of missing packages was not successful."));
 	 
       }
       return true;
@@ -333,23 +338,23 @@ all software packages.
 
       if( ret == `abort || ret == `cancel )
       {
-	  OSRSummary::DetectOmit("", _("Verifying the packages was canceled"));
+	  OSRSummary::DetectOmit("", _("Package verification was canceled."));
       }
       else if ( ret == `error )
       {
-	  OSRSummary::DetectError("", _("Verifying packages failed"));
+	  OSRSummary::DetectError("", _("Package verification failed."));
       }
       else if ( size( OSRPkg::missing_packages ) > 0 )
       {
 	  OSRSummary::SetRepairSummary( OSRPkg::InstallMissing(true),
 					"",
-					_("Reinstalling of not verified packages were successful"),
-					_("Reinstalling of not verified packages were skiped"),
-					_("Reinstalling of not verified packages were not successful"));
+					_("Reinstallation of unverified packages was successful."),
+					_("Reinstallation of unverified packages was skipped."),
+					_("Reinstallation of unverified packages was not successful."));
       }
       else if ( size( OSRPkg::missing_packages ) == 0 )
       {
-	  OSRSummary::DetectOK("", _("All packages were verified successfully"));
+	  OSRSummary::DetectOK("", _("All packages were verified successfully."));
       }
 
       //Not a second verify process!!
@@ -362,13 +367,13 @@ all software packages.
 
   global define symbol OSRDirectPackageCheck()``{
       symbol ret  	   = `next;
-      string sret 	   = _("Base packages only");
-      list(string) options = [ sret , _("All installed packages") ];
+      string sret 	   = _("Base Packages Only");
+      list(string) options = [ sret , _("All Installed Packages") ];
 
       UI::NormalCursor();
       if( ! Mode::initial )
       {	  
-	  sret = OSRPopup::RadioButtonGroup(_("Please select the package count:"), _("
+	  sret = OSRPopup::RadioButtonGroup(_("Select the package count:"), _("
 You have the possibility to verify all packages
 or only the base packages. Verifying all packages 
 is very time consuming.
@@ -391,8 +396,7 @@ is very time consuming.
 	      OSRPkg::InstallMissing(true);
 	  }
 	  else {
-	      Report::Message(sformat(_("
-YaST verified %1 packages successful.
+	      Report::Message(sformat(_("\nYaST verified %1 packages successfully.
 "), size(OSRPkgVerify::verified_packages )));
 	  }
       }

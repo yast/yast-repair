@@ -62,10 +62,10 @@
   global define void OSRRepairUI()``{
 
       // build captions
-      init_dialog_caption 		= tool_name + _(" - Initialize");
-      start_dialog_caption		= tool_name + _(" - Start Dialog");
-      customize_dialog_caption		= tool_name + _(" - Customize");
-      tool_dialog_caption		= tool_name + _(" - Tool Box Dialog");
+      init_dialog_caption 		= tool_name + _(" -- Initialize");
+      start_dialog_caption		= tool_name + _(" -- Start Dialog");
+      customize_dialog_caption		= tool_name + _(" -- Customize");
+      tool_dialog_caption		= tool_name + _(" -- Tool Box Dialog");
       scan_dialog_caption		= _("YaST System Check");
   }
   
@@ -105,28 +105,28 @@
 			// progress label
 		       [ _("Load rescue modules"),
 			// progress label
-			 _("Prob floppy disk devices"),
+			 _("Probe floppy disk devices"),
 			// progress label
-			 _("Prob hard disk controllers"),
+			 _("Probe hard disk controllers"),
 			// progress label
 			 _("Load kernel modules for hard disk controllers"),
 			// progress label
-			 _("Prob hard disks"),
+			 _("Probe hard disks"),
 			 // progress label
-			 _("Prob usb")
+			 _("Probe USB")
 			 ],
 			// progress label
-		       [ _("Loading rescue modules ..."),
+		       [ _("Loading rescue modules..."),
 			// progress label
-			 _("Probing floppy disk devices ..."),
+			 _("Probing floppy disk devices..."),
 			// progress label
-			 _("Probing hard disk controllers ..."),
+			 _("Probing hard disk controllers..."),
 			// progress label
-			 _("Loading kernel modules for hard disk controllers ..."),
+			 _("Loading kernel modules for hard disk controllers..."),
 			// progress label
-			 _("Probing hard disks ..."),
+			 _("Probing hard disks..."),
 			// progress label
-			 _("Probing usb ..."),
+			 _("Probing USB..."),
 			 // progress label
 			 _("Finished") ],
 			    "" );
@@ -174,8 +174,8 @@
 	    {
 		// Oops, no storage controllers ?
 		// no storage controllers found, where are the hard disks attached ?
-		UI::MessagePopup(_("No hard disks were found. 
-Please check your hardware!
+		UI::MessagePopup(_("No hard disks were found.
+Check your hardware.
 "));
 
 		return `abort;
@@ -207,7 +207,7 @@ Please check your hardware!
 	    if (size (targetMap) == 0)
 	    {
 		UI::ErrorPopup(_("No hard disks were found.
-Please check your hardware!
+Check your hardware.
 "));
 		  
 		return `abort;
@@ -289,42 +289,49 @@ Please check your hardware!
 
       // build the help text
       string help_text    = sformat(_("<p><I>%1</I>
-can repair some parts of a damaged system. Therefore the
-tool scan the system and reports the found errors.</p>"), tool_name) +
+can repair some parts of a damaged system. Therefore, the
+tool scans the system and reports the errors found.</p>
+"), tool_name) +
 	
-_("<p>After an error was found YaST suggests one or
-more repair methods or let the user cancel the repair
-process.</p>") +
+_("<p>After an error was found, YaST suggests one or
+more repair methods or lets the user cancel the repair
+process.</p>
+") +
 	  
 	_("<p>Nothing will be repaired automatically.
-Only if the user accept the repair proposal the
-system will be changed.</P>");
+Only if the user accepts the repair proposal will
+the system be changed.</P>
+");
     
     
-      term contents  =  `VBox(`Left(`Heading(_("Please select one option:"))),
+      term contents  =  `VBox(`Left(`Heading(_("Select One Option:"))),
 			      `VSpacing(1));
    
       list start_dialog_entries = [
 				   // First entry - automatically analyse
-				 $["headline"    : _("&Automatic repair"),
+				 $["headline"    : _("&Automatic Repair"),
 				  "symbol"       :`scan_repair,
-				   "description" : _("Automatic analysing with repair
-proposals. Fits in most cases."),
-				   "help_text"	 : _("Aanalyse the hole system automatically and
-display repair proposals.")
+				   "description" : _("Automatic analyzing with repair
+proposals. Fits in most cases.
+"),
+				   "help_text"	 : _("Analyze the entire system automatically and
+display repair proposals.
+")
 				 ],
 
 				 // Second entry - customise analyse
 				$[
 				  "headline"    :  _("&Customize repair"),
 				  "symbol"      : `scan_repair_options,
-				  "description" : _("Select parts of system analysing
-you need. Usable, if you  already
-know a little bit about your problem."),
+				  "description" : _("Select parts of system analyzation
+you need. Usable if you  already
+know a little bit about your problem.
+"),
 				  
 				  "help_text"	: _("
-For example deselect a category group like the
-bootloader test and start analyse afterwards."),
+For example, deselect a category group like the
+boot loader test and start analysis afterwards.
+"),
 
 				  ],
 
@@ -332,13 +339,15 @@ bootloader test and start analyse afterwards."),
 				 $["headline"    :  _("E&xpert tools"),
 				   "symbol"	 : `direct_repair,
 
-				   "description" : _("Use if the automatical detection
-fails or you know exactly the kind of
-your problem."),
+				   "description" : _("Use if the automatic detection
+fails or you know the exact type of
+your problem.
+"),
 
 				   "help_text"   : _("
-For example directly recover a lost partition
-table or verify the package database.")
+For example, directly recover a lost partition
+table or verify the package database.
+")
 				 ]];
 
 
@@ -403,20 +412,23 @@ table or verify the package database.")
       detected = false;
       
       string   select_all_label = _("&Select all");
-      string unselect_all_label = _("&Unselect all");
+      string unselect_all_label = _("&Deselect All");
 
       string help_text    = sformat(_("<P><I>%1</I> scans a
-lot of system parts automatically. But mostly only one
-or two scopes like the bootloader or the file system
-are damaged.</P>"), tool_name) +
-	_("<P>Therefore this dialog enable the selection
-of system parts which should be scand.</P>") +
+lot of system parts automatically. Usually, only one
+or two scopes, like the boot loader or the file system,
+are damaged.</P>
+"), tool_name) +
+	_("<P>Therefore this dialog enables the selection
+of system parts that should be scanned.</P>
+") +
 
-	_("Some of the shown groups at the right side of
-the dialog need other groups. YaST solve this dependencies
-for you.") +
+	_("Some of the groups shown at the right side of
+the dialog need other groups. YaST resolves these dependencies
+for you.
+") +
 	  build_label_description( select_all_label,   _("Select all entries in the list.")) +
-	  build_label_description( unselect_all_label, _("Unselect all entries in the list."));
+	  build_label_description( unselect_all_label, _("Deselect all entries in the list."));
       
    
       term contents  = `HBox(`HSpacing(2),
@@ -477,8 +489,7 @@ for you.") +
 	    // not item seleted
 	    if ( ret == `next && OSR::SizeDetectGroupList() == 0 )
 	    {
-		Report::Warning(_("
-Please select one item at least.
+		Report::Warning(_("\nSelect at least one item.
 "));
 		continue;
 	    }
@@ -488,8 +499,8 @@ Please select one item at least.
 		
 		if( size(greq) != 0 ) {
 		    UI::OpenDialog(`Label(_("
-YaST is solving the requires
-between the selected groups ...
+YaST is resolving the dependencies
+between the selected groups...
 ")));
 		    sleep(2000);
 		    UI::CloseDialog();
@@ -509,13 +520,15 @@ between the selected groups ...
   define symbol RepairToolsDialog()``{
 
       string help_text     = sformat(_("<P><I>%1</I> allows the
-direct reapir of damaged system areas with the
-shown tools at the right side of the dialog.</P> "), tool_name ) +
+direct repair of damaged system areas with the
+tools shown at the right side of the dialog.</P> 
+"), tool_name ) +
 
 	  _("<P>Each tool has a special functionality.
-Please read the description of the different options
-and select one. If no entry match with your problem
-please go back and start the automatically analyse.</P>");
+Read the description of the different options
+and select one. If no entry matches your problem,
+go back and start the automatic analysis.</P>
+");
 
     term   contents = OSRDirect::OptionMenu();
 
@@ -549,8 +562,8 @@ please go back and start the automatically analyse.</P>");
 	  return `next;
       }
 
-      string module_check_label = _("Module check");
-      string system_check_label = _("System check");
+      string module_check_label = _("Module Check");
+      string system_check_label = _("System Check");
       string show_all_label     = _("&Show all details");
       string pause_label        = _("&Pause");
       
@@ -581,17 +594,19 @@ please go back and start the automatically analyse.</P>");
 					      );
 
       // Help text (HTML-like)
-      string help_text = sformat(_("
-<p><I>%1</I> is now checking your linux system.</p>"), tool_name) +
-_("<p>Depending on the CPU and the amount of memory this can
-take some time.</p>") +
-_("<p>Above all the file system checks with fsck are very
+      string help_text = sformat(_("\n<p><I>%1</I> is now checking your Linux system.</p>
+"), tool_name) +
+_("<p>Depending on the CPU and the amount of memory, this can
+take some time.</p>
+") +
+_("<p>Above all, the file system checks with fsck are very
 time consuming.</p>
 ") +
-	  _("<P>If the scan sequence found an error YaST
-suggests one ore more repair proposals. You have the
-possibility to select one proposal or cancel the reapir. </P>") +
-	  build_label_description( pause_label, _("Pause or continue analysing the system.")) +
+	  _("<P>If the scan sequence finds an error, YaST
+suggests one or more repair proposals. You have the
+possibility to select one proposal or cancel the repair. </P>
+") +
+	  build_label_description( pause_label, _("Pause or continue analyzing the system.")) +
 	  build_label_description( show_all_label, _("Activate or disable reporting details."));
 
 

@@ -68,10 +68,11 @@
 	    OSRLogFile::Add("NOT starting the rescue-system! Continue installation first!\n");
 
 	    Report::Error(_("
-You have to finish installation before
+Finish installation before
 starting the YaST2 repair system.
 
-YaST2 halts now."));
+YaST2 halts now.
+"));
 	  
 	    return false;
 	}

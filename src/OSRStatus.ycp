@@ -27,7 +27,7 @@
   map status_map	= $[
 			    "detect_ok" 	: $[
 						    "color" 	  :  "blue",
-						    "status_text" :  _("o.k."),
+						    "status_text" :  _("Ok"),
 						    "priority"	  : 3,
 						    "type"	  : "detect"
 			    ],
@@ -110,7 +110,7 @@
       while( pos < size(status_list))
       {
 	  map status = status_map[ status_list[ pos ]:"" ]:$[];
-	  if( status["type"]:"" == "detect" )
+	  if( status["type"]:"" == "detect")
 	  {
 	      if( status[ 
 	  }

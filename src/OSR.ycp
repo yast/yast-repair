@@ -382,9 +382,10 @@ Error during initialization.
 	  {
 	      Report::Error(sformat(
 _("An error occurred during execution
-of the init-functions of module: %1
+of the init functions of module: %1
 
-%2 halts now."), module_function_list[index]:"", OSRRepairUI::tool_name ));
+%2 halts now.
+"), module_function_list[index]:"", OSRRepairUI::tool_name ));
 
 	      y2error("An error occurred during execution of the init-functions
 of module: %1. YaST systemr epair halts now!",

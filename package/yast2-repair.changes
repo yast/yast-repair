@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 10 13:07:27 CET 2003 - jsuchome@suse.de
+
+- corrected texts from proofreading
+- fixes in bootloader API
+- 2.7.1
+
+-------------------------------------------------------------------
 Fri Feb  7 14:32:40 CET 2003 - jsuchome@suse.de
 
 - adapted to 8.2 Bootloader API

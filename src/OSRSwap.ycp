@@ -44,32 +44,34 @@
       // TODO check english
       // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
       string error_message = sformat(_("
-The partition %1 has the file system id 130 but
-contains no valid swap area. If you want to create
-a valid swap area press the button \"Repair\".
+The partition %1 has the file system ID 130, but
+contains no valid swap area. To create
+a valid swap area, press \"Repair\".
 
-Press \"Skip\" to avoid repairing."), target);
+Press \"Skip\" to avoid repairing.
+"), target);
 
       string help_text         = _("
-<p>A partition with the id 130 is used to be 
-a linux swap partition. All swap partitions
-need a valid swap area which are created with
-the tool mkswap.</p>") +
+<p>A partition with the ID 130 should be 
+a Linux swap partition. All swap partitions
+need a valid swap area, which is created with
+the tool mkswap.</p>
+") +
 
-_("<p>If you know how to use mkswap please
+_("<p>If you know how to use mkswap, 
 close YaST and create a new swap area
-on the damaged swap partition. Else
-close this help dialog and press the
-\"Repair\" button for automatical
+on the damaged swap partition. Otherwise
+close this help dialog and press
+\"Repair\" for automatic
 repair.</p>
 ");
       
       while( true )
       {     
-	  if (! OSRPopup::Repair(_("Error detected"), error_message, help_text) ) return `cancel;
+	  if (! OSRPopup::Repair(_("Error detected."), error_message, help_text) ) return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
-			       `Label(_("Creating swap area. Please wait ...")),
+			       `Label(_("Creating swap area. Please wait...")),
 			       `VSpacing(1)));
 	  
 	  boolean ret =  OSRExecute::Command(.local.bash, "/sbin/mkswap " + target );

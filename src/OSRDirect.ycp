@@ -79,7 +79,7 @@
      */
     global define term OptionMenu()``{
 	
-	term direct_items 	     = `VBox(`VSpacing(1), `Left(`Label(_("Select one option:"))));
+	term direct_items 	     = `VBox(`VSpacing(1), `Left(`Label(_("Select One Option:"))));
 	list(term) menu_button_items = [];
 
 	    
@@ -156,7 +156,7 @@
 	if ( method_data != $[] && method_data != nil )
 	{
 	    // prepare executing direct method
-	    UI::OpenDialog(`Label(_("Reading system settings. Please wait ...")));
+	    UI::OpenDialog(`Label(_("Reading system settings. Please wait...")));
 	    OSRFstab::Reset();
 	    OSRFsck::LoadAllFsModules();
 	    Storage::ReReadTargetMap();
