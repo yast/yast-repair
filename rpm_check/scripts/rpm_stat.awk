@@ -23,8 +23,11 @@ function delete_last_char(f_string){
 #returns parsed rpm_version in var rpm_version and rpm name as return-value
 function get_rpm_name(f_rpm_name){
 	rpm_version = "";
-	if (match(f_rpm_name,/-[^-]*-[0-9]+$/) > 0){
-		rpm_version = substr(f_rpm_name,RSTART+1,RLENGTH);
+	rpm_release = "";
+	# if (match(f_rpm_name,/-[^-]*-[0-9]+$/) > 0){
+	if (match(f_rpm_name,/-[^-]*-/) > 0){
+		rpm_version = substr(f_rpm_name, RSTART+1,RLENGTH-2);
+		rpm_release = substr(f_rpm_name, RSTART+RLENGTH, length(f_rpm_name)-(RSTART+RLENGTH-22));
 		# return f_rpm_name;
 		# returns the rpm-short-name
 		return substr(f_rpm_name,1,RSTART-1);
@@ -34,15 +37,15 @@ function get_rpm_name(f_rpm_name){
 	# ATTENTION!!! this is an additional rpm-call !
 	
 	#FORCE_VERSION_BEGIN
-	#tmp = "";
-	## POSSIBLE: stdout->stderr BUT string mishmash-DANGER!
-	#rpm_q_command = RPM " -q " f_rpm_name " 2>&1";
-	#rpm_q_command | getline tmp;
-	#close(rpm_q_command); 
-	#if (length(rpm_stderr_match(tmp)) < 1){
-	#	f_rpm_name = tmp;
-	#	if (length(f_rpm_name) > 0) return get_rpm_name(f_rpm_name);   
-	#}
+	tmp = "";
+	# POSSIBLE: stdout->stderr BUT string mishmash-DANGER!
+	rpm_q_command = RPM " -q " f_rpm_name " 2>&1";
+	rpm_q_command | getline tmp;
+	close(rpm_q_command); 
+	if (length(rpm_stderr_match(tmp)) < 1){
+		f_rpm_name = tmp;
+		if (length(f_rpm_name) > 0) return get_rpm_name(f_rpm_name);   
+	}
 	#FORCE_RPMVERSION_END
 	return f_rpm_name;
 }
@@ -79,13 +82,29 @@ function get_file_info( f_filename, f_rpmfail_str){
 }	
 
 # f_rpm_filetype is "c", "d" or "l"
-function create_rpm_filelist(f_rpmname, f_rpm_filetype, f_rpmfiles){ 
-	delete f_rpmfiles;
+function create_rpm_filelist(f_rpmname, f_conf_rpmfiles, f_doc_rpmfiles){ 
+	delete f_conf_rpmfiles;
+	delete f_doc_rpmfiles;
+	count_conf = 0;
+	count_doc = 0;
 	# POSSIBLE: stdout->stderr BUT string-mishmash-DANGER!
-	rpm_qx_command = RPM " -q" f_rpm_filetype " " f_rpmname;
-	for (cout = 0; rpm_qx_command|getline; count++)
-		if (length(rpm_stderr_match(tmp)) < 1)	f_rpmfiles[count] = $0;
-	close(rpm_qx_command);
+	rpm_q__dump_command = RPM " -q --dump " f_rpmname;
+	while(rpm_q__dump_command|getline){
+		if (length(rpm_stderr_match($0)) < 1){
+			#is an conf file?
+			if($(NF-3)=="1") {
+				f_conf_rpmfiles[count_conf] = $1;
+				count_conf++;
+				print $(NF-3);
+			}else{
+				if($(NF-2)=="1"){
+					f_doc_rpmfiles[count_doc] = $1;
+					count_doc++;
+				}
+			}
+		}
+	}
+	close(rpm_q__dump_command);
 	return;
 }
 
@@ -107,20 +126,21 @@ function add_filefails(f_filename, f_failstr, f_data_str){
 {
 	rpm_name = $0;
 	rpm_version = "";
+	rpm_release = "";
 	# rpm_version will be changed after call get_rpm_name(...)
 	rpm_short_name = get_rpm_name(rpm_name);
 	# theoretisch ist es moeglich die Limits fuer Datentypen (len(some_string)<=3000) der awk nicht ueberfordern, 
 	# ausgaben direkt ausgeben (nicht erst in strings speichern), dabei muss man auf einen korrekten stdin-stream:
 	# nach Fehlertyp sortiert sein, wie es z.B. bei rpm ver3.0.6 der Fall ist.
 	# main collecting varible OUTPUTstr
-	OUTPUTstr="$[\"RPM_NAME\":\""rpm_name"\",\"RPM_VERSION\":\""rpm_version"\",\"RPM_SHORT_NAME\":\""rpm_short_name"\",";
-	create_rpm_filelist(rpm_name, "c", conf_rpmfiles);
-	create_rpm_filelist(rpm_name, "d", doc_rpmfiles);
+	OUTPUTstr="$[\"RPM_NAME\":\""rpm_name"\",\"RPM_VERSION\":\""rpm_version"\",\"RPM_RELEASE\":\""rpm_release"\",\"RPM_SHORT_NAME\":\""rpm_short_name"\",";
+	create_rpm_filelist(rpm_name, conf_rpmfiles, doc_rpmfiles);
+	#create_rpm_filelist(rpm_name, "d", doc_rpmfiles);
 	count_missed = 0;
 	l_list = "\"l\":$[";
 	c_list = "\"c\":$[";
 	d_list = "\"d\":$[";
-	control_length_init = length(d_list);
+	control_length_init = length(d_list); #the start length of all lists are of the same length -> only one control_length_init
 	req_deps_str = "";
 	missed_files = "[";
 	rpm_damage = "false";
