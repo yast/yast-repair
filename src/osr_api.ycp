@@ -11,6 +11,8 @@
  *
  *  Author:
  *    Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 {
   textdomain "osr";
@@ -427,29 +429,60 @@
 
   /**
    *  Compares the two specified version numbers. Each version number has to be a string
-   *  of the form "21.6"!
+   *  of the form "21.6-34", "34.4.3", ...
    *
-   *  API function,
+   *  API function.
+   *  See the testsuite.
    *
+   *  @param string version_1 The first version-number as string.
+   *  @param string version_2 The second version-number as string.
    *  @return boolean True if the first version number is newer than the second one.
-   *  @example if (!OSRVersionIsNewerOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
+   *  @example if (!OSRVersionIsHigherOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
    */
-  global define OSRVersionIsNewerOrEqual(string version_1, string version_2) ``{
+  global define OSRVersionIsHigherOrEqual(string version_1, string version_2) ``{
 
-      integer main_version_1 = 0;
-      integer sub_version_1  = 0;
-      integer main_version_2 = 0;
-      integer sub_version_2  = 0;
-      
-      main_version_1 = tointeger(select(splitstring(version_1, "."), 0, "0"));
-      sub_version_1  = tointeger(select(splitstring(version_1, "."), 1, "0"));
-      main_version_2 = tointeger(select(splitstring(version_2, "."), 0, "0"));
-      sub_version_2  = tointeger(select(splitstring(version_2, "."), 1, "0"));
+      list    v_1   = [];
+      list    v_2   = [];
+      integer n_1   = 0;
+      integer n_2   = 0;
+      integer index = 0;
+      integer max   = 0;
 
-      return ((main_version_1 > main_version_2) ||
-	      ((main_version_1 == main_version_2) &&
-	       (sub_version_1 >= sub_version_2)));
-  }
+      // split the version-strings at the dots- and minus-characters "24.5.6" -> ["24", "5", "6"]
+      v_1 = splitstring(version_1, ".-");
+      v_2 = splitstring(version_2, ".-");
+
+      // select the smaller one of the two numbers
+      if (size(v_1) < size(v_2))
+      {
+	  max = size(v_1);
+      }
+      else
+      {
+	  max = size(v_2);
+      }
+
+      // iterate the splitted version-numbers
+      while(index < max)
+      {
+	  n_1 = tointeger(select(v_1, index, 0));
+	  n_2 = tointeger(select(v_2, index, 0));
+
+	  if (n_1 > n_2)
+	  {
+	      return true;
+	  }
+	  else if (n_1 < n_2)
+	  {
+	      return false;
+	  }
+	  index = index + 1;
+      }
+
+      // if the splitted numbers were all equal, look if the first version-number
+      // consits of more parts than the second one
+      return (size(v_1) >= size(v_2));
+  };
 
   /**
    *  This function is a wrapper for the definition of the correct status.
@@ -462,7 +495,7 @@
   global define OSRStatusDetectOK() ``{
 
     return "detect_ok";
-  }
+  };
 
   /**
    *  This function is a wrapper for the definition of the correct status.
@@ -475,7 +508,7 @@
   global define OSRStatusDetectError() ``{
 
     return "detect_error";
-  }
+  };
 
   /**
    *  This function is a wrapper for the definition of the correct status.
@@ -488,7 +521,7 @@
   global define OSRStatusRepairOK() ``{
 
     return "repair_ok";
-  }
+  };
 
   /**
    *  This function is a wrapper for the definition of the correct status.
@@ -772,7 +805,7 @@ and press Store.");
 		      if (mounted)
 		      {
 			  // save all partition-tables to floppy
-			  map target_map = GetDisks();
+			  map target_map = lookup(user_settings, "targets", $[]);
 
 			  // iterate all harddisks
 			  foreach(`target, `values, target_map, ``{
@@ -841,40 +874,5 @@ was not written correctly to floppy."), target), 1000);
       }
 
       return user_input;
-  };
-
-  /**
-   *  Checks if the specified partition is of filesystem-type ext2fs.
-   *
-   *  API function,
-   *
-   *  @return boolean True if the specified partition is of type ext2fs.
-   *  @example boolean is_ext2fs = OSRIsExt2fs("/dev/hda1");
-   */
-  global define OSRIsExt2fs(string partition) ``{
-
-      integer result = 0;
-
-      result = WFM::Execute(.local.bash, "/sbin/dumpe2fs -h " + partition);
-
-      return (result == 0);
-  };
-
-  /**
-   *  Checks if the specified partition is of filesystem-type reiserfs.
-   *
-   *  API function,
-   *
-   *  @return boolean True if the specified partition is of type reiserfs.
-   *  @example boolean is_reiserfs = OSRIsReiserfs("/dev/hda1");
-   */
-  global define OSRIsReiserfs(string partition) ``{
-
-      integer result = 0;
-
-      result = WFM::Execute(.local.bash, "/sbin/debugreiserfs " + partition);
-
-      return (result == 0);
-  };
-  
+  };  
 }
