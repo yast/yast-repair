@@ -1,0 +1,1380 @@
+/**
+ *  File:
+ *    OSRPtbl.ycp
+ *
+ *  Module:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Summary:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+{
+  module "OSRPtbl";
+
+  import "OSRExecute";
+  import "OSRFloppy";
+  import "OSRPopup";
+  import "OSRRepairUI";
+  
+  import "Storage";
+  import "StorageDevices";
+  import "Mode";
+  
+
+  include "ui/common_popups.ycp";
+
+  include "partitioning/partition_defines.ycp";
+  
+  textdomain "repair";
+
+
+  string s_ignore_label 	= _("ignore");
+  string s_recover_label 	= _("recover"); 
+
+  
+  /**
+   * All repair methods
+   */
+  map repair_methods = $[
+			 `floppy : $[
+				     "header" :  _("&Copy saved partition table from floppy"),
+				     "help"   : ``(floppy_help_text()),
+				     "method" : ``(restore_from_floppy())
+			 ],
+			 `gpart : $[
+				    "header"  : _("Let &gpart suggest your partition table" ),
+				    "help"    : ``(gpart_help_text()),
+				    "method"  : ``(RestoreWithGpart(false)),
+				    "default" : true
+			 ],
+			 `gpart_e : $[
+				    "header"  : _("Let g&part suggest your partition table (expert mode)" ),
+				    "help"    : ``(gpart_help_text()),
+				    "method"  : ``(expert_restore_with_gpart()),
+				    "default" : true
+			 ],
+			 `original : $[
+				       "header" :  _("&Restore original partition table"),
+				       "help"   : ``(original_help_text()),
+				       "method" : ``(restore_original()),
+				       "enabled" : false
+			 ]
+  ];
+
+  
+  /**
+   * The harddisk name. e.g.: /dev/hda
+   */
+  string target = "";
+
+  /**
+   * The path of the harddisk (for fdisk calls). e.g.: .dev.hda.
+   */
+  path	 target_scrpath = .;
+
+
+  
+  /**
+   * At the first call of the OSRPtbl module the constructor saves all
+   * mbr's to the YaST"2.tmp Directory. The names of the randomly
+   * created mbr files are stored in the map backup_dev_filenames.
+   */
+  map backup_dev_filenames  = $[];
+
+
+  /**
+   * backup_mbr_status is true, if all mbr's are successfully stored
+   * to the tmp directory.
+   */
+  boolean backup_mbr_status = false;
+
+
+  /**
+   * Expert options for gpart
+   */
+  string gpart_expert_options = "";
+  
+
+  global define	void Reset()``{
+      target 			= "";
+      target_scrpath 		= .;
+      gpart_expert_options 	= "";
+  }
+
+  global define OSRPtbl()``{
+    
+      if ( ! StorageDevices::FloppyPresent )
+      {
+	  // filter floppy repair methode
+	  y2milestone("filter floppy repair methode. No floppy found");
+	  repair_methods = filter(symbol r, map d, repair_methods, ``( r != `floppy ));
+      }
+  }
+  
+  
+  /**
+   * Help text for the floppy repair method.
+   */
+  define string floppy_help_text() ``{
+      return sformat(_("
+<p><h3>No partition table found for harddisk %1.</h3></BR>
+
+Repair will search for a valid partition table of disk %1
+on the inserted floppy disk. If YaST OS Repair can't find
+one it will start the program gpart to guess the lost
+partition table. You can decide if the information gpart
+finds is valid for your system.</p>"),target ) +
+
+_("<p>\"gpart may be of some help when the primary partition table
+was lost or destroyed but it can under no circumstances
+replace proper disk/partition table backups. To save the
+master boot record (MBR) including the primary partition
+table to the file /tmp/hda.mbr type
+
+<pre>
+$ dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
+</pre>
+
+exchanging /dev/hda with the block device name of the disk
+in question. This should be done for all disks in the system.
+To restore the primary partition table without overwriting
+the MBR type
+
+<pre>
+$ dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
+</pre></p>") +
+
+_("<p>Warning: make sure that all parameters are typed as shown
+and that the disk device is correct. Failing to do so may
+result in severe filesystem corruption. The saved file
+should be stored in a safe place like a floppy disk.\"</p>") +
+
+_("<p>From the manual page of gpart:<br>
+\"It should be stressed that gpart does a very heuristic
+job, never believe its output without any plausability
+checks. It can be easily right in its guesswork but it can
+also be terribly wrong. You have been warned.\"</p>");
+
+  };
+
+  /**
+   * Help for gpart
+   */
+  define string gpart_help_text()``{
+      return sformat(_("
+<P><h3>No partition table found for harddisk %1.</h3><BR>
+
+Repair will start gpart to guess the primary partition
+table of disk %1.</p>"),  target) +
+
+_("<p>Gpart may be of some help when the primary partition table
+was lost or destroyed but it can under no circumstances
+replace proper disk/partition table backups. To save the
+master boot record (MBR) including the primary partition
+table to the file /tmp/hda.mbr type
+
+<pre>
+$ dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
+</pre>
+
+exchanging /dev/hda with the block device name of the disk
+in question. This should be done for all disks in the system.
+To restore the primary partition table without overwriting
+the MBR type
+
+<pre>
+$ dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
+</pre></p>") +
+
+_("<p>Warning: make sure that all parameters are typed as shown
+and that the disk device is correct. Failing to do so may
+result in severe filesystem corruption. The saved file
+should be stored in a safe place like a floppy disk.</p>") +
+
+_("<p>From the manual page of gpart:<br>
+It should be stressed that gpart does a very heuristic
+job, never believe its output without any plausability
+checks. It can be easily right in its guesswork but it can
+also be terribly wrong. You have been warned.</p>");  
+
+  }
+
+
+  /**
+   * Help text for restoring orginal mbr's
+   */
+  define string original_help_text()``{
+      return sformat(_("
+Before starting any scan or repair sequence,
+YaST created a backup of the original
+partition table of the device %1."), target );
+    
+  }
+
+  /**
+   * Save all mbr's to tmp directory and saves the path names
+   * in the map backup_dev_filenames.
+   */
+  define void SavePtbl()``{
+      y2milestone("Saving all mbr's to tmp directory");
+
+      // save all current ptbl's to tmp directory
+      list(string) devlist = Storage::GetMainDevFilter("only_disk", "key_list" );
+      
+      if ( devlist != nil && devlist != [] ) {
+	  integer ok = 0;
+	  foreach(string dev, devlist, ``{
+
+	      // build mbr backup string
+	      string randompart = sformat("%1/%2_%3.mbr",
+					  WFM::Read(.local.tmpdir),
+					  mergestring(splitstring(dev,"/"),"_") ,
+					  random(100000));
+
+	      
+	      if( OSRExecute::Command(.local.bash, sformat("/bin/dd if=%1 of=%2 count=1 bs=512",dev,randompart ))){
+		  ok =ok+1;
+		  backup_dev_filenames[dev] = randompart;
+	      }	
+	  });
+
+	  if( ok == size(devlist))  backup_mbr_status = true;
+      }
+      else {
+	  y2error("Emtpy devive list. No harddisk found.");	
+      }
+  }
+
+  /**
+   * Check reparired mbr. 
+   */
+  define boolean CheckRestoredPtbl(string target , path target_scrpath ) ``{
+      y2milestone("checking restored ptl");
+      
+      // read the partition table for checking if it is o.k.
+      string partition_path  	  = ".disk" + target_scrpath + ".partitions";
+      // no TYPE
+      list   partition_table   = SCR::Read(topath(partition_path));
+		      
+      if ((partition_table != nil) && (partition_table != []))
+      {
+	  y2milestone("restoring was successful. Reread Storage");
+	  // o.k., partition table successfully reverted.
+	  Storage::ReReadTargetMap();
+
+	  
+	  Report::Message(_("
+Partition table successfully repaired.
+"));
+	  return true;
+      }
+      else { 
+	  Report::Message(_("
+Partition table was not successfully repaired.
+"));
+      }
+      return false;
+  }
+
+  /**
+   * Build the file name for reading partition list from floppy.
+   */
+  define string build_file_name( string key )``{   
+      return sformat("%2/%1",mergestring(splitstring(key, "/"),"_") , OSRFloppy::mount_point);
+	
+  }
+
+  /**
+   * Need mounted floppy
+   */
+  define list(map) read_part_list_from_floppy(string target)``{
+      return  WFM::Read(.local.ycp, build_file_name(target)+".ycp");
+  }
+  
+  /**
+   * Show
+   */    
+  define list(map) FoundPtblDialog( list(map) partitions, string dev, string repair_tool, boolean whole_mbr )``{
+      
+      y2milestone("Found partitions for recovering %1", partitions );
+      
+      string label_status = _("Status");
+      string label_name   = _("Name");
+      string label_fsid   = _("Fsid");
+      string label_start  = _("Start");
+      string label_end    = _("End");
+      string label_size   = _("Size");
+      string label_whole  = _("Restore the whole master boot record");
+      
+      list(term) items = [];
+      foreach(map n,partitions , ``{
+
+	  if( select( n["region"]:[],1,0) != 1 )
+	      items = add( items, `item(`id(sformat("%1", n["nr"]:1)),
+					s_ignore_label, 
+				      dev + n["nr"]:1,
+				      n["fsid"]:131,
+				      sformat("%1", select( n["region"]:[],0,0)),
+				      sformat("%1", select( n["region"]:[],1,0) + select( n["region"]:[],0,0) -1 ),
+				      ByteToHumanString( n["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  ) ));
+      });
+
+      
+      // help_text  first sentence.
+      string help_text = _("<P>The table in the center of the dialog shows the partitions
+which could be recoverd.</P>") +
+
+	  OSRRepairUI::build_label_description( OSRPopup::ignore_label,  sformat(_("Change the status of a partition to %1."), s_ignore_label )) +
+	  OSRRepairUI::build_label_description( OSRPopup::recover_label, sformat(_("Change the status of a partition to %1."), s_recover_label)) +
+
+	  OSRRepairUI::build_label_description( OSRPopup::repair_label, sformat(_("If you have changed the status of all partitions for recovering
+to %1 press the button repair to execute the recovering process."), s_recover_label)) +
+      
+	  // help_text description for table column
+	  OSRRepairUI::build_label_description( label_status, sformat(_("The status of a listed partition
+can be switched between %1 and %2. YaST only
+revover the partitions with the status
+%2."), s_ignore_label, s_recover_label )) +
+
+	  OSRRepairUI::build_label_description( label_name, _("Name of the partition which could be
+recoverd.")) +
+
+	  OSRRepairUI::build_label_description( label_fsid, _("The file system id of the partition.
+For example 131 is a normal linux partition and  6, 11, 12 and 14 are fat and fat32 partitions.")) +
+
+	  OSRRepairUI::build_label_description( label_start, _("The start cylinder of the partition.")) +
+
+	  OSRRepairUI::build_label_description( label_end,   _("End cylinder of the partition.")) +
+
+	  OSRRepairUI::build_label_description( label_size,  _("Size of the partition."));
+      
+
+     
+      term whole_term = `Empty();
+      if( whole_mbr )
+      {
+	  whole_term = `Left(`CheckBox(`id(`whole_mbr), `opt(`notify), label_whole ,false));
+	  OSRRepairUI::build_label_description( label_whole, _("Select this options if you want to
+recover the hole master boot recover with all partitions."));
+      }
+
+
+      
+      OSRPopup::OpenSuggestDialog(_("Recover lost partitions"), 
+				  sformat(_("
+YaST found the following partitions on device %1.
+If you want to recover a partiton select the entry
+in the table and press the button \"Recover\".
+"), dev),	
+				  help_text,
+				  `VBox(`Table(`id(`table), `header(label_status, label_name, label_fsid, label_start, label_end, label_size ), items ),
+					`Left(`HBox(
+						    `PushButton(`id(`ignore),  OSRPopup::ignore_label  ),
+						    `PushButton(`id(`recover), OSRPopup::recover_label )
+						    )),
+					whole_term
+					),
+				  40);
+    UI::SetFocus(`id(`table));
+
+    symbol ret          = `ok;
+    list(map)   recover = [];
+    repeat {
+	ret = UI::UserInput();
+
+	string current_item   = UI::QueryWidget(`id(`table), `CurrentItem);
+	string current_value  = select( UI::QueryWidget(`id(`table), `Item(current_item)), 1, "");
+	map    current_part   = find(map part, partitions, ``( sformat("%1", part["nr"]:"") == current_item ));
+
+	if( current_part == nil || current_part == $[] )
+	    y2error(" partition not found");
+	
+	if ( ret == `ignore )
+	{
+	    if( current_part["type"]:`unknown == `extended )
+	    {
+		foreach(map part, filter( map p , partitions, ``( p["type"]:`unknown == `logical )),``{
+		    UI::ChangeWidget(`id(`table), `Item(sformat("%1", part["nr"]:""), 0), s_ignore_label);
+		});
+	    }
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), s_ignore_label );
+	}
+	if ( ret == `recover )
+	{
+	    if ( current_part["type"]:`unknown == `logical )
+	    {
+		map extended = find(map part, partitions, ``( part["type"]:`unknown == `extended ));
+		UI::ChangeWidget(`id(`table), `Item(sformat("%1", extended["nr"]:""), 0), s_recover_label ); 
+	    }
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), s_recover_label );
+	}
+	if ( ret == `whole_mbr )
+	{
+	    UI::ChangeWidget(`id(`table), `Enabled, (! UI::QueryWidget(`id(`whole_mbr), `Value )));
+	}
+
+	if (  ret == `ok ) {
+
+	    recover  = filter(`n,partitions, ``(select( UI::QueryWidget(`id(`table), `Item(sformat("%1", n["nr"]:1))), 1, "") == s_recover_label ));
+	    y2milestone( "all selected items %1", recover );
+
+	    if ( whole_mbr ) {
+		if ( UI::QueryWidget(`id(`whole_mbr ), `Value )) recover = [ $["whole_mbr":$[]] ];
+	    }
+	}	
+    } until( ret == `ok || ret == `cancel );	      
+    
+    UI::CloseDialog();
+    return recover;
+  }
+
+
+
+
+  
+  /**
+   * Restore lost mbr with a backup from floppy.
+   */
+  define symbol restore_from_floppy( )``{
+
+      string error_message_start = sformat(_("No primary partition table was found of hard disk %1."), target );
+      string error_message       = sformat(_("
+
+If you have a floppy with some
+up-to-date system information from a former rescue
+session, insert it in your drive and press Repair.
+
+Press Skip and repair manually if you have a
+backup of the partition table of disk %1.
+
+Press Help if you want to get to know how to
+make a backup of a partition table manually
+and how to revert it."), target);
+
+   
+      // this can't be repaired without a floppy drive, so the user must not be asked again
+      // to repair via floppy
+      // TODO: read from other medium than floppy, eventually from y2c_backup (later)
+      if ( ! OSR::RequireBoolean("has_floppy"))
+      {
+	  // display that no floppy drive was detected
+	  Report::Message(_("
+YaST can not detect a floppy drive
+in your system. A backup copy of the
+primary partition table could not be
+read.
+"));
+	  return `error;
+      }	
+      else {
+	  if ( ! OSRPopup::Repair(_("Error detected"), error_message_start + error_message, floppy_help_text())) return `cancel;
+	  
+	  if ( OSRFloppy::Open(true, 2))
+	  {
+	      OSRFloppy::NextStep(_("Searching partition table"));
+	      list(map) found_partitions = read_part_list_from_floppy(target);
+	      list   to_recover          = [];
+		  
+	      if ( found_partitions != nil && found_partitions != [] ) {
+		  to_recover = FoundPtblDialog(found_partitions, target, "Floppy", true );
+		  
+		  boolean revert = false;
+		  
+		  if ( size(to_recover ) == 0 ) {
+		      Report::Warning(_("
+Could not find a valid partition table.
+Please insert another floppy disk and
+try again or let gpart suggests the
+partition table.
+"));
+		      OSRFloppy::Close();
+		      return `cancel;
+		  }
+		  else if ( haskey( to_recover[0]:$[], "whole_mbr")) {
+
+		      y2milestone("recover the whole mbr");
+
+		      if ( WFM::Read(.local.size, build_file_name(target)+".mbr" ) == 512 )
+		      {		
+			  OSRFloppy::NextStep(_("Reverting old partition table ..."));		      
+		      
+			  // copy the backup of the primary partition table to the target device
+			  revert = OSRExecute::Command(.local.bash,
+						       sformat("/bin/dd if=%1.mbr of=%2 bs=1 count=512", build_file_name(target ),target ));
+			  
+			  // call block device ioctls: reread the partition table (important after having
+			  // changed the partition table!)
+			  OSRExecute::Command(.target.bash, sformat("/sbin/blockdev --rereadpt %1", target));
+		      }
+		      else {
+			  Report::Error(_("
+Could not find a valid master boot
+record on floppy disk. Please insert
+another floppy disk and try again or
+let gpart suggests the partition table.
+"));
+			  OSRFloppy::Close();
+			  return `error;
+		      }
+		  }
+
+		  OSRFloppy::Close();
+
+		  if ( ! haskey( to_recover[0]:$[], "whole_mbr") ) {
+		      list new_to_recover = [];
+		      foreach(map p, to_recover, ``{
+			  p["create"] = true;
+			  new_to_recover = add(new_to_recover, p);
+		      });
+		      revert = fdisk_call( target_scrpath, new_to_recover );
+		  }
+		  
+		  if ( revert )	
+		  {
+		      if ( CheckRestoredPtbl(target, target_scrpath ) ) {
+			  return `ok;  
+		      }
+		  }
+		      
+		  Report::Error(_("
+Reverting the partition table
+was not successful. Please
+insert another floppy disk
+and try again or let gpart
+suggests the partition table.
+"));
+		  return `error;
+	      }
+	  }
+	  else
+	  {		  
+	      Report::Error(sformat(_("
+Either no floppy disk was inserted into
+the drive or the inserted floppy is not
+correctly formated. Please insert
+another floppy disk and try again or
+let gpart suggests the partition table.
+"), target));
+	  }
+	  
+	  OSRFloppy::Close();
+      }
+      return `cancel;
+  }
+  
+  /**
+   * Cat the fsid from a line.
+   */
+  define integer gpart_cat_fsid(string line)``{
+    string sub = substring( line, find(line, ":"), find(line,"(")-find(line,":") );
+    string allow =  "0123456789";
+    sub = filterchars( sub, allow);
+    return tointeger(sub);  
+  }
+
+  /**
+   * Cat the geometry from a line.
+   */
+  define map gpart_cat_geometry( string line)``{
+    string allow = "0123456789/";
+
+    string sub1  = substring( line, find(line, "d"), size(line));
+    list(string) split   = splitstring(sub1, "-" );
+    string start = filterchars(split[0]:"",  allow);
+    string end   = filterchars(split[1]:"", allow);
+    list(string) s = splitstring( start, "/");
+    list(string) e = splitstring( end, "/");
+
+    map ret = $[ "start": $[ "c" : tointeger( s[0]:"0"),
+			  "h" : tointeger( s[1]:"0"),
+			  "s" : tointeger( s[2]:"0") ],
+		 "end"  : $[ "c" : tointeger( e[0]:"0"),
+			     "h" : tointeger(    e[1]:"0"),
+			    "s" : tointeger(    e[2]:"0") ]];
+
+    y2milestone("retmap gemetry %1", ret);
+    return ret;
+};
+
+
+  /**
+   * Dialog with expert gpart options.
+   */
+  define symbol expert_restore_with_gpart()``{
+
+      string full_label 	= _("Full scan");
+      string start_label 	= _("Start detection");
+      string start_sector_label = _("Start sector");
+      string end_sector_label   =  _("End sector"  );
+
+      
+      gpart_expert_options = "";
+      integer cyl_count    = lookup( Storage::GetMainDev(target), "cyl_count", 0 );
+
+      map symbol_2_option = $[
+			      `extended: 	"-E",
+			      `skip_errors: 	"-e",
+			      `full_scan:	"-f" 
+      ];
+
+      string help_text = _("<P>
+<B>Help for expert mode</B>
+</P>") +	
+	  OSRRepairUI::build_label_description( full_label, _("
+<P>When a possible  partition is found,
+gpart  normally  skips all sectors this entry seems
+to occupy and continues the scan from  the  end  of
+the last possible partition. The disk scan can take
+quite a while if this option is given, be  patient.</P>"));
+
+	  //OSRPopup::build_label_description( start_sector_label, _("The fist sector. Potentially useful if a partition is looked for at
+//the end of a large disk.")) + 
+	  //  OSRPopup::build_label_description( end_sector_label, _("");
+      
+	  
+	  
+      
+      
+      UI::OpenDialog( `HBox(
+			    `HWeight(2, `RichText(`id(`help),  help_text )),
+			    `HWeight(4,
+				     `HBox(
+					    `HSpacing(2),
+					    `VBox(
+						  `Heading(_("Please select the scan options for gpart:")),
+						  `VSpacing(3),
+						  `Left(`CheckBox(`id(`extended),    _("Do not try to &identify extended partition tables"))),
+						  `Left(`CheckBox(`id(`skip_errors), _("Do not &skip disk read errors"))),
+						  `Left(`CheckBox(`id(`full_scan),  full_label  )),
+						  //`VSpacing(0.5),
+						  //`VBox(`Left(`Label(_("Choose sectors:"))),
+						  //`HBox(`IntField(`id(`start_sector), start_sector_label , 0, cyl_count -1,  0),
+						  //      `IntField(`id(`end_sector),   end_sector_label    ,0, cyl_count - 1, cyl_count - 1))),
+						  //`VBox(`Left(`Label(_("Set the disk geometry:"))),
+						  //	`HBox(`IntField(`id(`c_g), _("Cylinders"), 0,100,0),
+						  //	      `IntField(`id(`h_g), _("Heads"), 0,100,0),
+						  //	      `IntField(`id(`s_g), _("Sectors"), 0,100,0)
+						  //	      )),
+						  `VSpacing(4),
+						  `HBox(
+							`PushButton(`id(`ok), start_label ),
+							`PushButton(`id(`cancel), CancelButtonLabel())
+							)
+						  ),
+					    `HSpacing(2)
+					    )
+				     )
+		      ));
+
+			
+    UI::SetFocus(`id(`extended));
+
+    symbol ret     = `ok;
+    repeat {
+	ret = UI::UserInput();
+
+	if ( ret == `ok ) {
+
+	    //build expert options
+	    foreach(symbol key, string option, symbol_2_option, ``{
+		gpart_expert_options = gpart_expert_options +( UI::QueryWidget(`id(key), `Value) ? " " + option + " " : "");
+	    });
+	    //gpart_expert_options = gpart_expert_options + sformat("-k %1 ", UI::QueryWidget(`id(`start_sector), `Value )-1 );
+	    //gpart_expert_options = gpart_expert_options + sformat("-K %1 ", UI::QueryWidget(`id(`end_sector  ), `Value )-1 );
+
+	    y2milestone("gpart options %1", gpart_expert_options );
+	}
+    } until( ret == `ok || ret == `cancel );	      
+    UI::CloseDialog();
+
+    
+    if ( ret == `ok ) ret = RestoreWithGpart(false);
+
+    gpart_expert_options = "";
+    return  ret;
+  }
+
+
+  
+  
+  
+  define list(map) compare_found_with_existing( list(map) found_partitions,
+						list(map) existing_partitions,
+						string target )``{
+      
+      map ret 		    = $[];
+      
+      foreach(map paritition, found_partitions, ``{
+
+	  map matching = find(map e_part, existing_partitions, ``(e_part["region"]:[] == paritition["region"]:["not_empty"]));
+
+	  if ( matching != nil && matching != $[] )
+	  {
+	      ret["match"] = add(ret["match"]:[], paritition );
+	      y2milestone("found paritition %1 matchs with exiting paritition %2", paritition["device"]:"", matching["device"]:"");
+	  }
+	  else
+	  {
+	      integer found_start = paritition["region",0]:0;
+	      integer found_end   = paritition["region",0]:0 + paritition["region", 1]:0  -1;
+	         
+	      foreach(map e_part,  existing_partitions, ``{
+		  integer existing_start = e_part["region", 0]:0;
+		  integer existing_end   = e_part["region", 0]:0 + e_part["region", 1]:0 -1;
+
+		  if ( (existing_start >= found_start && existing_start <= found_end) ||
+		       (existing_end   >= found_start && existing_end   <= found_end) ||
+		       (existing_start >= found_start && existing_end   <= found_end) ||
+		       (existing_start <= found_start && existing_end   >= found_end)
+		       )
+		  {
+		      paritition["overlap"] = add(paritition["overlap"]:[], e_part );
+		      y2milestone("found paritition %1 overlaps with exiting paritition %2", paritition["device"]:"", e_part["device"]:"");
+		  }  
+	      });
+	      if( paritition["overlap"]:[] != [] )
+	      {
+		  ret["overlap"] = add(ret["overlap"]:[], paritition);
+
+	      }
+	      else
+	      {
+		  ret["free"]    = add(ret["free"]:[], paritition );
+		  y2milestone("found free paritition space for %1", paritition["device"]:"");
+	      }
+	  }
+      });
+      if( size(ret) > 0 )
+      {
+	  ret["existing"] = existing_partitions;
+      }
+      
+      return ret;
+  }
+  
+
+  define string partition_info(map part , string dev )``{
+      return sformat(_("cylinders %1-%2, "), part["region", 0]:0 , part["region",0]:0 + part["region",1]:0 -1) +
+	  sformat(_("id %1, "),  part["fsid"]:131) +
+	  sformat(_("size %1"), ByteToHumanString( part["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  )); 
+  }
+  
+
+  /** 
+   * Compare an existing partition table with the gpart output
+   */
+  define list(map) ComparePtblDialog( map compared, string target , string repair_tool  )``{
+      
+      term part_items = `VBox();
+      list part_list  = [];
+      
+      list found_free_parts = compared["free"]:[];
+
+      //number to text
+      map number2text = $[ 1 : _("First found partition"),
+			   2 : _("Second found partition"),
+			   3 : _("Third found partition"),
+			   4 : _("Fourth found partition")];
+      
+      foreach( map free_part, found_free_parts, ``{ 
+	  
+	  integer nr = free_part["nr"]:"";
+	
+	  part_list = add(part_list, [nr, `Left(`CheckBox(`id(free_part["device"]:""), sformat(_("&%1: %2 - %3"),
+											  nr, number2text[nr]:"",
+											  partition_info(free_part, target)),true )) ]);
+      });
+
+      
+      list overlap_parts = compared["overlap"]:[];
+      foreach( map overlap_part, overlap_parts, ``{
+	  integer nr = overlap_part["nr"]:"";
+	  list(string) del_text_parts = maplist(map e_part, overlap_part["overlap"]:[],
+					``(sformat(_("Partition %1 must be deleted for recover cylinders %2-%3."), e_part["device"]:"",
+						   overlap_part["region",0]:"", overlap_part["region",0]:0 + overlap_part["region",1]:0 -1 )));
+
+	  part_list = add(part_list, [ nr, `Left(`VBox(`Left(`CheckBox(`id(overlap_part["device"]:""),
+								 sformat(_("&%1: %2 - %3"),
+									 nr, number2text[nr]:"",
+									 partition_info(overlap_part, target)),false )),
+						       `VSpacing(0.5),
+						       `Left(`Heading(_("Warning: Conflicts with existing partitions"))),
+						       `Left(`Label( mergestring(del_text_parts, "\n") ))))] );
+      });
+
+      part_list = sort(list l, list q, part_list, ``( l[0]:0 < q[0]:0 ));
+      foreach( list part, part_list , ``{
+	  part_items = add(part_items, part[1]:`Empty());
+	  part_items = add(part_items, `VSpacing(2));
+      });
+      
+      
+      // gpart found only existing partitions.
+      if( size( found_free_parts ) == 0 && size( overlap_parts ) == 0 )
+      {
+	  Report::Message(_("
+No lost partition found.
+"));
+	  return [];
+      }
+
+      string help_text = _("
+<p>
+Please read the following points accurately
+and select only the partition which should
+really recoverd.
+</P>") +
+_("<P><B>Take care!</B><BR>Sometimes a existing partition must
+be deleted to recover a other partition.</P>") +
+
+      OSRRepairUI::build_label_description( OSRPopup::repair_label, _("Start the recovering process."));
+
+      string message = "";
+      
+      OSRPopup::OpenSuggestDialog( _("Recover previously existing partitions"),
+				   message,
+				   help_text,
+				   `HBox(`HSpacing(1),
+					 part_items,
+					 `HSpacing(1)),
+				   (size(found_free_parts) + size(overlap_parts)) * 15
+				   );
+
+      symbol ret          = `ok;
+      list(map)   recover = [];
+      repeat {
+	  ret = UI::UserInput();
+
+	  if (  ret == `ok ) {
+
+	      foreach( map free_part, found_free_parts, ``{
+		  if( UI::QueryWidget(`id(free_part["device"]:""), `Value ) )
+		  {
+		      recover = add(recover, free_part );
+		  }
+	      });
+	      foreach( map overlap_part, overlap_parts, ``{
+		  if( UI::QueryWidget(`id(overlap_part["device"]:""), `Value))
+		  {
+		      if( UI::ContinueCancelPopup(sformat(_("
+Recovering the selected partition %1 is only
+posible by deleteing the following partitions:
+%2
+Press the continue button to delete the partitions
+and recover %1."), overlap_part["device"]:"", mergestring(maplist(map o_part, overlap_part["overlap"]:[],``(o_part["device"]:"")), " "))))
+		      {
+			 
+
+			  foreach(map  delpart, overlap_part["overlap"]:[], ``{
+			      delpart["delete"] = true;
+			      delpart = filter(string key, `d, delpart, ``(key != "overlap"));
+			      recover = union( recover, [ delpart ] );
+			  });
+			  overlap_part = filter(string key, `d, overlap_part, ``(key != "overlap"));
+			  recover = add(recover, overlap_part );
+		      }
+		      else {
+			  UI::ChangeWidget(`id(overlap_part["device"]:""), `Value, false);
+			  recover = [];
+			  ret = `again;
+		      }
+		  }
+	      });
+	      
+	      list existing_partitions   = compared["existing"]:[];
+	      list (integer) used_nrs    = maplist( map ep, existing_partitions, ``( ep["nr"]:0 ));
+	      list (integer) delete_nrs  = maplist( map dpp, filter( map dp, recover, ``( dp["delete"]:false == true)), ``( dpp["nr"]:0));
+	      used_nrs                   = filter(  integer nr, used_nrs, ``( ! contains(delete_nrs, used_nrs )));
+	      list(integer) primary_pos  = [1,2,3,4];
+	      list(integer) free_primary = filter( integer nr, primary_pos, ``( ! contains( used_nrs, nr )));
+	      
+	      // check partition nr's 
+	      foreach(map part, recover , ``{
+		  if ( part["delete"]:false != true && ret != `again )
+		  {
+		      // partition nr is used by a other partition.
+		      if ( contains( used_nrs, part["nr"]:0 ))
+		      {
+			  if ( size( free_primary ) > 0 )
+			  {
+			      y2milestone("move partition nr to a free primary position");
+			      part["nr"] = free_primary[0]:0;
+			      free_primary = remove(free_primary, 0 );
+			  }
+			  else
+			  {
+			      y2error("no free primary slot found. locical search not supported");
+			      Report::Error(sformat(_("
+Recovering found paritition %1 ( %2 ) is not
+possible. The paritition number conflicts
+with an existing paritition. Solving the
+conflict is not possible.
+"), part["nr"]:0, partition_info(part)));
+			      
+			      UI::ChangeWidget(`id(part["device"]:""), `Value, false);
+			      ret = `again;
+			  }
+		      }
+		  } 
+	      });
+	  }	
+      } until( ret == `ok || ret == `cancel );	      
+
+      
+    UI::CloseDialog();
+    return recover;
+  }
+
+
+
+      
+      
+
+
+
+  
+  /**
+   * Restoring a partition tables with gpart.
+   */
+  global define symbol RestoreWithGpart(boolean compare_mode )``{
+      
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      //  Repair partition table with gpart
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+
+      list(map) found_partitions  	= [];
+      string gpart_file      		= SCR::Read(.target.tmpdir) + "/gpart";
+
+      WFM::Execute(.local.bash, sformat("if /usr/bin/test -e %1; then /bin/rm %1; else /bin/echo %1 not exist; fi;", gpart_file));
+      string gpart_command   = "/usr/bin/gpart " + gpart_expert_options +" " + target;
+
+      string message = _("
+This can be take a lot of time depending on the
+system performance and the hard disk size.
+");
+
+      term contents  = `HBox(`HSpacing(0.5),
+			     `VBox(
+				   `Left(`HBox(`HWeight(30, `Heading(_("Search lost partitions"))),
+					 `HWeight(30, `HSpacing(4)))),
+				   `VSpacing(1),
+				   `Left(`Label(message )),
+				   `Left(`Label(_("Hard disk: ") +  target )),
+				   `VSpacing(0.5),
+				   `DownloadProgress( _("Progress:"), gpart_file, 200 ),
+				   `VSpacing(1),
+				   `HBox(`PushButton(`id(`start) , _("Start")),
+					 `PushButton(`id(`cancel),CancelButtonLabel() )
+					 )),
+			     `HSpacing(0.5)
+			     );
+  
+      if ( ! UI::HasSpecialWidget(`DownloadProgress) )
+      {	
+	  contents = `Label( message );
+      }
+
+
+      UI::OpenDialog( contents );
+
+      
+      if( UI::UserInput() != `start )
+      {
+	  UI::CloseDialog();
+	  return `cancel;
+      }
+      UI::ChangeWidget(`id(`start), `Enabled, false);
+      
+      
+      if ( OSRExecute::CommandProgress(.target.bash_output, gpart_command ,gpart_file))
+      {
+	  string file = WFM::Read(.local.string, gpart_file );
+	  // display the results in a window
+	  string partitions_out = substring(file,
+					    find(file, "\nPrimary partition(1)"),
+					    (size(file) - find(file, "\nPrimary partition(1)")));
+
+	  string partition1 = substring(partitions_out,
+					    find(partitions_out, "\nPrimary partition(1)"),
+					    (find(partitions_out, "\nPrimary partition(2)") -
+					     find(partitions_out, "\nPrimary partition(1)")));
+
+	  string partition2 = substring(partitions_out,
+					    find(partitions_out, "\nPrimary partition(2)"),
+					    (find(partitions_out, "\nPrimary partition(3)") -
+					     find(partitions_out, "\nPrimary partition(2)")));
+
+	  string partition3 = substring(partitions_out,
+					    find(partitions_out, "\nPrimary partition(3)"),
+					    (find(partitions_out, "\nPrimary partition(4)") -
+					     find(partitions_out, "\nPrimary partition(3)")));
+	  
+	  string partition4 = substring(partitions_out,
+					    find(partitions_out, "\nPrimary partition(4)"),
+					    (size(partitions_out) -
+					     find(partitions_out, "\nPrimary partition(4)")));
+	  
+	  list(string) gpart_partitions = [partition1, partition2, partition3, partition4];
+
+
+	      
+	  integer index  = 0;
+	  while ((index >= 0) && (index < size(gpart_partitions)))
+	  {
+	      map partition = $[];
+		  
+	      string p = gpart_partitions[index]:"";
+	      list(string) p_list = splitstring(p, "\n");
+
+			      
+	      foreach(string line, p_list, ``{
+
+		  if (issubstring(line, "type: "))
+		  {
+		      partition["fsid"] = gpart_cat_fsid(line );
+		  }
+		  else if( issubstring( line, "chs:"))
+		  {
+		      map geometry = gpart_cat_geometry( line );
+		      integer s    = lookup( geometry["start"]:$[], "c", 0);
+		      integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
+		      partition["region"] = [s,l];
+		  }
+      
+		  partition["nr"] 	= index +1;
+		  partition["type"]  	= `primary;
+		  partition["create"]   = true;
+		  partition["device"]   = Storage::GetDeviceName( target, index + 1);
+	      });      
+	      index = index + 1;
+
+	      if( select(partition["region"]:[],1,0) != 0 &&
+		  partition["fsid"]:0 != 0 )	 found_partitions = add(found_partitions, partition );
+	  }
+      }
+
+  
+      UI::CloseDialog();
+   
+      
+      if ( found_partitions == [] ) {
+
+	  Report::Error(sformat(_("
+YaST did not find any valid partitions
+for partition table %1. If there were
+some partitions on the disk you can try
+to restore them manually. In order to do
+that you have to enter the cylinder values
+in fdisk or the partitioning tool.
+"), target ));
+	  return `error;
+	  
+      }
+      else {
+	  
+	  //if ( ! compare_mode )
+	  //{
+	  // torecover = FoundPtblDialog( found_partitions, target, "Gpart" ,false);
+	  // }
+	  //else {
+	  map compared 	      =  compare_found_with_existing( found_partitions, Storage::GetMainDevParam(target, "partitions" ), target );
+	  list(map) torecover =  ComparePtblDialog( compared, target , "Gpart" );
+	      //}
+
+	  if( torecover == [] ) {
+	      return `cancel;
+	  }
+	  
+	  if ( ! Mode::test && size(torecover ) > 0  ) {
+	        
+	      if( fdisk_call(target_scrpath, torecover )) {
+		  
+		  if ( CheckRestoredPtbl(target, target_scrpath ) ) {
+		      return `ok;
+		  }
+	      }
+	      else {
+		  Report::Error(_("Partition table was not successfully repaired."));
+		  return `error;
+	      }
+	  }
+      }
+      return `error;
+  }
+
+  /**
+   * Call fdisk
+   */
+  define boolean fdisk_call(path target_scrpath, list(map) torecover )``{
+      
+  
+      map args = $[ "parted" : false, 
+		    "label"  : ""  ];
+
+  
+      UI::OpenDialog(`VBox(`VSpacing(1),
+			   `Label(_("Recovering partition table. Please wait ...")),
+			   `VSpacing(1)));
+
+      boolean result = true;
+
+      if( ! Mode::test )
+      {
+      /////////////////////////////////////////////////////
+	  result = SCR::Write(.disk + target_scrpath + .partitions,
+			      torecover, args );
+      /////////////////////////////////////////////////////
+	  repair_methods[ `original,  "enabled"] = true;
+	  
+	  Storage::ReReadTargetMap();
+      }
+      else {
+	  y2milestone("fdisk call not executed. Mode::test = true !!!");
+      }
+  
+      UI::CloseDialog();
+
+      return result;
+  };
+
+    
+  /**
+   * Restore saved mbr.
+   */
+  define boolean write_original(list(string) to_reset, boolean whole_mbr )``{
+      if( Mode::test ) return true;
+
+      y2milestone("write orginal master boot record");
+
+      integer ok = 0 ;      
+      foreach(string dev, to_reset , ``{
+
+	  if(  backup_dev_filenames[dev]:"" != "" ) {
+	      string command = sformat("/bin/dd if=%1 of=%2 ", backup_dev_filenames[dev]:"", dev );
+
+	      if ( whole_mbr ) command = command + "count=1 bs=512";
+	      else command = command + "bs=1 count=64 skip=446 seek=446";
+
+	      if ( OSRExecute::Command(.local.bash,command)) {
+		  ok = ok + 1;
+		  Report::Message(sformat(_("Writing the backup of %1 was successful."), dev));
+	      }
+	      else {
+		  Report::Message(sformat(_("Writing the backup of %1 was not successful."), dev));
+	      }
+	      repair_methods[ `original,  "enabled"] = true;
+	  }
+	  else {
+	      y2error("No entry in backup map found");
+	  }
+	  
+      });
+      return ( ok ==  size(to_reset));
+  }
+  
+
+  /**
+   * Restore saved mbr.
+   */
+  define symbol restore_original()``{
+      
+      string header   = sformat(_("Restore original partition table %1"), target);
+      string ok_label = mergestring(splitstring(OKButtonLabel(), "&"),"");
+
+      string message  = original_help_text() +  sformat(_("
+If you press %1, YaST will replace the
+partition table of %2 with the backup.
+"), ok_label, target );
+      
+      if ( UI::YesNoHeadlinePopup(header, message ))
+      {   
+	  if( ! Mode::test )
+	  {
+	      if ( write_original([target], true )) return `ok;
+	      else return `error;
+	  }
+	  else {
+	      return `ok;
+	  }
+      }
+      return `cancel;
+  }
+
+   
+  
+  /**
+   * Need mounted floppy
+   */
+  global define boolean WritePartitionsInfo2Floppy(string key )``{
+      if ( Mode::test ) return true;
+
+      boolean write_error = false;
+      map target_map      = Storage::GetTargetMap();
+
+      string file = build_file_name(key);
+
+      // set the dd-command
+      string command = sformat("dd if=%1 of=%2.mbr bs=512 count=1", key, file );
+
+      // write mbr to floppy
+      OSRExecute::Command(.local.bash, command);
+
+      // write partition list to floppy
+      WFM::Write(.local.ycp, file+".ycp", target_map[key, "partitions"]:[] );
+	  
+      if ( !(WFM::Read(.local.size, file + ".mbr") == 512  &&
+	     WFM::Read(.local.size, file + ".ycp") != 0 ))
+      {	
+	  write_error = true;
+      }
+
+      return ( ! write_error);  
+  }
+
+  
+  /**
+   * Main Dialog for repairing deleted/not valid partition tables.
+   *
+   * @parm t_target the target e.g.: /dev/hda
+   * @parm t_target_scrpath the souce path of the target .dev.hda
+   * 
+   */
+  global define symbol MainPtblRepiarDialog(string t_target, path t_target_scrpath ) ``{
+
+      //Save all mbr's to tmp directory.
+      SavePtbl();
+      
+      target 	     = t_target;
+      target_scrpath = t_target_scrpath;
+      
+      term r_options = `VBox(`Left(`Label(_("Please select one repair method or skip repairing?"))),`VSpacing(0.5));
+      
+      foreach(symbol ro, map rd, repair_methods, ``{
+	  term r_button = `RadioButton(`id( ro ));
+	  if( ! rd["enabled"]:true ) r_button = add( r_button , `opt(`disabled));
+	  r_button      = add( r_button ,   rd["header"]:"");
+	  r_button      = add( r_button,    rd["default"]:false );
+					 
+	  r_options = add( r_options , `Left( r_button ));
+      });
+
+      string error_text = sformat(_("
+No partition table was found for hard disk %1.
+This must be no problem. But if you think there
+was at least one partition on %1 please
+select one of the following repair methods.
+If you are sure that a partiton never existed
+on hard disk %1, please skip repairing.
+"), target);
+
+
+      if ( ! OSRPopup::OpenMainRepairDialog( sformat(_("Repair partition table %1."),target ), error_text, r_options ))
+      {
+	  y2error("could not open main dialog");
+	  return `error;
+      }
+      
+      symbol ret     = `ok;
+      repeat {
+	  ret             = UI::UserInput();
+	  symbol selected = UI::QueryWidget(`id(`rb), `CurrentButton);
+	
+	  if( ret == `help ) {
+	      UI::LongTextPopup( OSRPopup::help_headline , `RichText( eval(lookup( repair_methods[selected]:$[], "help",``(`Empty() )))), 50, 20);
+	  }
+	  else if ( ret == `ok ) {
+	      UI::CloseDialog();
+	      ret = eval(lookup( repair_methods[ selected ]:$[],"method",``(`Empty() )));
+	      
+	      // if ret == `cancel || `abort || `error 
+	      if ( ret != `ok )  {
+		  if ( ! OSRPopup::OpenMainRepairDialog( sformat(_("Repair partition table %1."),target ), error_text, r_options ))
+		  {
+		      y2error("could not open main dialog");
+		      return `error;
+		  }
+		  ret = `again;
+	      }
+	  }
+    	
+      } until( ret == `cancel || ret == `abort || ret == `ok );	      
+    
+      if( ret != `ok )  UI::CloseDialog();
+
+      return ret;
+  }
+
+  global define void SetTarget(string ttarget, path ttarget_scrpath )``{
+      target = ttarget;
+      target_scrpath = ttarget_scrpath;
+  }
+
+
+
+  /**
+   *
+   */
+  global define void ShowAllDialogs()``{
+      if( ! Mode::test ) return ;
+      
+      MainPtblRepiarDialog("/dev/hda", .dev.hda );
+
+      list part = [
+		   $[
+		     "nr" : 0,
+		     "device" : "/dev/hda0",
+		     "region" : [0, 2],
+		     ],
+		     $[	       
+		       "nr" : 1,
+	       "device" : "/dev/hda1",
+	       "region" : [3, 23],
+	     ],
+	       $[
+	       "nr" : 3,
+	       "device" : "/dev/hda3",
+	       "region" : [24, 34],
+	       ],
+
+	       $[
+	       "nr" : 2,
+	       "device" : "/dev/hda2",
+	       "region" : [2132, 1234],
+	       ]
+		     ];
+
+      list exist =  [
+	     $[
+	       "nr" : 1,
+	       "device" : "/dev/hda1",
+	       "region" : [3,20 ],
+	     ],
+	       $[
+	       "nr" : 2,
+	       "device" : "/dev/hda2",
+	       "region" : [24, 1234],
+	     ] 
+      ];
+
+      map ret = compare_found_with_existing(part  , exist, "/dev/hda" );
+      y2milestone("ret of compare dialog : %1", ComparePtblDialog( ret , "/dev/hda" , "blub"  ));
+
+
+      y2milestone("fake floppy");
+      StorageDevices::FloppyPresent =true ;
+      OSRPtbl();
+      MainPtblRepiarDialog("/dev/hda", .dev.hda );
+
+      FoundPtblDialog( part, "/dev/hda", "gpart",false );
+      FoundPtblDialog( part, "/dev/hda", "Floppy",true );
+      
+  };
+  
+}

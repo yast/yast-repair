@@ -1,0 +1,142 @@
+/**
+ * File:	OSRMode.ycp
+ * Module:	repair
+ * Summary:	Special OSR mode
+ * Authors:	Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ *
+ * Provide osr mode information.
+ */
+
+{
+     module "OSRMode";
+
+    import "OSRLogFile";
+    import "Report";
+
+    textdomain "repair";
+    
+    /**
+     * Automatic detection and repair, no user-interaction but GUI.
+     */
+    global boolean automatic 	= false;
+
+    /**
+     * No real error-detection or repair, only demonstration, GUI.
+     */
+    global boolean demo		= false;    
+
+    /**
+     *  Only detection, no repair, GUI.
+     */
+    global boolean detection	= false;      
+
+    /**
+     *  No GUI, no user-interaction, input-values come from a map.
+     */
+    global boolean script	 = false;     
+
+    /**
+     * Prints the values provided by the detection-modules to the
+     */
+    global boolean provides	  = false;    
+
+    global boolean save		  = false;
+    
+    /**
+     * Get the execution-mode, description:
+     * Mode::initial  == true -> Initial boot per CD-Rom or NFS
+     * Mode::cont     == true -> Continue installation
+     * Mode::initiale == false) && (Mode::cont == false) -> Running Linux-system
+     */
+    global define boolean IsValid()``{
+
+	if (!Mode::initial && !Mode::cont )
+	{
+	    y2milestone("Starting the rescue-system from the running Linux-system!");
+	    OSRLogFile::Add("Starting the rescue-system from the running Linux-system!\n");
+	}
+	else if (Mode::initial && !Mode::cont)
+	{
+	    y2milestone("Starting the rescue-system directly after boot from cdrom or per nfs");
+	    OSRLogFile::Add("Starting the rescue-system directly after boot from cdrom or per nfs\n");
+	}
+	else if (!Mode::initial && Mode::cont)
+	{
+	    y2milestone("NOT starting the rescue-system! Continue installation first!");
+	    OSRLogFile::Add("NOT starting the rescue-system! Continue installation first!\n");
+
+	    Report::Error(_("
+You have to finish installation before
+starting the YaST2 repair system.
+
+YaST2 halts now."));
+	  
+	    return false;
+	}
+	else
+	{	
+	    y2warning("Something's wrong: initial_mode == %1 and continue_mode == %2, but cannot both be true!",
+		      Mode::initial, Mode::cont);
+	}
+	return true;
+    }
+
+	
+    //---------------------------------------------------------------
+    // constructor
+    global define OSRMode () ``{
+
+	
+	integer arg_count = size(WFM::Args());
+	integer arg_no = 0;
+
+
+	if ( size(Args()) > 1 )
+	{
+	    y2error("Too many arguments: size(%1) == %2, no more than one allowed.",
+		    Args(), size(Args()) );
+	}
+	else
+	{
+	    while ( arg_no < size(Args()) )
+	    {
+		y2debug("option #%1: %2", arg_no, WFM::Args(arg_no) );
+		
+		if ( WFM::Args(arg_no) == "automatic" )
+		{
+		    automatic = true;
+		    OSRLogFile::Add("Running in automatic mode.\n");
+		}
+		else if ( WFM::Args(arg_no) ==  "provides" )
+		{
+		    provides  = true;
+		    OSRLogFile::Add("Running in automatic mode.\n");
+		}
+		else if ( WFM::Args(arg_no) == "detection" ||  WFM::Args(arg_no) == "detect"  )
+		{
+		    detection = true;
+		    OSRLogFile::Add("Running in detection mode.\n");
+		}	
+		else if ( WFM::Args(arg_no) == "script" )
+		{
+		    script   = true;
+		    OSRLogFile::Add("Running in script mode.\n");
+		}
+		else if ( WFM::Args(arg_no) == "save" )
+		{
+		    y2milestone("Save mode");
+		    save     = true;
+		}
+		else
+		{
+		    y2error("Unknown option %1.", Args(arg_no) );
+		}
+	 
+		arg_no = arg_no + 1;
+	    }
+	}
+    }
+	    
+}

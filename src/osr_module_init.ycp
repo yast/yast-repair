@@ -15,36 +15,25 @@
  */
 
 {
-  textdomain "osr";
+ 
   import "Storage";
+  import "Mode";
+
+  
+  import "OSR";
+  import "OSRSummary";
+  import "OSRFloppy";
+  import "OSRPopup";
+  
+  textdomain "repair";
   
   /**
    *  argument handling
    *  example: "y2bignfat osr_lilo.ycp '(.init)' qt" for init_mode
    *  or:      "CallFunction(`osr_lilo(.init));
    */
-  integer arg_c = size(Args());
   integer arg_n = 0;
-
-  boolean init_mode = false;
   
-  while ( arg_n < arg_c )
-  {
-      if ( Args(arg_n) == .init )
-      {
-	  init_mode = true;
-
-	  y2milestone("Argument: %1", Args(arg_n));
-      }
-      else
-      {
-	  y2error("ERROR: unknown option %1", Args(arg_n) );
-
-	  return $[];
-      }
-      arg_n = arg_n + 1;
-  }
-
   //////////////////////////////////////////////////////////////////////
   //
   //  METHODS
@@ -57,43 +46,40 @@
    *
    *  @return map The map that contains all information about the module osr_module_init.
    */
-  define OSRInitInit() ``{
+  global define map OSRInitInit() ``{
 
       y2debug("OSRInitInit");
-
-      map  osr_module_init = $[];
-
-      osr_module_init = $[
-		   "name"           :  "osr_module_init",
-		   "headline"       :  _("Init"),
-		   "summary"        :  [],
-		   "test_mode_summary" : [
-					  $["header" : "Init test mode", "description" : "o.k.", "error" : false],
-		   ],
-		   "detect_methods" :  [
-					``(OSRInitConvertUserSettings())
-		   ],
-		   "provides"       : $[
-					"repair_target" : $[ "type" : "string", "value" : "", "status" : "unknown" ],
-					"target_map"    : $[ "type" : "map", "value" : $[], "status" : "unknown" ],
-					"has_floppy"    : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
-					"floppy_device" : $[ "type" : "string", "value" : "/dev/fd0", "status" : "unknown" ]
-		   ],
-		   "requires"       :  [],
-		   "progress_file"  : "/tmp/osr_module_init_progress",
-		   "progress_expect" : 1000
-      ];
       
-      return osr_module_init;
+      return  $[
+		"name"           :  "osr_module_init",
+		"headline"       :  _("OSRInit"),
+		"global_entries" : $[
+				     "init" : $[
+						"text"	: _("Init repair system"),
+						"help"  : _("TODO"),
+						"mode"  : "forall"
+						]
+		],
+		
+		"detect_methods" :  [ $[ "summary"  : _("Probing floppy"),
+					 "method"   : ``(OSRInitSelectFloppy()) ,
+				         "requires" : [],
+				         "provides" : [ "has_floppy"],
+					 "group"    : "init",
+					 "progress" : 10
+				      ],
+    				      $[ "summary"  : _("Init target system"),
+					 "method"   : ``(OSRInitTarget()),
+					 "requires" : [],
+                                         "provides" : ["repair_target"],
+					 "group"    : "init",
+					 "progress" : 10
+				      ]
+		]
+      ];
+    
   }
 
-  /**
-   *  @return 
-   */
-  global define OSRInitRepair() ``{
-
-      y2debug("OSRInitRepair");
-  }
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -102,43 +88,6 @@
   //////////////////////////////////////////////////////////////////////
 
   /**
-   *  Checks the current installation of SuSE Linux.
-   *
-   *  Provides: string suse_version,
-   *
-   *  @return map The result map.
-   */
-  global define OSRInitCheckSuSELinuxVersion() ``{
-
-      string min_version  = "7.3";
-      string grep_output  = "";
-      map    ret_map      = $[];
-      string grep_command = "grep \"PRODUKT_VERSION\" /var/adm/current_package_descr/suse/setup/descr/info";
-
-      map ret_map = OSRExecuteCommand(.local.bash_output, grep_command);
-
-      if (lookup(ret_map, "exit", -1) == 0)
-      {
-	  grep_output = lookup(ret_map, "stdout", "");
-      
-	  if (issubstring(min_version, grep_output))
-	  {
-	      // current version is SuSE Linux 7.3
-
-	  }
-	  else
-	  {
-	      // another version
-
-	  }
-      }
-      else
-      {
-	  // error with the grep command
-      }
-  };
-  
-  /**
    *  Offers some neccesary values from the map user_settings from inst_startup.ycp to
    *  the global map osr_map.
    *
@@ -146,185 +95,92 @@
    *            string repair_target,
    *            string floppy_device,
    *            boolean has_floppy
-   *
+   * 
    *  @return map The result map.
    */
-  global define OSRInitConvertUserSettings() ``{
-
-      integer result          = 1;
-      string  command         = "";
-      map     result_map      = $[];
-      string  module_name     = "osr_module_init";
-      string  status          = "";
-      map     target_map      = $[];
-      string  repair_target   = "";
-      string  floppy_device   = "";
-      boolean has_floppy      = false;
-
-      y2debug("OSRInitConvertUserSettings");
-
-      OSRModuleProgress::SetParams(_("Converting data"), OSRGetTmpDir() + "/osr_module_init_progress", 50);
-
-      target_map    = Storage::GetTargetMap();
-      repair_target = lookup(user_settings, "updateTarget", "");
-
-      status = OSRStatusDetectOK();
-
-      OSRSummaryDetectOK(
-			 module_name,
-			 _("Converting data"),
-			 _("Data converted successfully")
-			 );
-
-
-      OSRModuleProgress::Add(10);
-
+  global define boolean OSRInitSelectFloppy() ``{
+       
       ///////////////////////////////////////////////////////////////////////////////////
       //
-      //  Probe the floppy
+      //  Check Floppy
       //
       ///////////////////////////////////////////////////////////////////////////////////
-
-      // [$[
-      //    "bus":"Floppy", "class_id":262, "dev_name":"/dev/fd0",
-      //    "resource":$["disk_log_geo":[$["cylinders":80, "heads":2, "sectors":18]],
-      //    "size":[$["unit":"cinch", "x":350, "y":0], $["unit":"sectors", "x":2880, "y":512]]],
-      //    "sub_class_id":3, "unique_key":"sPPV.oZ89vuho4Y3"
-      // ]]
-      list floppy_probe_list = SCR::Read(.probe.floppy);
-
-      /*
-      // only for testing
-      floppy_probe_list = [
-			   $["bus":"Floppy", "class_id":262, "dev_name":"/dev/fd0",
-			     "resource":$["disk_log_geo":[$["cylinders":80, "heads":2, "sectors":18]],
-					  "size":[$["unit":"cinch", "x":350, "y":0], $["unit":"sectors", "x":2880, "y":512]]],
-			     "sub_class_id":3, "unique_key":"sPPV.oZ89vuho4Y3"],
-			   $["bus":"Floppy", "class_id":262, "dev_name":"/dev/fd1",
-			     "resource":$["disk_log_geo":[$["cylinders":80, "heads":2, "sectors":18]],
-					  "size":[$["unit":"cinch", "x":350, "y":0], $["unit":"sectors", "x":2880, "y":512]]],
-			     "sub_class_id":3, "unique_key":"sPPV.ovuho4Y3"],
-			   $["bus":"Floppy", "class_id":262, "dev_name":"/dev/fd2",
-			     "resource":$["disk_log_geo":[$["cylinders":80, "heads":2, "sectors":18]],
-					  "size":[$["unit":"cinch", "x":350, "y":0], $["unit":"sectors", "x":2880, "y":512]]],
-			     "sub_class_id":3, "unique_key":"sPV.oZ89vuho4Y3"]
-      ];
-      */
-
-      OSRModuleProgress::SetLabel(_("Probing floppy"));
       
-      if (size(floppy_probe_list) == 1)
-      {
-	  has_floppy = true;
-
-	  // select the first entry in the floppy_probe_list
-	  floppy_device = lookup(select(floppy_probe_list, 0, $[]), "dev_name", "");
+      if  ( size( StorageDevices::FloppyDrives) == 1 )
+      {	  
+	  OSRSummary::DetectOK("",sformat(_("Floppy device found on %1"), OSRFloppy::floppy_device ));
 	  
-	  OSRSummaryDetectOK(
-			     module_name,
-			     _("Probing floppy"),
-			     sformat(_("Floppy device found on %1"), floppy_device)
-			     );
-
-	  OSRProvideString("floppy_device", floppy_device);
-	  OSRProvideBoolean("has_floppy", true);
+	  OSR::ProvideBoolean("has_floppy", true);
       }
-      else if (size(floppy_probe_list) > 1)
-      {
-	  has_floppy = true;
-
-	  list device_names = [];
-
-	  foreach(`v, floppy_probe_list, ``{
-	      
-	      device_names = add(device_names, lookup(v, "dev_name", ""));
-	  });
-	  
-	  OSRSummaryDetectOK(
-			     module_name,
-			     _("Probing floppy"),
-			     sformat(_("Several floppy devices found<br>%1"), mergestring(device_names, " ,"))
-			     );
+      
+      else if ( size( StorageDevices::FloppyDrives)  > 1 )
+      {	  
+	  OSRSummary::DetectOK("", sformat(_("Several floppy devices found<br>%1"),
+					   mergestring(StorageDevices::FloppyDrives, " ,")));
 
 
 	  // let the user select the floppy device to use
-	  floppy_device = OSRPopupRadioButtonGroup(
+	  OSRFloppy::floppy_device = OSRPopup::RadioButtonGroup(
 					     _("Select one of the floppy devices"),
 					     _("You have to select one of the floppy
 devices for later use."),
-					     device_names,
+					     StorageDevices::FloppyDrives,
 					     "",
 					     true
 					     );
 
-	  OSRSummaryDetectOK(
-			     module_name,
-			     _("Probing floppy"),
-			     sformat(_("Selected floppy device %1"), floppy_device)
-			     );
+	  OSRSummary::DetectOK("", sformat(_("Selected floppy device %1"), OSRFloppy::floppy_device));
 
-	  OSRProvideString("floppy_device", floppy_device);
-	  OSRProvideBoolean("has_floppy", true);
-
+	  OSR::ProvideBoolean("has_floppy", true);
       }
       else
-      {
-	  has_floppy    = false;
-	  floppy_device = "";
-
-	  status = OSRStatusDetectProblem();
-
-  	  OSRSummaryDetectProblem(
-			     module_name,
-			     _("Probing floppy"),
-			     _("No floppy device found")
-			     );
+      {	
+  	  OSRSummary::NotFound("",  _("No floppy device found"));
+	  
+	  OSR::ProvideBoolean("has_floppy", false );
+	  return false;
       }
-
-      OSRModuleProgress::Add(10);
       
-      // if the rescue-system is launched from a running Linux-system the target-directory is empty, else "/mnt"
-      if (!Installation::initial_mode && !Installation::continue_mode)
-      {
-	  repair_target = "";
-      }
-      else
-      {
-	  repair_target = "/mnt";
-      }
-
-      OSRModuleProgress::Add(10);
-
-      if (size(target_map) > 0)
-      {
-	  OSRProvideMap("target_map", target_map);
-      }
-
-      // no check for the size of the repair_target: its value can be ""!
-      OSRProvideString("repair_target", repair_target);
-
-      OSRModuleProgress::Add(10);
-
-      result_map = $[
-		     "status"         : status
-      ];
-
-      OSRModuleProgress::Fill();
-      
-      return result_map;
+      return true;
   }
 
+  
+  global define boolean OSRInitTarget()``{
+
+      OSRSummary::DetectOK("", _("Target system initialised"));
+      
+      // if the rescue-system is launched from a running Linux-system the target-directory is empty, else "/mnt"
+      if (!Mode::initial && !Mode::cont)
+      {
+	  OSR::ProvideString("repair_target", "") ;
+      }
+      else
+      {
+	  OSR::ProvideString("repair_target", "/mnt") ; 
+      }
+
+      return true;
+  }
+  
+  
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
   //
   //////////////////////////////////////////////////////////////////////
-  
-  if (init_mode)
-  {
-      map test_map = OSRInitInit();
-      //SCR::Write(.dumpto.tmp.osr_module_init, test_map);
 
-      return test_map; 
+  while ( arg_n <  size(Args()) )
+  {
+      if ( Args(arg_n) == .init )
+      {
+	  y2milestone("Argument: %1", Args(arg_n));
+	  return  OSRInitInit();
+      }
+      else
+      {
+	  y2error("ERROR: unknown option %1", Args(arg_n) );
+	  return $[];
+      }
+      arg_n = arg_n + 1;
   }
 }

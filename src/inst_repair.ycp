@@ -1,0 +1,33 @@
+/**
+ *  File:
+ *    inst_repair.ycp
+ *
+ *  Module:
+ *    YaST2 system repair tool - automatic error detection and repair tool for Linux.
+ *
+ *  Summary:
+ *    This file provides the framework of the YaST2 system repair tool.
+ *    It contains the main function that starts the scan and repair process. 
+ *
+ *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+{
+
+  import "Mode";
+  import "Wizard";
+  
+
+  Mode::update = false;
+  Mode::installation = true;
+  Mode::initial      = true;
+  
+  y2milestone( "Starting yast repair tool" );
+
+  Wizard::OpenNextBackDialog();
+	
+  return WFM::CallFunction(`repair());
+
+}

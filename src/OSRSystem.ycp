@@ -1,0 +1,192 @@
+/**
+ * File:	OSRSystem.ycp
+ * Module:	repair
+ * Summary:	
+ * Authors:	Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ *
+ * Provide osr mode information.
+ */
+
+{
+  
+    module "OSRSystem";
+
+
+    import "Installation";
+    import "Report";
+    import "FileSystems";
+
+    textdomain "repair";
+
+    /**
+     * The current root environment.
+     */
+    string root = "/";
+
+    /**
+     * The target system root mount point.
+     */
+    string target_root = "/mnt";
+    
+    /**
+     * The base root mount point.
+     */
+    string org_root    = "/";
+    
+  
+    global define void Reset()``{
+	target_root = "/mnt";
+	org_root    = "/";
+	SetOrgRoot();
+    }
+
+    
+    /**
+     * Change root to target root mount point.
+     */
+    global define void SetTargetRoot()``{
+
+      if( ChangeRoot( target_root ) )
+      {
+	  root = target_root;
+      }
+    }	
+
+
+    /**
+     * 
+     */
+    global define void SetOrgRoot()``{
+
+      if( ChangeRoot( org_root) )
+      {
+	  root = org_root;
+      }
+    }	
+
+    global define string Root()``{
+	return root;
+    }
+
+    global define string TargetRoot()``{
+	return target_root;
+    }
+
+    global define string OrgRoot()``{
+	return org_root;
+    }
+  
+  /**
+   * Change the root environment.
+   * @param root The new root environment.
+   */
+  global define boolean ChangeRoot(string new_root )``{
+
+      if( new_root != root )
+      {
+	  y2milestone("changing root environment to %1", new_root );
+
+	  if( new_root != "/" )
+	  {
+	      /*
+	      // check if system mount points exist before change root.
+	      boolean not_found = false;
+	      foreach( string mountp, FileSystems::system_m_points , ``{
+
+		  string dir = new_root + mountp;
+		  if( root != "/" ) dir = mountp;
+		  
+		  if( ! not_found && size( SCR::Dir( topath(dir) )) == 0 )
+		  {
+		      // one system mount point not found
+		      not_found = true;
+		  }
+	      });
+	      if( not_found )
+	      {
+		  y2error("not all needed system mount points for change root found");
+		  return false;
+	      }
+	      */
+	  }
+	  
+	  WFM::SCRClose ( Installation::scrHandle );
+	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
+	  
+	  if( Installation::scrHandle == -1 )
+	  {
+	      y2error("changing root was not successful");
+	      Report::Error(_("
+Changing environment to target
+system was not successful."));
+
+	      OSRStatus::ErrorSeverityBlocking(); 
+	      root = "";    
+	      return false;
+	  }
+	  else {
+	      WFM::SCRSetDefault (Installation::scrHandle);
+	      SCR::Read (.target.tmpdir);
+
+	      root = new_root;
+	      y2milestone("changing root was successful");
+	  }
+      }
+      return true;
+  }
+
+
+
+    
+    /**
+   *  Checks if the first specified list (of strings) is a subset of the second one. The sequence
+   *  of entries in the lists is nonrelevant.
+   *
+   *  For internal use only.
+   *  See the testsuite.
+   *
+   *  @example OSRIsSubSet([], ["a", "b"]) -> true;
+   *  @example OSRIsSubSet(["a"], ["a", "b"]) -> true;
+   *  @example OSRIsSubSet(["c"], ["a", "b"]) -> false;
+   *  @example OSRIsSubSet(["a", "b", "c"], ["a", "b"]) -> false;
+   *  @param list The first list.
+   *  @param list The second list.
+   *  @return boolean True if all elements of l1 are contained in l2 or if l1 is empty.
+   */
+  global define boolean IsSubSet(list l1, list l2) ``{
+
+      integer index = 0;
+
+      // remove duplicate entries and sort the lists
+      l1 = toset(l1);
+      l2 = toset(l2);
+
+      // check special cases
+      if ((size(l1) < 0) || (size(l2) < 0))   return false;
+
+      else if (size(l1) > size(l2))  return false;
+
+      else if ((size(l1) == 0)) return true;
+      
+      else if (size(l1) <= size(l2))
+      {
+	  // this is the main subset-checker
+	  while ((index >= 0) && (index < size(l1)))
+	  {
+	      if ( !contains(l2, select(l1, index,-1 )) )
+	      {
+		  return false;
+	      }
+	      index = index + 1;
+	  }
+	  return true;
+      }
+      else
+      {
+	  return false;
+      }
+  };
+
+}

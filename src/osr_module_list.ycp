@@ -11,6 +11,7 @@
  *    and returns the list of detection and repair modules.
  *
  *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
  *    Michael Koehrmann <curry@suse.de>
  *
  * $Id$
@@ -20,7 +21,9 @@
   return [
 	  `osr_module_init(),
 	  `osr_module_partition(),
-	  `osr_module_lilo(),
-	  `osr_module_finish()
+	  `osr_module_packages(),
+	  `osr_module_bootloader()
+ 	  //`osr_module_lilo(),
+	  //`osr_module_finish()
   ];
 }
