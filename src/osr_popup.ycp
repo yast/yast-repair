@@ -170,9 +170,9 @@
 	  cancel_button = `PushButton(`id(`osr_popup_cancel), _("&Cancel"));
 
 	  button_box    = `HBox(
-				`HWeight(1, cancel_button),
-				`HSpacing(2),
 				`HWeight(1, ok_button)
+				`HSpacing(2),
+				`HWeight(1, cancel_button),
 				);
 
 	  rbs = `VBox(`Left(`Label(WFM::message)));
