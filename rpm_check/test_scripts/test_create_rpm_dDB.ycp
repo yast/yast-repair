@@ -1,5 +1,4 @@
 {
-	string db_name = "/tmp/RPM_dDB_malone_Min";
-	string str = "/tmp/Minimal+X11.sel";
-	any a = SCR(`Write(.rpm.create_rpm_dDB, db_name, str));
+	string db_name = "/tmp/RPM_dDB_intensive_Min";
+	SCR( `Write(.rpm.create_rpm_dDB, db_name));
 }

@@ -1,3 +1,31 @@
+# SuSE-Linux-Package-Selection 2.1 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Sep 25 14:49:25 GMT 2001
+
+Version: 2.1
+
+Name: Minimal+X11
+
+Label: Minimum graphical system (without KDE)
+Label.cs: Minimální grafický systém (bez KDE)D
+Label.de: Minimales graphisches System (ohne KDE) 
+Label.en: Minimum graphical system (without KDE)
+Label.es: Sistema gráfico mínimo (sin KDE)
+Label.fr: Système minimal (X11) (sans KDE)
+Label.gl: Sistema gráfico mínimo (sen KDE)
+Label.hu: Minimális grafikus rendszer (KDE nélkül)
+Label.it: Sistema grafico minimo (senza KDE)
+Label.ja: 最小限のグラフィック・システム (KDE を除く)
+Label.lt: Minimum graphical system (without KDE)
+Label.nl: Minimaal grafisch systeem (zonder KDE)
+Label.pt: Minimum graphical system (without KDE)
+Label.tr: Minimum graphical system (without KDE)
+
+Conflicts: Minimal default Standard Alles 
+Category: baseconf
+
+Visible: true
+
+Toinstall:
 3ddiag
 WindowMaker
 aaa_base
@@ -249,9 +277,18 @@ yast2-trans-users
 yast2-trans-wizard
 yast2-ui-ncurses
 yast2-ui-qt
+Llatsniot:
+
+Toinstall.cs:
 xfntl2
+Llatsniot.cs:
+
+Toinstall.hu:
 xfntl2
 xfntscl2
+Llatsniot.hu:
+
+Toinstall.ja:
 canna
 cannadic
 jfbterm
@@ -263,5 +300,13 @@ termcap
 ttf-kochi-gothic
 ttf-kochi-mincho
 xfntjp
+Llatsniot.ja:
+
+Toinstall.ru:
 xfntcyr
+Llatsniot.ru:
+
+Toinstall.tu:
 xfntturk
+Llatsniot.tu:
+

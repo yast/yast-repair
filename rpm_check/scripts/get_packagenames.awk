@@ -1,11 +1,10 @@
 # on stdin have to be attached the stream from common.pkd 
 BEGIN{
-	# the min_file_name -variable must be specified by calling programm (awk's option -v <var_name>=<value>)
-	# min_file_name - file MUST exists, otherwise results endless loop 
 	bool_section_begins = 0;
 	count = 0;
+	# the min_file_name -variable must be specified by calling programm (awk's option -v <var_name>=<value>)
+	# min_file_name - file MUST exists, otherwise it results endless loop 
 	while(getline < min_file_name ){
-		print "HEHE";
 		if( $0 ~ /^Llatsniot:/)
 			bool_section_begins = 0;
 		else{
@@ -18,7 +17,7 @@ BEGIN{
 		}
 	}
 	if (count == 0) { #ERROR: no one package found
-		print " NO rpm names found !!! " > "/dev/stderr";
+		print "get_packagenames.awk: ERROR: NO rpm names in file "min_rpms" found !!! " > "/dev/stderr";
 		exit 2;
 	}
 }
