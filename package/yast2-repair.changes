@@ -2,6 +2,7 @@
 Wed Dec  1 12:24:30 CET 2004 - jsuchome@suse.cz
 
 - basic testsuite added
+- show packages selected for reinstallation in summary
 - 2.11.3 
 
 -------------------------------------------------------------------

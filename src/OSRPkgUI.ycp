@@ -100,6 +100,11 @@
     global boolean expert_mode	 = false;
 
     /**
+     * if current UI can use `DownloadProgress
+     */
+    boolean has_progress_widget	= false;
+
+    /**
      * packages that should be reinstalled after verification
      * (only helper structure, for showing list in dialogs)
      */
@@ -121,7 +126,8 @@
 	list<string> special = [];
 
 	// Build headers for the tables in qt-mode
-	if (UI::HasSpecialWidget(`DownloadProgress))
+	has_progress_widget = UI::HasSpecialWidget (`DownloadProgress);
+	if (has_progress_widget)
 	{
 	    special = [ "width=400", "align=right"];
 
@@ -212,7 +218,7 @@
 	{
 	    string table = "</table>";
 
-	    if (! UI::HasSpecialWidget(`DownloadProgress))
+	    if (!has_progress_widget)
 	    {
 		table = "";
 	    }
@@ -380,14 +386,13 @@ YaST verifies packages now."))),
 
 	string tab_body			= "";
 	string tab_pkg_status		= "";
-	string fill_c			= "";
 	string tab_pkg_name_color	= contains (
 	    OSRPkgVerify::not_successful_verified, pkg_name) ? "red" : "blue" ;
 	string tab_pkg_name		= HTML::Link (HTML::Bold (
 	    HTML::Colorize (pkg_name, tab_pkg_name_color)), pkg_name);
 	string line_sf			= "<li>%1 %2 %3</li>%4";
 	string align			= "";
-	if (UI::HasSpecialWidget (`DownloadProgress))
+	if (has_progress_widget)
 	{
 	    align	= "align=right";
 	    line_sf	= "<tr><td  colspan=2 align=right> %1</td>
@@ -415,17 +420,17 @@ YaST verifies packages now."))),
 		string file        = line["file"]:"";
 		string config_file = boolean2string (line["config_file"]:false);
 
-		if (!UI::HasSpecialWidget (`DownloadProgress))
+		if (!has_progress_widget)
 		{
-		    file	= fill (line["file"]:"", 60, ".") + "..";
-		    config_file = fill (config_file, 8, ".");
+		    file	= fill (line["file"]:"", 50, ".") + "..";
+		    config_file = fill (config_file, 7, ".");
 		}
 		tab_body = tab_body + sformat (line_sf,
 		    file, config_file, file_status, align);
 	    });
 	}
 
-	if (UI::HasSpecialWidget(`DownloadProgress))
+	if (has_progress_widget)
 	{
 	    line_sf = "<tr><th>%1</th>
                                     <th></th>
@@ -438,8 +443,7 @@ YaST verifies packages now."))),
 	    string n2    = HTML::Bold (ok ? "": _("Files:")) + "<br>";
 	    line_sf	 =
 		"<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
-	    fill_c       = ".";
-	    tab_pkg_name = tab_pkg_name + fill("", 60 - size(pkg_name), fill_c);
+	    tab_pkg_name = tab_pkg_name + fill ("", 60 - size(pkg_name), ".");
 	}
 
 	string table	=
@@ -481,7 +485,6 @@ YaST verifies packages now."))),
 	    }
 	});
 
-// FIXME FIXME packages_to_reinstall are not added to OSRPkgVerify::not_successful_verified
 	return `next;
     }
 
@@ -544,7 +547,7 @@ the unsatisfied dependencies.
 	    string header = "";
 	    string line   = "";
 	    string end    =  "</table>";
-	    if (UI::HasSpecialWidget(`DownloadProgress))
+	    if (has_progress_widget)
 	    {
 		special = [ "width=400", "width=20", "width=270", "width=110"];
 		header = sformat("<table %4><tr><th %5>%1 <th %6>%2 <th %7>%3</tr>",
@@ -716,12 +719,24 @@ Verifying the packages %1 was successful.
 		sformat("(.*%1).*", OSRPkgVerify::separator),  "\\1");
 	    pkg_name        = substring (pkg_name, 0,
 		size(pkg_name) - size (OSRPkgVerify::separator));
-//	    return show_verify_details (pkg_name, input);
 
 	}
 	return `again;
     }
 
+    /**
+     * update the item list of 'missing_packages' with the ones
+     * selected to reinstall by user during verification
+     */
+    global define list<list> update_missing_packages (
+	list<list> item_list, boolean check) {
+
+	foreach (string item, (list<string>) packages_to_reinstall, {
+	    if (!contains (OSRPkgVerify::not_successful_verified, item))
+		item_list = add (item_list, [item, check]);
+	});
+	return item_list;
+    }
 
     global define list ProtocolDialog()``{
 
@@ -748,11 +763,7 @@ Verifying the packages %1 was successful.
 	    boolean checked = contains (packages_to_reinstall, item);
 	    item_list = add (item_list, [item, checked]);
 	});
-	foreach (string item, (list<string>) packages_to_reinstall, {
-	    if (!contains (OSRPkgVerify::not_successful_verified, item))
-		item_list = add (item_list, [item, true]);
-	});
-	return item_list;
+	return update_missing_packages (item_list, true);
     }
 
     global define boolean AddPackageSummary (string pkg_name) {
