@@ -158,6 +158,7 @@ is not possible.</P>
      */
     global define boolean OpenPkg( string root )``{
 
+    // FIXME: doesn't work running from CD!
 	y2milestone("Open pkg database with target system  -%1-", root );
 	if( root != "" && root != nil ) root_mountpoint = root;
 
@@ -587,7 +588,7 @@ packages in the list.
 "),
 					     _("
 <P>SuSE Linux needs at least some packages for
-the basic system functionality. Without these
+basic system functionality. Without these
 packages, the system is not executable.</P>
 ") +
 
@@ -596,7 +597,7 @@ minimal system are installed. If
 some packages are missing, YaST offers to
 install the missing packages.</P>
 "),
-					   _("&Missing packages to install:"),
+					   _("&Missing Packages to Install:"),
 					   []
 	    ];
 	}

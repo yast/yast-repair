@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Mon Mar  3 13:04:47 CET 2003 - jsuchome@suse.de
+
+- corrected texts from proofreading
+
+-------------------------------------------------------------------
+Tue Feb 25 10:36:56 CET 2003 - jsuchome@suse.de
+
+- fix: wrong suggestion to fstab entry (#23249)
+- fixed button labels to correspond with helptexts
+- 2.7.3
+
+-------------------------------------------------------------------
 Mon Feb 24 17:06:33 CET 2003 - jsuchome@suse.de
 
 - fixed minimal selection checking

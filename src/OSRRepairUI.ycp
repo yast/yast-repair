@@ -311,7 +311,7 @@ the system be changed.</P>
 				   // First entry - automatically analyse
 				 $["headline"    : _("&Automatic Repair"),
 				  "symbol"       :`scan_repair,
-				   "description" : _("Automatic analyzing with repair
+				   "description" : _("Automatic analysis with repair
 proposals. Fits in most cases.
 "),
 				   "help_text"	 : _("Analyze the entire system automatically and
@@ -321,7 +321,7 @@ display repair proposals.
 
 				 // Second entry - customise analyse
 				$[
-				  "headline"    :  _("&Customize repair"),
+				  "headline"    :  _("&Customize Repair"),
 				  "symbol"      : `scan_repair_options,
 				  "description" : _("Select parts of system analyzation
 you need. Usable if you  already
@@ -329,14 +329,14 @@ know a little bit about your problem.
 "),
 				  
 				  "help_text"	: _("
-For example, deselect a category group like the
-boot loader test and start analysis afterwards.
+For example, deselect a category group, like the
+boot loader test, then start analysis.
 "),
 
 				  ],
 
 				 // third entry - direct repair tools
-				 $["headline"    :  _("E&xpert tools"),
+				 $["headline"    :  _("E&xpert Tools"),
 				   "symbol"	 : `direct_repair,
 
 				   "description" : _("Use if the automatic detection
@@ -419,7 +419,7 @@ lot of system parts automatically. Usually, only one
 or two scopes, like the boot loader or the file system,
 are damaged.</P>
 "), tool_name) +
-	_("<P>Therefore this dialog enables the selection
+	_("<P>Therefore, this dialog enables the selection
 of system parts that should be scanned.</P>
 ") +
 
@@ -564,7 +564,7 @@ go back and start the automatic analysis.</P>
 
       string module_check_label = _("Module Check");
       string system_check_label = _("System Check");
-      string show_all_label     = _("&Show all details");
+      string show_all_label     = _("&Show All Details");
       string pause_label        = _("&Pause");
       
       if ( UI::WidgetExists (`id(`local_rich_text_info ))) return;
@@ -603,8 +603,8 @@ _("<p>Above all, the file system checks with fsck are very
 time consuming.</p>
 ") +
 	  _("<P>If the scan sequence finds an error, YaST
-suggests one or more repair proposals. You have the
-possibility to select one proposal or cancel the repair. </P>
+suggests one or more repair proposals. 
+Then select one proposal or cancel the repair. </P>
 ") +
 	  build_label_description( pause_label, _("Pause or continue analyzing the system.")) +
 	  build_label_description( show_all_label, _("Activate or disable reporting details."));
@@ -625,7 +625,7 @@ possibility to select one proposal or cancel the repair. </P>
    * Controll the user interaction for the scan and repair sequence.
    */
   define symbol DetectDialog() ``{
-      string go_on_label = _("&Go on");
+      string go_on_label = _("&Go On");
       
       if ( OSRMode::script ) return OSR::Detect();
       

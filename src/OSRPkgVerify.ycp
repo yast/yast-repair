@@ -67,7 +67,7 @@
 				      ],
 				      "config_file" : $[ "all"		: [ "SM5....T" 	       ]
 				      ],
-				      "you-installed" : $[ "/var/lib/YaST2/you-installed" : [ all_tests ]
+				      "you-installed" : $[ "/var/lib/YaST2/you/installed" : [ all_tests ]
 				      ],
 				      "build_problems" : $[ "all"	: []]
     ];
