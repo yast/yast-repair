@@ -26,11 +26,6 @@
 
   textdomain "repair";
 
-  /**
-   *  argument handling
-   */
-  integer arg_n = 0;
-
   //////////////////////////////////////////////////////////////////////
   //
   //  DETECTION METHODS
@@ -170,6 +165,9 @@ devices for later use."),
 
 
 
+  /*
+  integer arg_n = 0;
+
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
@@ -190,4 +188,5 @@ devices for later use."),
       }
       arg_n = arg_n + 1;
   }
+  */
 }//EOF

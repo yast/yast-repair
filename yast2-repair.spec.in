@@ -24,4 +24,5 @@ Summary:	System Repair
 @clientdir@/*.ycp
 @moduledir@/*.ycp
 @moduledir@/*.ybc
+@yncludedir@/repair/*
 %doc @docdir@

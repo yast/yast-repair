@@ -42,11 +42,6 @@
 
   include "partitioning/custom_part_dialogs.ycp";
 
-  // begin argument handling:
-  // in the initial phase the framework calls each module
-  // with the argument ".init", don't delete!
-  integer arg_n = 0;
-
   //////////////////////////////////////////////////////////////////////
   //
   //  DETECTION METHODS
@@ -1677,6 +1672,12 @@ table with the stored system information.
   };
 
 
+  /*
+  // begin argument handling:
+  // in the initial phase the framework calls each module
+  // with the argument ".init", don't delete!
+  integer arg_n = 0;
+
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
@@ -1699,4 +1700,5 @@ table with the stored system information.
       }
       arg_n = arg_n + 1;
   }
+  */
 }//EOF

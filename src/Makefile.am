@@ -32,14 +32,24 @@ module_DATA =			\
 client_DATA = 			\
 	inst_repair.ycp		\
 	repair.ycp		\
-	osr_module_init.ycp	\
 	osr_module_list.ycp	\
-	osr_module_packages.ycp	\
-	osr_module_partition.ycp\
-	osr_verified_packages.ycp	\
+	osr_verified_packages.ycp
+#	osr_module_init.ycp	\
+#	osr_module_packages.ycp	\
+#	osr_module_partition.ycp\
+#	osr_module_bootloader.ycp
+
+ynclude_DATA =          		\
+	osr_module_init.ycp		\
+	osr_module_packages.ycp		\
+	osr_module_partition.ycp	\
 	osr_module_bootloader.ycp
+	
+EXTRA_DIST = $(client_DATA) $(module_DATA) $(ynclude_DATA)
 
+repair:
+	ln -sf . repair
 
-EXTRA_DIST = $(client_DATA) $(module_DATA)
+ycpchook = repair
 
 include $(top_srcdir)/Makefile.am.common
