@@ -23,15 +23,23 @@
   global define GetDisks() ``{
 
       map targets = $[];
-      
-      if ((user_settings != nil) && (user_settings != $[]))
+
+      if (user_settings == nil)
+      {
+	  y2error("variable user_settings not defined");
+      }
+      else if (user_settings == $[])
+      {
+	  y2error("variable user_settings contains no values");
+      }
+      else
       {
 	  targets = lookup(user_settings, "targets", $[]);
       }
-
+      
       if (targets == $[])
       {
-	  // TODO: compute the targets-map (y2m_inst/ycp/general/inst_startup.ycp)
+	  // TODO
       }
 
       return targets;
@@ -513,6 +521,73 @@ Check log-file : /var/log/y2log.");
 	  }
       }
       return success;
+  };
+
+  /**
+   *
+   *  @return list A list of maps, one map for each mounted partition.
+   *  @example list mounted = GetMountedPartitions();
+   *           -> [$["name" : "/dev/hda1", "mountpoint" : "/", "fstype" : "reiserfs", "perm" : "(rw)"], ...]
+   */
+  global define GetMountedPartitions() ``{
+
+      map    return_map         = $[];
+      list   row_list           = [];
+      list   mounted_partitions = [];
+
+      // looks like:
+      // ($[
+      //    "exit":0,
+      //    "stderr":"",
+      //    "stdout":"/dev/hda1 on / type reiserfs (rw)\n
+      //              proc on /proc type proc (rw)\n
+      //              devpts on /dev/pts type devpts (rw,mode=0620,gid=5)\n
+      //              shmfs on /dev/shm type shm (rw)\n
+      //              /dev/hda1 on /mnt type reiserfs (rw)\n
+      //              usbdevfs on /proc/bus/usb type usbdevfs (rw)\n"
+      // ])
+      return_map = SCR::Execute(.target.bash_output, "/bin/mount");
+
+      if (lookup(return_map, "exit", 1) == 0)
+      {
+	  row_list = splitstring(lookup(return_map, "stdout", ""), "\\\n");
+      }
+
+      foreach(`row, row_list, ``{
+	  
+	  // each row looks like this:
+	  // <partition_name> on <mountpoint> type <fs_type> <permissions>
+	  list   string_list    = splitstring(row, " ");
+	  string partition_name = select(string_list, 0, "");
+	  string mountpoint     = select(string_list, 2, "");
+	  string fs_type        = select(string_list, 4, "");
+	  string permissions    = select(string_list, 5, "");
+
+	  // only add "real" partitions to the list
+	  if ((partition_name != nil) &&
+	      (partition_name != "") &&
+	      (mountpoint != nil) &&
+	      (mountpoint != "") &&
+	      (substring(partition_name, 0, 5) == "/dev/"))
+	  {
+	      map partition_map  = $[
+				     "name"       : partition_name,
+				     "mountpoint" : mountpoint,
+				     "fstype"     : fs_type,
+				     "perm"       : permissions
+	      ];
+	      
+	      mounted_partitions = add(mounted_partitions, partition_map);
+
+	  }
+	  else
+	  {
+	      y2error("partition: \"%1\", mountpoint: \"%2\", fstype: \"%3\", perm: \"%4\"",
+		      partition_name, mountpoint, fs_type, permissions);
+	  }
+
+      });
+      return mounted_partitions;
   };
 
 }
