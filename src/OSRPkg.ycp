@@ -105,12 +105,14 @@
      * All new installed packages.
      */
     list (string) reinstalled_packages    = [];
-    
+
     /**
      * This will be local when converted to a Module::
      * Has Pkg::TargetInit run?
      */
-    boolean target_initialized = true;//FIXME initialized in bootloader
+    boolean target_initialized = true;
+    // FIXME initialized in bootloader constructors (in fact, in Product.ycp),
+    // which are called before OSRPkg constructor
 
     /**
      * This will be local when converted to a Module::
@@ -122,7 +124,11 @@
 
 
     list(string) architecture_packages = [];
-    
+
+    // list of packages in minimal selection (read it just after pkg target is
+    // initialized to avoid bug #30423)
+    list minimal_selection = [];
+
     string default_package_help  = _("
 <p>The package database administers all
 information of the installed software packages.
@@ -145,22 +151,20 @@ is not possible.</P>
      */
     global define void Reset()``{
 
-	not_found_files  	= [];
+	not_found_files		= [];
 	error_text		= "";
 	help_text		= "";
 	root_mountpoint		= "";
-	missing_packages 	= [];
+	missing_packages	= [];
 
 	architecture_packages = [];
 	package_db_repaired = false;
 	reinstalled_packages    = [];
 	install_missing_dialog_data = [];
 
-y2internal ("----------------- reseting (ti=%1)", target_initialized);
 	if( target_initialized )
 	{
 	    target_initialized = ! Pkg::TargetFinish ();
-y2internal ("----------------- reset (ti=%1)", target_initialized);
 	}
 	// don't reset source_initialized
 	// don't reset reinstalled_packages
@@ -211,11 +215,10 @@ y2internal ("----------------- reset (ti=%1)", target_initialized);
 	}
 
 	// open target system for Pkg access
-y2internal ("----------------- ti=%1", target_initialized);
 	if (!target_initialized)
 	{
 	    target_initialized = Pkg::TargetInit ( root, false);
-y2internal ("----------------- ti=%1", target_initialized);
+	    get_minimal_selection ();
 	}
 
 	// something failed
@@ -587,9 +590,7 @@ database was not successful.
 	}
 
 	list(string) installed_packages = Pkg::GetPackages(`installed, true);
-y2milestone ("installed: %1", installed_packages);
 	list(string) minimal_packages   = get_verify_packages( "base" );
-y2warning ("minimal: %1", minimal_packages);
 
 	missing_packages = filter(string pkg_name, minimal_packages, ``( ! contains(installed_packages, pkg_name )));
 
@@ -636,6 +637,13 @@ install the missing packages.</P>
 
     };
 
+    define list get_minimal_selection () ``{
+
+	if (minimal_selection == [] || minimal_selection == nil)
+	    minimal_selection = Pkg::SelectionContent("Minimal", false, "");
+	return minimal_selection;
+    }
+
     /**
      * Return all packages which should be verified
      */
@@ -651,7 +659,7 @@ install the missing packages.</P>
 	// return base packages only
 	else if ( what == "base")
 	{
-	    list(string) minimal = Pkg::SelectionContent("Minimal", false, "");
+	    list(string) minimal = get_minimal_selection ();
 	    list(string) special = [];
 
 	    minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
@@ -859,8 +867,6 @@ package.</P>
 			}
 		    });
 
-//		FIXME: Solver returns some error, but installation is OK...
-// watch bug 26586
 		    ok = ok && Pkg::PkgSolve ();
 
 		    y2milestone("Solving dependencies returned %1", ok );
