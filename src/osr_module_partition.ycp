@@ -1229,7 +1229,7 @@ system check is not possible.
           symbol used_fs = (symbol) Storage::GetSubDevParam (
 	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:0 ), "detected_fs");
 
-          if (!fs_ok)
+          if (fs_ok)
 	  {
 	    if (OSRFsck::IsNonLinuxFileSystem (used_fs))
 		// message popup %1 is partition, %2 filesystem type name
