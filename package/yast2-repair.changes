@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 18 16:55:12 CEST 2003 - jsuchome@suse.cz
+
+- do not close Target after package installation (#30423 again)
+- 2.8.6
+
+-------------------------------------------------------------------
 Wed Sep 17 10:10:17 CEST 2003 - jsuchome@suse.cz
 
 - read the list of packages in Minimal selection directly after the
