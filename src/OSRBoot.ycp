@@ -753,22 +753,23 @@ contains no errors press the cancel button.
      * grub2Lilo can't convert floppy device.
      */
     define string grubDev2LiloDev(string grub_device )``{
+    /*
+    BootGRUB::readDeviceMap();
+    string ret = BootGRUB::grubDev2unixDev(grub_device);
+    */
 	if ( grub_device == "") return "";
 	string ret = "";
 	if ( ! regexpmatch(grub_device, ".fd.*"))
-	{	    
-	    ret = grub2Lilo(grub_device );
-
-/* TODO FIXME
- use BootGRUB::readDeviceMap
-     BootGRUB::dev2dev ?
-*/
- 
+	{
+//	    ret = grub2Lilo(grub_device );
+    // TODO FIXME: check this!
+    BootGRUB::readDeviceMap();
+    ret = BootGRUB::grubDev2unixDev(grub_device);
 	}
 	else {
 	    ret = "/dev/" + substring(grub_device, 1, 3);
 	}
-	y2milestone("grubDev2LiloDev converts %1 to %2", grub_device, ret );
+	y2milestone("grubDev2unixDev converts %1 to %2", grub_device, ret );
 	return ret;
     }
 
@@ -794,19 +795,19 @@ contains no errors press the cancel button.
 	if( ! exists_grub_device(root)) return false;
 
 	string check_dev = root_device;
-	
+
 	if( boot_device != root_device )
 	{
 	    check_dev = boot_device;
 	}
-	    
+
 	if( check_dev == grubDev2LiloDev(root)) return true;
 	else return false;
     }
 
     /**
      * Check the addr entry of a grub conf file.
-     * TODO 
+     * TODO
      */
     define boolean check_grub_addr( string addr  )``{
 	if( addr == "" )
@@ -913,11 +914,13 @@ contains no errors press the cancel button.
 
 	if (type == "")
 	{
-	    p = list2path([loader]);
+//	    p = list2path([loader]);
+        p = topath (loader);
 	}
 	else
 	{
-	    p = list2path([loader, "sections" , section]);
+//	    p = list2path([loader, "sections" , section]);
+        p = add( add (topath (loader), "sections"), section);
 	}
 
 	list optlist = SCR::Dir(p);
@@ -978,12 +981,13 @@ contains no errors press the cancel button.
 	    return false;
 	}
 	else
-	{ 	
+	{
 	    // read grub menu file
 	    map global_options = sectOptions2Map("grub" , "", "");
-	    list sects         = SCR::Dir(list2path(["grub", "sections"]));
+//	    list sects         = SCR::Dir(list2path(["grub", "sections"]));
+	    list sects         = SCR::Dir(.grub.sections);
 	    list sections      = [];
-       
+
 	    foreach(string e, sects, ``{ sections = add(sections, sectOptions2Map("grub", "sections", e)); });
 
 	    // debug grub menu file
@@ -1071,11 +1075,14 @@ contains no errors press the cancel button.
 	//  $["addr":"0x8000",  "device":"(hd0)", "discswitch":true, "menu":"(hd0,2)/boot/grub/menu.lst",
 	//    "root":"(hd0,2)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/boot/grub/stage1",
 	//    "stage2":"/boot/grub/stage2"]
-	map grub_conf 		= parseGrubConfFrom(bootloader_config_check[bootloader, "config_file"]:"" );
+//	map grub_conf 		= parseGrubConfFrom(bootloader_config_check[bootloader, "config_file"]:"" );
+	map grub_conf = BootGRUB::parseGrubConf(
+        bootloader_config_check[bootloader, "config_file"]:"" );
 	boolean grub_device 	= check_grub_device(grub_conf["device"]:"" );
 	boolean grub_root   	= check_grub_root(grub_conf["root"]:"" );
 	boolean grub_addr   	= check_grub_addr(grub_conf["addr"]:"" );
-	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:"");
+//	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:"");
+	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:false);
 	boolean grub_stage1 	= check_grub_stage1(grub_conf["stage1"]:"");
 	boolean grub_stage2 	= check_grub_stage2(grub_conf["stage2"]:"");
 
