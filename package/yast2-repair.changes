@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 19 13:24:23 CET 2004 - mvidner@suse.cz
+
+- changed sort to use "<" instead of "<=" because of the switch to std::sort
+
+-------------------------------------------------------------------
 Wed Feb  4 16:55:08 CET 2004 - jsuchome@suse.cz
 
 - migrated for new interpreter

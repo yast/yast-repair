@@ -939,14 +939,14 @@ root partition or cancel scanning the system.
       // umount just_mount!!
       list<map> just_mounted    = (list<map>) OSR::RequireList("just_mounted");
       just_mounted      = sort(map x, map y, just_mounted,
-        ``(size(splitstring(x["mountpoint"]:"", "/")) >=
+        ``(size(splitstring(x["mountpoint"]:"", "/")) >
            size(splitstring( y["mountpoint"]:"" ,"/"))));
       y2milestone(" just_mounted %1", just_mounted );
 
       // mount just_umounted!!
       list<map> just_umounted   = (list<map>) OSR::RequireList("just_umounted");
       just_umounted		= sort(map x, map y, just_umounted,
-        ``(size(splitstring(x["mountpoint"]:"", "/")) <=
+        ``(size(splitstring(x["mountpoint"]:"", "/")) <
            size(splitstring(y["mountpoint"]:"" ,"/"))));
 
       just_mounted = (list<map>) union ( [
