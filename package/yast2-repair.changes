@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar  5 13:15:47 CET 2004 - jsuchome@suse.cz
+
+- another type fixes, use Storage again
+- sequencer is now module
+- 2.9.4
+
+-------------------------------------------------------------------
 Mon Mar  1 21:17:51 CET 2004 - jsuchome@suse.cz
 
 - type fixes

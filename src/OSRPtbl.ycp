@@ -30,7 +30,7 @@
   import "Label";
   import "Popup";
 
-//  include "partitioning/partition_defines.ycp"; FIXME
+  include "partitioning/partition_defines.ycp";
 
   textdomain "repair";
 
@@ -267,28 +267,29 @@ partition table of the device %1.
   }
 
   /**
-   * Check reparired mbr. 
+   * Check reparired mbr.
    */
   define boolean CheckRestoredPtbl(string target , path target_scrpath ) ``{
       y2milestone("checking restored ptl");
-      
+
       // read the partition table for checking if it is o.k.
-      string partition_path  	  = ".disk" + target_scrpath + ".partitions";
+      string partition_path	  = ".disk" + target_scrpath + ".partitions";
       // no TYPE
       list   partition_table   = (list) SCR::Read(topath(partition_path));
-		      
+
       if ((partition_table != nil) && (partition_table != []))
       {
 	  y2milestone("restoring was successful. Reread Storage");
 	  // o.k., partition table successfully reverted.
 	  Storage::ReReadTargetMap();
-	  
+	  // popup message
 	  Report::Message(_("
 Partition table successfully repaired.
 "));
 	  return true;
       }
-      else { 
+      else {
+	  // popup message
 	  Report::Message(_("
 Partition table was not successfully repaired.
 "));
@@ -299,9 +300,8 @@ Partition table was not successfully repaired.
   /**
    * Build the file name for reading partition list from floppy.
    */
-  define string build_file_name( string key )``{   
+  define string build_file_name( string key )``{
       return sformat("%2/%1",mergestring(splitstring(key, "/"),"_") , OSRFloppy::mount_point);
-	
   }
 
   /**
@@ -316,8 +316,7 @@ Partition table was not successfully repaired.
    */
   define list<map> FoundPtblDialog( list<map> partitions, string dev, string repair_tool, boolean whole_mbr )``{
 
-      /* FIXME include!
-      y2milestone("Found partitions for recovering %1", partitions );
+     y2milestone("Found partitions for recovering %1", partitions );
 
       string label_status = _("Status");
       string label_name   = _("Name");
@@ -377,9 +376,7 @@ For example, 131 is a normal Linux partition and  6, 11, 12, and 14 are fat and 
 	  OSRPopup::build_label_description( label_end,   _("End cylinder of the partition.")) +
 
 	  OSRPopup::build_label_description( label_size,  _("Size of the partition."));
-      
 
-     
       term whole_term = `Empty();
       if (whole_mbr )
       {
@@ -390,13 +387,14 @@ recover the entire master boot record with all partitions.
       }
 
 
-      
-      OSRPopup::OpenSuggestDialog(_("Recover Lost Partitions"), 
+      // dialog caption
+      OSRPopup::OpenSuggestDialog(_("Recover Lost Partitions"),
+				  // dialog text
 				  sformat(_("
 YaST found the following partitions on device %1.
 To recover a partition, select the entry
 in the table and press \"Recover\".
-"), dev),	
+"), dev),
 				  help_text,
 				  `VBox(`Table(`id(`table), `header(label_status, label_name, label_fsid, label_start, label_end, label_size ), items ),
 					`Left(`HBox(
@@ -472,8 +470,6 @@ in the table and press \"Recover\".
 
     UI::CloseDialog();
     return recover;
-    */
-    return [];
   }
 
 
@@ -481,12 +477,10 @@ in the table and press \"Recover\".
    * Call fdisk
    */
   define boolean fdisk_call(path target_scrpath, list<map> torecover )``{
-      
-  
-      map args = $[ "parted" : false, 
+
+      map args = $[ "parted" : false,
 		    "label"  : ""  ];
 
-  
       UI::OpenDialog(`VBox(`VSpacing(1),
 			   `Label(_("Recovering partition table. Please wait...")),
 			   `VSpacing(1)));
@@ -506,7 +500,7 @@ in the table and press \"Recover\".
       else {
 	  y2milestone("fdisk call not executed. Mode::test = true !!!");
       }
-  
+
       UI::CloseDialog();
 
       return result;
@@ -831,12 +825,9 @@ quite a while if this option is given. Be patient.</P>
   }
 
   define string partition_info(map part , string dev )``{
-      /* FIXME include!
       return sformat(_("cylinders %1-%2, "), part["region", 0]:0 , part["region",0]:0 + part["region",1]:0 -1) +
 	  sformat(_("ID %1, "),  part["fsid"]:131) +
-	  sformat(_("size %1"), ByteToHumanString( part["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  )); 
-	  */
-	return "";
+	  sformat(_("size %1"), ByteToHumanString( part["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  ));
     }
 
   /** 
