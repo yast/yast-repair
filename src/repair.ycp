@@ -68,7 +68,7 @@
     // translators: command line help text for repair module
     "help"		: _("System repair module"),
     // help text
-    "custom_help"	: _("Command line interface for System repair module is not available"),
+    "custom_help"	: _("Command line interface for the system repair module is not available"),
     "guihandler"	: OSRSequence,
   ];
 
