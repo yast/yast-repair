@@ -945,7 +945,7 @@ root partition or cancel scanning the system.
            size(splitstring(y["mountpoint"]:"" ,"/"))));
 
       just_mounted = (list<map>) union ( [
-            $[  "partition" : "usbdevfs",
+            $[  "partition" : "usbfs",
                 "mountpoint" : OSRSystem::TargetRoot() + "/proc/bus/usb" ],
             $[  "partition" : "proc",
                 "mountpoint" : OSRSystem::TargetRoot() + "/proc" ]

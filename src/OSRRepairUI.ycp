@@ -181,7 +181,7 @@
 Check your hardware.
 "));
 
-		return `abort;
+//		return `abort;
 	    }
 	    else
 	    {
@@ -193,7 +193,9 @@ Check your hardware.
 	    }
 
 	    StorageControllers::Initialize();
-//FIXME	    ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM", Mode::manual, true);
+	    ModuleLoading::Load ("dm-mod", "", "Linux", "DM", Mode::manual, true);
+//FIXME	    SCR::Execute (.target.bash, "/sbin/devmap_mknod.sh");
+
 	    if (! OSRMode::script )
 	    {
 		Progress::NextStage();

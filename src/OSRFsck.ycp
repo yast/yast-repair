@@ -168,7 +168,7 @@
 	    fs_kernel_modules, FileSystems::GetNeededModules (fs));
       });
       fs_kernel_modules = (list<string>) union (
-	fs_kernel_modules , [ "xor", "raid0", "raid1", "raid5", "lvm-mod"]);
+	fs_kernel_modules , [ "xor", "raid0", "raid1", "raid5"]);
 
       // iterate all listed kernel modules
       foreach(string fs_module, fs_kernel_modules, ``{
