@@ -89,7 +89,7 @@
   map<string, list <string> > defs = $[
     "pts":	["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
     "proc":	["proc", "/proc", "proc", "defaults", "0", "0"],
-    "usb":	["usbdevfs", "/proc/bus/usb", "usbdevfs", "noauto", "0", "0"],
+    "usb":	["usbfs", "/proc/bus/usb", "usbfs", "noauto", "0", "0"],
     "swap":	["", "swap", "swap", "pri=42", "0", "0"],
     "cdrom":	["", "", "auto", "ro,noauto,user,exec", "0", "0"],
     "floppy":	["", "", "auto", "noauto,user,sync", "0", "0"],
@@ -107,8 +107,9 @@
   list<string> mn_opts = [
     "async","atime","auto","defaults","dev","exec", "noatime","noauto","nodev",
     "noexec", "nosuid","nouser","remount","ro","rw", "suid","sync","dirsync",
-    "user","users" ];
-
+    "user","users",
+    "acl", "user_xattr", "iocharset=utf8" ];
+// FIXME new possible options for floppy/CD
   /**
    * All digits
    */
@@ -154,8 +155,8 @@
     "line":"devpts               /dev/pts             devpts     mode=0620,gid=5       0 0"],
     6:$["fields":["proc", "/proc", "proc", "defaults", "0", "0"],
     "line":"proc                 /proc                proc       defaults              0 0"],
-    7:$["fields":["usbdevfs", "/proc/bus/usb", "usbdevfs", "noauto", "0", "0"],
-    "line":"usbdevfs             /proc/bus/usb        usbdevfs   noauto                0 0"],
+    7:$["fields":["usbfs", "/proc/bus/usb", "usbfs", "noauto", "0", "0"],
+    "line":"usbfs             /proc/bus/usb        usbfs   noauto                0 0"],
     8:$["fields":["/dev/cdrom", "/media/cdrom", "auto", "ro,noauto,user,exec", "0", "0"],
     "line":"/dev/cdrom           /media/cdrom         auto       ro,noauto,user,exec   0 0"],
     9:$["fields":["/dev/fd0", "/media/floppy", "auto", "noauto,user,sync", "0", "0"],
@@ -202,7 +203,7 @@
   }
 
    /**
-   * e.g.: pos = 1 && retpos = 0 -> ret = ["devpts", "usbdevfs", "proc" ]
+   * e.g.: pos = 1 && retpos = 0 -> ret = ["devpts", "usbfs", "proc" ]
    * //second position in defs exist -> return first entry
    * e.g.: pos = 0 && retpos = 1 -> ret = ["/dev/pts", "/proc", "/proc/bus/usb"]
    * e.g.: pos = 0 && retpos = -1 -> return the keys ->
