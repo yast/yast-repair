@@ -1,4 +1,5 @@
 [
 `osr_module_init(),
+`osr_module_partition(),
 `osr_module_lilo()
 ]

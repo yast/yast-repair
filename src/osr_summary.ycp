@@ -270,7 +270,7 @@
    *  @param string The second line of the new text.
    *  @return boolean True if the RichText widget was updated successfully.
    */
-  global define OSRSummaryOK(string module_name, string header, string description) ``{
+  global define OSRSummaryDetectOK(string module_name, string header, string description) ``{
 
       return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_ok"));
   }
@@ -286,7 +286,7 @@
    *  @param string The second line of the new text.
    *  @return boolean True if the RichText widget was updated successfully.
    */
-  global define OSRSummaryError(string module_name, string header, string description) ``{
+  global define OSRSummaryDetectError(string module_name, string header, string description) ``{
 
       return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_error"));
   }

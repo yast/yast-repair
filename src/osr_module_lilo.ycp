@@ -178,7 +178,7 @@
 	  help_text      = help_text + UI( _("<p>Press <b>Repair</b> to install this package.</p>") );
 
 	  // display the result in the RichText-widget
-	  OSRSummaryError(
+	  OSRSummaryDetectError(
 			  module_name,
 			  UI(_("Checking LILO package")),
 			  UI(_("<code>/bin/rpm -q lilo</code> reports an error<br>Package is not installed"))
@@ -189,7 +189,7 @@
 	  status = OSRStatusDetectOK();
 
 	  // display the result in the RichText-widget
-	  OSRSummaryOK(
+	  OSRSummaryDetectOK(
 		       module_name,
 		       UI(_("Checking LILO package")),
 		       UI(_("<code>/bin/rpm -q lilo</code> reports no errors<br>Package is installed"))
@@ -222,7 +222,7 @@
    	      help_text = help_text + UI( _("<p>Press <b>Repair</b> to install a later version of this package.</p>"));
 
 	      // display the result in the RichText-widget
-	      OSRSummaryError(
+	      OSRSummaryDetectError(
 			      module_name,
 			      UI(_("Checking LILO version")),
 			      sformat(
@@ -239,7 +239,7 @@
 	      error_detected = false;
 
 	      // display the result in the RichText-widget
-	      OSRSummaryOK(
+	      OSRSummaryDetectOK(
 			   module_name,
 			   UI(_("Checking LILO version")),
 			   sformat(
@@ -290,7 +290,7 @@
      	          help_text = help_text + UI( _("<p>Press <b>Repair</b> to reinstall this package.</p>"));
 
 		  // display the result in the RichText-widget
-		  OSRSummaryError(
+		  OSRSummaryDetectError(
 				  module_name,
 				  UI(_("Verifying the LILO package")),
 				  sformat(UI(_("<code>rpm -V lilo</code> reports an error:<br><code>%1</code><br>Some files differ to the original")), stdout)
@@ -304,7 +304,7 @@
 		  error_detected = false;
 		  
 		  // display the result in the RichText-widget
-		  OSRSummaryOK(
+		  OSRSummaryDetectOK(
 			       module_name,
 			       UI(_("Verifying the LILO package")),
 			       UI(_("<code>rpm -V lilo</code> reports no errors<br>Package is o.k."))
@@ -461,7 +461,7 @@
 	  error_detected = true;
 
 	  // display the results to the RichText-widget
-	  OSRSummaryError(
+	  OSRSummaryDetectError(
 			  module_name,
 			  UI(_("Checking LILO configuration file")),
 			  UI(_("File does not exist at <code>/etc/lilo.conf</code>"))
@@ -544,7 +544,7 @@
 	  error_detected = false;
 
 	  // display the results to the RichText-widget
-	  OSRSummaryOK(
+	  OSRSummaryDetectOK(
 		       module_name,
 		       UI(_("Checking LILO configuration file")),
 		       sformat(
@@ -581,7 +581,7 @@
 	      error_detected = true;
 
 	      // display the results in the RichText-widget
-	      OSRSummaryError(
+	      OSRSummaryDetectError(
 			      module_name,
 			      UI(_("Checking LILO configuration file")),
 			      UI(_("<code>/sbin/lilo -t</code> reports an error"))
@@ -659,7 +659,7 @@
 	      error_detected = false;
 
 	      // display the results in the RichText-widget
-	      OSRSummaryOK(
+	      OSRSummaryDetectOK(
 			   module_name,
 			   UI(_("Checking LILO configuration file")),
 			   UI(_("<code>/sbin/lilo -t</code> reports no errors"))
@@ -691,7 +691,7 @@
 		  error_detected = true;
 
 		  // display the results in the RichText-widget
-		  OSRSummaryError(
+		  OSRSummaryDetectError(
 				  module_name,
 				  UI(_("Checking LILO configuration file")),
 				  UI(_("No boot-device specified"))
@@ -777,7 +777,7 @@
 		  error_detected = false;
 
 		  // display the results in the RichText-widget
-		  OSRSummaryOK(
+		  OSRSummaryDetectOK(
 			       module_name,
 			       UI(_("Checking LILO configuration file")),
 			       sformat(
@@ -1037,7 +1037,7 @@
       {
 	  error_detected = false;
 	  
-	  OSRSummaryOK(
+	  OSRSummaryDetectOK(
 		       module_name,
 		       UI(_("Creating new LILO configuration file")),
 		       UI(_("Creation succeeded<br>New configuration file is <code>/etc/lilo.conf</code>"))
@@ -1047,7 +1047,7 @@
       {
 	  error_detected = true;
 
-	  OSRSummaryError(
+	  OSRSummaryDetectError(
 			  module_name,
 			  UI(_("Creating new LILO configuration file")),
 			  UI(_("Creation was not successfull<br>Resetting old configuration"))

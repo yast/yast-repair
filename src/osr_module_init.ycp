@@ -145,7 +145,7 @@
 	      summary_text = summary_text + sformat("<br><code>%1</code>: o.k.", lookup(m, "dev_name", ""));
 	  });
 
-	  OSRSummaryOK(module_name, UI(_("Probing hardware")), sformat(UI(_("Getting information for all disk-devices%1")), summary_text));
+	  OSRSummaryDetectOK(module_name, UI(_("Probing hardware")), sformat(UI(_("Getting information for all disk-devices%1")), summary_text));
       }
       else
       {
@@ -166,7 +166,7 @@
 
 	  // set the text that is displayed in the right RichText-widget of the main window
 	  //result_text = OSRSummaryItem(UI(_("TEMPLATE check 1")), UI(_("Error detected")), true);
-	  OSRSummaryError(module_name, UI(_("Probing hardware")), UI(_("Error detected")));
+	  OSRSummaryDetectError(module_name, UI(_("Probing hardware")), UI(_("Error detected")));
 			      
 	  // if the user selected Repair set the sequence of repair methods
   	  if (repair_question)
@@ -297,7 +297,7 @@
       
       //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
       
-      OSRSummaryOK(
+      OSRSummaryDetectOK(
 		   module_name,
 		   UI(_("Checking filesystem table")),
 		   sformat(UI(_("<code>/etc/fstab</code> is o.k.<br>Root partition is: <code>%1</code>")), root_partition)
@@ -335,7 +335,7 @@
       
       //result_text = OSRSummaryItem(UI(_("OSRInit1")), UI(_("Is o.k.")), false);
 
-      OSRSummaryOK(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")));
+      OSRSummaryDetectOK(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")));
 			     
       result_map = $[
 		     "status"         : status,
