@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 29 14:03:40 CEST 2003 - jsuchome@suse.cz
+
+- actualized list of package problems ('rpm -V')
+- 2.9.0
+
+-------------------------------------------------------------------
 Thu Sep 18 16:55:12 CEST 2003 - jsuchome@suse.cz
 
 - do not close Target after package installation (#30423 again)
