@@ -197,6 +197,9 @@ is not possible.</P>
 	{
 	    minimal_selection = (list<string>)
 		Pkg::SelectionContent("Minimal", false, "");
+	    if (size (minimal_selection) == 0)
+		minimal_selection = (list<string>)
+		    Pkg::SelectionContent("MINIMAL", false, "");
 	}
 	return minimal_selection;
     }

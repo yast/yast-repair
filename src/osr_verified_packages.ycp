@@ -13,7 +13,7 @@ return $[
     "cron____KEY____2" : $[
       "config_file" : false,
       "file" : "/usr/bin/crontab",
-      "status" : ".M....G."
+      "status" : ".M......"
     ]
   ],
   "eject" : $[
@@ -61,6 +61,25 @@ return $[
     "openssh____KEY____3" : $[
       "config_file" : false,
       "file" : "/usr/bin/ssh",
+      "status" : ".M......"
+    ]
+  ],
+  "rpm" : $[
+    "rpm____KEY____1" : $[
+      "config_file" : false,
+      "file" : "/usr/src/packages/RPMS",
+      "status" : ".M......"
+    ]
+  ],
+  "util-linux" : $[
+    "util-linux____KEY____1" : $[
+      "config_file" : false,
+      "file" : "/usr/bin/wall",
+      "status" : ".M......"
+    ],
+    "util-linux____KEY____2" : $[
+      "config_file" : false,
+      "file" : "/usr/bin/write",
       "status" : ".M......"
     ]
   ],

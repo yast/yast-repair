@@ -44,14 +44,9 @@
       {
 	  y2milestone("changing root environment from %1 to %2",root, new_root);
 
-y2warning ("handle: %1", Installation::scr_handle);
-y2warning ("close");
 	  WFM::SCRClose ( Installation::scr_handle );
-y2warning ("closed");
 	  Installation::scr_handle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
-y2warning ("opened");
-	  Installation::scr_destdir = "/";// FIXME sure???
-y2warning ("handle: %1", Installation::scr_handle);
+	  Installation::scr_destdir = new_root;
 
 	  if( Installation::scr_handle < 0 )
 	  {
@@ -64,6 +59,7 @@ system was not successful."));
 // TODO try to reopen old SCR...
 //	      root = "";
 Installation::scr_handle = WFM::SCROpen ("scr", false);
+Installation::scr_destdir = root;
 	      return false;
 	  }
 	  else

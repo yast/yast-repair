@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Mar 31 14:10:27 CEST 2004 - jsuchome@suse.cz
+
+- fix: get minimal package selection (#37133)
+- correctly set Installation::scr_destdir after chroot
+- fix: do not report cdrom and floppy lines in fstab as errors
+- 2.9.8
+
+-------------------------------------------------------------------
 Fri Mar 26 16:14:09 CET 2004 - jsuchome@suse.cz
 
 - correct values for cdrom and floppy in fstab
