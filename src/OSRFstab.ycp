@@ -182,39 +182,43 @@
    * Devices without fstab entry
    * e.g.: ["/dev/hdb7"]
    */
-  list(string) missing_devs      	= []; 
+  list(string) missing_devs		= [];
   
 
   
   global define void Reset()``{
       ResetSettings();
-      root_mountpoint 		= "";
-      fstab 	      		= $[];
+      root_mountpoint		= "";
+      fstab			= $[];
       swapable_partition_list   = [];
       checked_partitions	= [];
   }
-  
+
   define void ResetSettings()``{
-      missing_devs  	= [];
-      valid_lines 	= [];
+      missing_devs	= [];
+      valid_lines	= [];
       not_valid_lines   = $[];
   }
-  
-  /**
-   * e.g.: pos = 1 && retpos = 0 ->  ret = [ "devpts", "usbdevfs", "proc" ]; //second position in defs exist -> return first entry
-   * e.g.: pos = 0 && retpos = 1 ->  ret = [ "/dev/pts", "/proc", "/proc/bus/usb" ];
-   * e.g.: pos = 0 && retpos = -1 -> return the keys -> ret = ["pts", "proc", "usb" ]
-   *       
+
+   /**
+   * e.g.: pos = 1 && retpos = 0 -> ret = ["devpts", "usbdevfs", "proc" ]
+   * //second position in defs exist -> return first entry
+   * e.g.: pos = 0 && retpos = 1 -> ret = ["/dev/pts", "/proc", "/proc/bus/usb"]
+   * e.g.: pos = 0 && retpos = -1 -> return the keys ->
+   *	ret = ["pts", "proc", "usb" ]
    */
   define list(string) defs_pos_exist(integer pos , integer retpos )``{
-      return maplist(string n, list m, filter(string k, list d, defs, ``( d[pos]:"" != "" )), ``( (retpos != -1) ? m[retpos]:"" : n ));
+    return maplist(string n, list m,
+	filter (string k, list d, defs, ``( d[pos]:"" != "" )),
+	``( (retpos != -1) ? m[retpos]:"" : n )
+    );
   }
 
 
   /**
    * e.g.: transform a fstab list to a fstab map.
    * list: ["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"]
-   * map : $[ "spec":"/dev/hda6", "file":"/" ... ] 
+   * map : $[ "spec":"/dev/hda6", "file":"/" ... ]
    */
   define map fstabline2map(list(string) line )``{
       map ret 		= $[];
@@ -225,162 +229,172 @@
       });
       return ret;
   }
-  
+
   /**
    *  Find the list of all valid linux-partitions in the target-map.
    *  @return list The list of names of valid linux-partitions.
    */
   global define list(string) LinuxPartitions(list checked_partitions ) ``{
-      if ( Mode::test ) return ["/dev/hda1", "/dev/hda2"];
 
-      if ( size(checked_partitions) == 0 ) return []; 
-      
-      // e.g.: ["/dev/hda1", "/dev/hdb2"]
-      list(string) linux_partition_list  		= [];
+    if ( Mode::test ) return ["/dev/hda1", "/dev/hda2"];
 
-      foreach(string device , map description, Storage::GetTargetMap(), ``{
-	  foreach ( `partition, description["partitions"]:[] , ``{
+    if ( size(checked_partitions) == 0 ) return [];
 
-	      if ((  partition["fsid"]:0 		== Partitions::fsid_native 
-		  || partition["type"]:`primary 	== `lvm
-	          || partition["type"]:`primary		== `sw_raid ) )
-	      {
-		  // if the fsck functions have been executed
-		  if( size(checked_partitions) != 0 )
-		  {
-		       
-		      if ( contains( checked_partitions, Storage::GetDeviceName( device, partition["nr"]:0 )) ) {	       
-			  linux_partition_list = add(linux_partition_list,Storage::GetDeviceName( device, partition["nr"]:0 ));
-		      }
-		  }
-		  else {
-		      linux_partition_list = add(linux_partition_list, Storage::GetDeviceName( device, partition["nr"]:0 ));
-		  }
-	      }
-	  });
-      });
-      if( size ( linux_partition_list ) == 0 )
-	  y2error("no linux partition found");
-      
-      return linux_partition_list;
+    // e.g.: ["/dev/hda1", "/dev/hdb2"]
+    list(string) linux_partition_list		= [];
+
+    foreach(string device , map description, Storage::GetTargetMap(), ``{
+
+	foreach (map partition, description["partitions"]:[], ``{
+
+	    if ((partition["fsid"]:0 == Partitions::fsid_native ||
+		 partition["type"]:`primary == `lvm ||
+		 partition["type"]:`primary == `sw_raid ))
+	    {
+		// if the fsck functions have been executed
+		if( size(checked_partitions) != 0 )
+		{
+		    if ( contains (checked_partitions,
+			    Storage::GetDeviceName (device, partition["nr"]:0)))
+		    {
+			linux_partition_list = add (linux_partition_list,
+			    Storage::GetDeviceName (device, partition["nr"]:0));
+		    }
+		}
+		else
+		{
+		    linux_partition_list = add (linux_partition_list,
+			Storage::GetDeviceName( device, partition["nr"]:0 ));
+		}
+	    }
+	});
+    });
+    if (size ( linux_partition_list ) == 0)
+	y2error("no linux partition found");
+    return linux_partition_list;
   };
 
 
-    
   /**
-   *  Returns a list of names of all mountable partitions out of the specified list.
-   *
-   *  @param list linux_partition_list A list of valid linux-partitions out of which
-   *         the mountable partitions are to be returned.
-   *  @param the test mountpoint
-   *  @return list The list of partition-names that were successfully mounted to /mnt.
+   * Returns a list of names of all mountable partitions out of
+   * the specified list.
+   * @param list linux_partition_list A list of valid linux-partitions out of
+   *	which the mountable partitions are to be returned.
+   * @param m_point the test mountpoint
+   * @return list List of partition names successfully mounted to m_point.
    */
-  global define list(string) MountablePartitions( list(string) linux_partition_list , string m_point) ``{
+  global define list(string) MountablePartitions(list linux_partition_list,
+						 string m_point) ``{
+
       if ( Mode::test ) return linux_partition_list;
 
-      if ( size(linux_partition_list ) == 0) return [];
+      if ( size (linux_partition_list ) == 0) return [];
 
       // e.g.: ["/dev/hda1"]
-      list(string) mount_possible_list   		= [];
-      
-     
-      foreach(string partition_item, linux_partition_list, ``{
-	  if( WFM::Execute(.local.mount, [partition_item, m_point ,OSRExecute::OutputFile() ])  )
+      list mount_possible_list	= [];
+
+      integer i = 0;
+      foreach (string partition_item, linux_partition_list, ``{
+
+	  if ( WFM::Execute (.local.mount,
+	      [partition_item, m_point, OSRExecute::OutputFile() ]) )
 	  {
-	      mount_possible_list = add(mount_possible_list, partition_item);
-	      if( ! WFM::Execute(.local.umount, m_point ) ) {
-		  y2error("umounting partition %1 is not possible", partition_item);
+	      mount_possible_list = add (mount_possible_list, partition_item);
+	      if( !WFM::Execute(.local.umount, m_point ) )
+	      {
+		  y2error("umounting partition %1 not possible",partition_item);
 	      }
 	  }
 	  else {
 	      y2error("mounting partition %1 is not possible", partition_item );
 	  }
+i = i + 1;
       });
-      
       return mount_possible_list;
   };
 
 
   /**
-   *  Returns a list of names of all mountable partitions that contain a file /etc/fstab
-   *  out of the specified list.
-   *
-   *  @param list linux_partition_list A list of valid linux-partitions out of which
-   *         the mountable partitions are to be returned.
-   *
-   *  @return list The list of partition-names that were successfully mounted to /mnt and contain a filesystem table.
+   *  Returns a list of names of all mountable partitions that contain
+   *  a file /etc/fstab out of the specified list.
+   *  @param list linux_partition_list A list of valid linux-partitions
+   *	out of which the mountable partitions are to be returned.
+   *  @return list The list of partition-names that were successfully mounted
+   *	to /mnt and contain a filesystem table.
    */
   global define list(string) ValidRootPartitions(list(string) mount_possible_list, string mount_p ) ``{
 
-      if( Mode::test ) return mount_possible_list;
+    if( Mode::test ) return mount_possible_list;
 
-      if( size(mount_possible_list) == 0) return [];
-      
-      // e.g.: ["/dev/hda1"]
-      list(string) valid_root_partitions 	= [];
+    if( size(mount_possible_list) == 0) return [];
 
-      // e.g.: ["/dev/hda1"]
-      list(string) fstab_found_partitions 	= [];
+    // e.g.: ["/dev/hda1"]
+    list(string) valid_root_partitions	= [];
+    list(string) fstab_found_partitions	= [];
+    list(string) smpoints_found_partitions	= [];
 
-      // e.g. :["/dev/hda1"]
-      list(string) smpoints_found_partitions 	= [];
-      
-      
-      foreach(string partition_item, mount_possible_list, ``{
-	  
-	  if (! WFM::Execute(.local.mount, [ partition_item, mount_p , OSRExecute::OutputFile() ]) )
-	  {
-	      y2error("Partition: %1; not possible to mount to /mnt", partition_item );
-	  }
-	  else 
-	  {
-	      // Check fstab exist
-	      // use the .local.size agent instead of the .etc.fstab agent because it finds the
-	      // fstab of the currently mounted root partition
-	      if (WFM::Read(.local.size, mount_p + tabpath ) > 0 )
-	      {
-		  y2milestone("Partition %1: fstab found", partition_item );
-		  fstab_found_partitions = add(fstab_found_partitions, partition_item );
-	      }
-	      else
-	      {
-		  y2milestone("Partition: %1; no fstab found", partition_item);
-	      }
-    
-	      // Check system mount points
-	      boolean not_fount = false;
-	      foreach(string mp,  system_mount_points, ``{
-		  if( mp != "/" ) {
-              y2debug ("command: /usr/bin/test -d " +  mount_p + mp);
-		      if ( ! OSRExecute::Command(.local.bash, "/usr/bin/test -d "+ mount_p + mp )) {
+    foreach(string partition_item, mount_possible_list, ``{
+
+	if (! WFM::Execute(.local.mount,
+		[ partition_item, mount_p , OSRExecute::OutputFile() ] ))
+	{
+	    y2error("Partition: %1; not possible to mount to /mnt",
+		partition_item );
+	}
+	else
+	{
+	    // Check fstab exist
+	    // use the .local.size agent instead of the .etc.fstab agent
+	    // because it finds the fstab of currently mounted root partition
+	    if (WFM::Read(.local.size, mount_p + tabpath ) > 0 )
+	    {
+		y2milestone("Partition %1: fstab found", partition_item );
+		fstab_found_partitions = add (fstab_found_partitions,
+		    partition_item );
+	    }
+	    else
+	    {
+		y2milestone("Partition: %1; no fstab found", partition_item);
+	    }
+	    // Check system mount points
+	    boolean not_fount = false;
+	    foreach(string mp,  system_mount_points, ``{
+		if( mp != "/" )
+		{
+		    y2debug ("command: /usr/bin/test -d " +  mount_p + mp);
+		    if (! OSRExecute::Command(.local.bash,
+			    "/usr/bin/test -d "+ mount_p + mp ))
+		    {
 			  not_fount = true;
-		      }
-		  }
-	      });
-	      if ( ! not_fount )
-	      {
-		  y2milestone("system mount points found");
-		  smpoints_found_partitions = add( smpoints_found_partitions , partition_item );
-	      }
-	      else {
-		  y2error("system mount points not found. Partition %1 could not be a root partition", partition_item);
-	      }
-	  }
-	
-	  // umount the partition
-	  WFM::Execute(.local.umount, mount_p);
-      });
-      
-      // filter items witch are in both list
-      valid_root_partitions = filter(string p, union(fstab_found_partitions,
-						     smpoints_found_partitions),
-				     ``( contains( fstab_found_partitions,    p) &&
-					 contains( smpoints_found_partitions, p) ));
+		    }
+		}
+	    });
+	    if ( ! not_fount )
+	    {
+		y2milestone("system mount points found");
+		smpoints_found_partitions = add( smpoints_found_partitions,
+		    partition_item );
+	    }
+	    else
+		y2warning("system mount points not found. Partition %1 could not be a root partition", partition_item);
+	}
+	// umount the partition
+	WFM::Execute(.local.umount, mount_p);
+    });
 
-      //OSRFstab can create a new fstab.!! 
-      valid_root_partitions = union( valid_root_partitions , smpoints_found_partitions);
-      y2milestone("OSRFstab::ValidRootPartitions return %1", valid_root_partitions);
-      return valid_root_partitions;
+    // filter items witch are in both list
+    valid_root_partitions = filter(string p,
+	union(fstab_found_partitions, smpoints_found_partitions), ``(
+	    contains( fstab_found_partitions, p) &&
+	    contains( smpoints_found_partitions, p))
+    );
+
+    //OSRFstab can create a new fstab.!!
+    valid_root_partitions =
+	union (valid_root_partitions, smpoints_found_partitions);
+    y2milestone("OSRFstab::ValidRootPartitions return %1",
+	valid_root_partitions);
+    return valid_root_partitions;
   };
 
   /**
@@ -549,28 +563,38 @@ press \"Yes\".
       return false;
   }
 
-  
   /**
-   * Check if an entry for a device exist in the fstab.		
+   * Check if an entry for a device exist in the fstab.
    */
   define boolean check_dev_entry(string p)``{
-      map part  =  devname2part(p);
-      map lines =  filter(integer lnr, map line, fstab["l"]:$[], ``( line["fields",0]:"!" == p ||
-							   ( line["fields",0]:"!" == part["linkname"]:"" && part["found"]:"" == "cdrom") ||
-							   ( line["fields",0]:"!" == "UUID="  + part["uuid"]:"" ) ||
-							   ( line["fields",0]:"!" == "LABEL=" + part["label"]:"") ) );	
-      if( size(lines) > 0 ) {
-	  y2milestone("found entry for %1 in the fstab", p);
-	  return true;
-      }
-      else {
-	  y2error("no entry for %1 found in the fstab",p);
-	  missing_devs = add(missing_devs, p);
-	  missing_devs = toset(missing_devs);
-	  return false;
-      }	
+
+    map part  =  devname2part(p);
+    map lines =  filter (integer lnr, map line, fstab["l"]:$[], ``(
+
+	(line["fields",0]:"!" == p)				||
+	(line["fields",0]:"!" == part["linkname"]:"" &&
+	 part["found"]:"" == "cdrom")				||
+        (line["fields",0]:"!" == "UUID=" + part["uuid"]:"")	||
+        (line["fields",0]:"!" == "LABEL=" + part["label"]:""))
+    );
+    if( size(lines) > 0 )
+    {
+	y2milestone("found entry for %1 in the fstab", p);
+	return true;
+    }
+    else
+    {
+	y2warning ("no entry for %1 found in the fstab",p);
+	if (part["lvm_group"]:"" != "")
+	{
+	    y2warning ("it is a device device with LVM group: ignoring");
+	    return true;
+	}
+	missing_devs = add (missing_devs, p);
+	missing_devs = toset (missing_devs);
+	return false;
+    }
   }
-      
 
   /**
    * Returns the partition map for a device.
@@ -971,84 +995,91 @@ press \"Yes\".
   define list(string) used_mount_points(map fstab )``{
 
       list(string) ret = [];
-      foreach(integer lnr, map ldata  ,fstab["l"]:$[], ``{
+      foreach (integer lnr, map ldata, fstab["l"]:$[], ``{
 	  ret = add( ret , ldata["fields", 1 ]:"");
       });
       return ret;
   }
-  
+
   /**
-   * Build fstab entries for all existing devices that are not listed in the fstab.
+   * Build fstab entries for all existing devices that are not listed
+   * in the fstab.
    */
   define map suggest_missing_entries()``{
 
-      if( Mode::test ) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]]; 
-      
-      include "partitioning/write_fstab.ycp";
-      integer other_nr = 1;		// count other mounts -> global for wirte_fstab
-      map new_entries = $[];
-      
-      missing_devs = sort(string d1, string d2, missing_devs , ``( d1 < d2 ));
-      
-      foreach(string dev, missing_devs,``{
-	  map part      = devname2part(dev);
-	  if( part != nil && part != $[] && contains(["dev", "swap", "root"], part["found"]:""  )) {  
-	      part["device"] = dev;
+    if( Mode::test ) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]];
 
-	      map fstabentry 		     = onepartition2fstab(part);
-	      list(string) used_mount_points = used_mount_points(fstab);
+    include "partitioning/write_fstab.ycp";
+    integer other_nr = 1;	// count other mounts -> global for wirte_fstab
+    map new_entries = $[];
 
-	      string  start = "/data";
-	      integer count = 2;
-		  
-	      while( contains( used_mount_points , fstabentry["mount"]:"" ))
-	      {
-		  // find new mount point	
-		  fstabentry["mount"] = sformat("%1%2", start, count );
-		  count = count + 1;
-		  y2milestone(" new mount point %1 ", fstabentry["mount"]:"");
-	      }
-	      
-	      if (size(fstabentry)>0 ) {
-		  new_entries[dev] =  fstabentry;
-	      }
-	  }
-	  else if ( contains(defs_pos_exist(0,0), dev )) {
-	      list(string) line = select(maplist(string m, map n, filter(string k,map v, defs, ``( v[0]:"" == dev)), ``(n)),0,[]);
-	      new_entries[dev] =  fstabline2map(line );
-	  }
-	  else if (contains(["zip", "floppy"], part["found"]:"")) {
-	      
-	      map fstline = fstabline2map( defs[part["found"]:""]:[]);
-	      fstline["spec"]  = part["dev_orig"]:(part["dev_name"]:"");
-	      fstline["mount"] = find_next_media_file(part["found"]:"");
-	      new_entries[dev] = fstline;
-	  }
-	  else if ( "cdrom" == part["found"]:"") {
-	      map ret = MakeCdromFstabEntry( part );
-	      new_entries[dev] = ret;
-	  }
-	  else {
-	      y2error("creating an entry for %1 is not possible (3)", dev );
-	  }
-      });
-      if( size( new_entries ) == 0 ) {
-	  y2error("creating fstab entries is not possible (4)");
-      }
-      else {
-	  y2milestone("Suggested new fstab entries %1", new_entries);
-      }
-      return new_entries;
+    missing_devs = sort (string d1, string d2, missing_devs , ``( d1 < d2 ));
+
+    foreach (string dev, missing_devs,``{
+
+	map part      = devname2part(dev);
+	if (part != nil && part != $[] &&
+	    contains (["dev", "swap", "root"], part["found"]:""  ))
+	{
+	    part["device"] = dev;
+	    map fstabentry			= onepartition2fstab(part);
+	    list(string) used_mount_points	= used_mount_points(fstab);
+	    string start			= "/data";
+	    integer count			= 2;
+
+	    // fstabentry could be empty map for some partitions (e.g.
+	    // with LVM group) -> suggest_missing_entries could report error 4
+	    while (contains (used_mount_points , fstabentry["mount"]:"" ))
+	    {
+		// find new mount point
+		fstabentry["mount"] = sformat("%1%2", start, count );
+		count = count + 1;
+		y2milestone("new mount point %1 ", fstabentry["mount"]:"");
+	    }
+	    if (size(fstabentry)>0 )
+	    {
+		new_entries[dev] =  fstabentry;
+	    }
+	}
+	else if (contains(defs_pos_exist(0,0), dev ))
+	{
+	    list(string) line	= select (
+		maplist(string m, map n,
+		    filter (string k,map v, defs, ``( v[0]:"" == dev)), ``(n)
+		), 0, []
+	    );
+	    new_entries[dev]	= fstabline2map (line );
+	}
+	else if (contains(["zip", "floppy"], part["found"]:""))
+	{
+	    map fstline		= fstabline2map (defs[part["found"]:""]:[]);
+	    fstline["spec"]	= part["dev_orig"]:(part["dev_name"]:"");
+	    fstline["mount"]	= find_next_media_file(part["found"]:"");
+	    new_entries[dev]	= fstline;
+	}
+	else if ("cdrom" == part["found"]:"")
+	{
+	    map ret		= MakeCdromFstabEntry( part );
+	    new_entries[dev]	= ret;
+	}
+	else {
+	    y2error("creating an entry for %1 is not possible (3)", dev );
+	}
+    });
+    if (size( new_entries ) == 0) {
+	y2error("creating fstab entries is not possible (4)");
+    }
+    else {
+	y2milestone("Suggested new fstab entries %1", new_entries);
+    }
+    return new_entries;
   }
-
- 
 
   /**
    * Dialog for existing devices that are not listed in the fstab.
    */
   define symbol SuggestMissingEntriesDialog()``{
 
-    
       map new_entries   = suggest_missing_entries();
 
       if( size( new_entries) == 0 ) return `error;
@@ -1067,7 +1098,6 @@ devices, press \"Repair\"
 to continue.
 </P>
 ");
-
       help_text = help_text +
 
 	  OSRRepairUI::build_label_description( device_label, _("The name of the device for which no valid fstab
@@ -1406,12 +1436,13 @@ for the device %1:
    * Dialog for all fstab entries with not existing devices.
    */
   define symbol SuggestRemoveSpecDialog()``{
-      list(integer) rm_entries = suggest_remove_spec();
+    list(integer) rm_entries = suggest_remove_spec();
 
-      if( size( rm_entries) == 0 ) return `ok;
+    if( size( rm_entries) == 0 ) return `ok;
 
-      // help text
-      string help_text = OSRRepairUI::build_label_description (state_label, sformat(_("
+    string help_text = OSRRepairUI::build_label_description (state_label,
+	// help text in fstab dialog
+	sformat(_("
 The status of a listed line can be switched between
 %1 and %2. YaST only removes fstab entries if the the status of the
 corresponding line is %2.
@@ -1836,7 +1867,7 @@ if you press \"Save\".</P>
     // all entries without root.
     // step 1 repair root partition.
     if( Mode::test ) return `ok;
-    y2milestone("ret repair list %1" ,ret);
+    y2milestone("ret repair list %1", ret);
 
     if ((size( filter(symbol r, ret, ``( r == `ok ))) > 0) )
     {
@@ -2041,11 +2072,16 @@ Select one item in the list.
       {
 	  import "OSRFsck";
 	  
-	  list(string) checked_partitions    = filter(string s, maplist(map p, OSRFsck::PossiblePartitions(), ``(p["device"]:"")), ``(s !=""));
-	  list(string) linux_partition_list  = LinuxPartitions( checked_partitions );
-	  list(string) mount_possible_list   = MountablePartitions(linux_partition_list , root_mountpoint);
-	  list(string) valid_root_partitions = ValidRootPartitions(mount_possible_list,   root_mountpoint); 
-	  
+	  list(string) checked_partitions    = filter (string s,
+	    maplist (map p, OSRFsck::PossiblePartitions(), ``(p["device"]:"")),
+		``(s !=""));
+	  list(string) linux_partition_list  =
+	    LinuxPartitions (checked_partitions);
+	  list(string) mount_possible_list   =
+	    MountablePartitions (linux_partition_list, root_mountpoint);
+	  list(string) valid_root_partitions =
+	    ValidRootPartitions (mount_possible_list, root_mountpoint);
+
 	  if( size(valid_root_partitions) == 0 )
 	  {
 	      // no root partition found
