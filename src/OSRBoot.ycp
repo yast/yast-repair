@@ -1185,6 +1185,7 @@ is bootable press the cancel button.
      */
     global define symbol repair_grub_config()``{
 
+/*
 	symbol ret  	     	     = `next;
 	list(string) possible_loader =  ["grub", "lilo"];
 
@@ -1195,11 +1196,6 @@ is bootable press the cancel button.
 	    Bootloader::setLoaderType (possible_loader[0]:"");
 	}
 
-    /*
-	Boot::LoaderType = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
-							  _("Please select the type of the new boot loader"),
-							 possible_loader, Boot::LoaderType,  false );
-    */
     string type = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
 						_("Please select the type of the new boot loader"),
 						possible_loader, Bootloader::getLoaderType(), false );
@@ -1207,20 +1203,25 @@ is bootable press the cancel button.
 //	if ( Boot::LoaderType == "" ) return `abort ;
 	if ( type == "" ) return `abort ;
 	Bootloader::setLoaderType (type);
+*/
 
 	// change root for boot loader module call
 	OSRSystem::ChangeRoot("/");
-//	ret = CallFunction(`inst_bootloader(true,true));
+	Bootloader::setLoaderType (nil);
+    Bootloader::Reset();
     Bootloader::Propose();
-	ret = CallFunction(`bootloader_proposal("AskUser", $[])); //TODO:2nd param
+	map retmap = CallFunction(`bootloader_proposal("AskUser", $[]));
+    symbol ret = retmap["workflow_sequence"]:`next;
 
 	if( ret == `next )
 	{
+        // message popup: wait for action
 	    UI::OpenDialog(`Label(_("Saving new boot loader configuration ...")));
 
 	    // get list of bootable 'foreign' primary partitions
 	    // ["<device> <comment>", "<device> <comment>", ...]
-        /* ... should be done in Propose
+        /*
+        -- this should be done in Propose
 	    list foreign_primaries = Storage::GetForeignPrimary();
 
 	    // boot concept
@@ -1238,11 +1239,13 @@ is bootable press the cancel button.
 	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");   
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
-	    // Boot::Save(); included in Write
-	    boolean g_ret = Bootloader::Write(); // what about the progress?
+        Progress::off();
+	    boolean g_ret = Bootloader::Write();
+        Progress::on();
 
 	    UI::CloseDialog();
 	    if ( g_ret ) {
+        // message popup
 		Report::Message(_("
 Installing the boot loader was successful.
 "));
@@ -1254,8 +1257,7 @@ Installing the boot loader was successful.
 	return ret;
     }
 
- 
-    
+
     /**
      * Repair a damaged boot loader configuration.
      */    
