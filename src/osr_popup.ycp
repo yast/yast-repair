@@ -53,9 +53,13 @@
 	  
 	  repair_button = `PushButton(`id(`osr_popup_repair), `opt(`default), _("&Repair"));
 	  skip_button   = `PushButton(`id(`osr_popup_skip), _("&Skip"));
-	  if (help_text != "")
+	  if (WFM::help_text != "")
 	  {
 	      help_button   = `PushButton(`id(`osr_popup_help), _("&Help"));
+	  }
+	  else
+	  {
+	      help_button   = `PushButton(`id(`osr_popup_help), `opt(`disabled), _("&Help"));
 	  }
 	  
 	  button_box    = `HBox(
@@ -74,9 +78,9 @@
 							`HCenter(
 								 `HSquash(
 									  `VBox(
-										`Left(`Heading(headline)),
+										`Left(`Heading(WFM::headline)),
 										`VSpacing(0.2),
-										`Left(`Label(message))
+										`Left(`Label(WFM::message))
 										)
 									  )
 								 ),
@@ -100,6 +104,7 @@
       {
 	  if (ret == `osr_popup_help)
 	  {
+	      y2error("HELP!");
 	      // TODO: launch text-popup to display help-text
 	      //UI(`LongTextPopup(UI(_("Help")), `RichText(help_text), 50, 20));
 	  }
@@ -166,14 +171,14 @@
 				`HWeight(1, ok_button)
 				);
 
-	  rbs = `VBox(`Left(`Label(message)));
+	  rbs = `VBox(`Left(`Label(WFM::message)));
 	  
 	  // create the radio buttons dynamically referring to the item_list
 	  integer i = 0;
-	  while (i >= 0 && i < size(item_list))
+	  while (i >= 0 && i < size(WFM::item_list))
 	  {
-	      string item = select(item_list, i, "");
-	      rb  = `Left(`RadioButton(`id(i), item, ((item == default) || ((default == "") && (i == 0)))));
+	      string item = select(WFM::item_list, i, "");
+	      rb  = `Left(`RadioButton(`id(i), item, ((item == WFM::default) || ((WFM::default == "") && (i == 0)))));
 	      rbs = add(rbs, rb);
 	      i   = i + 1;
 	  }
@@ -191,7 +196,7 @@
 							`HCenter(
 								 `HSquash(
 									  `VBox(
-										`Left(`Heading(headline)),
+										`Left(`Heading(WFM::headline)),
 										`VSpacing(0.2),
 										`HSquash(rb_group)
 										)

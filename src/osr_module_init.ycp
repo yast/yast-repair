@@ -140,7 +140,7 @@
       if (!error_detected)
       {
 	  //result_text = OSRSummaryItem(UI(_("Probing hardware")), UI(_("O.k.")), false);
-	  OSRSummaryChangeModuleSummary(module_name, UI(_("Probing hardware")), UI(_("O.k.")), error_detected);
+	  OSRSummaryOK(module_name, UI(_("Probing hardware")), UI(_("O.k.")));
       }
       else
       {
@@ -159,7 +159,7 @@
 
 	  // set the text that is displayed in the right RichText-widget of the main window
 	  //result_text = OSRSummaryItem(UI(_("TEMPLATE check 1")), UI(_("Error detected")), true);
-	  OSRSummaryChangeModuleSummary(module_name, UI(_("Probing hardware")), UI(_("Error detected")), error_detected);
+	  OSRSummaryError(module_name, UI(_("Probing hardware")), UI(_("Error detected")));
 			      
 	  // if the user selected Repair set the sequence of repair methods
   	  if (repair_question)
@@ -180,7 +180,8 @@
       // signifies if this detection method has found an error or not and the result
       // text to be displayed in the RichText-widget
       result_map = $[
-		     "error_detected"  : error_detected
+		     "error_detected" : error_detected,
+		     "error_repair"   : repair_question
       ];
       
       return result_map;
@@ -215,6 +216,8 @@
    */
   global define OSRInitCheckFstab() ``{
 
+      boolean error_detected        = false;
+      boolean repair_question       = false;
       integer result                = 1;
       string  command               = "";
       string  root_path             = "";
@@ -271,10 +274,11 @@
       
       //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
       
-      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInitCheckFstab")), UI(_("Is o.k.")), error_detected);
+      OSRSummaryOK(module_name, UI(_("OSRInitCheckFstab")), UI(_("Is o.k.")));
 
       result_map = $[
-		     "error_detected"  : error_detected
+		     "error_detected" : error_detected,
+		     "error_repair"   : repair_question
       ];
 
       OSRModuleProgressFill();
@@ -288,6 +292,7 @@
   global define OSRInit1() ``{
 
       boolean error_detected  = false;
+      boolean repair_question = false;
       integer result          = 1;
       string  command         = "";
       map     result_map      = $[];
@@ -299,10 +304,11 @@
       
       //result_text = OSRSummaryItem(UI(_("OSRInit1")), UI(_("Is o.k.")), false);
 
-      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")), error_detected);
+      OSRSummaryOK(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")));
 			     
       result_map = $[
-		     "error_detected"   : error_detected
+		     "error_detected" : error_detected,
+		     "error_repair"   : repair_question
       ];
 
       OSRModuleProgressFill();
@@ -316,6 +322,7 @@
   global define OSRInit2() ``{
 
       boolean error_detected  = false;
+      boolean repair_question = false;
       integer result          = 1;
       string  command         = "";
       map     result_map      = $[];
@@ -325,10 +332,11 @@
 
       OSRModuleProgressSetParams(UI(_("Checking OSRInit2")), "/tmp/osr_module_init_progress", 10);
 
-      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInit2")), UI(_("Is o.k.")), error_detected);
+      OSRSummaryOK(module_name, UI(_("OSRInit2")), UI(_("Is o.k.")));
       
       result_map = $[
-		     "error_detected"  : error_detected
+		     "error_detected" : error_detected,
+		     "error_repair"   : repair_question
       ];
 
       OSRModuleProgressFill();

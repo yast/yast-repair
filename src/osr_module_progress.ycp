@@ -44,9 +44,9 @@
 	  OSRExecuteCommand(command, log_file);
 
 	  return UI(``{
-	      ChangeWidget(`id(`module_progress_bar), `Label,        label);
-	      ChangeWidget(`id(`module_progress_bar), `Filename,     file);
-	      ChangeWidget(`id(`module_progress_bar), `ExpectedSize, expect);
+	      ChangeWidget(`id(`module_progress_bar), `Label,        WFM::label);
+	      ChangeWidget(`id(`module_progress_bar), `Filename,     WFM::file);
+	      ChangeWidget(`id(`module_progress_bar), `ExpectedSize, WFM::expect);
 	  });
       }
   }
@@ -76,9 +76,9 @@
 	  OSRExecuteCommand(command, log_file);
 
 	  return UI(``{
-	      ChangeWidget(`id(`module_progress_bar), `Label,        label);
-	      ChangeWidget(`id(`module_progress_bar), `Filename,     file);
-	      ChangeWidget(`id(`module_progress_bar), `ExpectedSize, expect);
+	      ChangeWidget(`id(`module_progress_bar), `Label,        WFM::label);
+	      ChangeWidget(`id(`module_progress_bar), `Filename,     WFM::file);
+	      ChangeWidget(`id(`module_progress_bar), `ExpectedSize, WFM::expect);
 	  });
       }
   }
@@ -104,7 +104,7 @@
 	  log_file = lookup(osr_map, "osr_log_file", "/tmp/osr.log");
 	  OSRExecuteCommand(command, log_file);
 
-	  return UI(`ChangeWidget(`id(`module_progress_bar), `Filename, file));
+	  return UI(`ChangeWidget(`id(`module_progress_bar), `Filename, WFM::file));
       }
       else
       {
@@ -126,7 +126,7 @@
 
       if (OSRHasDownloadProgressWidget())
       {
-	  return UI(`ChangeWidget(`id(`module_progress_bar), `ExpectedSize, expect));
+	  return UI(`ChangeWidget(`id(`module_progress_bar), `ExpectedSize, WFM::expect));
       }
       else
       {
@@ -147,7 +147,7 @@
 
       if (OSRHasDownloadProgressWidget())
       {
-	  return UI(`ChangeWidget(`id(`module_progress_bar), `Label, label));
+	  return UI(`ChangeWidget(`id(`module_progress_bar), `Label, WFM::label));
       }
       else
       {

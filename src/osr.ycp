@@ -145,7 +145,7 @@
 			 `VBox(`Image(`suseheader, "SuSE"),
 			       `HBox(`HWeight(30, `RichText(`id(`help), "")),
 				     `HWeight(70, `VBox(
-							`Left(`Heading(`id(`title), `opt(`hstretch), header + _("\nInitialization..."))),
+							`Left(`Heading(`id(`title), `opt(`hstretch), WFM::header + _("\nInitialization..."))),
 							`HVCenter(`ReplacePoint(`id(`contents),     `Empty())),
 							`HBox(
 							      // back pushbutton: the user input is ignored and the last dialog is called
@@ -259,7 +259,7 @@
 	      string  help_text              = "";
 	      integer global_progress_length = 1000;
 
-	      global_progress_length = lookup(osr_map, "global_progress_length", 1000);
+	      global_progress_length = lookup(WFM::osr_map, "global_progress_length", 1000);
 	  
 	      /*
 		buttons_right = `HSquash(`Top(`VBox(`PushButton(`id(`repair),`opt(`disabled),_("&Repair")),`PushButton(`id(`help_button),
@@ -267,7 +267,7 @@
 	      */
 
 	      // only use a DownloadProgress widget if supported
-	      if (OSRHasDownloadProgressWidget())
+	      if (WFM::OSRHasDownloadProgressWidget())
 	      {
 		  download_progress = `DownloadProgress(
 							`id(`module_progress_bar),
@@ -361,6 +361,7 @@
   define OSRDetect() ``{
 
       boolean error_detected  = false;
+      boolean error_repair    = false;
       integer index_modules   = 0;
       integer index_detect    = 0;
       string  module_name     = "";
@@ -387,6 +388,7 @@
 	  index_detect   = 0;
 	  result_map     = $[];
 	  error_detected = false;
+	  error_repair   = false;
 	      
 	  // execute all detect-functions of the specified module
 	  while((index_detect >= 0) && (index_detect < size(detect_methods)))
@@ -396,15 +398,12 @@
 
 	      // get some information from the result_map
 	      error_detected  = lookup(result_map, "error_detected", false);
+	      error_repair    = lookup(result_map, "error_repair",   false);
 
-	      if (error_detected)
+	      if ((!error_detected) || (!error_repair))
 	      {
-		  // reset the variable error_detected
-		  error_detected = false;
-	      }
-	      else
-	      {
-		  // show progress and go to the next detect-method
+		  // if no error detected or the detected error was not repaired,
+		  // go to the next detection-method
 		  OSRGlobalProgressIncrease();
 		  index_detect = index_detect + 1;
 	      }
@@ -466,19 +465,6 @@
       // ???
       return true;
       */
-  }
-
-  /**
-   *  Returns true if the special DownloadProgress widget is supported by
-   *  the running UI. True with QT, false with ncurses.
-   *
-   *  For internal use only.
-   *
-   *  @return boolean True if the DownloadProgress widget is supported.
-   */
-  global define OSRHasDownloadProgressWidget() ``{
-
-      return lookup(osr_map, "has_download_progress_widget", true);
   }
   
   ////////////////////////////////////////////////////////////////////////////////

@@ -37,9 +37,10 @@
       else
       {
 	  foreach(`entry, items, ``{
-	      text = text+entry;
+	      text = text + entry;
 	  });
-	  text = sformat("<ul>%1</ul>", text);
+	  //text = sformat("<ul>%1</ul>", text);
+	  text = sformat("%1", text);
       }
       return text;
   };
@@ -51,28 +52,75 @@
    *
    *  @param string The name of the item.
    *  @param string Additional description.
+   *  @param string The status of the rescue system. Possible values are:
+   *                "detect_ok", "detect_error", "repair_ok", "repair_error", "repair_omit.
    *  @return string The formatted text.
    */
-  global define OSRSummaryItem(string name, string description, boolean error_detected) ``{
+  global define OSRSummaryItem(string name, string description, string status) ``{
 
-      string color = "";
+      string color       = "";
+      string status_text = "";
 
       // if an error is found the item has to be dislpayed red
-      if (error_detected)
+      if (status == "detect_ok")
+      {
+	  color = "blue";
+	  status_text = UI(_("o.k."));
+      }
+      else if (status == "detect_error")
       {
 	  color = "red";
+	  status_text = UI(_("error"));
+      }
+      else if (status == "repair_ok")
+      {
+	  color = "green";
+	  status_text = UI(_("repair succeeded"));
+      }
+      else if (status == "repair_error")
+      {
+	  color = "red";
+  	  status_text = UI(_("repair failed"));
+      }
+      else if (status == "repair_omit")
+      {
+	  color = "red";
+  	  status_text = UI(_("repair omitted"));
       }
       else
       {
+	  y2error("OSRSummaryItem ERROR: not a valid status: %1", status);
 	  color = "blue";
       }
-	
+
+      return sformat(
+		     "<center><table width=380><tr><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr><tr><td align=left>%3</td></tr></table></center>",
+		     name,
+		     status_text,
+		     description,
+		     color
+		     );
+
+      
+      /*
+      return sformat(
+		     "<li><table width=380 height=40><tr valign=middle><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr></table>%3</li>",
+		     name,
+		     status_text,
+		     description,
+		     color
+		     );
+      */
+
+      // TODO: correct format for ncurses
+      /*
       return sformat(
 		     "<li><font color=%1>%2</font><br>%3</li>",
 		     color,
 		     name,
 		     description
 		     );
+      */
   };
 
   /**
@@ -91,10 +139,9 @@
       list    summary         = [];
       list    summary_list    = [];
       string  summary_text    = "";
-      string  header          = "";
-      string  description     = "";
-      boolean error           = false;
+      string  h_rule          = "";
       map     module_map      = $[];
+      map     summary_map     = $[];
 
       if (size(module_sequence) > 0)
       {
@@ -112,18 +159,22 @@
 	      {
 		  summary_text = "";
 		  summary_list = [];
+		  summary_map  = $[];
+		  
 		  integer i = 0;
 		  while ((i >= 0) && (i < size(summary)))
 		  {
-		      header      = lookup(select(summary, i), "header", "");
-		      description = lookup(select(summary, i), "description", "");
-		      error       = lookup(select(summary, i), "error", false);
+		      summary_map = select(summary, i);
 
 		      // get the formatted summaries as list:
 		      // [ "<li><font color=blue>LILO package</font><br>Package is o.k.</li>",
 		      //   "<li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li>", ... ]
-		      summary_list = add(summary_list, OSRSummaryItem(header, description, error));
-
+		      summary_list = add(summary_list, OSRSummaryItem(
+								      lookup(summary_map, "header",      ""),
+								      lookup(summary_map, "description", ""),
+								      lookup(summary_map, "status",      "detect_ok")
+								      ));
+ 
 		      i = i + 1;
 		  }
 		  // get the summaries as formatted text:
@@ -131,15 +182,22 @@
 		  //     <li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li> ... </ul>
 		  summary_text = OSRSummaryItemList(summary_list);
 
+		  // insert a horizontal-rule between two paragraphs
+		  if (text != "")
+		  {
+		      h_rule = "<hr>";
+		  }
+		  
 		  // set the final text:
 		  // <p><b>LILO:</b></p>
 		  // <p><ul><li><font color=blue>LILO package</font><br>Package is o.k.</li>
 		  //        <li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li> ...
-		  // </ul></p>
+		  // </ul></p>		  
 		  text = text + sformat(
-					"<p><b>%1:</b></p><p>%2</p>",
+					"%3<p><b>%1:</b></p><p>%2</p>",
 					lookup(lookup(osr_map, module_name), "headline", ""),
-					summary_text
+					summary_text,
+					h_rule
 					);
 	      }
 	      index = index + 1;
@@ -155,17 +213,21 @@
   /**
    *  Changes the summary of the specified module in the RichText widget.
    *
-   *  API function.
+   *  For internal use only.
    *
    *  @param string The name of the module which summary is to be changed.
    *  @param string The first line of the new text.
    *  @param string The second line of the new text.
-   *  @param boolean True if an error was detected. This results in a red font color.
+   *  @param string The status of the rescue-system, possible values are:
+   *                "detect_ok", "detect_error", "repair_ok", "repair_error" and "repair_omit"
    *  @return boolean True if the RichText widget was updated successfully.
    */
-  global define OSRSummaryChangeModuleSummary(string module_name, string header, string description, boolean error_detected) ``{
-
-      //y2debug("SSSSSSSSSSSummary1:\n%1\n%2\n%3\n%4", module_name, header, description, error_detected);
+  global define OSRSummaryChangeModuleSummary(
+					      string module_name,
+					      string header,
+					      string description,
+					      string status
+					      ) ``{
       
       map     module_map      = $[];
       list    summary         = [];
@@ -178,43 +240,110 @@
 	  y2error("OSRSummaryChangeModuleSummary ERROR: no module map");
 	  return false;
       }
-      
-      entry      = $["header" : header, "description" : description, "error" : error_detected];
-      summary    = lookup(module_map, "summary", $[]);
 
-      //if (summary == []) y2debug("HHHHHHHHHHHier:\n%1\n%2", summary, module_map);
+      if (
+	  (status != "detect_ok") &&
+	  (status != "detect_error") &&
+	  (status != "repair_ok") &&
+	  (status != "repair_error") &&
+	  (status != "repair_omit")
+	  )
+      {
+	  y2error("OSRSummaryChangeModuleSummary ERROR: not a valid status: %1", status);
+      }
       
-      //y2debug("SSSSSSSSSSSummary2:\n%1\n%2\n%3\n%4", summary, module_name, entry, module_map);
+      //entry      = $["header" : header, "description" : description, "error" : error_detected, "repair" : error_repair];
+
+      // possible values for the key "status" are:
+      // "detect_ok", "detect_error", "repair_ok", "repair_error" and "repair_omit"
+      entry      = $["header" : header, "description" : description, "status" : status];
+      summary    = lookup(module_map, "summary", $[]);
 
       summary    = add(summary, entry);
       module_map = add(module_map, "summary", summary);
       osr_map    = add(osr_map, module_name, module_map);
 
-      y2debug("SSSSSSSSSSSummary3:\n%1\n%2\n%3\n%4", summary, module_name, entry, module_map);
-      
       return OSRSummaryUpdate();
-      
-      
-      
-      /*
-      //list    module_sequence = [];
-      //map     module_map      = $[];
-      //string  text            = "";
-      //string  summary         = "";
-
-      //text = OSRSummaryItem(name, description, error_detected);
-      
-      //module_map = lookup(osr_map, module_name);
-
-      //summary = lookup(module_map, "summary", "");
-
-      //summary = sformat("%1 %2"summary, text);
-      
-      //module_map = add(module_map, "summary", text);
-      //osr_map    = add(osr_map, module_name, module_map);
-
-      //return OSRSummaryUpdate();
-      */
   };
-    
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has found no error. Blue font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryOK(string module_name, string header, string description) ``{
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_ok"));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has detected an error. Red font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryError(string module_name, string header, string description) ``{
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_error"));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system repaired the detected error. ??? font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryRepairOK(string module_name, string header, string description) ``{
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_ok"));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  an error occurred during the repair-process. ??? font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryRepairError(string module_name, string header, string description) ``{
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_error"));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the repair process was omitted by the user.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryRepairOmit(string module_name, string header, string description) ``{
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_omit"));
+  }
+
 }

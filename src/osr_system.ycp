@@ -152,4 +152,18 @@
 
       return osr_map;
   }
+
+  /**
+   *  Returns true if the special DownloadProgress widget is supported by
+   *  the running UI. True with QT, false with ncurses.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the DownloadProgress widget is supported.
+   */
+  global define OSRHasDownloadProgressWidget() ``{
+
+      return lookup(osr_map, "has_download_progress_widget", true);
+  }
+
 }

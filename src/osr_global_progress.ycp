@@ -29,7 +29,7 @@
       global_progress_length = lookup(osr_map, "global_progress_length", 1000);
 
       return UI(``{
-	  ChangeWidget(`id(`global_progress_bar), `Value, global_progress_length);
+	  ChangeWidget(`id(`global_progress_bar), `Value, WFM::global_progress_length);
       });
   }
 
@@ -48,11 +48,10 @@
 
       increment = lookup(osr_map, "global_progress_increment", 500);
 
-      return UI(``{
-	  current_value = QueryWidget(`id(`global_progress_bar), `Value);
-	  y2debug("CURRENTVAL: %1", current_value);
-	  ChangeWidget(`id(`global_progress_bar), `Value, current_value + increment);
-      });
+      current_value = UI(`QueryWidget(`id(`global_progress_bar), `Value));
+      current_value = current_value + increment;
+      
+      return UI(`ChangeWidget(`id(`global_progress_bar), `Value, WFM::current_value));
   }
 
   /**
@@ -70,10 +69,20 @@
 
       increment = lookup(osr_map, "global_progress_increment", 500);
 
+      current_value = UI(`QueryWidget(`id(`global_progress_bar), `Value));
+
+      if (current_value >= increment)
+      {
+	  return (UI(`ChangeWidget(`id(`global_progress_bar), `Value, current_value - increment)));
+      }
+      return false;
+
+      /*
       return UI(``{
-	  current_value = QueryWidget(`id(`global_progress_bar), `Value);
-	  if (current_value >= increment) ChangeWidget(`id(`global_progress_bar), `Value, current_value - increment);
+	  WFM::current_value = QueryWidget(`id(`global_progress_bar), `Value);
+	  if (WFM::current_value >= WFM::increment) ChangeWidget(`id(`global_progress_bar), `Value, WFM::current_value - WFM::increment);
       });
+      */
   }
   
   /**
