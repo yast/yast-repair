@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  7 14:32:40 CET 2003 - jsuchome@suse.de
+
+- adapted to 8.2 Bootloader API
+
+-------------------------------------------------------------------
 Tue Feb  4 15:52:20 CET 2003 - jbuch@suse.de
 
 - initial version of new YaST System repair 

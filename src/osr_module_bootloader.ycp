@@ -18,7 +18,8 @@
   textdomain "repair";
 
   import "Mode";
-  import "Boot";
+//  import "Boot";
+  import "Bootloader";
   import "Storage";
   import "Partitions";
   
@@ -236,10 +237,11 @@ install a new boot loader."),
       // Searching type of the boot loader type ...
       //
       ///////////////////////////////////////////////////////////////////////////////////
-      if ( Boot::LoaderType != "" && Boot::LoaderType != nil )
+      string loader_type = Bootloader::getLoaderType();
+      if ( loader_type != "" && loader_type != nil )
       {
-	  OSRSummary::DetectOK("",  sformat(_("Found %1 boot loader"), Boot::LoaderType ));
-	  OSR::ProvideString("bootloader_type", Boot::LoaderType);
+	  OSRSummary::DetectOK("",  sformat(_("Found %1 boot loader"), loader_type ));
+	  OSR::ProvideString("bootloader_type", loader_type);
       }
       else {
 	  OSRSummary::DetectError("", _("No boot loader was found"));	  
@@ -277,10 +279,12 @@ install a new boot loader."),
 
       //Change root back to / for Boot::Set()
       OSRSystem::SetOrgRoot();
-      Boot::Set();
+//      Boot::Set();
+      Bootloader::Propose();
       OSRSystem::SetTargetRoot();
 
       // compare expected with actual boot, root device
+      /*
       y2milestone("Boot::Set() new root %1 and boot %2 device", Boot::RootPartitionDevice, Boot::BootPartitionDevice);
       if( Boot::BootPartitionDevice != OSRBoot::boot_device )
       {
@@ -290,8 +294,21 @@ install a new boot loader."),
       {
 	  y2error(" boot_device and Boot::RootPartitionDevice differ");
       }
+      */
+      string root_device = Bootloader::getRootDevice();
+      string boot_device = Bootloader::getBootDevice();
+      y2milestone("Boot::Set() new root %1 and boot %2 device", root_device,
+         boot_device);
+      if( boot_device != OSRBoot::boot_device )
+      {
+	    y2error(" boot_device and Bootloader::getBootDevice differ");
+      }
+      if( root_device != OSRBoot::root_device )
+      {
+	    y2error(" root_device and Bootloader::getRootDevice differ");
+      }
 
-      
+
       string summary_header = _("Searching for root device");
       if( OSRBoot::root_device != "" && OSRBoot::root_device != nil )
       {
@@ -348,6 +365,7 @@ the system and start a new installation.
 	 }
       }
       
+      // FIXME there is no such function!
       if ( OSR::RequiresBoolean("mounted_all") != true )
       {
 	  if( ! OSRFstab::ReadedSuccessfully())
@@ -680,10 +698,12 @@ press the \"Repair\" button.
       y2milestone("boot_device_2 %1", OSRBoot::boot_device);
       
       //Change root back to / for Boot::Set()
-      Boot::Set();
+//      Boot::Set();
+      Bootloader::Propose();
       // Fstab was already readed.
       
 
+      /*
       // compare expected with actual boot, root device
       if( Boot::BootPartitionDevice != OSRBoot::boot_device )
       {
@@ -694,6 +714,18 @@ press the \"Repair\" button.
       {
 	  y2error(" boot_device and Boot::RootPartitionDevice differ");
 	  Boot::RootPartitionDevice = OSRBoot::root_device;
+      }
+      */
+      // compare expected with actual boot, root device
+      if(  Bootloader::getBootDevice() != OSRBoot::boot_device )
+      {
+	    y2error(" boot_device and Bootloader::getBootDevice differ");
+	    Bootloader::setBootDevice (OSRBoot::boot_device);
+      }
+      if( Bootloader::getRootDevice() != OSRBoot::root_device )
+      {
+	    y2error(" root_device and Bootloader::getRootDevice differ");
+	    Bootloader::setRootDevice (OSRBoot::root_device);
       }
 
       OSRBoot::root_mountpoint = OSRSystem::TargetRoot();

@@ -17,7 +17,11 @@
     import "StorageDevices";
     import "Report";
     import "Installation";
-    import "Lilo";
+//    import "Lilo";
+    
+    import "Bootloader";
+    import "Initrd";
+    import "BootGRUB";
     import "Kernel";
 
     import "OSRSystem";
@@ -26,7 +30,7 @@
     import "OSRPkg";
     import "OSRPopup";
 
-    include "lilo/routines.ycp";
+//    include "lilo/routines.ycp";
     textdomain "repair";
     
 
@@ -499,14 +503,16 @@ Press Repair to install these packages.
 	current_initrd_modules = splitstring(crs, " ");
 	y2milestone("current initrd_modules %1", current_initrd_modules);
 
-	Boot::initrdModules = [];
-	
+//	Boot::initrdModules = [];
+    Initrd::Reset();
+
 	list storage_initrd = Storage::GetRootInitrdModules();
 	y2milestone(" found initrd modules %1",storage_initrd );
 
 	//add found modules to Boot::initrdModules
 	foreach(string m, storage_initrd, ``{
-	    Boot::AddInitrdModule (m, "");
+//	    Boot::AddInitrdModule (m, "");
+        Initrd::AddModule (m, "");
 	});
 
 	//add initrd modules for mixed devices
@@ -514,14 +520,18 @@ Press Repair to install these packages.
 	y2milestone("found ide_recorders %1",ide_recorders);
 	Kernel::IDERecorders (ide_recorders);
 
-	Boot::initrdModules = toset( Boot::initrdModules );
+//  ignore (bug)
+//	Boot::initrdModules = toset( Boot::initrdModules );
 	
-	y2milestone("needed initrd_modules in Boot %1", Boot::initrdModules );
-	list(string) missing = filter(string s, Boot::initrdModules,
+//	y2milestone("needed initrd_modules in Boot %1", Boot::initrdModules );
+//	list(string) missing = filter(string s, Boot::initrdModules,
+    list listed_modules = Initrd::ListModules();
+	y2milestone("needed initrd_modules in Boot %1", listed_modules );
+	list(string) missing = filter(string s, listed_modules,
 				      ``( ! contains(current_initrd_modules, s)));
 
 	if( Mode::test ) missing = add(missing, "reiserfs");
-	
+
 	if (size( missing ) > 0)
 	{
 	    help_text = _("
@@ -540,8 +550,8 @@ YaST missing the following modules:
 Please press \"Repair\" to add the the missing
 modules to the initial ramdisk.
 "), needed_config_files["initrd"]:"", mergestring( missing , "\n" ));
-			      
-	    
+
+
 	    return false;
 	}
 	return true;
@@ -556,11 +566,13 @@ modules to the initial ramdisk.
 		return `cancel;
 	}
 	boolean ret           = true;
-	string  kernel_initrd = mergestring (Boot::initrdModules, " ");
+//	string  kernel_initrd = mergestring (Boot::initrdModules, " ");
+	string  kernel_initrd = mergestring (Initrd::ListModules(), " ");
 
 	if ( ! Mode::test )
 	{
 	    // write INITRD_MODULES
+        // TODO: Initrd::Write() should be sufficient...
 	    SCR::Write (.sysconfig.kernel.INITRD_MODULES, kernel_initrd);
 	    SCR::Write (.sysconfig.kernel, nil);
 
@@ -746,6 +758,12 @@ contains no errors press the cancel button.
 	if ( ! regexpmatch(grub_device, ".fd.*"))
 	{	    
 	    ret = grub2Lilo(grub_device );
+
+/* TODO FIXME
+ use BootGRUB::readDeviceMap
+     BootGRUB::dev2dev ?
+*/
+ 
 	}
 	else {
 	    ret = "/dev/" + substring(grub_device, 1, 3);
@@ -1159,24 +1177,35 @@ is bootable press the cancel button.
      * Repair a damaged grub configuration.
      */
     global define symbol repair_grub_config()``{
-	
+
 	symbol ret  	     	     = `next;
 	list(string) possible_loader =  ["grub", "lilo"];
 
-	if ( ! contains( possible_loader, Boot::LoaderType ))
+//	if ( ! contains( possible_loader, Boot::LoaderType ))
+	if ( ! contains( possible_loader, Bootloader::getLoaderType ))
 	{
-	    Boot::LoaderType = possible_loader[0]:"";
+//	    Boot::LoaderType = possible_loader[0]:"";
+	    Bootloader::setLoaderType (possible_loader[0]:"");
 	}
-	
+
+    /*
 	Boot::LoaderType = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
 							  _("Please select the type of the new boot loader"),
 							 possible_loader, Boot::LoaderType,  false );
+    */
+    string type = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
+						_("Please select the type of the new boot loader"),
+						possible_loader, Bootloader::getLoaderType(), false );
 
-	if ( Boot::LoaderType == "" ) return `abort ;
-	
+//	if ( Boot::LoaderType == "" ) return `abort ;
+	if ( type == "" ) return `abort ;
+	Bootloader::setLoaderType (type);
+
 	// change root for boot loader module call
 	OSRSystem::ChangeRoot("/");
-	ret = CallFunction(`inst_bootloader(true,true));
+//	ret = CallFunction(`inst_bootloader(true,true));
+    Bootloader::Propose();
+	ret = CallFunction(`bootloader_proposal("AskUser", $[])); //TODO:2nd param
 
 	if( ret == `next )
 	{
@@ -1184,6 +1213,7 @@ is bootable press the cancel button.
 
 	    // get list of bootable 'foreign' primary partitions
 	    // ["<device> <comment>", "<device> <comment>", ...]
+        /* ... should be done in Propose
 	    list foreign_primaries = Storage::GetForeignPrimary();
 
 	    // boot concept
@@ -1191,18 +1221,19 @@ is bootable press the cancel button.
 	    {
 		Boot::others = foreign_primaries;
 	    }
+        */
 
 	    OSRSystem::ChangeRoot( root_mountpoint );
-	    
+
 	    // prepare environment for saving boot loader settings
 	    string destproc = "/proc";
 	    SCR::Execute (.target.mkdir, destproc, 0755);
 	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");   
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
-	    Boot::Save();
-	    boolean g_ret = Boot::Write();
-	    
+	    // Boot::Save(); included in Write
+	    boolean g_ret = Boot::Write(); // what about the progress?
+
 	    UI::CloseDialog();
 	    if ( g_ret ) {
 		Report::Message(_("
@@ -1213,7 +1244,7 @@ Installing the boot loader was successful.
 	    SCR::Execute (.target.umount, "/proc");
 	    WFM::Execute(.local.umount, root_mountpoint + "/proc" );
 	}
-	return ret;	
+	return ret;
     }
 
  

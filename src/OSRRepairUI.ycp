@@ -316,7 +316,7 @@ display repair proposals.")
 
 				 // Second entry - customise analyse
 				$[
-				  "headline"    :  _("Customise repair"),
+				  "headline"    :  _("&Customize repair"),
 				  "symbol"      : `scan_repair_options,
 				  "description" : _("Select parts of system analysing
 you need. Usable, if you  already
@@ -329,7 +329,7 @@ bootloader test and start analyse afterwards."),
 				  ],
 
 				 // third entry - direct repair tools
-				 $["headline"    :  _("Expert tools"),
+				 $["headline"    :  _("E&xpert tools"),
 				   "symbol"	 : `direct_repair,
 
 				   "description" : _("Use if the automatical detection
@@ -551,8 +551,8 @@ please go back and start the automatically analyse.</P>");
 
       string module_check_label = _("Module check");
       string system_check_label = _("System check");
-      string show_all_label     = _("Show all details");
-      string pause_label        = _("Pause");
+      string show_all_label     = _("&Show all details");
+      string pause_label        = _("&Pause");
       
       if ( UI::WidgetExists (`id(`local_rich_text_info ))) return;
 
@@ -610,7 +610,7 @@ possibility to select one proposal or cancel the reapir. </P>") +
    * Controll the user interaction for the scan and repair sequence.
    */
   define symbol DetectDialog() ``{
-      string go_on_label = _("Go on");
+      string go_on_label = _("&Go on");
       
       if ( OSRMode::script ) return OSR::Detect();
       
@@ -682,7 +682,7 @@ possibility to select one proposal or cancel the reapir. </P>") +
 	      if ( input == `pause ) {
 		  
 		  set_buttons_enable( true, false, false );
-		  UI::ChangeWidget(`id(`pause), `Label, _("Pause"));
+		  UI::ChangeWidget(`id(`pause), `Label, _("&Pause"));
 
 		  input = OSR::Detect();
 
