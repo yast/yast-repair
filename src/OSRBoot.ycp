@@ -543,13 +543,13 @@ Press Repair to install these packages.
 	{
 	    help_text = _("
 The variable INITRD_MODULES contains the list of modules
-to add to the initial ramdisk by calling the script \"mk_initrd\"
+to add to the initial ramdisk by calling the script \"mkinitrd\"
 Examples are drivers for SCSI controllers and LVM or reiserfs.
 ");
 	    error_message = sformat(_("
 The file %1 contains a list
 of modules to add to the initial
-ramdisk by calling the script \"mk_initrd\".
+ramdisk by calling the script \"mkinitrd\".
 YaST is missing the following modules:
 
 %2
@@ -566,7 +566,7 @@ modules to the initial ramdisk.
 
 
     /**
-     * Wirte initrd modules and call mk_initrd
+     * Wirte initrd modules and call mkinitrd
      */
     global define symbol RepairInitrdModules()``{
 	if ( ! OSRPopup::Repair(_("Initrd modules missing."), error_message, help_text) ) {
@@ -592,11 +592,11 @@ modules to the initial ramdisk.
 	if (! ret)
         {
 	    // question in a popup box
-            if ( Popup::YesNo( _("Calling mk_initrd failed.
+            if ( Popup::YesNo( _("Calling mkinitrd failed.
 Display the log file?
 ")))
             {
-                Popup::ShowFile( _("The Output of the Script mk_initrd:"), "/var/log/YaST2/y2logmkinitrd" );
+                Popup::ShowFile( _("The Output of the Script mkinitrd:"), "/var/log/YaST2/y2logmkinitrd" );
             }
         }
 	if( ret ) return `ok;

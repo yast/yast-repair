@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 13 15:23:02 CEST 2004 - jsuchome@suse.cz
+
+- mk_initrd strings changed to mkinitrd
+- 2.10.3
+
+-------------------------------------------------------------------
 Fri Aug 13 15:15:02 CEST 2004 - nashif@suse.de
 
 - Added yast2-xml to neededforbuild
