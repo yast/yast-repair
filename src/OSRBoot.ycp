@@ -197,12 +197,12 @@
      * Help text if the check defines found an error
      */
     string help_text     		= "";
-    
+
     /**
-     * The name of the boot loader 
+     * The name of the boot loader
      */
     string  bootloader		  	= "";
-    
+
     /**
      * A list with all invalid configuration files.
      */
@@ -229,13 +229,13 @@
     global string  boot_device		= "";
 
     global boolean bootloader_error_found = false;
-    
+
     global list<string> not_valid_files = [];
 
     global list current_initrd_modules = [];
 
 
-    
+
     /**
      * Reset module settings.
      **/
@@ -355,7 +355,7 @@
       return (size(v_1) >= size(v_2));
   };
 
-    
+
     /**
      * build the help text with the package summary
      * for all specified packages
@@ -368,13 +368,13 @@
 	return help_text;
     }
 
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Checking sysconfig fils and boot loader packages
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /**
-     * Check the main config file for boot loader and kernel initrd 
+     * Check the main config file for boot loader and kernel initrd
      */
     global define boolean CheckSysconfigFiles(string root)``{
 
@@ -416,9 +416,9 @@
 
 	if( loader 	!= "") bootloader 	= loader;
 	if( root 	!= "") root_mountpoint	= root;
-	    
+
 	missing_packages = [];
-	
+
 	OSRPkg::OpenPkg( root_mountpoint );
 
 	// check all needed packages
@@ -449,7 +449,7 @@
 	    else if ( what == "version" )
 	    {
 		if( ! VersionIsHigherOrEqual( Pkg::PkgVersion(package),
-					      RequiredPackageVersion(bootloader, package)))	
+					      RequiredPackageVersion(bootloader, package)))
 		{
 		    missing_packages = add(missing_packages, package );
 		}
@@ -462,7 +462,7 @@
 	    }
 
 	});
-	
+
 	if ( size(missing_packages) > 0 )
 	{
 	    bootloader_error_found = true;
@@ -471,11 +471,11 @@
 	return size(missing_packages) == 0;
     }
 
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Install missing or damaged boot loader packages
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /**
      * Install all missing package if the user accept.
      */
@@ -493,13 +493,13 @@
 
 Press Repair to install these packages.
 "),install_reason, mergestring( missing_packages, "\n" ));
-	      
-	
+
+
 	if( OSRPopup::Repair(_("Boot loader package missing."), error_message, help_text)) {
 
 	    OSRPkg::root_mountpoint  = root;
 	    OSRPkg::missing_packages = missing_packages;
-	    return OSRPkg::InstallMissing(false);	 
+	    return OSRPkg::InstallMissing(false);
 	}
 	else
 	{
@@ -529,11 +529,6 @@ Press Repair to install these packages.
 	foreach(string m, storage_initrd, ``{
         Initrd::AddModule (m, "");
 	});
-
-	//add initrd modules for mixed devices
-	list ide_recorders = StorageDevices::ProbeIDERecorders ();
-	y2milestone("found ide_recorders %1",ide_recorders);
-	Kernel::IDERecorders ((list<string>)ide_recorders);
 
 	list listed_modules = Initrd::ListModules();
 	y2milestone("needed initrd_modules in Boot %1", listed_modules );
@@ -614,9 +609,9 @@ Display the log file?
      * Check if the boot loader conf file exists.
      */
     global define boolean ExistsConf(string loader, string root  )``{
-	if ( loader != "" ) bootloader 		= loader; 
+	if ( loader != "" ) bootloader 		= loader;
 	if ( root   != "" ) root_mountpoint	= root;
-	
+
 	// look if the file lilo.conf exists an has a positive size
 	if ( ! (SCR::Read(.target.size,  bootloader_config_check[bootloader, "config_file"]:"") > 0 ))
 	{
@@ -632,10 +627,10 @@ differs. </p>
 
 	    error_message = _("
 The main configuration file of the boot loader was
-not found. 
+not found.
 
 If you changed the boot loader configuration
-manually and the system starts correctly, 
+manually and the system starts correctly,
 skip this dialog and continue the detection
 sequence.
 If you never changed anything affecting
@@ -649,14 +644,14 @@ to create a new configuration file.
 	    return false;
 	}
 	return true;
-    }	
+    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Check the lilo configuration file
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    
+
     /**
      * Check the lilo conf file.
      */
@@ -664,7 +659,7 @@ to create a new configuration file.
 
 	// Be careful: use the mountpoint of the root partition for execution of this command!
 	string command = sformat("%1/sbin/lilo -r %1 -t -v", root_mountpoint );
-	
+
 	if(  OSRExecute::Command(.local.bash, command ))
 	{
 	    return true;
@@ -680,7 +675,7 @@ of the LILO boot loader configuration file.</p>
 ") +
 
 // help text 2/2
-_("<p>This command returned an error. This normally means 
+_("<p>This command returned an error. This normally means
 your system is not bootable.
 
 It is recommended to create a new configuration
@@ -690,26 +685,26 @@ file.</P>
         // error message
 	    error_message = _("
 The syntax of the boot loader configuration
-file is not valid. 
+file is not valid.
 The configuration file contains defective
 data needed for booting the Linux system.
 
 Press \"Repair\" to have YaST generate a new
-configuration file. 
+configuration file.
 
 If you are sure your configuration file
 contains no errors, press \"Skip\".
 ");
 	    return false;
 	}
-	
+
     }
 
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Device check.
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /**
      * Returns false if the specified device can not
      * found in the target_map (Storage module)
@@ -717,14 +712,14 @@ contains no errors, press \"Skip\".
     define boolean exists_device(string dev_name )``{
 
 	if(dev_name == "" ) return true;
-	
+
 	// if device is a floppy
 	if( StorageDevices::FloppyDrives == [] || StorageDevices::FloppyDrives == nil ) StorageDevices::Probe(false);
 	y2milestone("FloppyDrives %1", StorageDevices::FloppyDrives );
 	map ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
-	// if device is a hard disk 
+	// if device is a hard disk
 	ret 	= Storage::GetMainDev( dev_name );
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
@@ -738,7 +733,7 @@ contains no errors, press \"Skip\".
 	{
 	    return true;
 	}
-	    
+
 	// device does not exists
 	y2error("device with name %1 not found", dev_name);
 	return false;
@@ -775,7 +770,7 @@ contains no errors, press \"Skip\".
 	//"device":"(hd0)"
 	if( exists_device(grubDev2LiloDev( grub_device )))
 	{
-	    y2milestone(" device %1 exists", grub_device); 
+	    y2milestone(" device %1 exists", grub_device);
 	    return true;
 	}
 	else
@@ -790,7 +785,7 @@ contains no errors, press \"Skip\".
     //////////////////////////////////////////////////////////////////
     // grub conf file checks
     //////////////////////////////////////////////////////////////////
-    
+
     /**
      * Check a grub device entry.
      */
@@ -799,7 +794,7 @@ contains no errors, press \"Skip\".
 	if ( grub_device == "") return true;
 	return exists_grub_device(grub_device);
     }
-    
+
     /**
      * Check if the root entry exists and is the expected
      */
@@ -913,7 +908,7 @@ contains no errors, press \"Skip\".
      *                   $["chainloader":"+1", "root":"(fd0)", "title":"floppy"],
      *                   $["initrd":"(hd0,2)/boot/initrd.shipped", "kernel":"(hd0,2)/boot/vmlinuz.shipped root=/dev/hda3
      *                      ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 disableapic 3", "title":"failsafe"]]
-     */	
+     */
     define boolean check_grub_menu_entries(list entries )``{
 	valid_grub_menu_enties = union( grub_menu, grub_menu_only);
 	boolean error_found = false;
@@ -1182,7 +1177,7 @@ configuration is recommended.</p>
         // error text
 	    error_message = _("
 The configuration of the boot loader
-contains errors. 
+contains errors.
 
 Press \"Repair\" to have YaST generate a new
 configuration.
@@ -1201,12 +1196,12 @@ is bootable, press \"Skip\".
      */
     global define boolean CheckConfig(string loader , string root, string root_dev, string boot_dev )``{
 
-	if ( loader   != "" )  bootloader 	= loader; 
+	if ( loader   != "" )  bootloader 	= loader;
 	if ( root     != "" )  root_mountpoint	= root;
 	if ( root_dev != "" )  root_device	= root_dev;
 	if ( boot_dev != "" )  boot_device 	= boot_dev;
 
-	// reset settings 
+	// reset settings
 	error_message 		= "";
 	help_text 		= "";
 	invalid_config_files 	= [];
@@ -1312,7 +1307,7 @@ on a computer with a Linux installation.
 Starting a Linux system without
 a boot loader is not possible.</P>
 ") +
- 
+
 _("<P>If you have installed more than
 one operating system on a computer,
 the boot loader allows you to select
@@ -1324,7 +1319,7 @@ which system to start.</P>
 
 
     /**
-     * Repairing configuration files. 
+     * Repairing configuration files.
      */
     global define symbol RepairSysconfigFiles()``{
 
@@ -1335,7 +1330,7 @@ which system to start.</P>
 	    Report::Error("
 The file %1 was not found.
 YaST can not recover this
-file. 
+file.
 ");
 	    return `error;
 	}
@@ -1343,7 +1338,7 @@ file.
 	list<string> t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
 
 	error_message = sformat(_("
-YaST cannot find the following 
+YaST cannot find the following
 configuration files:
 
 %1
