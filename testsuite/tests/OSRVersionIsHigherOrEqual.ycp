@@ -1,0 +1,100 @@
+/*
+ * YaST2: Modules testsuite
+ *
+ * Description:
+ *   Testsuite for YaST2 OS Repair: OSRVersionIsHigherOrEqual() in file osr_api.ycp
+ *
+ * Authors:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+{
+    include "testsuite.ycp";
+    include "osr/osr_api.ycp";
+
+    string v1 = "";
+    string v2 = "";
+
+    // Test 1: false
+    v1 = "21.6";
+    v2 = "22.1";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 2: true
+    v1 = "21.6";
+    v2 = "21.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 3: true
+    v1 = "22.6";
+    v2 = "21.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 4: false
+    v1 = "22.6.1";
+    v2 = "22.6.4";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 5: false
+    v1 = "0.6";
+    v2 = "21.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 6: false
+    v1 = "0.0";
+    v2 = "21.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 7: true
+    v1 = "22.6";
+    v2 = "0.0";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 8: true
+    v1 = "22.6.4.6.345.6.3";
+    v2 = "22.6.4.6.345.6.2";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 9: false
+    v1 = "22.6.4.6-345.6";
+    v2 = "22.6.4.6-345.6.2";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 10: true
+    v1 = "22.6.4.6-345.6";
+    v2 = "22.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 11: false
+    v1 = "21.6.4.6-345.6";
+    v2 = "22.6";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 12: true
+    v1 = "0.0";
+    v2 = "0.0";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 13: true
+    v1 = "1.0";
+    v2 = "1.0";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+
+    // Test 14: false
+    v1 = "0.0";
+    v2 = "1-0";
+    
+    TEST(``(OSRVersionIsHigherOrEqual(v1, v2)), [], nil);
+}
