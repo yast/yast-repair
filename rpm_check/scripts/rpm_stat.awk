@@ -1,10 +1,10 @@
 BEGIN{
 	# define varibles for other programms that this script using
 	PREFIX = ENVIRON["PREFIX"]; # PREFIX have to be an exported environment Variable
-	RLS = PREFIX "/bin/rls";
-	READLINK = PREFIX "/bin/readlink";
-	RPM="rpm"
-	MD5SUM = "md5sum";
+	RLS = PREFIX"/bin/rls";
+	READLINK = PREFIX"/bin/readlink";
+	RPM="/bin/rpm"
+	MD5SUM = "/usr/bin/md5sum";
 }
 
 # returns a void string if f_str doesn't match any known stderr-output of rpm
@@ -130,9 +130,6 @@ function add_filefails(f_filename, f_failstr, f_data_str){
 	rpm_release = "";
 	# rpm_version will be changed after call get_rpm_name(...)
 	rpm_short_name = get_rpm_name(rpm_name);
-	# theoretisch ist es moeglich die Limits fuer Datentypen (len(some_string)<=3000) der awk nicht ueberfordern, 
-	# ausgaben direkt ausgeben (nicht erst in strings speichern), dabei muss man auf einen korrekten stdin-stream:
-	# nach Fehlertyp sortiert sein, wie es z.B. bei rpm ver3.0.6 der Fall ist.
 	# main collecting varible OUTPUTstr
 	OUTPUTstr="$[\"RPM_NAME\":\""rpm_name"\",\"RPM_VERSION\":\""rpm_version"\",\"RPM_RELEASE\":\""rpm_release"\",\"RPM_SHORT_NAME\":\""rpm_short_name"\",";
 	create_rpm_filelist(rpm_name, conf_rpmfiles, doc_rpmfiles);
