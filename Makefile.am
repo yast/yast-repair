@@ -2,7 +2,7 @@
 # Makefile.am for module
 #
 
-SUBDIRS = src doc testsuite rpm_check
+SUBDIRS = src rpm_check doc testsuite 
 #SUBDIRS = src doc
 
 VERSION = $(shell cat $(srcdir)/VERSION)
