@@ -19,18 +19,17 @@
 
   /**
    *  Executes the given commandline in a bash and writes all execution-information
-   *  to the specified logfile. This function returns all output from the commandline
+   *  to the standard log file. This function returns all output from the commandline
    *  in a result map.
    *
    *  API function.
    *
    *  @param string commandline The commandline.
-   *  @param string log_file The path of the logfile.
    *  @param path environment The environment-path, has to be .local or .target.
    *  @return map The result map with all output from the command.
-   *  @example map result_map = OSRExecuteCommandOutput("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local);
+   *  @example map result_map = OSRExecuteCommandOutput("rpm -qi -r /mnt/ lilo", .local);
    */
-  global define OSRExecuteCommandOutput(string commandline, string log_file, path environment) ``{
+  global define OSRExecuteCommandOutput(string commandline, path environment) ``{
 
       map     result_map  = $[];
       integer result      = 0;
@@ -39,23 +38,12 @@
       string  stdout      = "";
       string  stderr      = "";
 
-      if (log_file == "")
-      {
-	  log_file = OSRLogFile::GetFile();
-	  y2error("OSRExecuteCommandOutput ERROR: no logfile specified, using standard.");
-      }
-      
       // in demo-mode set "echo" in front of every commandline
       if (demo_mode) demo_string = "echo";
 
-      // execute the given commandline and write the commandline and output information to logfile
-      //commandline = sformat("%1 %2 2> /dev/null", demo_string, commandline);
-      //commandline = sformat("%2 2> /dev/null", demo_string, commandline);
-
-      //y2error("COMMAND: %1", commandline);
+      // write the commandline to the log file and execute the command
+      command     = commandline;
       
-      //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
-
       if (environment == .local)
       {
 	  result_map = WFM::Execute(.local.bash_output, commandline);
@@ -74,13 +62,8 @@
       result      = lookup(result_map, "exit", 0);
       stdout      = lookup(result_map, "stdout", "");
       stderr      = lookup(result_map, "stderr", "");
-      
-      //command = sformat("echo \"*** %1 ***\" >> %5; echo \"%3\" >> %5; echo \"%4\" >> %5; echo \"*** exit code: %2 ***\n\n\" >> %5",
-      //		commandline, result, stdout, stderr, log_file);
-      //command = sformat("", commandline);
-      //y2error("COMMAND: %1", command);
 
-      //SCR(`Execute(.target.bash, command));
+      OSRLogFile::Add(sformat("Command: %1\nstdout: %2stderr: %3exit: %4\n", command, stdout, stderr, result));
 	
       if ( result == 0 )
       {
@@ -103,7 +86,7 @@
 	  y2debug("OSRExecuteCommandOutput: command terminates with error code %1", result);
       }
       return result_map;
-  }
+  };
 
   /**
    *  Executes the given commandline in a bash and writes all execution-information
@@ -112,10 +95,9 @@
    *  API function.
    *
    *  @param string commandline The commandline.
-   *  @param string log_file The logfile path.
    *  @param path environment The environment-path, has to be .local or .target.
    *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommand("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local);
+   *  @example OSRExecuteCommand("rpm -qi -r /mnt/ lilo", .local);
    *
    *   $ cat /tmp/osr.log
    *   *** /bin/rpm -qi lilo ***
@@ -125,10 +107,10 @@
    *   SuSE series: a
    *   *** exit code: 0 ***
    */
-  global define OSRExecuteCommand(string commandline, string log_file, path environment) ``{
+  global define OSRExecuteCommand(string commandline, path environment) ``{
 
-      return OSRExecuteCommandProgress(commandline, log_file, environment, "");
-  }
+      return OSRExecuteCommandProgress(commandline, environment, "");
+  };
   
   /**
    *  Executes the given commandline in a bash and writes all execution-information
@@ -137,11 +119,10 @@
    *  API function.
    *
    *  @param string commandline The commandline.
-   *  @param string log_file The logfile path.
    *  @param path environment The environment-path, has to be .local or .target.
    *  @param string progress_file The path of the progress file.
    *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommandProgress("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local, "/tmp/progress_file");
+   *  @example OSRExecuteCommandProgress("rpm -qi -r /mnt/ lilo", .local, "/tmp/progress_file");
    *
    *   $ cat /tmp/osr.log
    *   *** /bin/rpm -qi lilo ***
@@ -151,18 +132,13 @@
    *   SuSE series: a
    *   *** exit code: 0 ***
    */
-  global define OSRExecuteCommandProgress(string commandline, string log_file, path environment, string progress_file) ``{
+  global define OSRExecuteCommandProgress(string commandline, path environment, string progress_file) ``{
 
-      integer result      = 0;
-      string  command     = "";
-      string  demo_string = "";
-      list    string_list = [];
-
-      if (log_file == "")
-      {
-	  log_file = OSRLogFile::GetFile();
-	  y2error("OSRExecuteCommandProgress ERROR: no logfile specified, using standard.");
-      }
+      integer result        = 0;
+      string  command       = "";
+      string  demo_string   = "";
+      list    string_list   = [];
+      string  output_string = "";
       
       // in demo-mode set "echo" in front of every commandline and delete all ";" from
       // the commandline
@@ -172,11 +148,10 @@
       }
       
       if (progress_file != "")
-      {
-	  //command     = sformat("rm -f %2; %1 >> %2 2>> %2", commandline, progress_file);
-	  command     = sformat("%1 >> /dev/null 2>> /dev/null", commandline);
-          //result      = SCR::Execute(.target.bash, command);
-
+      {	  
+	  // write the specified command line to the log file and execute the command, write all output to the
+	  // specified progress file
+	  command = sformat("%1 >> %2 2>> %2", commandline, progress_file);
 	  if (environment == .local)
 	  {
 	      result = WFM::Execute(.local.bash, commandline);
@@ -190,19 +165,20 @@
 	      y2error(sformat("OSRExecuteCommandProgress ERROR: wrong environment \"%1\", has to be .local or .target", environment));
 	      return -1;
 	  }
-	  
 
-	  command     = sformat("echo \"*** %1 ***\" >> %2; cat %3 >> %2; echo \"*** exit code: %4 ***\n\n\" >> %2",
-				commandline, log_file, progress_file, result);
-	  //SCR(`Execute(.target.bash, command));
+	  // get the output from the progress file to write it to the log file
+	  output_string = SCR::Read(.target.string, progress_file);
+	  
+	  OSRLogFile::Add(sformat("Command: %1\nProgress file: %2\noutput: %3\nexit: %4\n",
+				  commandline, progress_file, output_string, result));
       }
       else
-      {  
-	  // execute the given commandline and write the commandline and output information to logfile
-	  //commandline = sformat("%1 %2", demo_string, commandline);
-	  //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
-	  command     = sformat("%1 >> /dev/null 2>> /dev/null", commandline);
+      {
+	  // no progress file specified
+	  
+	  OSRLogFile::Add(sformat("Command: %1\n", commandline));
 
+	  command = sformat("%1 >> %2 2>> %2", commandline, log_file);
 	  if (environment == .local)
 	  {
 	      result = WFM::Execute(.local.bash, commandline);
@@ -217,10 +193,7 @@
 	      return -1;
 	  }
 
-	  //result      = SCR::Execute(.target.bash, command);
-
-	  command = sformat("echo \"*** exit code: %1 ***\n\n\" >> %2", result, log_file);
-	  //SCR::Execute(.target.bash, command);
+	  OSRLogFile::Add(sformat("exit: %1\n", result));
       }
 	
       if ( result == 0 )
@@ -244,8 +217,7 @@
 	  y2debug("OSRExecuteCommandProgress: command terminates with error code %1", result);
       }
       return result;
-  }
-
+  };
 
   /**
    *  This funnction returns the map that contains all informations about
@@ -259,7 +231,7 @@
   global define OSRGetModuleMap(string module_name) ``{
 
       return lookup(osr_map, module_name, $[]);
-  }
+  };
 
   /**
    *  Displays the specified text in the help-RichText widget on
@@ -273,159 +245,7 @@
   global define OSRDisplayHelpText(string help_text) ``{
 
       return UI::ChangeWidget(`id(`help), `Value, help_text);
-  }
-
-    /**
-   *  Stores the given list with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param list value The provided value.
-   *  @return boolean True.
-   */
-  global define OSRProvideList(string name, list value) ``{
-
-      map global_provides_map  = $[];
-      map provides_map         = $[];
-
-      provides_map        = $[ "type" : "list", "value" : value, "status" : "known" ];
-      global_provides_map = lookup(osr_map, "global_provides", $[]);
-      global_provides_map = add(global_provides_map, name, provides_map);
-      osr_map             = add(osr_map, "global_provides", global_provides_map);
-
-      return true;
-  }
-
-  /**
-   *  Stores the given map with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param map value The provided value.
-   *  @return boolean True.
-   */
-  global define OSRProvideMap(string name, map value) ``{
-
-      map global_provides_map  = $[];
-      map provides_map         = $[];
-
-      provides_map        = $[ "type" : "map", "value" : value, "status" : "known" ];
-      global_provides_map = lookup(osr_map, "global_provides", $[]);
-      global_provides_map = add(global_provides_map, name, provides_map);
-      osr_map             = add(osr_map, "global_provides", global_provides_map);
-
-      return true;
-  }
-
-  /**
-   *  Stores the given string with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param string value The provided value.
-   *  @return boolean True.
-   */
-  global define OSRProvideString(string name, string value) ``{
-
-      map global_provides_map  = $[];
-      map provides_map         = $[];
-
-      provides_map        = $[ "type" : "string", "value" : value, "status" : "known" ];
-      global_provides_map = lookup(osr_map, "global_provides", $[]);
-      global_provides_map = add(global_provides_map, name, provides_map);
-      osr_map             = add(osr_map, "global_provides", global_provides_map);
-
-      return true;
-  }
-
-  /**
-   *  Stores the given path with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param path value The provided value.
-   *  @return boolean True.
-   */
-  global define OSRProvidePath(string name, path value) ``{
-
-      map global_provides_map  = $[];
-      map provides_map         = $[];
-
-      provides_map        = $[ "type" : "path", "value" : value, "status" : "known" ];
-      global_provides_map = lookup(osr_map, "global_provides", $[]);
-      global_provides_map = add(global_provides_map, name, provides_map);
-      osr_map             = add(osr_map, "global_provides", global_provides_map);
-
-      return true;
-  }
-
-  /**
-   *  Returns the required path from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return path value The required path, . as default.
-   */
-  global define OSRRequirePath(string name) ``{
-
-      // TODO: only return the value if it's status is "known"
-      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", .);
-  }
-
-  /**
-   *  Returns the required string from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return string value The required string, "" as default.
-   */
-  global define OSRRequireString(string name) ``{
-
-      // TODO: only return the value if it's status is "known"
-      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", "");
-  }
-
-  /**
-   *  Returns the required list from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return string The required list, [] as default.
-   */
-  global define OSRRequireList(string name) ``{
-
-      // TODO: only return the value if it's status is "known"
-      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", []);
-  }
-
-  /**
-   *  Returns the required map from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return map The required map, $[] as default.
-   */
-  global define OSRRequireMap(string name) ``{
-
-      // TODO: only return the value if it's status is "known"
-      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", $[]);
-  }
+  };
 
   /**
    *  Compares the two specified version numbers. Each version number has to be a string
@@ -534,7 +354,7 @@
   global define OSRStatusRepairError() ``{
 
     return "repair_error";
-  }
+  };
 
   /**
    *  This function is a wrapper for the definition of the correct status.
@@ -547,7 +367,20 @@
   global define OSRStatusRepairOmit() ``{
 
     return "repair_omit";
-  }
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "repair_omit"
+   *  @example string status = OSRStatusRepairOmit();
+   */
+  global define OSRStatusExit() ``{
+
+      return "exit";
+  };
 
   /**
    *  Returns the old osr_map stored on a floppy-disk.
@@ -654,7 +487,8 @@ floppy-drive and press Load.");
 		      UI::OpenDialog(`opt(`decorated), `Label(_("Loading system information...")));
 
 		      // mount the floppy to /media/floppy/
-		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+//		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+		      boolean mounted = (OSRExecuteCommand("/bin/mount " + floppy_device + " /media/floppy -t auto", .local) == 0);
 
 		      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
 		      // correctly!
@@ -670,21 +504,21 @@ floppy-drive and press Load.");
 			  }
 		      }
 		      // umount the floppy after reading
-		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-  
+		      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+		      OSRExecuteCommand("/bin/umount /media/floppy", .local);
+		      
 		      UI::CloseDialog();
 
 		      if (file_read)
 		      {
 			  OSRPopupDisplayQuick(_("System information is o.k."), 1000);
 
-			  // store that the old osr_map was already loaded from floppy
+			  // store a boolean flag: the old osr_map was already loaded from floppy
 			  osr_map = add(osr_map, "read_old_osr_map", true);
 
 			  if (lookup(osr_map, "read_old_osr_map", false) == false)
 			  {
-			      // TODO
-			      OSRPopupDisplayQuick("osr_api.ycp:Da is wohl was daneben gegangen.\nread_old_osr_map = false??", 2000);
+			      y2error("OSRReadFloppy(): An error occurred.");
 			  }
 		      }
 		  }
@@ -704,7 +538,7 @@ floppy-drive and press Load.");
       }
 
       return user_input;
-  }
+  };
 
   /**
    *  Saves the contents of the global osr_map to the file "osr_map.ycp" on floppy-disk.
@@ -798,7 +632,8 @@ and press Store.");
 		      UI::OpenDialog(`opt(`decorated), `Label(_("Storing system information...")));
 
 		      // mount the floppy to /media/floppy/
-		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+//		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+		      boolean mounted = (OSRExecuteCommand("/bin/mount " + floppy_device + " /media/floppy -t auto", .local) == 0);
 
 		      // be careful: only write to the directory /media/floppy if the floppy was mounted
 		      // correctly, otherwise the file /media/floppy/osr_map.ycp is saved to harddisk!
@@ -818,7 +653,8 @@ and press Store.");
 			      
 			      // do it!
 			      // the partition-table of "/dev/sda" is saved to the file "sda.ptbl" on floppy
-			      integer dd_result = WFM::Execute(.local.bash, command);
+//			      integer dd_result = WFM::Execute(.local.bash, command);
+			      integer dd_result = OSRExecuteCommand(command, .local);
 
 			      //OSRPopupDisplayQuick(sformat("command: %1\ndd_result: %2", command, dd_result), 3000);
 
@@ -847,7 +683,8 @@ was not written correctly to floppy."), target), 1000);
 			  }
 		      }
 		      // umount the floppy after reading
-		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+//		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+		      OSRExecuteCommand("/bin/umount /media/floppy", .local);
   
 		      UI::CloseDialog();
 
@@ -874,5 +711,186 @@ was not written correctly to floppy."), target), 1000);
       }
 
       return user_input;
-  };  
+  };
+
+  /**
+   *  Stores the given list with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param list value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideList(string name, list value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "list", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  };
+
+  /**
+   *  Stores the given map with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param map value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideMap(string name, map value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "map", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  };
+
+  /**
+   *  Stores the given string with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param string value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideString(string name, string value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "string", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  };
+
+  /**
+   *  Stores the given path with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param path value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvidePath(string name, path value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "path", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  };
+
+  /**
+   *  Returns the required string from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string value The required string, "" as default.
+   */
+  global define OSRRequireString(string name) ``{
+
+      if (lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "status", "") != "known")
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+      
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", "");
+  };
+
+  /**
+   *  Returns the required list from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string The required list, [] as default.
+   */
+  global define OSRRequireList(string name) ``{
+
+      if (lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "status", "") != "known")
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", []);
+  };
+
+  /**
+   *  Returns the required map from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return map The required map, $[] as default.
+   */
+  global define OSRRequireMap(string name) ``{
+
+      if (lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "status", "") != "known")
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", $[]);
+  };
+
+  /**
+   *  Returns the required path from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return path value The required path, . as default.
+   */
+  global define OSRRequirePath(string name) ``{
+
+      if (lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "status", "") != "known")
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", .);
+  };
+
+  /**
+   *  Returns the path of the global temporary directory, e.g. "/tmp/YaST2-02274".
+   *
+   *  API function,
+   *
+   *  @return string The path of the temporary directory.
+   *  @example string tmpdir = OSRGetTmpDir();
+   */
+  global define OSRGetTmpDir() ``{
+
+      return (SCR::Read(.target.tmpdir));
+  };
 }
