@@ -74,6 +74,7 @@
 
   /**
    * The default fstab entries for proc, usb, ...	
+   * FIXME: these are not sufficient...see e.g. windows partitions (umask, gid)
    */
   map defs 	= $[
 		    "pts" 	: ["devpts", 	"/dev/pts",  	"devpts", 	"mode=0620,gid=5", 	"0",   "0"],
@@ -90,6 +91,7 @@
   
   /**
    * All allowed mount options
+   * FIXME: not sufficient: see hacks in check_fs_mntops()
    */
   list(string) mn_opts = ["async","atime","auto","defaults","dev","exec","noatime","noauto","nodev","noexec",
 			  "nosuid","nouser","remount","ro","rw","suid","sync","dirsync","user","users" ];
@@ -480,12 +482,13 @@ press \"Yes\".
       if( line[3]:"" == nil || line[3]:"" == "" ) return false;
 
       list(string) opts  = splitstring(remove_blacks(line[3]:"" ), "," );
-      // TODO: why only some of options (=mn_opts) are supported?
+      // TODO FIXME: why only some of options (=mn_opts) are supported?
       list unsupported = filter( string o, opts, ``{
             if (contains(mn_opts, o))
                  return false;
-            // hack for iocharset
-            else if (issubstring (o, "iocharset="))
+            // hack for other values (gid and umask used for windows part.)
+            else if (issubstring (o, "iocharset=") || issubstring (o, "gid=") ||
+                     issubstring (o, "umask="))
                 return false;
             else
                 return true;
