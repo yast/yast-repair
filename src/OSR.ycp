@@ -31,6 +31,23 @@
 
   textdomain "repair";
 
+  // function prototypes (needed by includes)
+  global define boolean ProvideList(string name, list value);
+  global define boolean ProvideString(string name, string value);
+  global define boolean ProvideBoolean(string name, boolean value);
+  global define list RequireList(string name);
+  global define string RequireString(string name);
+  global define boolean RequireBoolean(string name);
+  global define void SetReboot();
+
+  // ---------------------- FIXME
+  // we have to include this files, because using them as clients is not
+  // possible (because of passing function references)
+  include "repair/osr_module_init.ycp";
+  include "repair/osr_module_partition.ycp";
+  include "repair/osr_module_packages.ycp";
+  include "repair/osr_module_bootloader.ycp";
+  // ----------------------------
 
   /**
    * Only for define ComputesDetectMethodSequence ! not global.
@@ -243,13 +260,12 @@
    */
   define boolean ComputeModuleSequence(list<string> module_name_list ) ``{
 
-      integer index                		= 0;
-      string  module_name          		= "";
-      list<string>    module_provides_list 	= [];
-      list<string>    module_requires_list 	= [];
+      integer index				= 0;
+      string  module_name			= "";
+      list<string>    module_provides_list	= [];
+      list<string>    module_requires_list	= [];
       list<string>    global_provides_list      = [];
 
-      
       while ((index >= 0) && (index < size(module_name_list )))
       {
 	  // get the module name and its requirements
@@ -257,7 +273,7 @@
 
 	  module_requires_list = lookup( module_maps[ module_name ]:$[],  "requires", []);
 	  module_provides_list = lookup( module_maps[ module_name ]:$[] , "provides", []);
-	  
+
 	  // check if the requirements of the current module are resolved by the global provides
 	  if ( OSRSystem::IsSubSet(module_requires_list, union( global_provides_list, module_provides_list )))
 	  {
@@ -281,11 +297,8 @@
 	  y2error("ComputeModuleSequence: module(s) not added to the sequence list: %1", module_name_list);
 	  return false;
       }
-      
       return true;
   };
-
-
 
   /**
    *  This method initializes the YaST OS Repair system. It is started at first and
@@ -303,8 +316,25 @@
     // Build a list of all detection and repair modules of the
     // rescue system.
     // Get the list of modules from the client osr_module_list.ycp
+    /*
     list<string> module_function_list	= (list<string>)
 	WFM::CallFunction ("osr_module_list");
+    FIXME this is not functional now, because of passing function refenreces
+    -> let's do it static way:
+    */
+    list<string> module_function_list	= [
+	"osr_module_init",
+	"osr_module_partition",
+	"osr_module_packages",
+	"osr_module_bootloader",
+    ];
+    map init_functions			= $[
+	"osr_module_init"	: OSRInitInit,
+	"osr_module_partition"	: OSRPartitionInit,
+	"osr_module_packages"	: OSRPackagesInit,
+	"osr_module_bootloader" : OSRBootloaderInit
+    ];
+
     list<string> module_name_list	= [];
     integer index			= 0;
 
@@ -331,8 +361,15 @@ Error during initialization.
 	// result of this evaluation is the module_map of the specific module
 	map result_map = $[];
 	if (module_function_list [index]:"" != "")
+	{
+	    /*
 	    result_map = (map)
 		WFM::CallFunction (module_function_list[index]:"", [ .init ]);
+	    */
+	    // FIXME call Init functions from all clients...
+	    map () f = init_functions [module_function_list[index]:""]:OSRCommon::EmptyMap;
+	    result_map = f ();
+	}
 
 	  if ((result_map == nil) || (result_map == $[]))
 	  {
@@ -400,7 +437,7 @@ of module: %1. YaST system repair halts now!",
     // Create the sequence-list of the detection-modules.
     // This is the provides- and requirement-resolver.
     if (! ComputeModuleSequence( module_name_list ))
-    {	  
+    {
 	y2error("Not all dependencies between the
 modules successfully solved. YaST system repair halts now!");
 
@@ -415,7 +452,7 @@ modules were successfully solved.
 	}
 	return false;
     }
-   
+
     y2milestone("Module sequence : %1", module_sequence );
     return true;
   };
