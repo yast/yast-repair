@@ -1,11 +1,10 @@
 #
-# Makefile.am for y2c_osr/doc
+# Makefile.am for repair/doc
 #
 
 SUBDIRS = autodocs
 
-docdir = @DOCDIR@
-htmldir = $(docdir)
+htmldir = @docdir@
 
 html_DATA =
 
