@@ -94,8 +94,7 @@
 
     if ( Mode::initial )
     {
-	Wizard::ReplaceAbortButton (`PushButton(`id(`abort),
-		Label::AbortButton()));
+	Wizard::RestoreAbortButton();
     }
 
 	// Set help text
@@ -387,8 +386,7 @@ table or verify the package database.
       }
       else
       {
-	  Wizard::ReplaceAbortButton (
-	    `PushButton(`id(`abort), Label::AbortButton()));
+	  Wizard::RestoreAbortButton();
       }
 
       symbol ret = (symbol) UI::UserInput();
