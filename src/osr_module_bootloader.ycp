@@ -365,8 +365,7 @@ the system and start a new installation.
 	 }
       }
       
-      // FIXME there is no such function!
-      if ( OSR::RequiresBoolean("mounted_all") != true )
+      if ( OSR::RequireBoolean("mounted_all") != true )
       {
 	  if( ! OSRFstab::ReadedSuccessfully())
 	      OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));

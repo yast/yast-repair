@@ -592,7 +592,7 @@ required software packages are installed. If
 some packages are missing YaST propose to
 install the missing packages.</P>
 "),
-					   _("Missing packages to install:"),
+					   _("&Missing packages to install:"),
 					   []
 	    ];
 	}

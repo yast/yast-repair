@@ -60,7 +60,6 @@
 			      boolean ask_before_loading, boolean with_modprobe ) ``{
 
       // always look whether the module is already loaded
-y2warning ("modules: %1", SCR::Read(.proc.modules));
       map current_modules = SCR::Read(.proc.modules);
       if (size (current_modules[modulename]:$[]) > 0)
       {
@@ -84,7 +83,8 @@ y2warning ("modules: %1", SCR::Read(.proc.modules));
    * @param modulename name of the kernel module that should be unloaded
    */
   global define boolean Unload(string modulename ) ``{
-if (modulename == "") return true;
+
+    if (modulename == "") return true; //FIXME
       if ( WFM::Execute(.local.bash, sformat("/sbin/rmmod %1",modulename) ) != 0 ) {
 	  y2error("Can't remove module %1", modulename );
 	  return false;
