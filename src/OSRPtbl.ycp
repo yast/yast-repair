@@ -970,25 +970,24 @@ system performance and the hard disk size.
 ");
 
       term contents  = `HBox(`HSpacing(0.5),
-			     `VBox(
-                   // label text
-				   `Left(`HBox(`HWeight(30, `Heading(_("Search for Lost Partitions"))),
-					 `HWeight(30, `HSpacing(4)))),
-				   `VSpacing(1),
-				   `Left(`Label(message )),
-                   // label text
-				   `Left(`Label(_("Hard Disk: ") +  target )),
-				   `VSpacing(0.5),
-				   UI::HasSpecialWidget(`DownloadProgress) ?
-                        `DownloadProgress( _("Progress:"), gpart_file, 200 ):
-                        `VSpacing(0),
-				   `VSpacing(1),
-                   // button label
-				   `HBox(`PushButton(`id(`start) , _("Start")),
-					     `PushButton(`id(`cancel),CancelButtonLabel() )
-					 )),
-			     `HSpacing(0.5)
-			     );
+	`VBox(
+	    // label text
+	    `Left(`HBox(`HWeight(30, `Heading(_("Search for Lost Partitions"))),
+	    `HWeight(30, `HSpacing(4)))),
+	    `VSpacing(1),
+	    `Left(`Label(message )),
+            // label text
+	    `Left(`Label(_("Hard Disk: ") +  target )),
+	    `VSpacing(0.5),
+	    UI::HasSpecialWidget(`DownloadProgress) ?
+		`DownloadProgress(_("Progress:"), gpart_file, 200):`VSpacing(0),
+	    `VSpacing(1),
+            // button label
+	    `HBox(`PushButton(`id(`start) , _("Start")),
+	    `PushButton(`id(`cancel),CancelButtonLabel())
+	)),
+	`HSpacing(0.5)
+      );
 
       UI::OpenDialog( contents );
 
@@ -999,7 +998,7 @@ system performance and the hard disk size.
       }
       UI::ChangeWidget(`id(`start), `Enabled, false);
       UI::ChangeWidget(`id(`cancel), `Enabled, false);
-      //TODO FIXME action cannot be cancelled!
+      //FIXME action cannot be cancelled! -> TODO use background
       // progress doesn't have sence!
 
       UI::BusyCursor();
