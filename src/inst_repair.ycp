@@ -16,13 +16,14 @@
  */
 {
 
-  import "Mode";
-  import "Wizard";
   import "Linuxrc";
+  import "Mode";
+  import "Stage";
+  import "Wizard";
 
-  Mode::update		= false;
-  Mode::installation	= true;
-  Mode::initial		= true;
+  Mode::SetMode ("update");
+  Mode::SetMode ("installation");
+  Stage::Set ("initial");
 
   y2milestone( "Starting yast repair tool" );
 

@@ -17,8 +17,9 @@
 {
   textdomain "repair";
 
-  import "Mode";
+  import "Popup";
   import "Report";
+  import "Stage";
 
   import "OSRCommon";
   import "OSRPkg";
@@ -231,7 +232,7 @@ Checking the package database is not possible and will be skipped."),
       list<string> options = [ sret , _("All Installed Packages") ];
 
       UI::NormalCursor();
-      if( ! Mode::initial )
+      if( ! Stage::initial () )
       {
         // RadioButtonGroup label
         sret = OSRPopup::RadioButtonGroup(_("Select the package count:"),
@@ -381,7 +382,7 @@ reinstalling the damaged packages.</P>
                       ]
       ];
 
-      if( ! Mode::initial )
+      if( ! Stage::initial () )
       {
       global_menu_entries[ "packages_verify_all" ] =
                       $[
@@ -481,7 +482,7 @@ all software packages.
           ]
       ];
 
-      if ( ! Mode::initial )
+      if ( ! Stage::initial () )
       {
       ret[ "detect_methods" ] = add(  ret[ "detect_methods" ]:[],
                       $[ "name"     : "verify_all_packages",

@@ -9,16 +9,20 @@
 {
   module "OSRRepairUI";
 
+  import "Arch";
+  import "Hotplug";
+  import "Label";
+  import "Linuxrc";
   import "Mode";
-  import "Wizard";
+  import "ModuleLoading";
+  import "Popup";
   import "Progress";
   import "Report";
   import "Sequencer";
+  import "Stage";
   import "StorageDevices";
   import "StorageControllers";
-  import "ModuleLoading";
-  import "Arch";
-  import "Hotplug";
+  import "Wizard";
 
   import "OSR";
   import "OSRCommon";
@@ -30,8 +34,6 @@
   import "OSRProgress";
   import "OSRStatus";
 
-  import "Label";
-  import "Popup";
 
   textdomain "repair";
 
@@ -92,7 +94,7 @@
     if ( initialized )
 	return `next;
 
-    if ( Mode::initial )
+    if ( Stage::initial () )
     {
 	Wizard::RestoreAbortButton();
     }
@@ -159,7 +161,7 @@
     // Start the client "inst_startup.ycp" if the rescue-system is launched
     // from a running Linux-system, else the module inst_startup.ycp
     // was already launched.
-    if (! Mode::test)
+    if (! Mode::test ())
     {
 	if (!(Arch::s390 () || Arch::board_iseries ()))
 	{
@@ -195,7 +197,7 @@ Check your hardware.
 	}
 
 	StorageControllers::Initialize();
-	ModuleLoading::Load ("dm-mod", "", "Linux", "DM", Mode::manual, true);
+	ModuleLoading::Load ("dm-mod", "", "Linux", "DM", Linuxrc::manual (), true);
 
 	if (!OSRMode::script)
 	{
@@ -237,7 +239,7 @@ Check your hardware.
     }
 
     //Probe cdroms and floppy
-    if (!Mode::test )
+    if (!Mode::test () )
     {
 	StorageDevices::FullProbe();
     }
@@ -380,7 +382,7 @@ partition table or verify the package database.")
 
     UI::SetFocus(`id(`scan_repair));
 
-    if (!Mode::initial)
+    if (!Stage::initial ())
     {
         Wizard::DisableBackButton();
     }
@@ -399,7 +401,7 @@ partition table or verify the package database.")
         OSR::SelectDefaultDetectGroups();
     }
 
-    if ( ret == `back && Mode::initial )
+    if ( ret == `back && Stage::initial () )
     {
         Wizard::RestoreNextButton();
     }

@@ -486,7 +486,7 @@ in the table and press \"Recover\".
 
       boolean result = true;
 
-      if (! Mode::test )
+      if (! Mode::test () )
       {
       /////////////////////////////////////////////////////
 	  result = SCR::Write(.disk + target_scrpath + .partitions,
@@ -497,7 +497,7 @@ in the table and press \"Recover\".
 	  Storage::ReReadTargetMap();
       }
       else {
-	  y2milestone("fdisk call not executed. Mode::test = true !!!");
+	  y2milestone("fdisk call not executed. Mode::test () = true !!!");
       }
 
       UI::CloseDialog();
@@ -1200,7 +1200,7 @@ in fdisk or the partitioning tool.
 	    target);
 	list<map> torecover	= ComparePtblDialog (compared, target, "Gpart");
 
-	if (size (torecover) < 1 || Mode::test)
+	if (size (torecover) < 1 || Mode::test ())
 	    return `cancel;
 
 	if (fdisk_call (target_scrpath, torecover))
@@ -1224,7 +1224,7 @@ in fdisk or the partitioning tool.
    * Restore saved mbr.
    */
   define boolean write_original(list<string> to_reset, boolean whole_mbr )``{
-      if (Mode::test ) return true;
+      if (Mode::test () ) return true;
 
       y2milestone("write orginal master boot record");
 
@@ -1270,7 +1270,7 @@ partition table of %2 with the backup.
       
       if (Popup::YesNoHeadline(header, message ))
       {   
-	  if (! Mode::test )
+	  if (! Mode::test () )
 	  {
 	      if (write_original([target], true )) return `ok;
 	      else return `error;
@@ -1288,7 +1288,7 @@ partition table of %2 with the backup.
    * Need mounted floppy
    */
   global define boolean WritePartitionsInfo2Floppy(string key )``{
-      if (Mode::test ) return true;
+      if (Mode::test () ) return true;
 
       boolean write_error = false;
       map target_map      = Storage::GetTargetMap();

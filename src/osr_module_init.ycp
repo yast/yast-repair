@@ -16,8 +16,8 @@
 
 {
 
+  import "Stage";
   import "StorageDevices";
-  import "Mode";
 
   import "OSR";
   import "OSRCommon";
@@ -99,7 +99,7 @@ devices for later use."),
 
       // if the rescue-system is launched from a running Linux-system
       // the target-directory is empty, else "/mnt"
-      if (!Mode::initial && !Mode::cont)
+      if (!Stage::initial () && !Stage::cont ())
       {
         OSRCommon::ProvideString("repair_target", "") ;
       }

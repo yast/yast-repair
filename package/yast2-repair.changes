@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 27 17:55:34 CEST 2004 - jsuchome@suse.cz
+
+- adapted for new Mode:: interface
+- 2.11.1
+
+-------------------------------------------------------------------
 Fri Oct 22 14:31:20 CEST 2004 - jsuchome@suse.cz
 
 - fixed helptext for different product versions (#45306)

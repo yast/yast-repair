@@ -240,7 +240,7 @@
    */
   global define list<string> LinuxPartitions(list checked_partitions) ``{
 
-    if (Mode::test) return ["/dev/hda1", "/dev/hda2"];
+    if (Mode::test ()) return ["/dev/hda1", "/dev/hda2"];
 
     if (size (checked_partitions) == 0) return [];
 
@@ -290,7 +290,7 @@
   global define list<string> MountablePartitions(
 			list<string> linux_partition_list, string m_point) ``{
 
-    if (Mode::test || size (linux_partition_list) == 0)
+    if (Mode::test () || size (linux_partition_list) == 0)
 	return linux_partition_list;
 
     // e.g.: ["/dev/hda1"]
@@ -328,7 +328,7 @@
    */
   global define list<string> ValidRootPartitions(list<string> mount_possible_list, string mount_p) ``{
 
-    if (Mode::test) return mount_possible_list;
+    if (Mode::test ()) return mount_possible_list;
 
     if (size (mount_possible_list) == 0) return [];
 
@@ -1042,7 +1042,7 @@ press \"Yes\".
    */
   define map suggest_missing_entries()``{
 
-    if (Mode::test) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]];
+    if (Mode::test ()) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]];
 
     include "partitioning/write_fstab.ycp";
     integer other_nr = 1;	// count other mounts -> global for wirte_fstab
@@ -1325,7 +1325,7 @@ Really continue?
 	``(kk)
     );
 
-    if (Mode::test) cmpl = [1,2];
+    if (Mode::test ()) cmpl = [1,2];
     return AsciiFile::GetLines (fstab, cmpl);
   }
 
@@ -1885,7 +1885,7 @@ lines, press \"Yes\".
 
     list<symbol> ret = [];
 
-    if (Mode::test)
+    if (Mode::test ())
 	return `ok;
 
     if (size (missing_devs) > 0) {

@@ -17,11 +17,12 @@
 {
 
   import "CommandLine";
-  import "Mode";
+  import "Stage";
+  import "Wizard";
+
   import "OSRRepairUI";
   import "OSRModuleLoading";
   import "OSRMode";
-  import "Wizard";
 
   textdomain "repair";
 
@@ -37,7 +38,7 @@
     if( ! OSRMode::IsValid() ) return `error;
 
     // ===== Open UI ==================================================
-    if( (! Mode::cont) && (! Mode::initial))
+    if( (! Stage::cont ()) && (! Stage::initial ()))
     {
 	Wizard::CreateDialog();
     }
@@ -55,7 +56,7 @@
     OSRModuleLoading::UnloadAll();
 
     // ==== Close the dialog =========================================
-    if( (! Mode::cont) && (! Mode::initial))
+    if( (! Stage::cont ()) && (! Stage::initial ()))
     {
 	UI::CloseDialog();
     }

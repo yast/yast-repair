@@ -18,8 +18,9 @@
  */
 {
   module "OSRSummary";
-  import "Mode";
+
   import "HTML";
+  import "Stage";
 
   import "OSRLogFile";
   import "OSRStatus";
@@ -105,7 +106,7 @@
 
   define string text_width()``{
 
-    if (Mode::initial)
+    if (Stage::initial ())
     {
 	//map display_info = UI::GetDisplayInfo ();
 	//return tointeger( display_info["Width"]:640 / 3 * 2);

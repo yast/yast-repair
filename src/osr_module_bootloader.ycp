@@ -17,11 +17,11 @@
 {
   textdomain "repair";
 
-  import "Mode";
   import "Bootloader";
-  import "Storage";
   import "Label";
   import "Popup";
+  import "Stage";
+  import "Storage";
 
   import "OSR";
   import "OSRCommon";
@@ -240,7 +240,7 @@ the system and start a new installation.
         else
         {
             OSRStatus::ErrorSeverityBlocking();
-            if (Mode::initial)
+            if (Stage::initial ())
             {
                 OSR::SetReboot();
                 y2milestone ( "Make a hard reboot" );

@@ -13,10 +13,9 @@
     module "OSRDirect";
     textdomain "repair";
 
-
-    import "Storage";
     import "HTML";
-    import "Mode";
+    import "Stage";
+    import "Storage";
 
     import "OSRCommon";
     import "OSRSystem";
@@ -62,7 +61,7 @@
     global define void AddEntries(list new_entries, string client ) ``{
 
 	foreach (map p, (list<map<string,any> >)new_entries, ``{
-	    if (!( !Mode::initial && p["initial_only"]:false ))
+	    if (!( !Stage::initial () && p["initial_only"]:false ))
 	    {
 		p["client"] = client;
 		direct_methods[p["name"]:""] =  p;
