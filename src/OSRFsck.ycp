@@ -20,7 +20,7 @@
   import "Storage";
   import "Partitions";
   import "Mode";
-  
+
   import "OSRExecute";
   import "OSRLogFile";
   import "OSRModuleLoading";
@@ -30,7 +30,7 @@
   import "Popup";
 
   textdomain "repair";
-  
+
   /**
    * The last return value from a check_... call
    */ 
@@ -118,9 +118,10 @@
    */
   global define OSRFsck()``{
 
-      fsck_fsid = union( Partitions::fsid_wintypes, Partitions::fsid_dostypes );
-      fsck_fsid = union( fsck_fsid, Partitions::fsid_ntfstypes );
-      fsck_fsid = union( fsck_fsid, [Partitions::fsid_native ]);
+    fsck_fsid = union( Partitions::fsid_wintypes, Partitions::fsid_dostypes );
+    fsck_fsid = union( fsck_fsid, Partitions::fsid_ntfstypes );
+    fsck_fsid = union( fsck_fsid,
+	[ Partitions::fsid_native, Partitions::fsid_lvm  ]);
   }
 
 
@@ -160,17 +161,17 @@
    * used for a fsck.
    */
   global define list(map) PossiblePartitions()``{
+
       if ( Mode::test ) return ["/dev/hda1", "/dev/hda2"];
 
       list(map) partitions =	[];
 
       foreach(string dev, map target, Storage::GetTargetMap(), ``{
-
 	  foreach(map p, target["partitions"]:[],``{
 
-	      if( p["delete"]:false == false &&
+	      if ( p["delete"]:false == false &&
 		  ( contains ( fsck_fsid, p["fsid"]:0 ) &&
- 		    contains ( fsck_type, p["type"]:`unknown ) ) )
+		    contains ( fsck_type, p["type"]:`unknown ) ) )
 	      {
 		  p["maindev"] = dev;
 		  partitions = add(partitions, p );
@@ -179,7 +180,6 @@
       });
 
       y2milestone("all partitions %1", partitions);
-     
       return partitions;
   }
 
@@ -199,7 +199,14 @@ global define boolean Check(map part ) ``{
     // find fs
     if ( ! eval( lookup( fsck_map[used_fs]:$[], "find", ``(is_unknown()) )) )
     {
-	y2error("used_fs is not ok. Searching for new filesystem");
+	// ignore LVM partitions
+	if (part["fsid"]:0 == Partitions::fsid_lvm)
+	{
+	    y2milestone("LVM group: no checks");
+	    return true;
+	}
+
+	y2error("used_fs is not ok or unknown. Searching for new filesystem");
 
 	used_fs            = `unknown;
 	symbol new_used_fs = `unknown;
@@ -216,7 +223,7 @@ global define boolean Check(map part ) ``{
 	    used_fs = new_used_fs;
 	else
 	{
-	    y2error(" no file systen found for %1", check_partition );
+	    y2error("no file systen found for %1", check_partition );
 	}
     }
     else
@@ -230,7 +237,6 @@ global define boolean Check(map part ) ``{
     if ( used_fs != `unknown && used_fs != nil )
     {
 	// ----------- start check now
-//	if (!haskey (fsck_map[used_fs]:$[], "check"))
 	if (IsNonLinuxFileSystem (used_fs))
 	{
 	    y2milestone("non-linux filesystem: no checks");
@@ -253,7 +259,7 @@ global define boolean Check(map part ) ``{
 
 
   define boolean is_unknown()``{
-      y2error("unkonwn file system");
+      y2warning ("unkonwn file system");
       return false;
   }
 
@@ -398,13 +404,11 @@ global define boolean Check(map part ) ``{
 
       return is_ntfs;
   };
-  
 
-  
   /**
    *  Checks the specified partition for consistency with "/sbin/e2fsck".
-   *  @return boolean 
-   *      The exit code returned by e2fsck is the sum of the following conditions:
+   *  @return boolean
+   *    The exit code returned by e2fsck is the sum of the following conditions:
    *      0 - No errors,
    *      1 - File system errors corrected,
    *      2 - File system errors corrected, system should be rebooted if file system was mounted,
@@ -435,7 +439,6 @@ global define boolean Check(map part ) ``{
    *  Checks the specified partition for consistency with "/sbin/reiserfsck".
    */
   define boolean check_reiserfs() ``{
-
     string command = sformat("/bin/echo Yes | /sbin/reiserfsck --check %1",
 	check_partition);
 
@@ -457,7 +460,6 @@ global define boolean Check(map part ) ``{
     return check_reiserfs;
   };
 
-    
   /**
    * Checks the specified partition for consistency with "/sbin/xfs_db -c check".
    */
