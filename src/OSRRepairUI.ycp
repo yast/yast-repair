@@ -754,7 +754,12 @@ possibility to select one proposal or cancel the repair. </P>
 
 
   define symbol LanguageDialog()``{
-      return WFM::CallFunction(`inst_language(false, true, true));
+      symbol ret = `next;
+      do
+      {
+        ret = WFM::CallFunction(`inst_language(false, true, true));
+      } while (ret == `again);
+      return ret;
   }
   
   /**
