@@ -478,12 +478,22 @@ press \"Yes\".
    */
   define boolean check_fs_mntops(list(string) line ) ``{
       if( line[3]:"" == nil || line[3]:"" == "" ) return false;
-      
+
       list(string) opts  = splitstring(remove_blacks(line[3]:"" ), "," );
-      boolean ret = size( filter( string o, opts, ``( ! contains(mn_opts, o))))  == 0;
-      if( ! ret ) y2error("mount options are not supported");
-      return true;
-      
+      // TODO: why only some of options (=mn_opts) are supported?
+      list unsupported = filter( string o, opts, ``{
+            if (contains(mn_opts, o))
+                 return false;
+            // hack for iocharset
+            else if (issubstring (o, "iocharset="))
+                return false;
+            else
+                return true;
+      });
+      boolean ret = size (unsupported) == 0;
+      if( ! ret ) y2error("mount options are not supported: %1", unsupported);
+      return ret;
+
   }
 
   /**

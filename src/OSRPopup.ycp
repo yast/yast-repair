@@ -10,23 +10,27 @@
  *
  * $Id$
  */
- 
+
 {
   module "OSRPopup";
-  
+
   include "ui/common_popups.ycp";
 
   textdomain "repair";
 
-  import "OSRMode";  
+  import "OSRMode";
   import "OSRRepairUI";
-  
-  global string skip_label 	=  _("&Skip");
+
+  // pushbutton label
+  global string skip_label	    =  _("&Skip");
+  // pushbutton label
   global string repair_label	=  _("&Repair");
   global string help_label	=  HelpButtonLabel();
+  // pushbutton label
   global string recover_label   =  _("&Recover");
+  // pushbutton label
   global string ignore_label	=  _("&Ignore");
-  
+
 
   // YaST system repair - Help
   global string help_headline  = OSRRepairUI::tool_name + _(" Help");
@@ -58,9 +62,9 @@
    * Layout for some following dialog.
    */
   define term repair_layout(string headline,  string help_text, term special_contents ) ``{
-      
+
       term help_button   = `Empty();
-      
+
       // enable the help-button if a help-text is specified
       if ( help_text != "" && help_text != "TODO" )
       {
@@ -70,12 +74,13 @@
       {
 	  help_button   = `PushButton(`id(`osr_popup_help), `opt(`disabled), HelpButtonLabel());
       }
-	  
+
       term button_box    = `HBox(
 				 `PushButton(`id(`osr_popup_repair), `opt(`default), repair_label ),
-				 `PushButton(`id(`osr_popup_skip), CancelButtonLabel()),
+                 // FIXME: Cancel or Skip???
+				 `PushButton(`id(`osr_popup_skip), skip_label),
 				 `HSpacing(2),
-				 `Right( help_button )			
+				 `Right( help_button )
 				 );
 
       // put the window-contents alltogether
@@ -85,7 +90,7 @@
 					    ),
 				      button_box
 				      );
-  }		
+  }
 
   /**
    * Layout for some following dialogs.
@@ -118,14 +123,14 @@
 				     );
 
   }
-  
-  
+
+
   /**
    * Open a dialog with the term r_options in the center.
    */
   global define boolean OpenMainRepairDialog(string headline, string error_text, term r_options ) ``{
-      
-      // Build the options for the user dialog      
+
+      // Build the options for the user dialog
       term contents = `HVSquash (
 				`HBox(
 				      `HSpacing(2),
@@ -139,7 +144,7 @@
 					    `VSpacing(1),
 					    `Bottom( `HSquash(`HBox(
 							  `PushButton(`id(`ok), `opt(`default ), OKButtonLabel()),
-							  `PushButton(`id(`cancel), CancelButtonLabel()),
+							  `PushButton(`id(`cancel), skip_label),
 							  `HSpacing(2),
 							  `Right(`PushButton(`id(`help), help_label ))
 							  )))

@@ -41,7 +41,7 @@
       //
       ///////////////////////////////////////////////////////////////////////////////////
 
-      // TODO check english
+      // FIXME: Cancel or Skip?
       // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
       string error_message = sformat(_("
 The partition %1 has the file system ID 130, but
