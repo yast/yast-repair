@@ -77,7 +77,7 @@
 	  y2error("ERROR OSRIsSubSet: something's wrong with %1 and %2", l1, l2);	  
 	  return false;
       }
-  }
+  };
 
   /**
    *  This method resolves the requirements and provides of the modules and computes
@@ -139,7 +139,7 @@
 	  return false;
       }
       return true;
-  }
+  };
 
   /**
    *  Only for the testsuite.
@@ -151,7 +151,7 @@
   global define OSRTestGetOsrMap() ``{
 
       return osr_map;
-  }
+  };
 
   /**
    *  Returns true if the special DownloadProgress widget is supported by
@@ -164,6 +164,106 @@
   global define OSRHasDownloadProgressWidget() ``{
 
       return lookup(osr_map, "has_download_progress_widget", true);
-  }
+  };
 
+  /**
+   *
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if 
+   */
+  global define OSROpenMainWindow() ``{
+
+      string header         = "";
+      string execution_mode = "";
+
+      execution_mode = lookup(osr_map, "execution_mode", "linux");
+      
+      if (execution_mode == "linux")
+      {
+
+      }
+      else if (execution_mode == "cdrom")
+      {
+	  UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      }
+      else if (execution_mode == "nfs")
+      {
+	  UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      }
+      else
+      {
+	  y2error("unknown execution_mode: %1", execution_mode);
+      }
+
+      if (!script_mode)
+      {
+	  header = _("YaST2 OS Repair");
+
+	  if (demo_mode)
+	  {
+	      header = _("YaST2 OS Repair: demo mode");
+	  }
+	  else if (automatic_mode)
+	  {
+	      header = _("YaST2 OS Repair: automatic mode");
+	  }
+      
+	  // display the main window to indicate progress
+
+	  if (execution_mode == "linux")
+	  {
+	      UI(``{
+		  OpenDialog(`opt(`defaultsize),
+			     `VBox(`Image(`suseheader, "SuSE"),
+				   `HBox(`HWeight(30, `RichText(`id(`help), "")),
+					 `HWeight(70, `VBox(
+							    `Left(`Heading(`id(`title), `opt(`hstretch),
+									   WFM::header + _("\nInitialization..."))),
+							    `HVCenter(`ReplacePoint(`id(`contents), `Empty())),
+							    `HBox(
+								  // Back pushbutton: the user input is ignored and the last dialog is called
+								  `PushButton(`id(`back), `opt(`disabled), _("&Back")),
+								  `HStretch(),
+
+								  // Skip pushbutton
+								  //`PushButton(`id(`skip), `opt(`disabled), _("&Skip")),
+								  //`HStretch(),
+
+								  // Abort pushbutton
+								  `PushButton(`id(`abort), `opt(`disabled), _("&Abort")),
+								  `HStretch(),
+
+								  // Next pushbutton
+								  `PushButton(`id(`next), `opt(`disabled), _("&Next"))
+								  )
+							    )
+						  )
+					 )
+				   )
+			     );
+		  ChangeWidget(`id(`abort), `Enabled, false);
+	      });
+	  }
+
+	  /*
+	    if (!UI::HasSpecialWidget(`DownloadProgress))
+	    {
+	    //osr_map = add(osr_map, "has_download_progress_widget", false);
+
+	    if (!automatic_mode)
+	    {
+	    // show error message
+	    UI::ErrorPopup(_("Some special widgets are not available."));
+
+	    return false;
+	    }
+	    }
+	  */
+      }
+
+      return true;
+
+  };
 }
