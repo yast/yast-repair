@@ -17,8 +17,7 @@ clients_DATA =				\
 	osr_module_init.ycp		\
 	osr_module_partition.ycp	\
 	osr_module_lilo.ycp		\
-	osr_module_finish.ycp		\
-	osr_confirm_abort.ycp
+	osr_module_finish.ycp
 
 include_DATA =				\
 	osr_system.ycp			\
