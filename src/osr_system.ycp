@@ -243,7 +243,10 @@
 					 )
 				   )
 			     );
-		  ChangeWidget(`id(`abort), `Enabled, false);
+		  ChangeWidget(`id(`back), `Enabled, true);
+		  ChangeWidget(`id(`abort), `Enabled, true);
+		  ChangeWidget(`id(`next), `Enabled, true);
+		  SetFocus(`id(`next));
 	      });
 	  }
 
