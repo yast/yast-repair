@@ -242,9 +242,9 @@ Check your hardware.
       }
 
       if( ! OSRMode::script ) {
-	  UI::ChangeWidget(`id(`next),  `Enabled, true );
+	  Wizard::EnableNextButton();
 	  UI::ChangeWidget(`id(`abort), `Enabled, true );
-	  UI::ChangeWidget(`id(`back),  `Enabled, true );
+	  Wizard::EnableBackButton();
 
 	  Wizard::SetFocusToNextButton();
       }
@@ -382,7 +382,7 @@ table or verify the package database.
 
       if( ! Mode::initial )
       {
-	  UI::ChangeWidget(`id(`back), `Enabled, false);
+	  Wizard::DisableBackButton();
       }
       else
       {
