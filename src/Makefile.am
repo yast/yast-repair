@@ -40,6 +40,6 @@ client_DATA = 			\
 	osr_module_bootloader.ycp
 
 config_DATA =			\
-	menuentry_osr.y2cc
+	repair.y2cc
 
 EXTRA_DIST = $(client_DATA) $(config_DATA) $(module_DATA)
