@@ -54,13 +54,6 @@ Check log-file : /var/log/y2log.");
 
       y2milestone("selected partition: %1", partition );
 
-      /*
-      y2milestone ("Stopping SCR");
-      SCRStop();
-      y2milestone ("Re-starting SCR on %1", "/mnt/");
-      SCRSetName ("chroot=" + "/" + ":scr");
-      */
-
       // TODO
       //if ( !test_mode )
       //{
@@ -881,7 +874,8 @@ Partition-table not repaired")
 					      _("There exist several valid root-partitions in your system.
 You have to select one item in the list."),
 					      partition_list,
-					      ""
+					      "",
+					      true
 					      );
       }
 
@@ -932,143 +926,144 @@ You have to select one item in the list."),
        *
        *  @return map The result_map.
        */
-      global define OSRPartitionCheckBla() ``{
+  global define OSRPartitionCheckBla() ``{
 
-	  boolean repair_question       = false;
-	  boolean error_detected        = false;
-	  integer progress_expect       = 40;
-	  string  module_name           = "osr_module_partition";
-	  string  help_text             = "";
-	  string  error_message         = "";
-	  string  progress_file         = "";
-	  string  progress_label        = _("Checking the partitions and filesystems");
-	  string  log_file              = "";
-	  string  status                = "";
-	  map     result_map            = $[];
-	  map     target_map            = $[];
-	  string  update_target         = "";
-	  list    partition_list        = [];
-	  list    linux_partition_list  = [];
-	  string  root_partition        = "";
-	  list    mount_possible_list   = [];
+      boolean repair_question       = false;
+      boolean error_detected        = false;
+      integer progress_expect       = 40;
+      string  module_name           = "osr_module_partition";
+      string  help_text             = "";
+      string  error_message         = "";
+      string  progress_file         = "";
+      string  progress_label        = _("Checking the partitions and filesystems");
+      string  log_file              = "";
+      string  status                = "";
+      map     result_map            = $[];
+      map     target_map            = $[];
+      string  update_target         = "";
+      list    partition_list        = [];
+      list    linux_partition_list  = [];
+      string  root_partition        = "";
+      list    mount_possible_list   = [];
       
-	  module_map     = OSRGetModuleMap(module_name);
-	  log_file       = OSRLogFile::GetFile();
-	  progress_file  = lookup(module_map, "progress_file");
+      module_map     = OSRGetModuleMap(module_name);
+      log_file       = OSRLogFile::GetFile();
+      progress_file  = lookup(module_map, "progress_file");
 
-	  // set the parameters for the module-progress-bar
-	  OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
+      // set the parameters for the module-progress-bar
+      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
-	  root_partition = lookup (user_settings, "selectedRootPartition", "" );
-	  partition_list = lookup (user_settings, "validRootPartitions",   [] );
+      root_partition = lookup (user_settings, "selectedRootPartition", "" );
+      partition_list = lookup (user_settings, "validRootPartitions",   [] );
 
-	  target_map     = OSRRequireMap("target_map");
-	  update_target  = OSRRequireString("update_target");
+      target_map     = OSRRequireMap("target_map");
+      update_target  = OSRRequireString("update_target");
 
-/*
-      
-// check all targets (all disks) for partition-entries
-foreach(`target, `values, target_map, ``{
+
+      /*
+      // check all targets (all disks) for partition-entries
+
+      foreach(`target, `values, target_map, ``{
 	  
-if (size(lookup(values, "partitions", $[])) == 0)
-{
-map     fdisk_output   = SCR::Execute(.target.bash_output, sformat("/sbin/fdisk -l %1", target));
-string  fdisk_stderror = deletechars(lookup(fdisk_output, "stderr", ""), "\n");
-string  fdisk_stdout   = lookup(fdisk_output, "stdout", "");
-integer fdisk_exit     = lookup(fdisk_output, "exit", 1);
+      if (size(lookup(values, "partitions", $[])) == 0)
+      {
+      map     fdisk_output   = SCR::Execute(.target.bash_output, sformat("/sbin/fdisk -l %1", target));
+      string  fdisk_stderror = deletechars(lookup(fdisk_output, "stderr", ""), "\n");
+      string  fdisk_stdout   = lookup(fdisk_output, "stdout", "");
+      integer fdisk_exit     = lookup(fdisk_output, "exit", 1);
 	      
-if (fdisk_exit != 0)
-{
-		  status = OSRStatusDetectError();
+      if (fdisk_exit != 0)
+      {
+      status = OSRStatusDetectError();
 
-		  OSRSummaryDetectError(
-					module_name,
-					_("Checking partition tables"),
-					sformat(_("No partition table found for disk %1<br>
-<code>fdisk</code> reports an error: <code>%2</code>"), target, fdisk_error)
-					);
+      OSRSummaryDetectError(
+      module_name,
+      _("Checking partition tables"),
+      sformat(_("No partition table found for disk %1<br>
+      <code>fdisk</code> reports an error: <code>%2</code>"), target, fdisk_error)
+      );
 
-		  error_message = sformat(_("No partition table found for disk %1.
-fdisk reports an error: %2
+      error_message = sformat(_("No partition table found for disk %1.
+      fdisk reports an error: %2
 
-Press Repair to revert the partition-table
-from a former session."), target, fdisk_error);
+      Press Repair to revert the partition-table
+      from a former session."), target, fdisk_error);
 
-		  help_text = _("No partition table found.");
+      help_text = _("No partition table found.");
 	      
-		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
+      repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
-		  if (repair_question)
-		  {
-		      map  old_provides   = lookup(old_osr_map, "global_provides", $[]);
-		      map  old_targets    = lookup(old_provides, "target_map", $[]);
-		      map  old_value      = lookup(old_targets, "value", $[]);
-		      map  old_target_map = lookup(old_value, target, $[]);
-		      list old_partitions = lookup(old_target_map, "partitions", $[]);
+      if (repair_question)
+      {
+      map  old_provides   = lookup(old_osr_map, "global_provides", $[]);
+      map  old_targets    = lookup(old_provides, "target_map", $[]);
+      map  old_value      = lookup(old_targets, "value", $[]);
+      map  old_target_map = lookup(old_value, target, $[]);
+      list old_partitions = lookup(old_target_map, "partitions", $[]);
 
-		      //OSRPopupDisplayQuick(sformat("provides\n%1\ntargets\n%2\nvalue\n%3\ntarget_map\n%4\npartitions\n%5", old_provides, old_targets, old_value, old_target_map, old_partitions), 5000);
+      //OSRPopupDisplayQuick(sformat("provides\n%1\ntargets\n%2\nvalue\n%3\ntarget_map\n%4\npartitions\n%5", old_provides, old_targets, old_value, old_target_map, old_partitions), 5000);
 
-		      if ((old_partitions != nil) && (old_partitions != []))
-		      {
-			  if (WFM::Write(.disk.sda.partitions, old_partitions))
-			  {
-			      status = OSRStatusRepairOK();
+      if ((old_partitions != nil) && (old_partitions != []))
+      {
+      if (WFM::Write(.disk.sda.partitions, old_partitions))
+      {
+      status = OSRStatusRepairOK();
 
-			      OSRSummaryRepairOK(
-						 module_name,
-						 sformat(_("Writing partition-table to disk <code>%1<code>"), target),
-						 _("O.k.")
-						 );
-			  }
-			  else
-			  {
-			      status = OSRStatusRepairError();
+      OSRSummaryRepairOK(
+      module_name,
+      sformat(_("Writing partition-table to disk <code>%1<code>"), target),
+      _("O.k.")
+      );
+      }
+      else
+      {
+      status = OSRStatusRepairError();
 
-			      OSRSummaryRepairError(
-						    module_name,
-						    sformat(_("Writing partition-table to disk <code>%1<code>"), target),
-						    _("Could not write partition-table")
-						    );
-			  }
-		      }
-		      else
-		      {
-			  status = OSRStatusRepairError();
+      OSRSummaryRepairError(
+      module_name,
+      sformat(_("Writing partition-table to disk <code>%1<code>"), target),
+      _("Could not write partition-table")
+      );
+      }
+      }
+      else
+      {
+      status = OSRStatusRepairError();
 
-			  OSRSummaryRepairError(
-						module_name,
-						sformat(_("Writing partition-table to disk<code>%1<code>"), target),
-						_("Old partition-table is not valid<br>
-Partition-table not written to disk")
-						);
-		      }
-		  }
-		  else
-		  {
-		      status = OSRStatusRepairOmit();
+      OSRSummaryRepairError(
+      module_name,
+      sformat(_("Writing partition-table to disk<code>%1<code>"), target),
+      _("Old partition-table is not valid<br>
+      Partition-table not written to disk")
+      );
+      }
+      }
+      else
+      {
+      status = OSRStatusRepairOmit();
 
-		      OSRSummaryRepairOmit(
-					   module_name,
-					   _("Repairing partition-table"),
-					   _("Partition-table not repaired")
-					   );
-		  }
-	      }
-	      else
-	      {
-		  status = OSRStatusDetectOK();
+      OSRSummaryRepairOmit(
+      module_name,
+      _("Repairing partition-table"),
+      _("Partition-table not repaired")
+      );
+      }
+      }
+      else
+      {
+      status = OSRStatusDetectOK();
 
-		  OSRSummaryDetectOK(
-				     module_name,
-				     _("Checking partition tables"),
-				     _("O.k.")
-				     );
-		  OSRPopupDisplayQuick(sformat("%1\n%2", fdisk_stdout, fdisk_stderror), 2000);
-	      }
-	  }
+      OSRSummaryDetectOK(
+      module_name,
+      _("Checking partition tables"),
+      _("O.k.")
+      );
+      OSRPopupDisplayQuick(sformat("%1\n%2", fdisk_stdout, fdisk_stderror), 2000);
+      }
+      }
 
       });
-*/    
+      */    
 
       //SCR(`Write(.dumpto.tmp.user_settings, user_settings));
 
@@ -1077,11 +1072,11 @@ Partition-table not written to disk")
 	  // Update has been started from installed system.
 	  //return `auto;
       }
-      
+
       if ( size ( partition_list ) <= 0 )
       {
-	  // evaluate possible root-partitions
- 	  foreach(`device , `description, target_map, ``{
+// evaluate possible root-partitions
+	  foreach(`device , `description, target_map, ``{
 	      foreach ( `partition, lookup ( description, "partitions", [] ), ``{
 
 		  if ((lookup( partition, "fsid", 0 )           == 131)       // Linux native partitions
@@ -1137,12 +1132,13 @@ Partition-table not written to disk")
 		      y2milestone("found fstab :%1", fstab );
 		      partition_list       = add(partition_list, partition_item);
 		  }
+
 		  SCR::Execute(.target.umount, "/mnt");
 	      }
 	      OSRPopupDisplayQuick(sformat("%1\n%2\n%3\n%4", linux_partition_list, partition_item, ret_bool, fstab), 2000);
 	  });
 
-	  /*
+      /*
 	  // mount these partitions to /mnt and look for /etc/fstab
 	  foreach(`device , `description, target_map, ``{
 	      foreach ( `partition, lookup ( description, "partitions", [] ), ``{
@@ -1192,7 +1188,7 @@ Partition-table not written to disk")
 	      });
 	  });
 	  */
-	  
+	   
 	  user_settings = add(user_settings, "validRootPartitions", partition_list);
       }
 
@@ -1253,7 +1249,8 @@ Partition-table not written to disk")
 					      _("There exist several valid root-partitions in your system.
 You have to select one item in the list."),
 					      partition_list,
-					      ""
+					      "",
+					      true
 					      );
       }
 
