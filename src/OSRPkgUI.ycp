@@ -44,15 +44,15 @@
     /**
      * Labels for Pause/Continue buttons.
      */
-    string pause_label 		= _("&Pause");
+    string pause_label		= _("&Pause");
     string continue_label	= _("&Continue");
-    
+
     /**
      * All allowed rpm test options with description.
-     */ 
+     */
     list modes =  [["S",	_("The File Size")			],
 		   ["M",	_("The File Mode")			],
-		   ["5",	_("The MD5 Checksum of the File")  	],
+		   ["5",	_("The MD5 Checksum of the File")	],
 		   ["D",	_("The File Major and Minor Number")	],
 		   ["L",	_("The File Symbolic Link Content")	],
 		   ["U",	_("The Owner of the File")		],
@@ -94,8 +94,8 @@ modified.
     /**
      * Show successful package checks too.
      */
-    boolean show_ok         	 = true;
-  
+    boolean show_ok		 = false;
+
     /**
      * Summary text of all passed and not passed packages.
      */
@@ -178,7 +178,7 @@ modified.
     global define void Reset()``{
 	
 	// Reset values
-	show_ok         	= true;
+	show_ok         	= false;
 	pause			= false;
 	package_count		= 0;
 	expert_mode		= false;
