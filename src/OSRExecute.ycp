@@ -35,25 +35,20 @@
       if ( environment == .local.bash || environment == .local.bash_output )
       {
 	  result_map  = WFM::Execute(.local.bash_output, commandline );
-	  //y2milestone("return of exec %1", result_map );
       }
       else if ( environment == .target.bash || environment == .target.bash_output )
       {
 	  result_map  = SCR::Execute(.target.bash_output, commandline);
-	  //y2milestone("return of exec %1", result_map );
-	  //environment = .target.bash_output;
       }
       else
       {
 	  y2error("OSRExecute::CommandOutput ERROR: wrong environment \"%1\", has to be .local.bash_output or .target.bash_output", environment);
 	  return false;
       }
-
-      //result_map  = SCR::Execute(.target.bash_output, commandline);
+      
       result      = result_map[ "exit"   ]:-1;
       stdout      = result_map[ "stdout" ]:"";
       stderr      = result_map[ "stderr" ]:"";
-
       return true;
   }
 
@@ -63,17 +58,6 @@
       stdout      = "";
       stderr      = "";
       result_map  = $[];
-
-      /*
-      string command  =  sformat("if /usr/bin/test -f %1; then /bin/rm %1; fi", OutputFile() );
-
-      // delete the old progress_file, if it exists
-      if (  WFM::Execute(.local.bash, command) != 0 )
-	  y2error("The file %1 could not be deleted.",OutputFile() );
-
-      if ( WFM::Execute(.local.bash, sformat("/bin/touch %1" ,OutputFile())) != 0 )
-	  y2error("The file %1 could not be created ", OutputFile());
-      */
   }
 
   define void debugResult()``{
@@ -131,8 +115,6 @@
             
       if ( Mode::demo || Mode::test )  commandline = "/bin/echo " +  mergestring(splitstring(commandline, ";"), " ");
 
-      // delete 
-      
       // accept also .local.bash and .target.bash as parameter
       if ( ! exec( environment, commandline ) ) return false;
       
@@ -209,7 +191,6 @@
 
       // in demo-mode set "echo" in front of every commandline and delete all ";" from
       // the commandline
-
       if (Mode::demo || Mode::test )  commandline = "/bin/echo " + mergestring(splitstring(commandline, ";"), " ");
 
       if ( UI::WidgetExists(`id(`module_progress_bar ))) 
@@ -217,7 +198,6 @@
       
       // only use the module progress bar if a filename was specified and the
       // UI interpreter supports the DownloadProgressWidget
-
       if ((progress_file != "") && progress_file != nil
 	  && progress_file != OSRLogFile::GetTmpDir()
 	  && progress_file != OSRLogFile::GetTmpDir()+"/"

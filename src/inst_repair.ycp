@@ -18,7 +18,7 @@
 
   import "Mode";
   import "Wizard";
-  
+  import "Misc";
 
   Mode::update = false;
   Mode::installation = true;
@@ -28,6 +28,9 @@
 
   Wizard::OpenNextBackDialog();
 	
-  return WFM::CallFunction(`repair());
+  symbol ret = WFM::CallFunction(`repair());
 
+  Misc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
+  return `finish;
+  
 }

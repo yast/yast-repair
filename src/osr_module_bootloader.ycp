@@ -203,7 +203,6 @@ install a new boot loader."),
       // Check sysconfig files ...
       //
       ///////////////////////////////////////////////////////////////////////////////////
-
  
       // change root for SCR
       OSRSystem::SetTargetRoot();
@@ -349,27 +348,6 @@ the system and start a new installation.
 	 }
       }
       
-      /*
-      // mount /boot partition if boot != root
-      if( OSRBoot::boot_device != OSRBoot::root_device ) {
-	  // mount boot
-	  if( Partitions::MountedOn(OSRBoot::boot_device, Partitions::CurMounted()) == "" )
-	  {
-	      string boot_mp = OSRSystem::TargetRoot() + "/boot";
-	      if( ! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1", boot_mp ))) {
-		  OSRExecute::Command(.local.bash, sformat("/bin/mkdir %1",  boot_mp ));
-	      }
-	      if ( ! OSRExecute::Command(.local.bash, sformat("/bin/mount %1 %2", OSRBoot::boot_device, boot_mp )))
-	      {
-		  OSRSummary::DetectError(summary_header, _("Mounting boot device was not possible"));
-	      }
-	      else {
-		  OSR::ProvideList("just_mounted", add( OSR::RequireList("just_mounted" ),
-							$[ "partition" : boot_partition, "mountpoint" : boot_mp ] ));
-	      }
-	  }
-      }
-      */
       if ( OSR::RequiresBoolean("mounted_all") != true )
       {
 	  if( ! OSRFstab::ReadedSuccessfully())

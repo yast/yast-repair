@@ -28,14 +28,7 @@
 
   integer arg_n = 0;
 
-
-  
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  METHODS
-  //
-  //////////////////////////////////////////////////////////////////////
-
+ 
   /**
    *  Initialization of the module map that contains all important information
    *  for this module.
@@ -134,7 +127,6 @@ all packages is very time consuming. Therefore
 this menu entry does not belong to the default
 selection.</P>
 "),
-					    //"requires"  : ["packages_verify_base"  ],
 					    "selected"	: false
 					  ];
       }

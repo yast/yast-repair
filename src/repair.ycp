@@ -38,39 +38,19 @@
   if( ! OSRMode::IsValid() ) return `error;
 
   // write verify output to tmp directory.
-  OSRMode::save = true;
+  // OSRMode::save = true;
   ////////////////////////////////////////////////////////////////////////////////
   //
   //  MAIN
   //
   ////////////////////////////////////////////////////////////////////////////////
-
-  // Check the user-name, only root has access to the rescue-system.
-  //If the rescue-system was started via cdrom or nfs this test is not necessary.
-  //if ((!Mode::demo ) && (!Mode::initial) && (!Mode::cont))
-  //{
-  //   if ( SCR::Read(.runtime.username) != "root") {
-  //	  UI::AnyMessagePopup(_("YaST user error"),
-  //			      sformat(_("
-  //You have to be logged in as the root
-  //user in order to start the rescue
-  //system.
-  //
-  //%1 halts now."), OSRRepairUI::tool_name ));
-  //	  
-  //	  return `error;
-  //     }
-  //}
-
   
   // ===== Open UI ==================================================
   if( (! Mode::cont) && (! Mode::initial))
   {
       Wizard::CreateDialog();
   }
-  else {
-      //OSR::Reset();
-  }
+
 
   // ===== Init the Rescue System =================================
   symbol ret = OSRRepairUI::InitDialog();
@@ -80,10 +60,8 @@
   // ==== Open main dialog =========================================
   ret = OSRRepairUI::OsrMainDialog();
 
-
   // ==== Try to unload all loaded modules =========================
   OSRModuleLoading::UnloadAll();
-
   
   // ==== Close the dialog =========================================
   if( (! Mode::cont) && (! Mode::initial))
@@ -91,7 +69,6 @@
       UI::CloseDialog();
   }
   
-  return ret;
-    
+  return ret;    
 }
 
