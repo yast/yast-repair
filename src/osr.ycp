@@ -29,21 +29,32 @@
   include "osr/osr_api.ycp";
   include "osr/osr_summary.ycp";
   include "osr/osr_popup.ycp";
-  include "osr/osr_module_progress.ycp";
-  include "osr/osr_global_progress.ycp";
-  include "osr/osr_log_file.ycp";
+
+  import "osr/OSRModuleProgress";
+  import "osr/OSRGlobalProgress";
+  import "osr/OSRLogFile";
 
   ////////////////////////////////////////////////////////////////////////////////
   //
   //  GLOBAL VARIABLES
   //
   ////////////////////////////////////////////////////////////////////////////////
-
-  // List for the modules and an index.
-  list osr_module_list     = [];
   
-  // A map with all informations...
+  // This map contains all informations for the whole YaST2 OS Repair-system, except
+  // the lists of detection-methods. The .. is that the functions are executed if
+  // the osr_map is written to a file.
   map osr_map              = $[];
+
+  map old_osr_map          = $[];
+
+  // A map with all lists of detect-methods. The function-names have to be enclosed in
+  // double-quoted braces!
+  // osr_detect_method_map = $[
+  //     "osr_module_init"      : [ ``(OSRInitConvertUserSettings()), ``(OSRInitCheckFstab()) ],
+  //     "osr_module_partition" : [ ``(OSRPartitionCheck()), ``(OSRPartitionCheckDisks()) ],
+  //     "osr_module_lilo"      : [ ... ]
+  // ]
+  map osr_detect_method_map = $[];
 
   ////////////////////////////////////////////////////////////////////////////////
   //
@@ -58,7 +69,8 @@
   boolean demo_mode      = false;      // No real error-detection or repair, only demonstration, GUI.
   boolean detection_mode = false;      // Only detection, no repair, GUI.
   boolean script_mode    = false;      // No GUI, no user-interaction, input-values come from a map.
-  boolean provides_mode  = false;      // Prints the values provided by the detection-modules to the file /tmp/osr_global_provides.
+  boolean provides_mode  = false;      // Prints the values provided by the detection-modules to the
+                                       // file /tmp/osr_global_provides.
 
   if      ( size(Args()) == 0 ) normal_mode = true;
   else if ( size(Args()) > 1 )
@@ -87,6 +99,7 @@
       }
   }
 
+  // a map that contains the boolean values of all execution-modes
   map mode_map = $[
 		   "automatic_mode" : automatic_mode,
 		   "demo_mode"      : demo_mode,
@@ -95,7 +108,8 @@
 		   "script_mode"    : script_mode,
 		   "provides_mode"  : provides_mode
   ];
-  
+
+  // store the map of modes to the global map
   osr_map = add(osr_map, "mode_map", mode_map);
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -114,13 +128,15 @@
    */
   define OSRInit() ``{
 
+      UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      
       osr_map = $[
-		  "module_sequence"              : [],
-		  "module_list"                  : [],
-		  "log_file"                     : "/tmp/osr.log",
-		  "global_progress_increment"    : 500,
-		  "global_progress_length"       : 10000,
-		  "has_download_progress_widget" : true
+		  "module_sequence"              : [],               // sequence of execution of the detection-modules
+		  "module_list"                  : [],               // the whole list of detection-modules
+		  "log_file"                     : "/tmp/osr.log",   // default log-file-path
+		  "has_download_progress_widget" : true,             // boolean, DownloadProgress-widget exists for current UI
+		  "read_old_osr_map"             : false,            // boolean, old osr_map is already read from floppy
+		  "osr_map_stored"               : false             // boolean, osr_map is already stored to floppy
       ];
       
       string log_file = "";
@@ -128,18 +144,19 @@
 
       if (!script_mode)
       {
-	  header = UI(_("YaST2 OS Repair"));
+	  header = _("YaST2 OS Repair");
 
 	  if (demo_mode)
 	  {
-	      header = UI(_("YaST2 OS Repair: demo mode"));
+	      header = _("YaST2 OS Repair: demo mode");
 	  }
 	  else if (automatic_mode)
 	  {
-	      header = UI(_("YaST2 OS Repair: automatic mode"));
+	      header = _("YaST2 OS Repair: automatic mode");
 	  }
       
 	  // display the main window to indicate progress
+	  /*
 	  UI(``{
 	      OpenDialog(`opt(`defaultsize),
 			 `VBox(`Image(`suseheader, "SuSE"),
@@ -170,59 +187,103 @@
 			 );
 	      ChangeWidget(`id(`abort), `Enabled, false);
 	  });
-      
-	  if (!UI(`HasSpecialWidget(`DownloadProgress)))
+	  */
+
+	  if (!UI::HasSpecialWidget(`DownloadProgress))
 	  {
-	      osr_map = add(osr_map, "has_download_progress_widget", false);
+	      //osr_map = add(osr_map, "has_download_progress_widget", false);
 
-	      /*
-		if (!automatic_mode)
-		{
-		// show error message and close the main window
-		UI(`ErrorPopup(_("Some special widgets are not available.")));
+	      if (!automatic_mode)
+	      {
+		  // show error message and close the main window
+		  UI::ErrorPopup(_("Some special widgets are not available."));
 
-		return false;
-		}
-	      */
+		  return false;
+	      }
 	  }
       }
 
-      // read the list of modules from the specified file, the list has to look like this:
-      // [`osr_module_init(), `osr_module_lilo()]
-      list osr_module_list = SCR(`Read (.target.ycp, "/usr/lib/YaST2/osr_module_list.ycp"));
-
+      // get the list of modules from the client osr_module_list.ycp,
+      // the returned list has to look like this:
+      // [`osr_module_init(), `osr_module_partition, `osr_module_lilo()]
+      list osr_module_list = [];
+      osr_module_list      = CallFunction(`osr_module_list());
+      
       // add .init to the symbols
       list temp_list = [];
       foreach(`n, osr_module_list, ``{temp_list = add(temp_list, add(n, .init));});
       osr_module_list = temp_list;
 
       // get the name of the global log-file and set it up
-      log_file = OSRLogFileGet();
-      if (!OSRLogFileSetup(log_file))
+      // TODO
+      /*
+      log_file = OSRLogFile::GetFile();
+      
+      if (!OSRLogFile::Setup(log_file))
       {
-	  return false;
+	  //return false;
       }
+      */
+      OSRLogFile::SetFile("osr.log");
       
       integer index    = 0;
       
       // execute the init-functions of all modules in the module-list
       while((index >= 0) && (index < size(osr_module_list)))
       {
-	  map result_map   = $[];
-	  map provides_map = $[];
+	  map    result_map            = $[];
+	  map    provides_map          = $[];
+	  string module_name           = "";
+	  list   module_detect_methods = [];
 
 	  // the result of evaluation is the module_map
 	  result_map     = CallFunction(select(osr_module_list, index));
-	  provides_map   = lookup(result_map, "provides", $[]);
+
+	  if ((result_map == nil) || (result_map == $[]))
+	  {
+	      OSRPopupDisplayQuick(
+				   sformat(UI_("An error occurred during execution
+of the init-functions of module: %1
+
+YaST2 OS Repair halts now.",
+				     select(osr_module_list, index)
+				     )),
+				   2000
+				   );
+	      
+	      y2error("An error occurred during execution of the init-functions of module: %1",
+		      select(osr_module_list, index));
+	      
+	      return false;
+	  }
+	  
+	  // the map that contains all information about which module provides which value
+	  provides_map = lookup(result_map, "provides", $[]);
+
+	  // the name of the current module
+	  module_name = lookup(result_map, "name", "");
+
+	  // the list of detect-methods of the current module
+	  module_detect_methods = lookup(result_map, "detect_methods", $[]);
+
+	  // delete the detect_methods from the result_map (it should not appear in the osr_map)
+	  result_map = filter(`k, `v, result_map, ``(k != "detect_methods"));
+
+	  // add the detect-methods of the current module to the global detect-methods-map
+	  osr_detect_method_map = add(osr_detect_method_map, module_name, module_detect_methods);
 	  
 	  // add the module_map to the global osr_map
-	  osr_map        = add(osr_map, lookup(result_map, "name", $[]), result_map);
-
+	  osr_map = add(osr_map, module_name, result_map);
+	  
 	  // add the provides map to the global osr_map
-	  osr_map        = add(osr_map, "global_provides" ,lookup(result_map, "provides", $[]) );
+	  osr_map = add(osr_map, "global_provides" ,provides_map);
 
-	  // add the name of the module to the unsorted module_list
-	  osr_map        = OSRAddToModuleList(lookup(result_map, "name"));
+	  // a list that contains the names of all modules: ["osr_module_init", "osr_module_lilo", ...]
+	  list module_list = lookup(osr_map, "module_list", []);
+
+	  // get the current module-name, put it to the module-list and store it in the global map
+	  module_list = add(module_list, lookup(result_map, "name", ""));
+	  osr_map     = add(osr_map, "module_list", module_list);
 	  
 	  // increase the index counter
 	  index = index + 1;
@@ -240,7 +301,10 @@
 	  if (!automatic_mode)
 	  {
 	      // show error message and close the main window
-	      UI(`ErrorPopup(_("Not all dependencies between the modules\nwere successfully solved.\n\nYaST2 OS Repair halts now.")));
+	      UI::ErrorPopup(_("Not all dependencies between the modules
+were successfully solved.
+
+YaST2 OS Repair halts now."));
 	  }
 	  return false;
       }
@@ -248,7 +312,10 @@
       if (!script_mode)
       {
       
-	  UI(`ChangeWidget(`id(`title), `Value, header + UI(_("\nInitialization succeeded"))));
+	  UI::ChangeWidget(`id(`title), `Value, header + _("\nInitialization succeeded"));
+
+	  integer osr_module_progress_length = OSRModuleProgress::length;
+	  integer osr_global_progress_length = OSRGlobalProgress::length;
 
 	  // Build window contents
 	  UI(``{
@@ -258,30 +325,28 @@
 	      term    rich_text              = `Empty();
 	      term    contents               = `Empty();
 	      string  help_text              = "";
-	      integer global_progress_length = 1000;
 
-	      global_progress_length = lookup(WFM::osr_map, "global_progress_length", 1000);
-	  
 	      /*
 		buttons_right = `HSquash(`Top(`VBox(`PushButton(`id(`repair),`opt(`disabled),_("&Repair")),`PushButton(`id(`help_button),
 		`opt(`hstretch),_("&Help")))));
 	      */
 
-	      // only use a DownloadProgress widget if supported
-	      if (WFM::OSRHasDownloadProgressWidget())
+	      // only use a DownloadProgress-widget if it is supported by the UI-interpreter
+	      // (e.g. QT: supported, ncurses: NOT supported)
+	      if (UI::HasSpecialWidget(`DownloadProgress))
 	      {
 		  download_progress = `DownloadProgress(
 							`id(`module_progress_bar),
 							_("Module check"),
 							"/tmp/module_progress_bar",
-							1000
+						        WFM::osr_module_progress_length
 							);
 	      }
 
 	      progress_bar = `ProgressBar(
 					  `id(`global_progress_bar),
 					  "System check",
-					  global_progress_length
+					  WFM::osr_global_progress_length
 					  );
 
 	      rich_text = `RichText(
@@ -319,7 +384,7 @@
 	  });
 
 	  // set the increment value for the global progress bar
-	  OSRGlobalProgressSetIncrement();
+	  OSRGlobalProgress::ComputeIncrement(lookup(osr_map, "module_sequence", []), osr_detect_method_map);
       }
 
       //SCR(`Write(.dumpto.tmp.osr_map, osr_map));
@@ -341,7 +406,7 @@
       list temp_list = [];
 
       // get the old module_list from the osr_map
-      temp_list = lookup(osr_map, "module_list");
+      temp_list = lookup(osr_map, "module_list", []);
 
       // add the new entry to the list
       temp_list = add(temp_list, entry);
@@ -382,7 +447,7 @@
       {
 	  module_name    = select(module_sequence, index_modules, "");
           module_map     = lookup(osr_map, module_name, $[]);
-	  detect_methods = lookup(module_map, "detect_methods");
+	  detect_methods = lookup(osr_detect_method_map, module_name, []);
 	  
 	  // reset some values to empty before re-entry into the loop!
 	  index_detect   = 0;
@@ -401,7 +466,7 @@
 	      if (status == "detect_ok")
 	      {
 		  // if no error detected go to the next detection-method
-		  OSRGlobalProgressIncrease();
+		  OSRGlobalProgress::Increase();
 		  index_detect = index_detect + 1;
 	      }
 	      else if (status == "detect_error")
@@ -422,7 +487,7 @@
 	      else if (status == "repair_omit")
 	      {
 		  // if the user omitted repairing go to the next detection method
-		  OSRGlobalProgressIncrease();
+		  OSRGlobalProgress::Increase();
 		  index_detect = index_detect + 1;
 	      }
 	      else
@@ -430,11 +495,12 @@
 		y2error("not a valid status: %1", status);
 	      }
 	  }
-	  // save the result map in the global osr_map
+
+	  // deposit the result map in the global osr_map
 	  //module_map = add(module_map, "result_map", result_map);
 	  //osr_map    = add(osr_map, module_name, module_map);
 
-	  OSRModuleProgressFill();
+	  OSRModuleProgress::Fill();
 	  
 	  // go to the next module
 	  index_modules = index_modules + 1;
@@ -442,7 +508,7 @@
 
       // fill up the global-progress-bar to 100%, this can be neccessary because of
       // arithmetic rounding problems
-      OSRGlobalProgressFill();
+      OSRGlobalProgress::Fill();
       
       return true;
   }
@@ -459,7 +525,7 @@
 
       string user_name = "";
 
-      user_name = SCR(`Read(.runtime.username));
+      user_name = SCR::Read(.runtime.username);
 
       return (user_name == "root");
       
@@ -490,7 +556,7 @@
       return true;
       */
   }
-  
+
   ////////////////////////////////////////////////////////////////////////////////
   //
   //  MAIN
@@ -503,7 +569,7 @@
       map     global_provides_map  = $[];
       list    osr_module_list      = [];
 
-      osr_module_list = SCR(`Read (.target.ycp, "/usr/lib/YaST2/osr_module_list.ycp"));
+      osr_module_list = SCR::Read (.target.ycp, "/usr/lib/YaST2/osr_module_list.ycp");
 
       // add .init to the symbols
       list temp_list = [];
@@ -536,13 +602,16 @@
       global_provides_map = lookup(osr_map, "global_provides", $[]);
 
       // save the global-provides-map to the /tmp-directory
-      SCR(`Write(.dumpto.tmp.osr_global_provides, global_provides_map));
+      SCR::Write(.dumpto.tmp.osr_global_provides, global_provides_map);
 
       return;
   }
   
+//  SCR(`Write(.dumpto.tmp.user_settings, user_settings));
+  
   if (!demo_mode)
   {
+      /*
       if (!OSRAmIRoot())
       {
 	  UI(`AnyMessagePopup(_("YaST2 OS Repair: Error"),
@@ -551,45 +620,59 @@
       
 	  return;
       }
+      */
   }
-  
+
+  // ask the user for reading an old osr_map from a previos
+  // YaST2 OS Repair-session. The map has to be stored in a
+  // file "osr_map.ycp" on a floppy-disk.
+  old_osr_map = OSRMapReadFloppy();
+        
   if (!OSRInit())
   {
-      return UI(`CloseDialog());
+      return UI::CloseDialog();
   }
 
   if (!OSRDetect())
   {
-      return UI(`CloseDialog());
+      return UI::CloseDialog();
   }
 
+  // ask the user to store the whole osr_map to floppy-disk for later
+  // YaST2 OS Repair-sessions
+  OSRMapWriteFloppy();
+  
   if (!script_mode)
   {
-  // enable the next-button
-  UI(``{
-      ChangeWidget(`id(`next), `Enabled, true);
-      SetFocus(`id(`next));
-  });
+      // enable the buttons
+      UI::ChangeWidget(`id(`next), `Enabled, true);
+      UI::ChangeWidget(`id(`abort), `Enabled, true);
+      UI::ChangeWidget(`id(`back), `Enabled, true);
+      UI::SetFocus(`id(`next));
   
-  // wait for user input
-  any user_input = nil;
+      // wait for user input
+      any user_input = nil;
 
-  if (automatic_mode) user_input = `next;
+      if (automatic_mode)
+      {
+	  user_input = `next;
+      }
       
-  while(user_input != `next)
-  {
-      user_input = UI(`UserInput ());
-  }
-
-  //ShowFilePopup("YaST2 OS Repair: osr_map", "/tmp/osr_map");
-
-  //ShowFilePopup("YaST2 OS Repair: osr_log_file", lookup(osr_map, "osr_log_file", "/tmp/osr.log"));
-  
-  return UI(`CloseDialog());
+      while((user_input != `next) && (user_input != `back) && (user_input != `abort))
+      {
+	  user_input = UI::UserInput();
+      }
+      
+      if ((user_input == `next) || (user_input == `abort))
+      {
+	  UI::CloseDialog();
+      }
+      
+      return user_input;
   }
   else
   {
-      return;
+      return `next;
   }
 
   /*
@@ -598,21 +681,17 @@
   
   //  set "os_repair_status" `off
   user_settings = add(user_settings, "osr_status", `off);
-
-      
-    
-      global define SetContents(string title, term contents, string helptext,
-				boolean has_back, boolean has_skip, boolean has_abort, boolean has_next) ``{
-	  ChangeWidget(`id(`next),  `Enabled, has_next);
-	  ChangeWidget(`id(`back),  `Enabled, has_back);
-	  ChangeWidget(`id(`skip),  `Enabled, has_skip);
-	  ChangeWidget(`id(`abort), `Enabled, has_abort);
-	  ChangeWidget(`id(`help),  `Value,   helptext);
-	  ChangeWidget(`id(`title), `Value,   title);
-	  ReplaceWidget(`id(`contents), contents);
-      };
-
-
+  
+  global define SetContents(string title, term contents, string helptext,
+			    boolean has_back, boolean has_skip, boolean has_abort, boolean has_next) ``{
+      ChangeWidget(`id(`next),  `Enabled, has_next);
+      ChangeWidget(`id(`back),  `Enabled, has_back);
+      ChangeWidget(`id(`skip),  `Enabled, has_skip);
+      ChangeWidget(`id(`abort), `Enabled, has_abort);
+      ChangeWidget(`id(`help),  `Value,   helptext);
+      ChangeWidget(`id(`title), `Value,   title);
+      ReplaceWidget(`id(`contents), contents);
+  };
 
   user_settings = add( user_settings, "demo_mode", demo_mode );
   user_settings = add( user_settings, "auto_mode", auto_mode );
