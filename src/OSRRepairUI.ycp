@@ -1,0 +1,968 @@
+/**
+ * File:	OSRRepairUI.ycp
+ * Module:	repair
+ * Summary:     UI functions
+ * Authors:	Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+{
+
+  module "OSRRepairUI";
+
+ 
+  /**
+   * The name of the repair and rescue tool.
+   */
+  global string tool_name   = _("YaST System Repair");
+
+  
+  import "Mode";
+  import "Wizard";
+  import "Progress";
+  import "Report";
+  import "StorageDevices";
+  import "StorageControllers";
+  import "ModuleLoading";
+  import "Arch";
+
+  import "OSRMode";
+  import "OSR";
+  import "OSRSummary";  
+  import "OSRPtbl";
+  import "OSRDirect";
+  import "OSRExecute";
+ 
+
+  include "wizard/sequencer.ycp";
+  include "ui/common_popups.ycp";
+  
+  textdomain "repair";
+
+ 
+  
+  
+  /**
+   * detected is true if the scan and requires sequencer is finished and
+   * the user is in the last dialog ( EndDialog). Allows to go back to the
+   * scan protocol.
+   */
+  boolean detected 		= false;
+  
+  /**
+   * Saves the last selected option for the start dialog.
+   */
+  //symbol last_selected_dialog   = `scan_repair;
+
+  string exit_label		= "&Exit";
+  
+  /**
+   * Captions ...
+   */
+  string init_dialog_caption  		=  "";
+  string start_dialog_caption 		=  "";
+  string customize_dialog_caption 	=  "";
+  string scan_dialog_caption		=  "";
+  string tool_dialog_caption		=  "";
+
+  boolean initialized 			= false;
+
+  global define void OSRRepairUI()``{
+
+      // build captions
+      init_dialog_caption 		= tool_name + _(" - Initialize");
+      start_dialog_caption		= tool_name + _(" - Start Dialog");
+      customize_dialog_caption		= tool_name + _(" - Customize");
+      tool_dialog_caption		= tool_name + _(" - Tool Box Dialog");
+      scan_dialog_caption		= _("YaST System Check");
+  }
+  
+  /**
+   * Reset api modules for the next scan and repair sequence.
+   */
+  global define void Reset()``{
+      OSRSummary::Reset();
+      OSRProgress::Reset();
+      OSRExecute::Reset();
+      OSRStatus::Reset();
+      OSR::ResetDetect();
+      OSRDirect::Reset();
+  }
+  
+  /**
+   * Init Dialog 
+   */
+  global define symbol InitDialog() ``{
+      if ( initialized ) return `next;
+
+      if ( Mode::initial ) Wizard::ReplaceAbortButton(`PushButton(`id(`abort), AbortButtonLabel()));
+      
+      	// Set help text
+	if ( ! OSRMode::script ) Wizard::RestoreHelp ( "" );
+
+	// A callback function for abort
+	block abort = ``{
+	    return UI::PollInput () == `abort;
+	};
+
+	integer no_of_steps = 6;
+
+	// We do not set help text here, because it was set outside
+	if( ! OSRMode::script )
+	    Progress::New ( init_dialog_caption, " ", no_of_steps,
+			// progress label
+		       [ _("Load rescue modules"),
+			// progress label
+			 _("Prob floppy disk devices"),
+			// progress label
+			 _("Prob hard disk controllers"),
+			// progress label
+			 _("Load kernel modules for hard disk controllers"),
+			// progress label
+			 _("Prob hard disks"),
+			 // progress label
+			 _("Prob usb")
+			 ],
+			// progress label
+		       [ _("Loading rescue modules ..."),
+			// progress label
+			 _("Probing floppy disk devices ..."),
+			// progress label
+			 _("Probing hard disk controllers ..."),
+			// progress label
+			 _("Loading kernel modules for hard disk controllers ..."),
+			// progress label
+			 _("Probing hard disks ..."),
+			// progress label
+			 _("Probing usb ..."),
+			 // progress label
+			 _("Finished") ],
+			    "" );
+
+	
+	if( OSR::Init()  ) {
+	    if( ! OSRMode::script) {
+		Progress::NextStage ();
+	    
+		if ( eval (abort) ) return `abort;
+	    }
+	}
+	else {
+	     return `error; 
+	}
+   
+	
+	// increase the progress to "finish"
+	if( ! OSRMode::script ) Progress::NextStage ();
+
+
+      // Start the client "inst_startup.ycp" if the rescue-system is launched from
+      // a running Linux-system, else the module inst_startup.ycp was already launched.
+	//if (!Mode::initial && !Mode::cont )
+	//{
+	  if ( ! Mode::test ) {
+	      // from inst_startup.yccp
+	      // --------------------------------------------------------------
+	      //				    Floppy
+	      // --------------------------------------------------------------
+
+	      if (!(Arch::s390 || Arch::board_iseries))
+	      {
+		  // give user feedback what's happening
+		  StorageDevices::FloppyReady ();
+
+		  if (! OSRMode::script ){
+
+		      Progress::NextStage();
+		      if ( eval (abort) ) return `abort;
+		  }
+	      }
+
+	      // --------------------------------------------------------------
+	      //			     Hard disk controllers
+	      // 1. Probe
+	      // 2. Initialize (module loading)
+	      // --------------------------------------------------------------
+
+	      if (StorageControllers::Probe() <= 0)
+	      {
+		  // Oops, no storage controllers ?
+		  // no storage controllers found, where are the hard disks attached ?
+		  UI::MessagePopup(_("No hard disks were found. 
+Please check your hardware!
+"));
+
+		  return `abort;
+	      }
+	      else {
+		  if (! OSRMode::script ){
+
+		      Progress::NextStage();
+		      if ( eval (abort) ) return `abort;
+		  }	
+	      }
+
+	      
+	      StorageControllers::Initialize();
+	      ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM", Mode::manual, true);
+	      if (! OSRMode::script ){
+		  
+		  Progress::NextStage();
+		  if ( eval (abort) ) return `abort;
+	      }
+
+	      
+	      // --------------------------------------------------------------
+	      //				  Hard disks
+	      // --------------------------------------------------------------
+
+	    
+	      map targetMap = StorageDevices::Probe (true);
+	      if (size (targetMap) == 0)
+	      {
+		  UI::ErrorPopup(_("No hard disks were found.
+Please check your hardware!
+"));
+		  
+		  return `abort;
+	      }
+	      else {
+		  if (! OSRMode::script ){
+
+		      Progress::NextStage();
+		      if ( eval (abort) ) return `abort;
+		  }	
+	      }
+
+	      
+	      if (!(Arch::s390 || Arch::board_iseries))
+	      {
+		  Hotplug::StartUSB ();
+		  if (! OSRMode::script ){
+
+		      Progress::NextStage();
+		      if ( eval (abort) ) return `abort;
+		  }	 
+	      }
+	  }
+	  //}
+	  //    else {
+	  //	  if (! OSRMode::script ){
+	  //	      Progress::NextStage();
+	  //	      Progress::NextStage();
+	  //	      Progress::NextStage();
+	  //	      Progress::NextStage();
+	  //	  }   
+  
+
+      //Probe cdroms and floppy
+      if( ! Mode::test )
+      {
+	  StorageDevices::FullProbe();
+      }
+
+      if( ! OSRMode::script ) {
+	  UI::ChangeWidget(`id(`next),  `Enabled, true );
+	  UI::ChangeWidget(`id(`abort), `Enabled, true );
+	  UI::ChangeWidget(`id(`back),  `Enabled, true );
+
+	  UI::SetFocus(`id(`next));
+      }
+
+      initialized = true;
+      
+      return `next;
+  }
+
+
+  /**
+   * Build (return) a description text for a label in the help_text field.
+   * @param label the label
+   * @param description the description text for the label.
+   * @return the formatted label help text
+   */
+  global define string build_label_description(string label, string description )``{
+      return sformat(_("<P><B>%1</B><BR>%2</P>"), mergestring(splitstring(label, "&"),""), description); 
+  }
+
+  
+  /**
+   * Build a selection box with all scan and repair groups.
+   */
+  define term build_multi_selection_box(boolean mode )``{
+    return `MultiSelectionBox(`id(`options), "S&elect scan and repair options:", OSR::GroupItems(mode)); 
+  }
+  
+
+  /**
+   * Set the wizard button.
+   */
+  define void set_buttons_enable( boolean pause, boolean back, boolean next ) ``{
+
+      UI::ChangeWidget(`id(`pause),`Enabled, pause);
+      UI::ChangeWidget(`id(`back ),`Enabled, back );
+      UI::ChangeWidget(`id(`next ),`Enabled, next );
+  }
+  
+
+  
+ /**
+  * The start dialog let the user select how the system should be analysed.
+  * @return symbol for sequencer
+  */
+  define symbol StartDialog() ``{
+     
+      detected = false;
+
+      // build the help text
+      string help_text    = sformat(_("<p><I>%1</I>
+can repair some parts of a damaged system. Therefore the
+tool scan the system and reports the found errors.</p>"), tool_name) +
+	
+_("<p>After an error was found YaST suggests one or
+more repair methods or let the user cancel the repair
+process.</p>") +
+	  
+	_("<p>Nothing will be repaired automatically.
+Only if the user accept the repair proposal the
+system will be changed.</P>");
+    
+    
+      term contents  =  `VBox(`Left(`Heading(_("Please select one option:"))),
+			      `VSpacing(1));
+   
+      list start_dialog_entries = [
+				   // First entry - automatically analyse
+				 $["headline"    : _("&Automatic repair"),
+				  "symbol"       :`scan_repair,
+				   "description" : _("Automatic analysing with repair
+proposals. Fits in most cases."),
+				   "help_text"	 : _("Aanalyse the hole system automatically and
+display repair proposals.")
+				 ],
+
+				 // Second entry - customise analyse
+				$[
+				  "headline"    :  _("Customise repair"),
+				  "symbol"      : `scan_repair_options,
+				  "description" : _("Select parts of system analysing
+you need. Usable, if you  already
+know a little bit about your problem."),
+				  
+				  "help_text"	: _("
+For example deselect a category group like the
+bootloader test and start analyse afterwards."),
+
+				  ],
+
+				 // third entry - direct repair tools
+				 $["headline"    :  _("Expert tools"),
+				   "symbol"	 : `direct_repair,
+
+				   "description" : _("Use if the automatical detection
+fails or you know exactly the kind of
+your problem."),
+
+				   "help_text"   : _("
+For example directly recover a lost partition
+table or verify the package database.")
+				 ]];
+
+
+      term left_box  = `VBox(`VSpacing(2));
+      term right_box = `VBox(`VSpacing(2));
+      foreach( map option, start_dialog_entries, ``{
+	  left_box  = add( left_box,  `VWeight(10, `Left(`Label(option["description"]:""))));
+	  right_box = add( right_box, `VWeight(10, `Left(`PushButton(`id( option["symbol"]:"" ), `opt(`hstretch) , option["headline"]:"" ))));
+	  
+      });
+      left_box  = add( left_box,  `VSpacing(2));
+      right_box = add( right_box, `VSpacing(2));
+	  
+      
+      contents = `HBox(`HWeight(60, `HBox(`HSpacing(4),
+					  left_box
+					  )),
+		       `HWeight(40, `HBox(`Left(right_box),
+					  `HSpacing(4)
+					  ))
+		       );
+
+
+      // TODO replace exit with ExitButtonLabel() if Label exists!!
+      Wizard::SetContentsButtons(start_dialog_caption,contents,help_text,BackButtonLabel(), exit_label );
+
+
+      UI::SetFocus(`id(`scan_repair));
+
+      if( ! Mode::initial )
+      {
+	  UI::ChangeWidget(`id(`back), `Enabled, false);
+      }
+      else {
+	  Wizard::ReplaceAbortButton(`PushButton(`id(`abort), AbortButtonLabel()));
+      }
+     
+      
+      symbol ret = UI::UserInput();      
+
+      // set the default scan sequence selection
+      if( ( ret == `scan_repair ) || 
+	  ( ret == `scan_repair_options && OSR::SizeDetectGroupList() == 0 ||
+	    OSR::DetectGroupList() == nil ))
+      {	
+	  OSR::SelectDefaultDetectGroups();
+      }
+
+      if ( ret == `back && Mode::initial )
+      {
+	  Wizard::RestoreNextButton();
+      }
+      
+      return ret;
+  }
+
+
+ 
+
+  /**
+   * Dialog which let the user select or deselect
+   * some scan and repair groups.
+   */
+  define symbol ScanOptionsDialog()``{
+
+      detected = false;
+      
+      string   select_all_label = _("&Select all");
+      string unselect_all_label = _("&Unselect all");
+
+      string help_text    = sformat(_("<P><I>%1</I> scans a
+lot of system parts automatically. But mostly only one
+or two scopes like the bootloader or the file system
+are damaged.</P>"), tool_name) +
+	_("<P>Therefore this dialog enable the selection
+of system parts which should be scand.</P>") +
+
+	_("Some of the shown groups at the right side of
+the dialog need other groups. YaST solve this dependencies
+for you.") +
+	  build_label_description( select_all_label,   _("Select all entries in the list.")) +
+	  build_label_description( unselect_all_label, _("Unselect all entries in the list."));
+      
+   
+
+      term contents  = `HBox(`HSpacing(2),
+			   `VBox(
+				 `VSpacing(1),
+				 `ReplacePoint(`id(`rp), build_multi_selection_box(true)),
+				 `VSpacing(0.5),
+				 `HBox( `Left(
+					      `HBox(
+						    `PushButton(`id(`all_options), select_all_label   ),
+						    `PushButton(`id(`no_optins)  , unselect_all_label )
+						    )
+					      ),
+					`Right(`PushButton(`id(`help)  ,     HelpButtonLabel()))
+
+					),
+				 `VSpacing(1)
+				 ),
+			   `HSpacing(2)
+			   );
+
+
+    Wizard::SetContentsButtons( customize_dialog_caption ,contents,help_text,BackButtonLabel(), NextButtonLabel());
+
+    
+    // Select first Item
+    list(string) key_list = OSR::GroupKeys(); 
+    UI::SetFocus(`id(`options));   
+    
+    symbol ret = `next;
+    
+    repeat {
+	ret = UI::UserInput();
+
+	OSR::SetDetectGroupList( UI::QueryWidget(`id(`options), `SelectedItems ));
+
+	// user pressed the "select all" or the unselect all button
+	if ( ret == `all_options || ret == `no_optins )
+	{
+	    OSR::ResetDetectGroupList();
+	    boolean mode = ( ret == `all_options ) ? true : false;
+	    
+	    UI::ReplaceWidget(`id(`rp), build_multi_selection_box(mode ));
+	    UI::SetFocus(`id(`options));
+	}
+	// user press the help button
+	else if ( ret == `help	)
+	{    
+	    string selected = UI::QueryWidget(`id(`options),  `CurrentItem );  
+
+	    map item_info   = OSR::GetGroupMap(selected);
+	    
+	    UI::LongTextPopup(item_info["text"]:"",`RichText(item_info["help"]:""), 60, 15 );
+	    UI::SetFocus(`id(`options));
+	}
+	else if ( ret == `next || ret == `abort || ret == `cancel ) {
+	     
+	    // not item seleted
+	    if ( ret == `next && OSR::SizeDetectGroupList() == 0 )
+	    {
+		Report::Warning(_("
+Please select one item at least.
+"));
+		continue;
+	    }
+	    if ( ret == `next )
+	    {
+		list(string) greq = OSR::CheckGroupRequires();
+		
+		if( size(greq) != 0 ) {
+		    UI::OpenDialog(`Label(_("
+YaST is solving the requires
+between the selected groups ...
+")));
+		    sleep(2000);
+		    UI::CloseDialog();
+		    UI::ChangeWidget(`id(`options), `SelectedItems, union(OSR::DetectGroupList(), greq));
+		    ret = `again;
+		}
+	    }  
+	}	
+    } until ( ret == `next || ret == `abort  || ret == `back || ret == `cancel );
+
+    return ret;
+  }
+
+  /**
+   * Repair tool dialog
+   */
+  define symbol RepairToolsDialog()``{
+
+      string help_text     = sformat(_("<P><I>%1</I> allows the
+direct reapir of damaged system areas with the
+shown tools at the right side of the dialog.</P> "), tool_name ) +
+
+	  _("<P>Each tool has a special functionality.
+Please read the description of the different options
+and select one. If no entry match with your problem
+please go back and start the automatically analyse.</P>");
+
+    term   contents = OSRDirect::OptionMenu();
+
+    Wizard::SetContentsButtons(tool_dialog_caption ,contents,help_text,BackButtonLabel(), exit_label );
+
+    any ret = `next;
+    repeat {
+	ret = UI::UserInput();
+
+	if( is(ret, string )) {
+	    symbol rret = OSRDirect::EvalDirectMethod(ret );
+
+	    // get a abort return from custom_part or a other tool
+	    if ( rret == `abort ) return `really_abort;
+
+	    Wizard::SetContentsButtons(tool_name,contents,help_text,BackButtonLabel(), exit_label );
+	}
+    } until ( ret == `next || ret == `abort  || ret == `back || ret == `cancel  );
+
+    return ret;
+    
+}
+
+  
+  /**
+   * Init a new automatically analyse sequence.
+   */
+  define void DetectDialogInit() ``{
+
+      if ( OSRMode::script ) { 
+	  return `next;
+      }
+
+      string module_check_label = _("Module check");
+      string system_check_label = _("System check");
+      string show_all_label     = _("Show all details");
+      string pause_label        = _("Pause");
+      
+      if ( UI::WidgetExists (`id(`local_rich_text_info ))) return;
+
+      if ( ! detected ) Reset();
+      
+      // Build window contents
+      term    module_progress_bar    =  OSRProgress::Create( `module_progress_bar , module_check_label, 10  ,true  );
+      term    global_progress_bar    =  OSRProgress::Create( `global_progress_bar,  system_check_label, 10  ,false );
+      
+      term    buttons_right          = `Empty();
+      term    rich_text              = 	OSRSummary::Create( `local_rich_text_info, "");
+      term    contents               =  `VBox(
+					      `VSpacing(0.3),
+					      `HBox(
+						    rich_text,
+						    buttons_right
+						    ),
+					      module_progress_bar,
+					      global_progress_bar,
+					      `VSpacing(0.3),
+					      `HBox(
+						    `Left(`PushButton(`id(`pause), pause_label )),
+						    `Right(`CheckBox(`id(`details), `opt(`notify), show_all_label , OSRSummary::show_details ))
+						    ),   
+					      `VSpacing(0.5)
+					      );
+
+      // Help text (HTML-like)
+      string help_text = sformat(_("
+<p><I>%1</I> is now checking your linux system.</p>"), tool_name) +
+_("<p>Depending on the CPU and the amount of memory this can
+take some time.</p>") +
+_("<p>Above all the file system checks with fsck are very
+time consuming.</p>
+") +
+	  _("<P>If the scan sequence found an error YaST
+suggests one ore more repair proposals. You have the
+possibility to select one proposal or cancel the reapir. </P>") +
+	  build_label_description( pause_label, _("Pause or continue analysing the system.")) +
+	  build_label_description( show_all_label, _("Activate or disable reporting details."));
+
+
+	  
+      Wizard::SetContentsButtons(
+			  scan_dialog_caption,
+			  contents,
+			  help_text, BackButtonLabel(), OKButtonLabel());
+
+      set_buttons_enable( false, true ,true);
+  };
+
+  
+
+  /**
+   * Controll the user interaction for the scan and repair sequence.
+   */
+  define symbol DetectDialog() ``{
+      string go_on_label = _("Go on");
+      
+      if ( OSRMode::script ) return OSR::Detect();
+      
+      DetectDialogInit();
+      
+      symbol input = `pause;
+
+      // if the detected is true the user can only view the
+      // protocol. No scan and repair sequence starts.
+      if ( detected )
+      {
+	  set_buttons_enable(false, true, true );
+	  UI::ChangeWidget(`id( `module_progress_bar), `Enabled, false );
+	  UI::ChangeWidget(`id( `global_progress_bar), `Enabled, false ); 
+	  OSRSummary::Update();
+	  OSRProgress::Update();
+      }
+      
+      repeat {
+
+	  // only view mode
+	  if( detected )
+	  {
+	      input 			=  UI::UserInput();
+	      OSRSummary::show_details  =  UI::QueryWidget(`id(`details), `Value );
+	      OSRSummary::Update();
+
+	      if ( input == `abort || input == `cancel )
+	      {	
+		  if ( AbortDialog() != `yes ) {
+		      input = `again;
+		  }
+		  else {
+		      return input;
+		  }
+	      }
+	  }
+	  // scan and repair sequence
+	  else if ( input != `error ) {
+
+	      // after view mode after a scan and repair sequence
+	      // user must press the next or back button to leave
+	      // the dialog
+	      if ( input == `detectok ) {
+
+		  OSRSummary::Update();
+		  set_buttons_enable( false, true,true);
+		  input = UI::UserInput();
+	      }
+
+	      if ( input == `abort || input == `cancel ) {
+		  if ( AbortDialog() != `yes ) {
+		      input = `pause;
+		  } else {
+		      OSR::ResetDetectionModules();
+		      return input;
+		  }
+	      }
+
+	      // switch between detail and overview protocol mode
+	      if ( input == `details ) {
+		  OSRSummary::show_details =  UI::QueryWidget(`id(`details), `Value );
+		  OSRSummary::Update();
+		  input = `pause;
+	      }
+
+	      // user press the pause button
+	      // or fist start of the scan and repair sequence
+	      if ( input == `pause ) {
+		  
+		  set_buttons_enable( true, false, false );
+		  UI::ChangeWidget(`id(`pause), `Label, _("Pause"));
+
+		  input = OSR::Detect();
+
+		  if(  input == `abort || input == `cancel ) {
+		      if ( AbortDialog() != `yes ) {
+			  input = `pause;
+			  continue;
+		      } else {
+			  OSR::ResetDetectionModules();
+			  return `abort;
+		      }
+		  }    
+		  
+		  if ( input == `pause ) {
+
+		      set_buttons_enable( true,true, true );
+		      UI::ChangeWidget(`id(`pause), `Label,  go_on_label );
+
+		      // wait in pause mode and let the user change the protocol mode or abort
+		      // the scan and repair sequence.
+		      repeat {
+			  input = UI::UserInput();
+
+			  if ( input == `details ) {
+			      OSRSummary::show_details =  UI::QueryWidget(`id(`details), `Value );
+			      OSRSummary::Update();
+			  }
+			  
+			  if(  input == `abort || input == `cancel ) {
+			      if ( AbortDialog() != `yes ) {
+				  continue;
+			      } else {
+				  OSR::ResetDetectionModules();
+				  return `abort;
+			      }
+			  }    
+		      } until( input == `pause || input == `back || input == `next );
+		  }
+	      }
+	  }
+	  
+      } until (  (input == `next || input == `back || input == `abort || input == `cancel || input == `error ));
+
+      // reset the scan and repair sequence
+      // e.g. unount mounted partitions.
+      if( ! detected ) OSR::ResetDetectionModules();
+
+      // reset the hole api
+      if ( input == `back ) Reset();
+      if ( input == `next ) detected = true;
+      
+      return input;
+  }
+
+
+  /**
+   *  AbortDialog
+   **/
+  define symbol AbortDialog() ``{
+
+      if( UI::YesNoPopup(sformat(_("
+Really abort %1?
+"),tool_name )) )
+	  return `yes;
+
+    return `back;
+  }
+
+  
+  /**
+   * End dialog
+   */
+  /*
+  define symbol EndDialog() ``{
+      //Write OSR value to tmp. Only for debuging.
+      OSR::WriteAll2Tmp();
+    
+      string store_label     = _("&Store system information");
+      string main_menu_label = _("Back to main menu");
+      term store_box 	     = `Empty();
+
+      string help_text = sformat(_("<P><I>%1</I> is finished now.</P>"), scan_header);
+    
+      help_text = help_text + build_label_description(BackButtonLabel(),
+						      _("Press the back button to see the scan and repair
+protocol again."));
+
+      // if a floppy was found add a special button and a help text for the button
+      if( StorageDevices::FloppyPresent )
+      {
+	store_box = `PushButton(`id(`osr_floppy_button), `opt(`hstretch) , store_label );
+
+	help_text = help_text + build_label_description(store_label, _("Store some system information
+to a floppy disk. This can be helpful for later system checks. For example it is possible to recover a lost partition
+table with the stored system information."));
+      }
+
+      // %1 - YaST system repair
+      help_text = help_text + build_label_description(main_menu_label, sformat(_("Go back to the first dialog of the
+%1 tool."), tool_name ));
+    
+      term  contents    =
+	`HVCenter( `VBox(
+			 `VSpacing(2),
+
+			 // YaST system scan is finished
+			 `Heading(sformat(_("%1 is finished now."), scan_header)),
+			 `VSpacing(4),
+			 
+			 `HBox(`HWeight(3, `HSpacing(3)),
+			       `HWeight(3, `VBox( store_box,
+						  `VSpacing(1),
+						  `PushButton(`id(`main),`opt(`hstretch), main_menu_label ))
+					       ),
+			       `HWeight(3, `HSpacing(3))
+			       ),
+			 `VSpacing(2)
+			 ));
+				  
+
+    
+    // YaST system repair - Finished	
+    Wizard::SetContentsButtons( tool_name + _("- Finished"), contents, help_text, BackButtonLabel(), FinishButtonLabel());
+    symbol ret = `next;
+    repeat
+	{
+	    ret = UI::UserInput();
+
+	    if (ret == `osr_floppy_button)
+	    {
+		if (! UI::ContinueCancelPopup(_("
+Please insert a formatted disk
+in your floppy drive and press
+the button continue.
+")))
+		{
+		    continue;
+		}
+		
+		//if ( ! StorageDevices::FloppyPresent )
+		//{
+	   
+		    // display that no floppy drive was detected
+		//  Report::Message(_("
+//YaST could not detect a floppy drive in your
+//system. A backup copy of the primary partition
+//table could not be read.
+//"));
+		//	
+		//}	
+		//else {
+		        
+		map target_map = Storage::GetTargetMap();
+		boolean error  = false;
+		    
+		if ( OSRFloppy::Open(true, size(target_map)) )
+		{
+		    foreach(string target, map value, target_map, ``{
+			OSRFloppy::NextStep(sformat(_("Saving partition table of disk %1"), target ));
+			if ( ! error &&  ! OSRPtbl::WritePartitionsInfo2Floppy() )
+			{
+			    Report::Error(sformat(_("
+The primary partition table of disk %1
+was not written correctly to floppy disk.
+"), target));	
+			    error = true;
+			}
+		    });
+		}
+		OSRFloppy::Close();
+
+		if ( error )
+		{
+			Report::Error(_("
+Writing the system information was
+not successfull. Please try again.
+"));
+		}
+		    //}
+	    }
+	  } until ( ret != `osr_floppy_button);
+
+    if( ret == `main ) OSR::ResetDetectionModules();
+    
+    return ret;
+}
+  */
+
+
+
+/**
+ * Main dialog.
+ * Manage the sequence of the different dialogs.
+ */
+global define symbol OsrMainDialog() ``{
+    map aliases = $[
+		    "abort"  		: ``(AbortDialog() ),
+		    "start"		: ``(StartDialog() ),
+		    "scan_options"	: ``(ScanOptionsDialog()),
+		    "direct_repair"	: ``(RepairToolsDialog()),
+		    "detect"		: ``(DetectDialog()),
+		    //"end"    		: ``(EndDialog())
+    ];
+
+    map sequence = $[
+        "ws_start" : "start",
+	"abort" : $[
+		    `yes: `abort
+        ],
+	"start"	: $[
+		    `abort 			: "abort",
+		    `scan_repair  		: "detect",
+		    `scan_repair_options 	: "scan_options",
+		    `direct_repair 		: "direct_repair",
+		    `error			: `error,	
+		    `cancel			: "abort",
+		    `next			: "abort"
+	],
+	"scan_options" : $[
+			   `abort 		: "abort",
+			   `next  		: "detect",
+			   `error 		: `error,
+			   `cancel 		: "abort"
+	],
+	"direct_repair" : $[
+			    `abort 		: "abort",
+			    `really_abort	: `abort,
+			    `next  		: "abort",
+			    `error 		: `error,
+			    `cancel 		: "abort"
+	],
+	"detect" : $[
+		     `abort: `abort,
+		     `error: `error,
+		     `next:  "start",
+		     `cancel: `cancel
+        ],
+	/*
+        "end" : $[
+		  `abort      : "abort",
+		  `cancel     : "abort",
+		  `error      : `error,
+		  `next       : `next,
+		  `main	      : "start"
+		  ]*/
+    ];
+
+    return WizardSequencer(aliases, sequence);
+}
+
+}

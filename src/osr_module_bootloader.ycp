@@ -1,0 +1,756 @@
+/**
+ * File:
+ *   osr_module_bootloader.ycp
+ *
+ * Module:
+ *   YaST Repair bootloader module.
+ *
+ * Summary:
+ *   YaST Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Author:
+ *   Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+
+{
+  textdomain "repair";
+
+  import "Mode";
+  import "Boot";
+  import "Storage";
+  import "Partitions";
+  
+  import "OSRBoot";
+  import "OSRSummary";
+  import "OSRStatus";
+  import "OSRSystem";
+  
+  integer arg_n = 0;
+  
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   *  Initialization of the module map that contains all important information
+   *  for this module.
+   *
+   *  @return map The map that contains all information about the module osr_module_init.
+   */
+  define map OSRBootloaderInit() ``{
+
+      y2milestone("OSRBootloaderInit");
+
+      return  $[
+		  "name"              :  "osr_module_bootloader",
+		  "headline"          :  _("Boot loader"),
+		   
+		  "global_entries"    : $[
+					  "boot_check" :
+					  $[ "text"	: _("Check boot loader configuration"),
+					     "help"	: _("
+<p><B>What is a boot loader?</B><BR>
+The boot loader is the first thing
+which you should see after you turned
+on a computer with a linux installion.
+Starting a linux system without
+a boot loader is not possible.</P>")+
+ 
+_("<P>If you have installed more than
+one operating system on a computer
+the boot loader let choose you
+which system should be started.</P>") +
+
+_("<P><B>Check boot loader configuration</B><BR>
+YaST try to detect the installed boot
+loader. Afterwards the configuration
+files of the found boot loader will be
+checked. If no boot loader or a error
+in the configuration will be detect you
+have the possibility to install a new
+boot loader. 
+</P>
+"),
+					     "requires"	: [ "fstab_check" ]
+					  ]
+		  ],
+		  "static_provides"	: $[],
+		  "reset_methods"      : [
+					  $["summary"	: _("Reset boot loader settings"),
+					    "method"	: ``(OSRBootloaderReset()),
+					    "provides"	: 10
+					  ]
+		  ], 
+		  // the sequence of the detection methods of this module
+		  "detect_methods"    :  [		   
+					  $[ "name"	  : "find_config_files",
+					     "summary"  : _("Searching configuration files"),
+					     "method"   : ``(OSRBootloaderSysconfigFiles()),
+					     "requires" :  ["valid_target", "root_mounted" ],
+					     "provides" :  ["config_files"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	  : "find_bootloader_type",
+					     "summary"  : _("Searching for boot loader"),
+					     "method"   : ``(OSRBootloaderType()),
+					     "requires" :  ["config_files"],
+					     "provides" :  ["bootloader_type"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					 $[ "name"	  : "find_boot_root",
+					     "summary"  : "",
+					     "method"   : ``(OSRBootloaderBootRoot()),
+					     "requires" :  ["bootloader_type"],
+					     "provides" :  ["boot_device", "root_device"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ], 
+					  $[ "name"	  : "bootloader_package_installed",
+					     "summary"  : _("Searching for packages"),
+					     "method"   : ``(OSRBootloaderPackagesInstalled()),
+					     "requires" :  ["bootloader_type", "boot_device", "root_device"],
+					     "provides" :  ["bootloader_packages_installed"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	: "verify_bootloader_package",
+					     "summary"  : _("Verifying packages"),
+					     "method"   : ``(OSRBootloaderPackagesVerified()),
+					     "requires" :  ["bootloader_packages_installed"],
+					     "provides" :  ["bootloader_packages_vertified"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	: "bootloader_package_version",
+					     "summary"  : _("Checking versions"),
+					     "method"   : ``(OSRBootloaderPackagesVersion()),
+					     "requires" :  ["bootloader_packages_vertified"],
+					     "provides" :  ["bootloader_packages_version"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					   $[ "name"	: "bootloader_initrd_modules",
+					     "summary"  : _("Checking initrd modules"),
+					     "method"   : ``(OSRBootloaderCheckInitrd()),
+					     "requires" :  ["bootloader_packages_version"],
+					     "provides" :  ["bootloader_initrd_valid"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	: "bootloader_conf_exists",
+					     "summary"  : _("Searching boot loader configuration file"),
+					     "method"   : ``(OSRBootloaderConfExists()),
+					     "requires" :  ["bootloader_initrd_valid"],
+					     "provides" :  ["bootloader_conf_exists"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	: "bootloader_conf_check",
+					     "summary"  : _("Checking boot loader configuration file"),
+					     "method"   : ``(OSRBootloaderCheckConf()),
+					     "requires" :  ["bootloader_conf_exists"],
+					     "provides" :  ["bootloader_conf_check"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ],
+					  $[ "name"	: "bootloader_ask_user",
+					     "summary"  : "",
+					     "method"   : ``(OSRBootloaderAskUser()),
+					     "requires" :  ["bootloader_conf_check"],
+					     "provides" :  ["bootloader_ask_user"],
+					     "group"    : "boot_check",
+					     "progress" : 10
+					  ]					  
+		  ],
+		  "direct_methods"	: [
+					   $[
+					     "name"		: "direct_methods_booloader",
+					     "button_text"	: _("Install new boot loader ..."),
+					     "method"		: ``(OSRDirectBootloader()),
+					     "initial_only" 	: false,
+					     "description"	: _("
+If you don't see boot menu after
+turning on your computer or after
+restarting press this button to
+install a new boot loader."),
+					     "visible"		: true,
+					     "initial_root"	: true
+					   ]
+		  ]
+		  
+      ];
+  }
+
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  DETECTION METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   * Check the base boot loader and kernel configuration files
+   */
+  global define boolean OSRBootloaderSysconfigFiles()``{
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      // Check sysconfig files ...
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+
+ 
+      // change root for SCR
+      OSRSystem::SetTargetRoot();
+          
+      if( ! OSRBoot::CheckSysconfigFiles( OSRSystem::TargetRoot() ) )
+      {
+	  OSRSummary::DetectError("", sformat(_("Following configuration files were not found:<br>%1"),
+					      mergestring( OSRBoot::not_valid_files, "<br>")));
+
+	  OSRSummary::SetRepairSummary(OSRBoot::RepairSysconfigFiles(),
+				       _("Installing new boot loader"),
+				       _("Installing new boot loader was successful"),
+				       _("Installing new boot loader was skiped"),
+				       _("Installing new boot loader was not successful"));
+	  
+      }
+      else {
+	  OSRSummary::DetectOK("", sformat(_("Configuration files were found:<br>%1"),
+					   mergestring(maplist(string k, string file, OSRBoot::needed_config_files, ``(file)), "<br>")));
+	  OSR::ProvideBoolean("config_files", true );
+      }
+      return true;
+  }
+  
+  /**
+   * Find the type of the boot loader e.g.: lilo, grub
+   */
+  global define boolean OSRBootloaderType() ``{
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      // Searching type of the boot loader type ...
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+      if ( Boot::LoaderType != "" && Boot::LoaderType != nil )
+      {
+	  OSRSummary::DetectOK("",  sformat(_("Found %1 boot loader"), Boot::LoaderType ));
+	  OSR::ProvideString("bootloader_type", Boot::LoaderType);
+      }
+      else {
+	  OSRSummary::DetectError("", _("No boot loader was found"));	  
+	  OSRSummary::SetRepairSummary(OSRBoot::InstallNewLoader(),
+				       _("Installing new boot loader"),
+				       _("Installing new boot loader was successful"),
+				       _("Installing new boot loader was skiped"),
+				       _("Installing new boot loader was not successful"));
+
+      }
+      return true;
+  }
+
+
+  /**
+   * Find the root and boot partition.
+   */
+  global define boolean OSRBootloaderBootRoot()``{
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      // Searching for root and boot partition  ...
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+      list(string) not_found 	= [];
+
+      // Set boot and root device
+      OSRBoot::root_device = OSR::RequireString("root_partition");
+      OSRBoot::boot_device = OSRFstab::BootDev();
+
+      //if not boot device is specified use root device
+      if( OSRBoot::boot_device == "" )
+      {
+	  OSRBoot::boot_device = OSRBoot::root_device;
+      }
+
+      //Change root back to / for Boot::Set()
+      OSRSystem::SetOrgRoot();
+      Boot::Set();
+      OSRSystem::SetTargetRoot();
+
+      // compare expected with actual boot, root device
+      y2milestone("Boot::Set() new root %1 and boot %2 device", Boot::RootPartitionDevice, Boot::BootPartitionDevice);
+      if( Boot::BootPartitionDevice != OSRBoot::boot_device )
+      {
+	  y2error(" boot_device and Boot::BootPartitionDevice differ");
+      }	
+      if( Boot::RootPartitionDevice != OSRBoot::root_device )
+      {
+	  y2error(" boot_device and Boot::RootPartitionDevice differ");
+      }
+
+      
+      string summary_header = _("Searching for root device");
+      if( OSRBoot::root_device != "" && OSRBoot::root_device != nil )
+      {
+	  OSRSummary::DetectOK(summary_header , sformat(_("Root device was found: %1"), OSRBoot::root_device ));
+	  OSR::ProvideString("root_device", OSRBoot::root_device );
+      }
+      else {
+	  OSRSummary::DetectError(summary_header, _("No root device was found"));
+	  not_found = add( not_found, "root");
+      }
+
+      summary_header = _("Searching for boot device");
+      if( OSRBoot::boot_device != "" && OSRBoot::boot_device != nil )
+      {
+	  OSRSummary::DetectOK(summary_header , sformat(_("Boot device was found: %1"), OSRBoot::boot_device ));
+	  OSR::ProvideString("boot_device", OSRBoot::boot_device );
+      }
+      else {
+	  OSRSummary::DetectError(summary_header, _("No boot device was found"));
+	  not_found = add( not_found, "boot" );
+      }
+
+      // Root or boot not found
+      // OSRStatus::error
+      if( size ( not_found ) > 0 )
+      {
+	  // %1 is root or boot
+	  if( UI::AnyQuestionPopup(sformat(_("No valid %1 partition was found"), not_found[0]:"" ),
+				   sformat(_("
+YaST could not detect any valid %1 partition
+in your system.  Probably there is no valid
+Linux system on this computer. But if you are
+sure that you installed a linux system, press the
+button \"Retry scanning\", else skip scanning
+the system and start a new installation.
+"), not_found[0]:"" ),
+				  _("&Retry scanning"),
+				  CancelButtonLabel(),
+				  `focus_yes
+				  ) ) {
+
+	      OSRStatus::RestartScan("find_harddisks");
+	      return true;
+	 }
+	 else {   
+	     OSRStatus::ErrorSeverityBlocking();
+	     if (Mode::initial)
+	     {		
+		 OSR::SetReboot();
+		 y2milestone ( "Make a hard reboot" );
+	     }
+	  
+	     return false;
+	 }
+      }
+      
+      /*
+      // mount /boot partition if boot != root
+      if( OSRBoot::boot_device != OSRBoot::root_device ) {
+	  // mount boot
+	  if( Partitions::MountedOn(OSRBoot::boot_device, Partitions::CurMounted()) == "" )
+	  {
+	      string boot_mp = OSRSystem::TargetRoot() + "/boot";
+	      if( ! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1", boot_mp ))) {
+		  OSRExecute::Command(.local.bash, sformat("/bin/mkdir %1",  boot_mp ));
+	      }
+	      if ( ! OSRExecute::Command(.local.bash, sformat("/bin/mount %1 %2", OSRBoot::boot_device, boot_mp )))
+	      {
+		  OSRSummary::DetectError(summary_header, _("Mounting boot device was not possible"));
+	      }
+	      else {
+		  OSR::ProvideList("just_mounted", add( OSR::RequireList("just_mounted" ),
+							$[ "partition" : boot_partition, "mountpoint" : boot_mp ] ));
+	      }
+	  }
+      }
+      */
+      if ( OSR::RequiresBoolean("mounted_all") != true )
+      {
+	  if( ! OSRFstab::ReadedSuccessfully())
+	      OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
+      
+	  list(map) mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());
+	  list(map) success      = filter(map mpe , mounted, ``(mpe["status"]:false == true));
+
+	  OSR::ProvideBoolean("mounted_all", true );
+	  OSR::ProvideList("just_mounted", union( OSR::RequireList("just_mounted"), success));
+      }
+      
+      
+      return true;
+  }
+  
+  
+  /**
+   * Check if all needed boot loader packages are installed.
+   */
+  global define boolean OSRBootloaderPackagesInstalled()``{
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      // Check boot loader packages
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+      string bootloader             	= OSR::RequireString("bootloader_type");
+
+      // usr "" for root_mountpoint !! root_mountpoint set by OSRBoot::CheckSysconfigFiles..
+      if( OSRBoot::CheckLoaderPackages(bootloader, "", "installed" ))
+      {
+
+	  OSRSummary::DetectOK("", sformat(_("Packages needed by the boot loader were found:<br>%1"),
+					   mergestring( OSRBoot::BootloaderPackages( bootloader ), "<br>")));
+
+	  OSR::ProvideBoolean("bootloader_packages_installed", true);                                                       
+      }
+      else if( size( OSRBoot::missing_packages ) != 0 ) {
+
+	      OSRSummary::DetectError("", sformat(_("Missing packages needed by the boot loader:<br>%1"),
+						  mergestring(OSRBoot::missing_packages, "<br>")));
+
+	      
+	      OSRSummary::SetRepairSummary(OSRBoot::InstallLoaderPackage(bootloader,"", _("
+The following packages needed by the
+boot loader are not installed in the
+system.
+")),
+					   _("Installing packages"),
+					   _("Installing packages was successful"),
+					   _("Missing packages were not installed"),
+					   _("Installing packages was not successful"));
+      }
+      else
+      {
+	  OSRSummary::DetectError("", _("Can not init package database"));
+
+	  // %1 is root or boot
+	  if( UI::AnyQuestionPopup(sformat(_("YaST can not init package database"), not_found[0]:"" ),
+				   _("
+YaST could not init the package database
+Probably there is no valid package database
+on this computer.
+If you want to check the package database
+press the button \"Retry scanning\"
+else press \"Cancel\" and continue.
+"),
+				   _("&Retry scanning"),
+				   CancelButtonLabel(),
+				  `focus_yes
+				  ) ) {
+
+	      OSRStatus::RestartScan("check_package_database");
+	      return true;
+	  }
+	  OSRStatus::RepairOmit();
+      }	  
+      return true;    
+  }
+
+
+  /**
+   * Verifying installed boot loader packages
+   */
+  global define boolean OSRBootloaderPackagesVerified()``{
+
+      string bootloader = OSR::RequireString("bootloader_type");
+      if( OSRBoot::CheckLoaderPackages(bootloader, "", "verify" ) )
+      {
+	  
+	  OSRSummary::DetectOK("", sformat(_("Packages needed by the boot loader were <br>checked successfully:<br>%1"),
+					   mergestring(OSRBoot::BootloaderPackages(bootloader), "<br>" )));
+
+	  OSR::ProvideBoolean("bootloader_packages_vertified", true);
+      }
+      else {			
+
+	  OSRSummary::DetectError("", sformat(_("Packages needed by the boot loader were not checked sucessfully:<br>%1"),
+					      mergestring(OSRBoot::missing_packages, "<br>")));
+
+	      
+	  OSRSummary::SetRepairSummary(OSRBoot::InstallLoaderPackage(bootloader, "", _("
+The state of the following packages
+needed by the boot loader is not
+valid. Press \"Repair\" to update
+these packages.
+")),
+				       _("Updating packages"),
+				       _("Updating packages was successful"),
+				       _("Packages were not updated"),
+				       _("Updating packages was not successful"));
+      }
+      return true;
+  }
+
+  
+  /**
+   * Check the boot loader version.
+   */
+  global define boolean OSRBootloaderPackagesVersion()``{
+
+      string bootloader = OSR::RequireString("bootloader_type");
+      if( OSRBoot::CheckLoaderPackages(bootloader,"", "version" ) )
+      {
+	  
+	  OSRSummary::DetectOK("", sformat(_("Packages versions are ok:<br>%1"),
+					   mergestring(OSRBoot::PackageVersionStrings(bootloader,
+										      OSRBoot::BootloaderPackages(bootloader)),
+						       "<br>")));
+
+	  OSR::ProvideBoolean("bootloader_packages_version", true);
+      }
+      else {			
+
+	  OSRSummary::DetectError("", sformat(_("Packages versions are obsolete:<br>%1"),
+					      mergestring(OSRBoot::PackageVersionStrings(bootloader,
+											 OSRBoot::missing_packages),
+							  "<br>")));
+
+	      
+	  OSRSummary::SetRepairSummary(OSRBoot::InstallLoaderPackage(bootloader, "", _("
+The version of the following packages
+is obsolete. Press \"Repair\" to update
+these packages.
+")),
+				       _("Updating packages"),
+				       _("Updating packages was successful"),
+				       _("Packages were not updated"),
+				       _("Updating packages was not successful"));
+      }
+      return true;
+  }
+
+  
+  global define boolean OSRBootloaderCheckInitrd() ``{
+      
+      if( OSRBoot::CheckInitrdModules("") )
+      {
+	  OSRSummary::DetectOK("", sformat("All needed initrd modules found"));
+	  OSR::ProvideBoolean("bootloader_initrd_valid", true);
+      }
+      else
+      {
+	  OSRSummary::SetRepairSummary(OSRBoot::RepairInitrdModules(),
+				       _("Repairing missing initrd modules"),
+				       _("Repairing was successful"),
+				       _("Repairing was skiped"),
+				       _("Repairing was not successful"));
+      }
+      return true;
+  }
+	
+  
+
+  /**
+   *  Checks if the boot loader configuration file exists at the standard location
+   */
+  global define boolean OSRBootloaderConfExists() ``{
+
+
+
+      string  bootloader	= OSR::RequireString("bootloader_type");
+
+      if ( OSRBoot::ExistsConf(bootloader, OSRSystem::TargetRoot() ))
+      {
+	  OSRSummary::DetectOK("",_("File exists"));
+	  
+	  OSR::ProvideBoolean("bootloader_conf_exists", true);
+      }
+      else
+      {
+	  OSRSummary::DetectError("", _("Configuration file was not found or is empty"));
+
+	  OSRSummary::SetRepairSummary(OSRBoot::RepairConfig(bootloader,true),
+				       _("Creating new boot loader configuration file"),
+				       _("Creating was not successful"),
+				       _("Creating was skiped"),
+				       _("Creating was not successful"));
+	      
+      	  
+      }
+      return true;
+  };
+
+
+  /**
+   * Check boot loader conf file. e.g. /etc/lilo.conf or ( /etc/grub.conf && /boot/grub/menu.lst )
+   */
+  global define boolean OSRBootloaderCheckConf()``{
+      
+      string  bootloader	= OSR::RequireString("bootloader_type");
+      
+      if( OSRBoot::CheckConfig( bootloader, OSRSystem::TargetRoot(),
+				OSR::RequireString("root_device"),
+				OSR::RequireString("boot_device") ))
+      {
+	  OSRSummary::DetectOK("", _("Boot loader config file check was successful"));
+	  OSR::ProvideBoolean("bootloader_conf_check", true);
+      }
+      else
+      {
+	  OSRSummary::DetectError("", _("Boot loader config file contains errors"));
+	  
+	  OSRSummary::SetRepairSummary(OSRBoot::RepairConfig(bootloader,true),
+				       _("Repairing boot loader configuration"),
+				       _("Repairing was successful"),
+				       _("Repairing was skiped"),
+				       _("Repairing was not successful"));
+      }
+      return true;
+  }
+
+
+  /**
+   *
+   */
+  global define boolean OSRBootloaderAskUser()``{
+      string bootloader     = OSR::RequireString("bootloader_type");
+      string summary_header = _("Ask user concerning boot loader configuration");
+
+      // don't start OSRBootloaderAskUser twice
+      if( OSR::RequireBoolean("bootloader_ask_user")) return true;
+      
+      y2milestone("ask the user! error was found before %1", OSRBoot::bootloader_error_found );
+      //if no error was found ask the user
+      if( ! OSRBoot::bootloader_error_found )
+      {
+	  if ( UI::AnyQuestionPopup(_("YaST boot loader check"),
+				 _("
+YaST has checked the boot loader settings
+of the system and found no error. 
+
+Anyway it is sometimes possible that your
+boot loader is damaged. The only way to
+detect such a exceptional case is to ask
+the user.
+
+If you shutdown your system and it start
+correctly afterwards you have a valid
+boot loader installion. In this case you 
+should press the button \"Continue\".
+If your system don't starts correctly
+press the \"Repair\" button.
+"),
+				    _("&Repair"),
+				    ContinueButtonLabel(),
+				    `focus_no
+				    ))
+	  {
+	      OSRSummary::DetectError(summary_header, _("User found error"));
+	  
+	      OSRSummary::SetRepairSummary(OSRBoot::RepairConfig( bootloader ,false ),
+					   _("Repairing boot loader configuration"),
+					   _("Repairing was successful"),
+					   _("Repairing was skiped"),
+					   _("Repairing was not successful"));
+	  }
+	  else {
+	      OSRSummary::DetectOK(summary_header, _("User found no error"));
+	  }
+      }
+      
+      OSR::ProvideBoolean("bootloader_ask_user", true);
+      return true;
+  }
+  
+
+  /**
+   *  Reset boot loader temporary settings.
+   */
+  global define boolean OSRBootloaderReset() ``{
+      
+      OSRSystem::SetOrgRoot();
+      OSRBoot::Reset();
+  }
+  
+
+  global define symbol OSRDirectBootloader()``{
+      y2milestone("Direct start boot loader");
+ 
+      OSRBoot::root_device = OSRDirect::mounted_root_partition;
+      OSRBoot::boot_device = OSRFstab::BootDev();
+
+      y2milestone("root_device_1 %1", OSRBoot::root_device);
+      y2milestone("boot_device_1 %1", OSRBoot::boot_device);
+      // patch storage entries for Boot::Set!!
+      map subdevkeys    = Storage::GetDiskPartition(OSRBoot::root_device );
+      string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+
+      map part = Storage::GetSubDev( subdevkey );
+      part["mount"] = "/";
+      Storage::SetSubDev(subdevkey, part );
+      
+      //if not boot device is specified use root device
+      if( OSRBoot::boot_device == "" )
+      {
+	  OSRBoot::boot_device = OSRBoot::root_device;
+      }
+      else {
+	  subdevkeys = Storage::GetDiskPartition(OSRBoot::boot_device );
+	  subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+
+	  part = Storage::GetSubDev( subdevkey );
+	  part["mount"] = "/boot";
+	  Storage::SetSubDev(subdevkey, part );
+      }
+
+  
+      y2milestone("root_device_2 %1", OSRBoot::root_device);
+      y2milestone("boot_device_2 %1", OSRBoot::boot_device);
+      
+      //Change root back to / for Boot::Set()
+      Boot::Set();
+      // Fstab was already readed.
+      
+
+      // compare expected with actual boot, root device
+      if( Boot::BootPartitionDevice != OSRBoot::boot_device )
+      {
+	  y2error(" boot_device and Boot::BootPartitionDevice differ");
+	  Boot::BootPartitionDevice = OSRBoot::boot_device;
+      }	
+      if( Boot::RootPartitionDevice != OSRBoot::root_device )
+      {
+	  y2error(" boot_device and Boot::RootPartitionDevice differ");
+	  Boot::RootPartitionDevice = OSRBoot::root_device;
+      }
+
+      OSRBoot::root_mountpoint = OSRSystem::TargetRoot();
+
+      OSRBoot::CheckInitrdModules( OSRSystem::TargetRoot());
+
+      UI::NormalCursor();
+      OSRBoot::repair_grub_config();
+
+      OSRFstab::Reset();
+      OSRFsck::Reset();
+      OSRBoot::Reset();
+      
+      return `next;
+  }
+  
+  
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  MAIN
+  //
+  //////////////////////////////////////////////////////////////////////
+  while ( arg_n <  size(Args()) )
+  {
+      if ( Args(arg_n) == .init )
+      {
+	  y2milestone("Argument: %1", Args(arg_n));
+	  return  OSRBootloaderInit();
+      }
+      else
+      {
+	  y2error("ERROR: unknown option %1", Args(arg_n) );
+	  return $[];
+      }
+      arg_n = arg_n + 1;
+  }
+}

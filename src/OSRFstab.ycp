@@ -1,0 +1,2116 @@
+/**
+ *  File:
+ *    OSRFstab.ycp
+ *
+ *  Module:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Summary:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
+ *
+ *  Use:
+ *      OSRFstab::LinuxPartitions( ["All valid(checked -> OSRFsck ) partitions", "/dev/hda1", "/dev/hda2", .. ]);
+ *      OSRFstab::MountablePartitions( .. );
+ *	OSRFstab::ValidRootPartitions( .. );
+ *
+ *  	OSRFstab::ReadFstab("/");
+ * 	OSRFstab::CheckRootEntry( "/dev/hda1",["/dev/hda2"], ["/dev/hda3", "/dev/hda4" ] );
+ *	OSRFstab::Repair();
+ *
+ *	OSRFstab::Check(["/dev/hda2"], ["/dev/hda3", "/dev/hda4" ] );
+ * 	OSRFstab::Repair();
+ *
+ *
+ * $Id$
+ */
+{
+  module "OSRFstab";
+
+  import "FileSystems";
+  import "Storage";
+  import "Hotplug";
+  import "Partitions";
+  import "Mode";
+  import "Installation";
+  import "AsciiFile";
+
+  import "OSRLogFile";
+  import "OSRSystem";
+  import "OSRExecute";
+  import "OSRPopup";
+  
+  include "ui/common_messages.ycp";
+
+
+  textdomain "repair";
+
+  string remove_label   	= _("remove");
+  string ignore_label   	= _("ignore");
+  string replace_label 		= _("replace");
+  string create_label   	= _("create");
+
+  string device_label    	= _("Device");
+  string mount_label     	= _("Mount point");
+  string create_mp_label 	= _("Create mount point");
+  string state_label     	= _("State");
+  string fstab_line_label 	= _("Fstab line");  
+  
+  string b_ignore_label	    	= _("&Ignore");
+  string b_create_label    	= _("&Create");
+  string b_remove_label     	= _("&Remove");
+  string b_change_mp_label  	= _("Change &mount point");
+  string b_replace_label    	= _("Replace");
+
+  global list(string) system_mount_points =  [ "/dev", "/lib", "/bin", "/etc", "/sbin" ];
+  
+  /**
+   * The path
+   */
+  global string tabpath	= "/etc/fstab";
+
+  /**
+   * The default fstab entries for proc, usb, ...	
+   */
+  map defs 	= $[
+		    "pts" 	: ["devpts", 	"/dev/pts",  	"devpts", 	"mode=0620,gid=5", 	"0",   "0"],
+		    "proc"	: ["proc",  	"/proc",     	"proc",   	"defaults",        	"0",   "0"],
+		    "usb"	: ["usbdevfs",	"/proc/bus/usb", "usbdevfs", 	"noauto", 		"0",   "0"],
+		    "swap"	: ["",		"swap",	    	"swap",		"pri=42", 		"0",   "0"],
+		    "cdrom"	: ["",		"",    		"auto",		"ro,noauto,user,exec",  "0",   "0"],
+		    "floppy"	: ["",		"",   		"auto",		"noauto,user,sync",     "0",   "0"],
+		    "root"	: ["",		"",		"auto",		"defaults", 		"1",   "1"],
+		    "zip"	: ["", 		"", 		"auto", 	"noauto,user", 		"0",   "0"],
+		    "dev"	: ["",		"",	     	"auto", 	"noauto,user",		"0",   "0"],
+		    "nfs"	: ["", 		"", 		"nfs",		"defaults",		"0",   "0"]	
+  ];
+  
+  /**
+   * All allowed mount options
+   */
+  list(string) mn_opts = ["async","atime","auto","defaults","dev","exec","noatime","noauto","nodev","noexec",
+			  "nosuid","nouser","remount","ro","rw","suid","sync","dirsync","user","users" ];
+
+  /**
+   * All digits
+   */
+  string digits          = "0123456789";
+
+
+  /**
+   * Line position to sense
+   */
+  map pos2field = $[ 0: "spec", 
+		     1: "mount",
+		     2: "vfstype", 
+		     3: "mntops", 
+		     4: "freq",  
+		     5: "passno" ];
+
+
+   
+  /**
+   * Partitions which are swapable
+   */
+  list(string) swapable_partition_list   = [];
+
+  /**
+   * All checked partitions (OSRFsck)
+   */
+  list(string) checked_partitions	= [];
+
+  /*
+    $["comment":"^[ \t]*#.*",
+    "delim":" \t",
+    
+    "l":$[1:$["fields":["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"],
+    "line":"/dev/hda6            /                    reiserfs   defaults              1 1"],
+    2:$["fields":["/dev/hda3", "/data1", "reiserfs", "defaults", "1", "2"],
+    "line":"/dev/hda3            /data1               reiserfs   defaults              1 2"],
+    3:$["fields":["/dev/hda2", "swap", "swap", "pri=42", "0", "0"],
+    "line":"/dev/hda2            swap                 swap       pri=42                0 0"],
+    4:$["fields":["/dev/hda5", "swap", "swap", "pri=42", "0", "0"],
+    "line":"/dev/hda5            swap                 swap       pri=42                0 0"],
+    5:$["fields":["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
+    "line":"devpts               /dev/pts             devpts     mode=0620,gid=5       0 0"],
+    6:$["fields":["proc", "/proc", "proc", "defaults", "0", "0"],
+    "line":"proc                 /proc                proc       defaults              0 0"],
+    7:$["fields":["usbdevfs", "/proc/bus/usb", "usbdevfs", "noauto", "0", "0"],
+    "line":"usbdevfs             /proc/bus/usb        usbdevfs   noauto                0 0"],
+    8:$["fields":["/dev/cdrom", "/media/cdrom", "auto", "ro,noauto,user,exec", "0", "0"],
+    "line":"/dev/cdrom           /media/cdrom         auto       ro,noauto,user,exec   0 0"],
+    9:$["fields":["/dev/fd0", "/media/floppy", "auto", "noauto,user,sync", "0", "0"],
+    "line":"/dev/fd0             /media/floppy        auto       noauto,user,sync      0 0"]],
+    "widths":[20, 20, 10, 21, 1, 1]] 
+  */
+  map fstab 				= $[];
+  
+  /**
+   * The root mount points e.g.: "/", "/mnt"
+   */
+  string root_mountpoint		= "";
+
+  /**
+   * All checked valid lines
+   * e.g.: [1,2,3];
+   */
+  list(integer) valid_lines 	 	= [];
+
+  /**
+   * Not valid lines
+   * e.g.: $[4: ["dev", false, true, true ,true ,true ,true ]], //spec error in line 4 
+   */
+  map not_valid_lines   		= $[];
+
+  /**
+   * Devices without fstab entry
+   * e.g.: ["/dev/hdb7"]
+   */
+  list(string) missing_devs      	= []; 
+  
+
+  
+  global define void Reset()``{
+      ResetSettings();
+      root_mountpoint 		= "";
+      fstab 	      		= $[];
+      swapable_partition_list   = [];
+      checked_partitions	= [];
+  }
+  
+  define void ResetSettings()``{
+      missing_devs  	= [];
+      valid_lines 	= [];
+      not_valid_lines   = $[];
+  }
+  
+  /**
+   * e.g.: pos = 1 && retpos = 0 ->  ret = [ "devpts", "usbdevfs", "proc" ]; //second position in defs exist -> return first entry
+   * e.g.: pos = 0 && retpos = 1 ->  ret = [ "/dev/pts", "/proc", "/proc/bus/usb" ];
+   * e.g.: pos = 0 && retpos = -1 -> return the keys -> ret = ["pts", "proc", "usb" ]
+   *       
+   */
+  define list(string) defs_pos_exist(integer pos , integer retpos )``{
+      return maplist(string n, list m, filter(string k, list d, defs, ``( d[pos]:"" != "" )), ``( (retpos != -1) ? m[retpos]:"" : n ));
+  }
+
+
+  /**
+   * e.g.: transform a fstab list to a fstab map.
+   * list: ["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"]
+   * map : $[ "spec":"/dev/hda6", "file":"/" ... ] 
+   */
+  define map fstabline2map(list(string) line )``{
+      map ret 		= $[];
+      integer pos 	= 0;
+      foreach(string e, line, ``{
+	  ret[ pos2field[pos]:"" ] = e;
+	  pos = pos +1;
+      });
+      return ret;
+  }
+  
+  /**
+   *  Find the list of all valid linux-partitions in the target-map.
+   *  @return list The list of names of valid linux-partitions.
+   */
+  global define list(string) LinuxPartitions(list checked_partitions ) ``{
+      if ( Mode::test ) return ["/dev/hda1", "/dev/hda2"];
+
+      if ( size(checked_partitions) == 0 ) return []; 
+      
+      // e.g.: ["/dev/hda1", "/dev/hdb2"]
+      list(string) linux_partition_list  		= [];
+
+      foreach(string device , map description, Storage::GetTargetMap(), ``{
+	  foreach ( `partition, description["partitions"]:[] , ``{
+
+	      if ((  partition["fsid"]:0 		== Partitions::fsid_native 
+		  || partition["type"]:`primary 	== `lvm
+	          || partition["type"]:`primary		== `sw_raid ) )
+	      {
+		  // if the fsck functions have been executed
+		  if( size(checked_partitions) != 0 )
+		  {
+		       
+		      if ( contains( checked_partitions, Storage::GetDeviceName( device, partition["nr"]:0 )) ) {	       
+			  linux_partition_list = add(linux_partition_list,Storage::GetDeviceName( device, partition["nr"]:0 ));
+		      }
+		  }
+		  else {
+		      linux_partition_list = add(linux_partition_list, Storage::GetDeviceName( device, partition["nr"]:0 ));
+		  }
+	      }
+	  });
+      });
+      if( size ( linux_partition_list ) == 0 )
+	  y2error("no linux partition found");
+      
+      return linux_partition_list;
+  };
+
+
+    
+  /**
+   *  Returns a list of names of all mountable partitions out of the specified list.
+   *
+   *  @param list linux_partition_list A list of valid linux-partitions out of which
+   *         the mountable partitions are to be returned.
+   *  @param the test mountpoint
+   *  @return list The list of partition-names that were successfully mounted to /mnt.
+   */
+  global define list(string) MountablePartitions( list(string) linux_partition_list , string m_point) ``{
+      if ( Mode::test ) return linux_partition_list;
+
+      if ( size(linux_partition_list ) == 0) return [];
+
+      // e.g.: ["/dev/hda1"]
+      list(string) mount_possible_list   		= [];
+      
+     
+      foreach(string partition_item, linux_partition_list, ``{
+	  if( WFM::Execute(.local.mount, [partition_item, m_point ,OSRExecute::OutputFile() ])  )
+	  {
+	      mount_possible_list = add(mount_possible_list, partition_item);
+	      if( ! WFM::Execute(.local.umount, m_point ) ) {
+		  y2error("umounting partition %1 is not possible", partition_item);
+	      }
+	  }
+	  else {
+	      y2error("mounting partition %1 is not possible", partition_item );
+	  }
+      });
+      
+      return mount_possible_list;
+  };
+
+
+  /**
+   *  Returns a list of names of all mountable partitions that contain a file /etc/fstab
+   *  out of the specified list.
+   *
+   *  @param list linux_partition_list A list of valid linux-partitions out of which
+   *         the mountable partitions are to be returned.
+   *
+   *  @return list The list of partition-names that were successfully mounted to /mnt and contain a filesystem table.
+   */
+  global define list(string) ValidRootPartitions(list(string) mount_possible_list, string mount_p ) ``{
+
+      if( Mode::test ) return mount_possible_list;
+
+      if( size(mount_possible_list) == 0) return [];
+      
+      // e.g.: ["/dev/hda1"]
+      list(string) valid_root_partitions 	= [];
+
+      // e.g.: ["/dev/hda1"]
+      list(string) fstab_found_partitions 	= [];
+
+      // e.g. :["/dev/hda1"]
+      list(string) smpoints_found_partitions 	= [];
+      
+      
+      foreach(string partition_item, mount_possible_list, ``{
+	  
+	  if (! WFM::Execute(.local.mount, [ partition_item, mount_p , OSRExecute::OutputFile() ]) )
+	  {
+	      y2error("Partition: %1; not possible to mount to /mnt", partition_item );
+	  }
+	  else 
+	  {
+	      // Check fstab exist
+	      // use the .local.size agent instead of the .etc.fstab agent because it finds the
+	      // fstab of the currently mounted root partition
+	      if (WFM::Read(.local.size, mount_p + tabpath ) > 0 )
+	      {
+		  y2milestone("Partition %1: fstab found", partition_item );
+		  fstab_found_partitions = add(fstab_found_partitions, partition_item );
+	      }
+	      else
+	      {
+		  y2milestone("Partition: %1; no fstab found", partition_item);
+	      }
+    
+	      // Check system mount points
+	      boolean not_fount = false;
+	      foreach(string mp,  system_mount_points, ``{
+		  if( mp != "/" ) {
+		      if ( ! OSRExecute::Command(.local.bash, "/usr/bin/test -d "+ mount_p + mp )) {
+			  not_fount = true;
+		      }
+		  }
+	      });
+	      if ( ! not_fount )
+	      {
+		  y2milestone("system mount points found");
+		  smpoints_found_partitions = add( smpoints_found_partitions , partition_item );
+	      }
+	      else {
+		  y2error("system mount points not found. Partition %1 could not be a root partition", partition_item);
+	      }
+	  }
+	
+	  // umount the partition
+	  WFM::Execute(.local.umount, mount_p);
+      });
+      
+      // filter items witch are in both list
+      valid_root_partitions = filter(string p, union(fstab_found_partitions,
+						     smpoints_found_partitions),
+				     ``( contains( fstab_found_partitions,    p) &&
+					 contains( smpoints_found_partitions, p) ));
+
+      //OSRFstab can create a new fstab.!! 
+      valid_root_partitions = union( valid_root_partitions , smpoints_found_partitions);
+      y2milestone("OSRFstab::ValidRootPartitions return %1", valid_root_partitions);
+      return valid_root_partitions;
+  };
+
+  /**
+   * Read the fstab file.
+   * 
+   */
+  global define boolean ReadFstab(string mount_p , boolean strict )``{
+      root_mountpoint 	= mount_p;
+      fstab 		= Partitions::GetFstab(  mount_p + tabpath );
+      
+      if (fstab == nil ||  size(fstab) == 0 || fstab["l"]:$[] == $[] )
+      {
+	  y2error("No fstab found !!");
+	  if ( strict ) return false;
+	  
+	  if( UI::YesNoHeadlinePopup(_("The fstab can not be readed"), _("
+YaST can not find an existing fstab
+file. If you want to create a new one,
+please press the button \"Yes\".
+")))
+	  {
+	      OSRExecute::Command(.local.bash, sformat("/bin/mv %1%2 %1%2.YaSTsave",root_mountpoint,tabpath ));
+	      OSRExecute::Command(.local.bash, sformat("/bin/touch %1%2", root_mountpoint,tabpath ));
+	      fstab =  Partitions::GetFstab(  mount_p + tabpath );
+	      return true;
+	      
+	  }
+	  return false;
+      }
+      else
+      {
+	  y2milestone("fstab :%1 ", fstab );
+	  return true;
+      }
+  }
+
+  
+  /**
+   * Removes blacks from a string.
+   */
+  define string remove_blacks( string c ) ``{
+      return ( mergestring(splitstring( c ," "), ""));
+  }
+
+  /**
+   * Cat the uuid from a string.
+   */
+  define string uuid_string(list(string) line ) ``{
+      
+      if( substring( line[0]:"", 0, 4) == "UUID") {
+	  return substring(line[0]:"", 5 ); 
+      }
+      return "";
+  }
+
+  /**
+   * Cat the label from a string.
+   */
+  define string label_string(list(string) line )``{
+      
+      if ( substring(line[0]:"", 0,5) =="LABEL" ) {
+	  return substring(line[0]:"",6);
+      }
+      return "";
+  }
+
+  /**
+   * Check the spec (first) entry in a fstab line.
+   */
+  define boolean check_fs_spec( list(string) line, map part )``{
+      string uuid_string 	= uuid_string(line);
+      string label_string 	= label_string(line);
+      
+      return ( contains( checked_partitions, line[0]:"" ) ||
+	       uuid_string   == part["uuid"]:"!" 	   ||
+	       label_string  == part["label"]:"!");
+  }
+
+  /**
+   * Check the file (second) entry in a fstab line.
+   */
+  define boolean check_fs_file(list(string) line)``{
+      if( line[1]:"" == nil || line[1]:"" == "" ) return false;      
+
+      string dir = line[1]:"";
+      if( dir == "" || dir == nil ) return false;
+      return ( OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1%2", root_mountpoint, dir)));
+  }
+
+  /**
+   * Check the filesystem type (third) entry in a fstab line.
+   */
+  define boolean check_fs_vfstype(list(string) line, map part ) ``{
+      if( line[2]:"" == nil || line[2]:"" == "" ) return false;
+
+      line[2] = remove_blacks(line[2]:"");
+      
+      if( ! (line[2]:"" == FileSystems::GetMountString(part["detected_fs"]:`unknown, "!" ) ||
+	     line[2]:"" == "auto" ))
+      {
+	  return false;
+      }
+      return true;
+  }
+
+  /**
+   * Check the mount options (fourth) entry in a fstab line.
+   */
+  define boolean check_fs_mntops(list(string) line ) ``{
+      if( line[3]:"" == nil || line[3]:"" == "" ) return false;
+      
+      list(string) opts  = splitstring(remove_blacks(line[3]:"" ), "," );
+      boolean ret = size( filter( string o, opts, ``( ! contains(mn_opts, o))))  == 0;
+      if( ! ret ) y2error("mount options are not supported");
+      return true;
+      
+  }
+
+  /**
+   * Check the freq (fifth) entry in a fstab line.
+   */
+  define boolean check_fs_freq(list(string) line, list(string) defaults )``{
+      if( line[4]:"" == nil || line[4]:"" == "" ) return false;
+
+      return (( size( filterchars(remove_blacks( line[4]:"0"), digits )) > 0 ) &&
+	      ( contains( defaults, remove_blacks( line[4]:"0") )));    
+  }
+  
+  /**
+   * Check the passno (sixth) entry in a fstab line.
+   */
+  define boolean check_fs_passno(list(string) line, list(string) defaults )``{
+      if( line[5]:"" == nil || line[5]:"" == "" ) return false;
+      
+      if( (size( filterchars(remove_blacks( line[5]:"0"), digits )) == size(remove_blacks( line[5]:"0")) ))
+      {
+	  if (size( defaults) != 0 )
+	  {
+	      return  contains( defaults , remove_blacks( line[5]:"!"));
+	  }
+	  else {
+	      return true;
+	  }
+      }
+      return false;
+  }
+
+  
+  /**
+   * Check if an entry for a device exist in the fstab.		
+   */
+  define boolean check_dev_entry(string p)``{
+      map part  =  devname2part(p);
+      map lines =  filter(integer lnr, map line, fstab["l"]:$[], ``( line["fields",0]:"!" == p ||
+							   ( line["fields",0]:"!" == part["linkname"]:"" && part["found"]:"" == "cdrom") ||
+							   ( line["fields",0]:"!" == "UUID="  + part["uuid"]:"" ) ||
+							   ( line["fields",0]:"!" == "LABEL=" + part["label"]:"") ) );	
+      if( size(lines) > 0 ) {
+	  y2milestone("found entry for %1 in the fstab", p);
+	  return true;
+      }
+      else {
+	  y2error("no entry for %1 found in the fstab",p);
+	  missing_devs = add(missing_devs, p);
+	  missing_devs = toset(missing_devs);
+	  return false;
+      }	
+  }
+      
+
+  /**
+   * Returns the partition map for a device.
+   * cdrom, floppy and zip devices are support too.
+   */
+  define map devname2part(string dev_name )``{	
+      
+      if( substring(dev_name, 0,1) != "/" ) return $[];
+      
+      //$["bus":"IDE", "class_id":262, "dev_name":"/dev/hdc", "device":"CD-532E-B", "linkname":"/dev/cdrom",
+      //  "model":"CD-532E-B", "rev":"1.0A", "sub_class_id":2, "unique_key":"hY5p.hd1TNKlXr+A"]  
+      map ret = StorageDevices::GetCdromEntry( dev_name );
+      if( ret == $[] || ret == nil ) {
+	  
+	  ret = find(map e, StorageDevices::cddrives, ``(e["linkname"]:"" == dev_name ));
+
+	  // check link
+	  if ( ret == nil ) {
+	      OSRExecute::CommandOutput(.local.bash, sformat("/bin/ls -l %1", dev_name ));
+	      list(string) std_dev_list = filter(string s,  splitstring(OSRExecute::stdout, " "), ``( s != " "));
+	      string link = select( std_dev_list, size(std_dev_list)-1, "");
+	      link = select( splitstring( link , "\n" ), 0,"" );
+	      y2milestone("link is %1", link );
+	      if ( ! issubstring( link , "/dev" ))
+	      {
+		  link = "/dev/" + link ;
+	      }
+	      y2milestone("new link %1", link );
+	      ret = StorageDevices::GetCdromEntry( link );
+	      if( ret == $[] || ret == nil )
+	      {
+		  //y2milestone(" StorageDevices :: %1 " ,StorageDevices::cddrives );
+		  ret = find(map e, StorageDevices::cddrives, ``(e["linkname"]:"" == link));
+	      }
+	      y2milestone(" ret in check link %1", ret );
+	  }
+      }
+      
+      //[$["bus":"Floppy", "class_id":262, "dev_name":"/dev/fd0", "device":"Floppy Disk", "model":"Floppy Disk",
+      //"resource":$["disk_log_geo":[$["cylinders":80, "heads":2, "sectors":18]], "size":[
+      //$["unit":"cinch", "x":350, "y":0], $["unit":"sectors", "x":2880, "y":512]]]
+      if ( ret == $[] || ret == nil ) {
+	  ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
+	  if ( ret != $[] && ret != nil ) ret["found"] = "floppy";
+	  
+      }
+      else {
+	  ret["found"] = "cdrom";
+      }
+
+      if ( ret == $[] || ret == nil ) {
+	  ret =  select( maplist(`n,`m, filter(`k, `e, StorageDevices::zipDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)),
+			 ``(m)),0,$[]);
+	  if ( ret != $[] && ret != nil ) ret["found"] = "zip";
+      }
+      
+      if( ret == $[] || ret == nil ) {
+	  if( ! Storage::IsKeyKey(dev_name)) return $[];
+	  // subdevkeys
+	  // $["disk":"/dev/hda", "nr":3]
+	  map subdevkeys    = Storage::GetDiskPartition( dev_name );
+	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+	  // root_part 
+	  // $["detected_fs":`reiser, "device":"/dev/hda3", "fsid":131, "fstype":"Linux native", "mount":"/", "nr":3, "region":[148, 1175],
+	  // "type":`primary, "used_fs":`reiser, "uuid":"a7fb4dc2-cd09-41d1-a696-805ea613abee"]
+	  ret = Storage::GetSubDev( subdevkey );
+	  if ( ret != $[] && ret != nil ) {
+	      if( ret["device"]:"" == dev_name )
+	      {
+		  ret["dev_name"] = dev_name;
+		  ret["subdevkey"] =  subdevkey;
+		  if ( ret["fsid"]:0 == Partitions::fsid_swap ) {
+		      ret["found"] = "swap";
+		  }
+		  else {
+		      ret["found"] ="dev";
+		  }
+	   
+		  if ( ret["mount"]:"" == "/" )
+		  {
+		      ret["found"] = "root";
+		  }
+
+	      }
+	      else {
+		  // Storage return default !!
+		  ret = $[];
+	      }
+	  }
+      }
+      return ret;
+  };
+
+
+  /**
+   * Return the partition map for a special uuid.
+   */
+  define map uuid2part(string uuid_string )``{
+      map ret = $[];
+      foreach(string dn, checked_partitions, ``{
+	  if ( ret == $[]) {
+	      if( lookup(devname2part(dn), "uuid", "") == uuid_string )
+	      {
+		  ret = devname2part(dn);
+		  ret["wise"] = "uuid" ;
+	      }
+	  }
+      });
+      
+      return ret;
+  }
+
+  /**
+   * Return the partition map for a special label.
+   */
+  define map label2part(string label_string )``{
+      map ret = $[];
+      foreach(string dn, checked_partitions, ``{
+	  if ( ret == $[]) {
+	      if( lookup(devname2part(dn), "label", "!") == label_string ) {
+		  ret = devname2part( dn);
+		  ret["wise"] = "label";
+	      }
+	  }
+      });
+      
+      return ret;
+  }
+
+  
+  /**
+   * Return the partition map for a fstab line.
+   */
+  define map line2part(list(string) line) ``{
+      //if( substring(line[0]:"", 0,1) != "/" ) return $[];
+      if( contains( defs_pos_exist( 0, 0 ), line[0]:"" )) return $[];
+      
+      map ret = devname2part(line[0]:"");
+      if( ret == nil || ret == $[] ) {
+	  string uuid_string 	= uuid_string(line);
+	  if( uuid_string != "" )
+	      ret = uuid2part(uuid_string);
+	  if( ret == nil || ret == $[] ) {
+ 	      string label_string = label_string(line);
+	      if( label_string != "" ) 
+		  ret = label2part( label_string );
+	  }
+      }
+      else {
+	  ret["wise"] = "dev";
+      }
+      y2milestone("line2part return: %1", ret );
+      return ret;
+  }
+
+
+  
+  /**
+   * Check one fstab line and return false if
+   * the line contains errors.
+   */
+  define boolean check_fstab_line( integer lnr )``{
+
+      //y2milestone("checked partitions %1" ,checked_partitions );
+      
+      list(string) line = lookup( AsciiFile::GetLine(fstab, lnr), "fields", [] );
+
+      // empty line ?
+      if ( size(  filter( string pos, line, ``( pos != "" && pos != " " )) ) == 0 || line == [] )
+      {
+	  y2milestone(" add empty line to valid_lines ");
+	  valid_lines  = add(valid_lines , lnr );
+	  return true;
+      }
+
+      map  part 	= line2part(line);
+
+      string  type 		= "invalid";
+      boolean fs_spec   	= false;
+      boolean fs_file   	= false; 
+      boolean fs_vfstype 	= false;
+      boolean fs_mntops 	= false;
+      boolean fs_freq 		= false;
+      boolean fs_passno 	= false;
+
+      if( part == nil || part == $[] || size( part)<=0 )
+      {
+	  if( line[0]:"" == defs["usb",0]:"!"  )
+	  {
+	      
+	      if (Hotplug::haveUSB)
+	      {
+		  type = "usb";
+		  fs_spec = true;
+		  fs_file = line[1]:"" == defs[type ,1]:"!";
+		  fs_vfstype = ( line[2]:"" == defs[type ,2]:"!");
+		  fs_mntops  = check_fs_mntops(line);
+		
+	      }
+	      else {
+		  y2error("usb line in fstab but no usb found");
+		  type = "usb";
+		  fs_spec = false;
+		  fs_file = true;
+		  fs_vfstype = true;
+		  fs_mntops =true;
+	      }
+	  }
+	  else if( issubstring( line[0]:"", ":/" ) ){
+	      // nfs
+	      type = "nfs";
+	      fs_spec = true; // no check
+	      fs_file = check_fs_file(line);
+	      fs_vfstype = true; // no check
+	      fs_mntops  = true; // no check
+	      
+	  }
+	  else if( line[0]:"" == defs["pts",0]:"!" ) {
+	      type = "pts";
+	      fs_spec  =true;
+	      fs_file  = check_fs_file(line);
+	      fs_vfstype = ( line[2]:"" == defs[type, 2]:"!" );
+	      fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "" ); 
+	  }
+	  else if( line[0]:"" == defs["proc",0]:"!" ) {
+	      type = "proc";
+	      fs_spec  =true;
+	      fs_file  = line[1]:"" == defs[type,1]:"!";
+	      fs_vfstype = ( line[2]:"" == defs[type,2]:"!" );
+	      fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "" );   
+	  }
+	  fs_freq    = check_fs_freq(line ,[defs[ type , 4]:""] );
+	  fs_passno  = check_fs_passno(line, [ defs[ type , 5]:"" ] );
+      }
+      else {
+	  string uuid_string 	= uuid_string(line);
+	  string label_string 	= label_string(line);
+
+	  list(string) special_freq 	= [];
+	  list(string) special_passno 	= [];
+	  
+	  // cdrom floppy zip
+	  if ( part["found"]:"" == "floppy" ||
+	       part["found"]:"" == "zip"    ||
+	       part["found"]:"" == "cdrom" )
+	  {
+	      type = part["found"]:"";
+	      fs_spec	 = true;
+	      fs_file    = check_fs_file(line);
+	      fs_vfstype = check_fs_vfstype(line, part );
+	      fs_mntops  = check_fs_mntops( line);
+	  }
+	  else if ( contains( checked_partitions, part["dev_name"]:"" ) &&
+		    part["found"]:"" == "dev" )
+	  {
+	      // check root first with CheckRootEntry!!
+	      if( line[1]:"" == "/" ) return true;
+	       type 	  = "dev";
+	       fs_spec    = true;
+	       fs_file    = check_fs_file(line);
+	       fs_vfstype = check_fs_vfstype(line, part );
+	       fs_mntops  = check_fs_mntops( line);
+
+	       special_passno  = [ "2" ];
+	       special_freq    = [ "1" ];
+	       // add mount point to target_map for later use (OSRBoot)
+	       part["mount"] = line[1]:"";
+	       Storage::SetSubDev(part["subdevkey"]:"", part);
+	       
+	  }		
+	  else if ( contains( swapable_partition_list, part["dev_name"]:"" ) &&
+		    part["found"]:"" == "swap" )
+	  {
+	      type 	= "swap";
+	      fs_file 	= true;
+	      fs_spec 	= (line[1]:"" == "swap");
+	      fs_vfstype= ( line[2]:"" == "swap");
+	      fs_mntops = ( (substring(line[3]:"",0,4) == "pri=") &&
+			    (size(filterchars( substring(line[3]:"",4), digits+"-")) == size(substring(line[3]:"",4))));
+	  }
+	  else if ( part["found"]:"" == "root" )
+	  {
+	      fs_spec 	  = true;
+	      fs_file 	  = true;
+	      fs_vfstype  = true;
+	      fs_mntops   = true;
+	      fs_freq     = true;
+	      fs_passno   = true;
+	  }
+	  else {
+	      y2error("not valid fstab entry found");
+	  }
+
+	  // not check for root
+	  if ( type != "" && contains(["dev", "swap","floppy", "zip", "cdrom"], type) ) {
+	      fs_freq    = check_fs_freq( line , union( [defs[type,4]:""], special_freq) );
+	      fs_passno  = check_fs_passno(line, union( [defs[type,5]:""], special_passno) );   
+	  }
+      }
+
+ 
+      if( ! fs_spec ) {
+	  y2error("%1 spec not valid", line[0]:"");
+      }
+      if( ! fs_file ) {
+	  y2error("%1 file not valid", line[0]:"" );
+      }
+      if( ! fs_vfstype ) {
+	  y2error("%1 fstype not valid",line[0]:"");
+      }
+      if( ! fs_mntops ) {
+	  y2error("%1 mntops not valid",line[0]:"");
+      }
+      if( ! fs_freq ) {
+	  y2error("%1 freq not valid",line[0]:"" );
+      }
+      if( ! fs_passno) {
+	  y2error("%1 passno not valid",line[0]:"");
+      }
+	    
+      if( fs_spec && fs_file && fs_vfstype && fs_mntops && fs_freq && fs_passno ) {
+	  valid_lines  = add(valid_lines , lnr );
+	  y2milestone("fstab line nr %1 entry is valid", lnr);
+      }
+      else {
+	  y2error("fstab line nr %1 is not valid", lnr );
+	  not_valid_lines[ lnr] = [ type, fs_spec, fs_file, fs_vfstype, fs_mntops, fs_freq, fs_passno];
+      }
+      return ( fs_spec && fs_file && fs_vfstype && fs_mntops && fs_freq && fs_passno );      
+  }
+  
+  /**
+   * All device that should be checked.
+   */
+  define list(string) devices2check()``{
+      list(string) dev2check = union( union( checked_partitions, swapable_partition_list),
+			      [defs["usb", 0]:"",defs["proc", 0]:"", defs["pts", 0]:""]);
+
+      dev2check = union( dev2check, maplist(map d, StorageDevices::cddrives,     ``(d["dev_orig"]:(d["dev_name"]:""))));
+      dev2check = union( dev2check, maplist(map d, StorageDevices::FloppyDrives, ``(d["dev_orig"]:(d["dev_name"]:""))));
+      dev2check = union( dev2check, maplist(`k,`d, StorageDevices::zipDrives, ``(d["dev_orig"]:(d["dev_name"]:""))));
+
+      return dev2check;
+  }
+  
+ 
+  /**
+   * Check if all entries in the fstab are valid and
+   * if all found devices have an entry in the fstab.
+   */
+  global define boolean Check(list(string) tswapable_partition_list,
+			      list(string) tchecked_partitions ) ``{
+
+      ResetSettings();
+      swapable_partition_list = tswapable_partition_list;
+      checked_partitions      = tchecked_partitions;
+
+      // check all lines in existing fstab file 
+      foreach(integer lnr, map line, fstab["l"]:$[], ``{
+	  y2milestone("----check fstab line %1 ", lnr);
+	  if(! contains( valid_lines, lnr ))
+	      check_fstab_line(lnr);
+      });
+
+      // check all mountable partitions + swap + usb+ proc +...
+      foreach(string p, devices2check(), ``{
+	  y2milestone("-----check partition and usb,proc,pts %1", p );
+	  check_dev_entry(p);
+      });
+
+      return ((size( missing_devs ) == 0)  && (size( not_valid_lines ) == 0 ));
+  }
+
+  /**
+   * Build items for table in missing devices dialog.
+   */
+  define list(term) missing_devs_items( map new_entries )``{
+      list(term) item_list = [];
+      foreach(string k, map e, new_entries, ``{
+	  item_list = add(item_list, `item(`id(k), k, e["mount"]:""));
+      });
+      return item_list;
+  }
+
+  define string find_next_media_file(string type )``{
+      integer num = 0;
+      string  mp  = "/media/" + type;
+      while( true ) {
+	  if( AsciiFile::FindLineField(fstab, 1,mp) == [] )
+	      return mp;
+	  else {
+	      num = num +  1;
+	      mp = sformat("%1%2",mp,num);
+	  }
+      }
+  }
+
+  define list(string) used_mount_points(map fstab )``{
+
+      list(string) ret = [];
+      foreach(integer lnr, map ldata  ,fstab["l"]:$[], ``{
+	  ret = add( ret , ldata["fields", 1 ]:"");
+      });
+      return ret;
+  }
+  
+  /**
+   * Build fstab entries for all existing devices that are not listed in the fstab.
+   */
+  define map suggest_missing_entries()``{
+
+      if( Mode::test ) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]]; 
+      
+      include "partitioning/write_fstab.ycp";
+      integer other_nr = 1;		// count other mounts -> global for wirte_fstab
+      map new_entries = $[];
+      
+      missing_devs = sort(string d1, string d2, missing_devs , ``( d1 < d2 ));
+      
+      foreach(string dev, missing_devs,``{
+	  map part      = devname2part(dev);
+	  if( part != nil && part != $[] && contains(["dev", "swap", "root"], part["found"]:""  )) {  
+	      part["device"] = dev;
+
+	      map fstabentry 		     = onepartition2fstab(part);
+	      list(string) used_mount_points = used_mount_points(fstab);
+
+	      string  start = "/data";
+	      integer count = 2;
+		  
+	      while( contains( used_mount_points , fstabentry["mount"]:"" ))
+	      {
+		  // find new mount point	
+		  fstabentry["mount"] = sformat("%1%2", start, count );
+		  count = count + 1;
+		  y2milestone(" new mount point %1 ", fstabentry["mount"]:"");
+	      }
+	      
+	      if (size(fstabentry)>0 ) {
+		  new_entries[dev] =  fstabentry;
+	      }
+	  }
+	  else if ( contains(defs_pos_exist(0,0), dev )) {
+	      list(string) line = select(maplist(string m, map n, filter(string k,map v, defs, ``( v[0]:"" == dev)), ``(n)),0,[]);
+	      new_entries[dev] =  fstabline2map(line );
+	  }
+	  else if (contains(["zip", "floppy"], part["found"]:"")) {
+	      
+	      map fstline = fstabline2map( defs[part["found"]:""]:[]);
+	      fstline["spec"]  = part["dev_orig"]:(part["dev_name"]:"");
+	      fstline["mount"] = find_next_media_file(part["found"]:"");
+	      new_entries[dev] = fstline;
+	  }
+	  else if ( "cdrom" == part["found"]:"") {
+	      map ret = MakeCdromFstabEntry( part );
+	      new_entries[dev] = ret;
+	  }
+	  else {
+	      y2error("creating an entry for %1 is not possible (3)", dev );
+	  }
+      });
+      if( size( new_entries ) == 0 ) {
+	  y2error("creating fstab entries is not possible (4)");
+      }
+      else {
+	  y2milestone("Suggested new fstab entries %1", new_entries);
+      }
+      return new_entries;
+  }
+
+ 
+
+  /**
+   * Dialog for existing devices that are not listed in the fstab.
+   */
+  define symbol SuggestMissingEntriesDialog()``{
+
+    
+      map new_entries   = suggest_missing_entries();
+
+      if( size( new_entries) == 0 ) return `error;
+
+      string help_text = _("
+<P><I>YaST</I> didn't find a valid fstab
+entry for the devices listed in the table.
+</P>
+<P>
+Please select the devices for which 
+you want to create a new fstab entry
+and enter a mount point.
+</P>
+<P>When you created  mount points for all
+devices please press the \"Repair\" button
+to go one.
+</P>");
+
+      help_text = help_text +
+
+	  OSRRepairUI::build_label_description( device_label, _("The name of the device for which was no valid fstab
+entry found.")) +
+
+	  OSRRepairUI::build_label_description( mount_label, _("The mount point for the found device. YaST create this
+mount point in the file system. If you leave the mount point field empty no fstab entry will created")) +
+
+	  OSRRepairUI::build_label_description( create_mp_label, _("Add a mount point for a device."));
+      
+      
+      
+      OSRPopup::OpenSuggestDialog(_("Add fstab entries:"),
+				  _("
+Please select the devices for which you want to
+create a new fstab entry and enter a mount point."),
+				  help_text,
+				  `VBox(`Left(`Label(_("Found devices without valid fstab entry:"))),
+					`Table(`id(`table), `header(device_label, mount_label ), missing_devs_items(new_entries)),
+					`Right(`PushButton(`id(`mountpoint), create_mp_label ))) ,70  );
+
+
+    symbol ret       = `ok;
+    repeat {
+	ret = UI::UserInput();
+
+	if ( ret == `mountpoint) {
+	    string current = UI::QueryWidget(`id(`table), `CurrentItem );
+	    if ( current != nil && current != "" ) {
+
+		string ret = OSRPopup::ChangeFieldDialog(new_entries[current,"mount"]:"", 
+					       sformat(_("
+Please enter a mount point
+for the device %1:
+"), new_entries[current,"spec"]:""));
+
+
+		if ( ret != nil ) {
+		    new_entries[current,"mount"] = ret;
+		    UI::ChangeWidget(`id(`table), `Items,missing_devs_items(new_entries ));
+		}		
+	
+	    }
+	}
+	
+	if( ret == `ok ) {
+	    integer changed_size = size( filter(string k,map e, new_entries, ``( e["spec"]:"" != "" && e["mount"]:"" != "" )));
+	    if( changed_size == 0 ) {
+		Report::Warning(_("
+Please first create mount points
+for the listed devices.
+"));
+		continue;
+	    }
+	    else if ( changed_size < size( new_entries )) {
+		if(! UI::YesNoHeadlinePopup(_("Some mount point fields are empty"),_("
+YaST needs valid mount points to
+create fstab entries for devices.
+You did not enter a mount point
+for all devices. If you continue
+now YaST only creates fstab
+entries for devices with entered
+mount points. 
+Do you really want to continue?
+")))
+		    continue;
+	    }
+	    // create mount point (cmp)
+	    map cmp 	     = $[];
+	    integer fack_lnr = 0;
+	    foreach(string k, map e, new_entries, ``{
+		if (e["spec"]:"" != "" && e["mount"]:"" != "" ){
+
+		    list(string) fstlist = [ k , e["mount"]:"", 
+					     e["vfstype"]:"", e["mntops"]:"", 
+					     sformat("%1",e["freq"]:0),
+					     sformat("%1",e["passno"]:0) ];
+		    
+
+		    cmp[fack_lnr] =  e["mount"]:"";
+		    fack_lnr      =  fack_lnr + 1;
+		   
+		    AsciiFile::AppendLine( fstab, fstlist );	   
+		}
+	    });
+
+	    map failed = check_and_create_mount_points(cmp);
+	    if ( size(failed) > 0 ) ret =  `error;
+	    
+	}
+	
+    } until( ret == `ok || ret == `cancel || ret == `error );	      
+    
+    UI::CloseDialog();
+    return ret;
+  }
+
+
+
+  define map suggest_create_mp()``{
+
+
+      // e.g.: $[4: ["dev", false, true, true ,true ,true ,true ]], //spec error in line 4 
+      // found fstab line without valid mount point
+      list(integer) cmpl =  maplist(integer kk, list vv,
+				   filter(integer k, list v, not_valid_lines, ``(v[1]:true == true &&
+										 v[2]:true == false &&
+										 substring( fstab[ 4, "fields", 1 ]:"", 0,1 ) == "/"  &&
+										 ( ! contains( defs_pos_exist(1,-1) ,v[0]:"") ||
+										   v[0]:"" == "pts" )
+										 )),
+				   ``(kk)); 
+
+      if ( Mode::test  ) cmpl = [1,2];
+      
+      return AsciiFile::GetLines(fstab, cmpl);
+  }
+  
+  define list(term) create_mp_items(map cmp )``{
+      list(term) ret = [];
+      foreach(integer lnr, map v, cmp, ``{
+	  ret = add(ret, `item(`id(lnr), create_label, v["fields",1]:"", v["fields", 0]:""));
+      });
+      return ret;
+  }
+
+  /**
+   * @param cmp:
+   *      fstab line nr  : mount point
+   * cmp : $[ 1		 : "/hhh",
+   *          2		 : "/mnt/uuu" ];
+   *
+   * @return create failed for mount points $[ 1        : "/hhh" ];
+   */
+  global define map check_and_create_mount_points(map cmp ) ``{
+	map failed = $[];
+	foreach(integer lnr, string missing_dir, cmp, ``{
+	    if( substring( missing_dir , 0,1) == "/" )
+	    {
+		list(string) subdirs = filter(string  sdir, splitstring(missing_dir, "/"), ``( sdir != ""));
+		string mkdir = root_mountpoint + "/";
+		foreach(string sdir, subdirs, ``{
+		    mkdir = mkdir + "/"+ sdir;
+		    if( ! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1", mkdir )))
+			OSRExecute::Command(.local.bash, sformat("/bin/mkdir %1", mkdir));	
+		});
+		if ( ! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1", root_mountpoint + missing_dir )))
+		{
+		    failed[lnr] =  missing_dir;
+		}
+	    }
+	});
+	
+	if( size(failed) == 0 )
+	{
+	    Report::Message(_("
+All missing mount points were
+created successfully.
+"));	    
+	}
+	else if( size(failed ) > 1 )
+	{
+	    Report::Error(sformat(_("
+Creating the mount points:
+%1
+were not successful.
+"),mergestring(maplist(integer lnr, string dir, failed, ``(dir)), "\n")));
+	}
+	else if ( size(failed) == 1 )
+	{
+	    Report::Error(sformat(_("
+Creating the mount point:
+%1
+was not successful.
+"), mergestring(maplist(integer lnr, string dir, failed, ``(dir)), "\n")));
+	}
+	return failed;
+  }
+  
+  
+  define symbol SuggestCreateMp()``{
+      map missing_create_mp = suggest_create_mp();
+      if( size( missing_create_mp ) == 0 ) return `ok;
+   
+      string help_text = _("
+<P><I>YaST</I> checked the /etc/fstab file and could not find
+valid mount points for the listed devices.
+</P>") + 
+	  OSRRepairUI::build_label_description( state_label, sformat(_("
+The status of a listed line can be switched between
+%1 and %2. YaST only create a mount points for a partition
+if the the status is %2."), ignore_label, create_label )) +
+
+
+	  OSRRepairUI::build_label_description( mount_label, _("
+This field contains the present entry
+of the mount point position in the fstab.
+Please change this field to a valid mount point.
+ 
+If you don't want to create a missing mount point
+select the corresponding line in the table and change
+the state to ignore.
+")) +	
+	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
+Change the state of the line to %1."),ignore_label)) +
+
+	  OSRRepairUI::build_label_description( b_create_label, sformat(_("
+Change the state of the line to %1."), create_label));
+
+      
+      OSRPopup::OpenSuggestDialog( _("Create missing mount points:"),
+				   _("
+Some mount points for fstab entries are missing in
+the file system. Please change the state of the
+lines for that YaST should create a mount point."),
+				   help_text,
+				   `VBox(`Left(`Label(_("Found missing or invalid mount points:"))),
+					 `Table(`id(`table), `header( state_label, mount_label, device_label  ),
+						create_mp_items(missing_create_mp)),
+					  `HBox(`PushButton(`id(`ignore), b_ignore_label ),
+						`PushButton(`id(`create), b_create_label ),
+						`Right(`PushButton(`id(`change),  b_change_mp_label ))),
+					 `VSpacing(1)
+					  ), 50 );
+
+    UI::SetFocus(`id(`table));
+    symbol ret       = `ok;
+    map    cmp       = $[];
+    repeat {
+	ret = UI::UserInput();
+	integer current_item  = UI::QueryWidget(`id(`table), `CurrentItem);
+	
+	if ( ret == `ignore ) {
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), ignore_label );
+	}
+	else if ( ret == `create ) {
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), create_label );
+	}
+	else if ( ret == `change ) {
+	    integer current = UI::QueryWidget(`id(`table), `CurrentItem );
+	    if ( current != nil && current != "" ) {
+
+		string ret = OSRPopup::ChangeFieldDialog(missing_create_mp[current,"fields",1]:"", 
+					       sformat(_("
+Please enter a mount point
+for the device %1:
+"), missing_create_mp[current,"fields",0]:""));
+
+
+		if ( ret != nil ) {
+		    missing_create_mp[current,"fields",1] = ret;
+		    UI::ChangeWidget(`id(`table), `Items, 	 create_mp_items(missing_create_mp));
+		}		
+
+	    }
+	}
+	else if( ret == `ok ) {
+	    cmp = $[];
+	    foreach(integer e, map lines , missing_create_mp, ``{
+		if ( select( UI::QueryWidget(`id(`table), `Item(e)), 1, "") == create_label ) {
+		    cmp[e] = lines["fields", 1]:"";
+		}
+	    });
+	}
+	
+    } until( ret == `ok || ret == `cancel );	      
+    UI::CloseDialog();
+
+    if( ret == `ok )
+    {
+	map failed = check_and_create_mount_points( cmp );
+
+	if( size(failed) == 0 )
+	{
+	    foreach(integer lnr, string dir, cmp,``{
+		fstab["l",lnr,"fields",1] = dir;
+		// rebuild the hole entry
+		not_valid_lines[lnr,3] = false;
+		not_valid_lines[lnr,4] = false;
+		not_valid_lines[lnr,5] = false;
+		not_valid_lines[lnr,6] = false;
+	    });
+		    
+	}
+	else if( size(failed ) > 1 )
+	{
+	    // suggest to remove the line
+	    foreach(integer lnr, string dir, failed, ``{
+		not_valid_lines = filter(integer llnr, list v, not_valid_lines, ``( llnr != lnr ));
+	    });
+	    
+
+	    ret = `error;
+	}
+	else if ( size(failed) == 1 )
+	{
+	    // suggest to remove the line
+	    foreach(integer lnr, string dir, failed, ``{
+		not_valid_lines = filter(integer llnr, list v, not_valid_lines, ``( llnr != lnr ));
+	    });
+	    ret = `error;
+	}
+    }
+    return ret;      
+  }
+  
+  
+  /**
+   * Find all fstab entries (line nr) with not existing devices.
+   */
+  define list(integer) suggest_remove_spec()``{
+      // spec not valid (false ) -> remove
+      list(integer) rm = maplist(integer n, list m, filter(integer k, list v, not_valid_lines,
+							  ``( v[1]:true == false)),``(n));
+      return rm;    
+  }
+
+  /**
+   * Build a item list for all fstab entries with not existing devices.
+   */
+  define list(term) remove_spec_items(list(integer) rm_entries, string ignore_label )``{
+      list(term) ret = [];
+      foreach(integer lnr, rm_entries, ``{
+	  ret = add(ret, `item(`id(lnr), ignore_label,
+				lookup( AsciiFile::GetLine(fstab, lnr), "line", "")));
+      });
+      return ret;
+  }
+
+  /**
+   * Dialog for all fstab entries with not existing devices.
+   */
+  define symbol SuggestRemoveSpecDialog()``{
+      list(integer) rm_entries 	  = suggest_remove_spec();      
+      
+      if( size( rm_entries) == 0 ) return `ok;
+      
+      string help_text =  OSRRepairUI::build_label_description( state_label,  sformat(_("
+The status of a listed line can be switched between
+%1 and %2. YaST only remove fstab entries if the the status of the
+corresponding line is %2."), ignore_label, remove_label )) +
+						
+	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
+Change the state of the line to %1"), ignore_label)) +
+
+	  OSRRepairUI::build_label_description( b_remove_label, sformat(_("
+Change the state of the line to %1"), remove_label));
+
+      
+	  
+      
+      OSRPopup::OpenSuggestDialog( _("Remove fstab entries:"),
+				   _("
+Could not find existing devices for the following fstab lines.
+Please select the lines in the table and  change the state in
+order to remove the lines of the fstab."),
+				   help_text,
+				   `VBox(`Left(`Label(_("Invalid or obsolete lines in the fstab:"))),
+					 `Table(`id(`table), `header(state_label, fstab_line_label ), remove_spec_items(rm_entries, ignore_label)),
+					 `Left(`HBox(`PushButton(`id(`ignore), b_ignore_label ),
+						     `PushButton(`id(`remove), b_remove_label )))
+					 ), 50	 );
+      UI::SetFocus(`id(`table));
+
+    symbol ret       = `ok;
+    repeat {
+	ret = UI::UserInput();
+	integer current_item  = UI::QueryWidget(`id(`table), `CurrentItem);
+	
+	if ( ret == `ignore ) {
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), ignore_label );
+	}
+	else if ( ret == `remove ) {
+	    UI::ChangeWidget(`id(`table), `Item(current_item, 0), remove_label );
+	}
+	else if( ret == `ok ) {
+	    list(integer) rm_list = [];
+	    foreach(integer e, rm_entries, ``{
+		if ( select( UI::QueryWidget(`id(`table), `Item(e)), 1, "") == remove_label ) {
+		    rm_list = add(rm_list, e);
+		}
+	    });
+	    y2milestone("lines to remove %1", rm_list);
+	    AsciiFile::RemoveLines(fstab, rm_list );
+	}
+	
+    } until( ret == `ok || ret == `cancel );	      
+    
+    UI::CloseDialog();
+    return ret;      
+  };
+
+  
+  /**
+   * Find all fstab lines with at least one invalid position
+   */
+  define map suggest_modify()``{
+
+      y2milestone("starting modify suggestion");
+      map modify_entries = filter(integer k, list v, not_valid_lines, ``( v[1]:false == true));      
+      if( size(modify_entries) == 0 ) return $[];
+
+      map nlines  = $[];
+      
+      foreach(integer lnr, list opts,  modify_entries, ``{
+	  list(string) line   	= lookup(AsciiFile::GetLine(fstab, lnr), "fields", []);
+	  list(string) nline    = [line[0]:""];
+	  map part      	= line2part(line);
+	  string type		= opts[0]:"";
+
+	  if(opts[2]:true == false )
+	  {
+	      
+	      if ( contains( defs_pos_exist(1,-1) ,type) &&
+		  type != "pts" )
+	      {
+		  nline = add(nline, defs[type,1]:"" );
+	      }
+	      else {
+		  AsciiFile::RemoveLines(fstab, [ lnr ] );
+		  return;
+	      }
+	  }	
+	  else {
+	      nline = add(nline , line[1]:"");
+	  }
+	  
+	  // invalid  vfstype
+	  if( opts[3]:true == false )
+	  {
+	      if (type == "dev"  )
+	      {	
+		  string detected_fs = FileSystems::GetMountString( part["detected_fs"]:(part["used_fs"]:""), "auto" );
+		  if( detected_fs != "Unkonwn" ) {
+		      nline = add(nline, detected_fs );
+		  }
+		  else {
+		      y2error("could not repair the defect fstab line %1", line );
+		      return;
+		  }
+	      }
+	      else {
+		  // proc, usb, pts
+		  string fs = defs[type,2]:"";
+		  if( fs != "" )      nline = add(nline, fs );
+		  else {
+		      y2error("invalid type");
+		      return;
+		  }
+	      }
+	  }
+	  else {
+	      nline = add(nline, line[2]:"");
+	  }
+	  
+	  integer i = 4;
+	  while( i <= 6 ) {
+	      // invalid ops
+	      if ( opts[i]:true == false ) {
+		  string str = defs[type,i-1]:"";
+		  if (str != "" ) nline = add(nline, str);
+		  else {
+		      y2error("not valid %2 for line %1 found", line,pos2field[i-1]:"");
+		  }
+		  
+		  //set following pos to false
+		  integer ii = i+1;
+		  while( ii <=6 ) {
+		      opts[ii] = false;
+		      ii = ii+1;
+		  }
+	      }
+	      else {
+		  nline = add(nline, line[i-1]:"");
+	      }
+	      i = i +1;
+	  }
+
+
+	  nline = filter(string pos, nline, ``( pos != nil && pos != "" ));
+	  if( size(nline) == 6  && nline != line )
+	  {   
+	      nlines[lnr] = nline;
+	  }
+	  else
+	  {
+	      y2error("the size of the suggested fstab entry is to less");
+	  }
+      });
+      return nlines;
+  }
+
+  /**
+   * Build a item list.
+   */
+  define list(term) modify_items(map nlines, string ignore_label, boolean existing )``{
+      list(term) ret = [];
+      foreach(integer lnr, list nline, nlines , ``{
+	  if( existing ) nline = lookup( AsciiFile::GetLine(fstab,lnr), "fields", [] );
+	  ret = add(ret, `item(`id(lnr), ignore_label, mergestring( nline, ", ")));
+      });
+      return ret;
+  };
+
+  /**
+   * Dialog for all fstab entries that have at least one invalid entry.
+   */
+  define symbol SuggestModifyDialog()``{
+      map nlines = suggest_modify();
+
+      string existing_label 	= _("Existing fstab lines:");
+      string suggested_label    = _("Suggested fstab lines:");
+      
+      if ( size( nlines) == 0 ) return `ok;
+      
+      string help_text = sformat(_("
+One or more existing fstab entry seems to
+be invalid. Please compare the suggested entry
+with the existing one.
+If you want to replace an existng line with a suggested
+line please select the corresponding line
+in the \"%1\" table and
+press the button \"%2\".
+"), suggested_label, b_replace_label) +
+
+      OSRRepairUI::build_label_description( state_label, sformat(_("
+The status of a listed line can be switched between
+%1 and %2. YaST only replace lines with the status is %2."), ignore_label, replace_label )) +
+
+      OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
+Change the state of the line to %1"), ignore_label)) +
+
+	  OSRRepairUI::build_label_description( b_replace_label, sformat(_("
+Change the state of the line to %1"), replace_label));
+      
+      
+      string headline = _("Change existing fstab entries:");
+
+      OSRPopup::OpenSuggestDialog(  headline,
+				    _("
+One or more existing fstab entry seems to invalid. Please
+compare the suggested  entry with the existing one."),
+				    help_text,			    
+				    `VBox(`Left(`Label(existing_label )),
+					  `Table(`id(`table_e), `opt(`disabled), `header( state_label , fstab_line_label), modify_items(nlines, ignore_label, true)),
+					  `VSpacing(1),
+					  `Left(`Label(suggested_label )),
+					  `Table(`id(`table_s), `opt(`notify),`header( state_label, fstab_line_label),modify_items(nlines,ignore_label, false)),
+					  `Left(`HBox(`PushButton(`id(`ignore), b_ignore_label ),
+						      `PushButton(`id(`replace),b_replace_label )))
+					  ) ,80 );
+    UI::SetFocus(`id(`table_s));
+
+    symbol ret       = `ok;
+    repeat {
+	ret = UI::UserInput();
+	integer current_item  = UI::QueryWidget(`id(`table_s), `CurrentItem);
+	UI::ChangeWidget(`id(`table_e), `CurrentItem, current_item );
+	
+	if ( ret == `ignore ) {
+	    UI::ChangeWidget(`id(`table_s), `Item(current_item, 0), ignore_label );
+	    UI::ChangeWidget(`id(`table_e), `Item(current_item, 0), ignore_label ); 
+	}
+	else if ( ret == `replace ) {
+	    UI::ChangeWidget(`id(`table_s), `Item(current_item, 0), replace_label );
+	    UI::ChangeWidget(`id(`table_e), `Item(current_item, 0), replace_label );
+	    
+	}
+	else if( ret == `ok ) {
+	    integer changed_count = size(filter(integer e, list ld, nlines, ``( select( UI::QueryWidget(`id(`table_s), `Item(e)), 1, "") == replace_label )));
+	    
+	    if ( changed_count == 0 ) {
+		Report::Warning(_("
+Please set the state of one
+table entry to replace at least.
+"));
+		continue;
+	    }
+	    else if ( changed_count < size( nlines )) {
+		if(! UI::YesNoHeadlinePopup(_("Some table entries have not the state \"replace\"."),_("
+YaST only replaces the fstab lines marked with
+\"replace\". In order to accept the whole YaST
+suggestion press the button \"No\" to go back to
+the dialog and change all lines to the state
+replace.
+If YaST should only change the selected fstab
+lines press the button \"Yes\".
+")))
+		    continue;
+	    }  
+
+	    list(integer) rp_list = [];
+	    foreach(integer e, list ld, nlines, ``{
+		if ( select( UI::QueryWidget(`id(`table_s), `Item(e)), 1, "") == replace_label ) {
+		    rp_list = add(rp_list, e);
+		}
+	    });
+
+	    
+	    y2milestone("lines to remove %1", rp_list);
+	    AsciiFile::RemoveLines(fstab, rp_list );
+
+	    // save and reread before append fstab !! Remove don't resort list positions!!
+	    AsciiFile::RewriteFile( fstab, root_mountpoint + tabpath );
+	    ReadFstab( root_mountpoint , true );
+	    
+	    foreach(integer rp, rp_list, ``{
+		AsciiFile::AppendLine(fstab, nlines[rp]:[]);
+	    });
+
+	}
+	
+    } until( ret == `ok || ret == `cancel );	      
+    
+    UI::CloseDialog();
+    return ret;
+  }
+
+
+  define symbol ret_worst_symbol(list(symbol) retl )``{
+      
+      map symbol_weight = $[
+			    `ok 	: 1,
+			    `cancel 	: 2,
+			    `error 	: 3,
+			    `abort	: 2
+      ];
+  
+      
+      symbol ret = `ok;
+      foreach(`r, retl, ``{
+	  if( symbol_weight[ret]:0 < symbol_weight[r]:-1 )
+	      ret = r;
+      });
+      return ret;
+  }	
+  
+
+  define boolean really_write_fstab(boolean show)``{
+      if ( ! show ) return true;
+      
+      string headline 	= _("The new fstab:");
+      string text 	= "";
+      term   contents 	= `Empty();
+      string new_fstab 	="";
+      
+      if( UI::HasSpecialWidget(`DownloadProgress))
+      {
+	  foreach(integer nr, map l , fstab["l"]:$[], ``{
+	      text = text + sformat( "<tr> <td> %1</td>
+                                        <td> %2</td>
+                                        <td> %3</td>
+                                        <td> %4</td>
+                                        <td> %5</td>
+                                        <td> %6</td>
+                                   </tr>",
+				     l["fields",0]:"",
+				     l["fields",1]:"",
+				     l["fields",2]:"",
+				     l["fields",3]:"",
+				     l["fields",4]:"",
+				     l["fields",5]:"");
+
+	  });
+	  text = sformat("<table> %1 </table>", text);
+	  contents   = `VBox(`Heading(headline),
+			     `RichText(text));
+      }
+      else
+      {
+	  string filename =  OSRLogFile::GetTmpDir()+ "/"+"new_fstab";
+	  AsciiFile::RewriteFile( fstab, filename );
+
+	  // Fill the LogView with file contents
+	  new_fstab =  WFM::Read(.local.string, (filename));
+	  contents = `LogView( `id(`log ),  headline, 3, 0 );  
+      }
+      
+      UI::OpenDialog( `opt(`decorated ),
+		  `VBox(
+			`HSpacing( 70 ),	// force width
+			`VSpacing( 0.3 ),
+			`VWeight( 1,
+				  `HBox(
+					`VSpacing( 18 ),	// force height
+					`HSpacing( 0.7 ),
+					contents,
+					`HSpacing( 0.7 )
+					)
+				  ),
+			`VSpacing( 0.3 ),
+			`HSquash(`HBox(`PushButton( `id(`save), SaveButtonLabel() ),
+			      `PushButton( `id(`cancel), CancelButtonLabel()),
+			      `HSpacing(2),
+			      `Right(`PushButton( `id(`help), HelpButtonLabel() ))
+			     )),
+			`VSpacing( 0.3 )
+			)
+		      );
+
+      if(! UI::HasSpecialWidget(`DownloadProgress))
+      {
+	  UI::ChangeWidget( `id(`log ), `Value, new_fstab );
+      }
+      string help_text = _("
+<P>Until now YaST has not modified
+the fstab. If you press the cancel button nothing will
+be changed.</P>
+<P>Only if you press the save button the changes will be
+written to the fstab.</P>");
+
+      
+      symbol ret = `next;
+      repeat {
+	  ret = UI::UserInput();
+	  if ( ret == `help )
+	  {
+	      UI::LongTextPopup(OSRPopup::help_headline , `RichText(help_text), 50, 20);
+	  }
+      } until ( ret == `save || ret == `cancel );
+
+      UI::CloseDialog();
+      return ret == `save;
+  }
+
+
+  
+  /**
+   * Repair the fstab. Call sub dialogs.
+   * @param step = 1 -> first step, repair root entry 
+   */
+  global define symbol Repair(integer step)``{
+
+      list(symbol) ret = [];
+      
+      if ( size( missing_devs ) > 0 ) {
+	  ret = add(ret, SuggestMissingEntriesDialog());
+      }
+
+      
+      if( size( not_valid_lines ) > 0 ) {
+	  ret = add( ret, SuggestCreateMp());
+	  ret = add( ret, SuggestRemoveSpecDialog());
+	  ret = add( ret, SuggestModifyDialog());
+      }
+
+      // only show written file in step 2 - repairing
+      // all entries without root.
+      // step 1 repair root partition.
+      if( Mode::test ) return `ok;
+      y2milestone("ret repair list %1" ,ret);
+      
+      if((size( filter(symbol r, ret, ``( r == `ok ))) > 0) ) // &&
+	 //(step == 1 || ( step == 2 && really_write_fstab( step == 2 ))))
+      {
+	  AsciiFile::RewriteFile( fstab, root_mountpoint + tabpath );
+	  ResetSettings();
+	  ReadFstab(root_mountpoint, true );
+      }
+      else
+      {
+	  y2milestone("new fstab was not written");
+	  return `cancel;
+      }
+
+      return ret_worst_symbol(ret);
+  }
+
+  
+  
+  
+  global define boolean CheckRootEntry(string dev_name , list(string) tswapable_partition_list,
+				      list(string) tchecked_partitions )``{
+
+      boolean ret   = false;
+
+      ResetSettings();
+      y2milestone("check root fstab entry");
+      swapable_partition_list = tswapable_partition_list;
+      checked_partitions      = tchecked_partitions;
+      
+      map root_part = devname2part( dev_name);
+
+      // root_l_no
+      //[1]
+      list(integer) root_l_no 	= AsciiFile::FindLineField( fstab, 0, dev_name );
+      root_l_no     		= union( root_l_no, AsciiFile::FindLineField(fstab, 0, "UUID=" + root_part["uuid"]:"" ));
+      root_l_no 		= union( root_l_no, AsciiFile::FindLineField(fstab, 0, "LABEL=" + root_part["label"]:"" ));
+
+      // root_lines:
+      //$[1:$["fields":["/dev/hda3", "/", "reiserfs", "defaults", "1", "2"], "line":"/dev/hda3\t/\treiserfs\tdefaults 1 2"]]
+      map root_lines   		= $[];
+
+      foreach(integer n, root_l_no, ``{
+	  root_lines[n] = AsciiFile::GetLine(fstab, n);
+      });
+      root_lines      = filter(integer n, map l, root_lines, ``(select(l["fields"]:[], 1, "")  == "/" ));
+
+      
+      if( size( root_lines ) != 1 ) {
+	  y2error(" several or non root entries in fstab found");
+	  y2error(" root lines %1", root_lines);
+	  missing_devs  = add(missing_devs, dev_name);
+	  ret =  false;
+      }
+      else {
+	  
+ 	  integer root_line_key  = select(maplist(integer k, map v,root_lines,``(k)),0,1);
+	  list(string) root_line = lookup(root_lines[ root_line_key ]:[], "fields", [] );
+
+	  string type = "root";
+	  
+	  boolean fs_vfstype = check_fs_vfstype(root_line, root_part );
+	  boolean fs_mntops  = check_fs_mntops(root_line);
+	  boolean fs_freq    = check_fs_freq(root_line, [defs[type,4]:""]);
+	  boolean fs_passno  = check_fs_passno(root_line, [defs[type,5]:""] );
+
+	  if( ! fs_vfstype ) {
+	      y2error("root fstype not valid");
+	  }
+	  if( ! fs_mntops ) {
+	      y2error("root mntops not valid");
+	  }
+	  if( ! fs_freq ) {
+	      y2error("root freq not valid");
+	  }
+	  if( ! fs_passno) {
+	      y2error("root passno not valid");
+	  }
+	  
+	  if( fs_vfstype && fs_mntops && fs_freq && fs_passno ) {
+	      valid_lines  = add(valid_lines , root_line_key);
+	      y2milestone("root fstab line entry is valid");
+	  }
+	  else {
+	      y2error("root fstab line is not valid");
+	      not_valid_lines[ root_line_key] = [ type, true, true, fs_vfstype, fs_mntops, fs_freq, fs_passno];
+	  }
+	  ret = ( fs_vfstype && fs_mntops && fs_freq && fs_passno );
+      }
+
+      //for OSRBoot
+      root_part["mount"] = "/"; 
+      Storage::SetSubDev(root_part["subdevkey"]:"", root_part);
+
+      //inst_prepdisk for OSRBoot!
+      foreach( `modname, FileSystems::GetNeededModules( root_part["detected_fs"]:(root_part["used_fs"]:`ext2 )), ``{
+	  Boot::AddInitrdModule (modname, "");
+      });
+
+      return ret;
+  }
+
+
+  global define string BootDev()``{
+      map  lines  = fstab["l"]:$[];
+      list line   = maplist(integer llineno, map llinedata,   filter(integer lineno, map linedata, lines ,``( linedata["fields", 1]:"" == "/boot" )),
+			    ``(llinedata));
+      string ret = "";
+      if( size(line) == 1 ){
+	  map part = line2part(line[0,"fields"]:[] );
+	  ret = part["dev_name"]:part["device"]:"";
+      }
+      else {
+	  y2milestone("no /boot device in fstab");
+      }
+      if (ret == nil ) ret = "";
+      return ret;    
+  }
+
+  
+
+  global define string SelectRoot(list(string) valid_root_partition_list )``{
+      if( size(valid_root_partition_list) == 1 ) return valid_root_partition_list[0]:"";
+      
+      return OSRPopup::RadioButtonGroup(
+				      _("Select a root partition"),
+				      _("There are several valid root partitions in your system.
+You have to select one item in the list."),
+				      valid_root_partition_list,
+				      "",
+				      true
+				      );
+  }
+	  
+  global define boolean  ReadedSuccessfully()``{
+      return ( fstab != nil  && fstab != $[] ); 
+  }
+  
+  
+  global define list(map) UmountAllFrom( string root )``{
+      if ( root != "" && root != nil )   root_mountpoint   = root;
+      
+      list(map) just_umounted      = [];
+      list(map) mounted_partitions = Partitions::CurMounted();
+
+      // filter swap partitions
+      mounted_partitions = filter(map p, mounted_partitions, ``(p["file"]:"" != "swap" &&
+								findfirstof( p["spec"]:"", "/") == 0 ));
+      
+      // filter the list of partitions that are mounted to "/mnt" or deeper
+      if( root_mountpoint != "/" )
+      {
+	  just_umounted = UmountAll( mounted_partitions);
+      }
+      
+      return just_umounted;
+  }
+  
+
+  global define list(map) UmountAll( list(map) umount_list )``{
+
+      integer counter_error        = 0;
+      list(map) just_umounted      = [];
+      list(map) mnt_list	   = [];   
+
+      mnt_list = filter(map s, umount_list, ``(substring( s["file"]:s["mountpoint"]:"" , 0,
+							  size(root_mountpoint)) == root_mountpoint));
+
+      mnt_list = sort(map x, map y, mnt_list, ``(size(splitstring(x["file"]:x["mountpoint"]:"", "/")) >=
+						 size(splitstring( y["file"]:y["mountpoint"]:"" ,"/"))));
+	 
+      
+      y2error("partitions which should be umounted %1", mnt_list);
+	  
+      // umount all partitions from "/mnt" or deeper, as long as there are no more mounted partitions with
+      // mountpoint "/mnt..."
+      foreach(map current, mnt_list, ``{
+	      
+	  if(  OSRExecute::Command(.local.bash, "/bin/umount "+ current["file"]:current["mountpoint"]:""))
+	  {
+	      just_umounted = add(just_umounted,  $[ "partition"  : current["spec"]:current["partition"]:"",
+						     "mountpoint" : current["file"]:current["mountpoint"]:"" ]);
+	  }
+	  else {
+	      y2error(" %1 could not be umounted", current["file"]:current["mountpoint"]:"");
+	      counter_error = counter_error +1;
+	  }	
+      });	
+
+      if ( counter_error == 0)
+      {
+	  y2debug("All partitions were successfully umounted from /mnt...");
+      }
+      
+      return just_umounted;
+  }
+
+  
+  global define list(map) RootDev(string root )``{
+      if( root != "" && root != nil ) root_mountpoint = root;
+
+      list(map) mounted = [];
+      
+      if( ! ReadedSuccessfully() ) 
+      {
+	  import "OSRFsck";
+	  
+	  list(string) checked_partitions    = filter(string s, maplist(map p, OSRFsck::PossiblePartitions(), ``(p["device"]:"")), ``(s !=""));
+	  list(string) linux_partition_list  = LinuxPartitions( checked_partitions );
+	  list(string) mount_possible_list   = MountablePartitions(linux_partition_list , root_mountpoint);
+	  list(string) valid_root_partitions = ValidRootPartitions(mount_possible_list,   root_mountpoint); 
+	  
+	  if( size(valid_root_partitions) == 0 )
+	  {
+	      // no root partition found
+	      Report::Error(_("
+YaST can not find any valid
+root partition. Please go back
+and select all scan options.
+Afterwards restart scanning.
+"));
+	      return nil;
+	  }
+	  string root_partition = SelectRoot(valid_root_partitions);
+	  y2milestone("selected root_partition %1" ,root_partition );
+	  
+	  boolean mount         = OSRExecute::Command(.local.bash, sformat("/bin/mount %1 %2", root_partition, root_mountpoint ));
+	  
+	  mounted = add(mounted,   $[ "partition" : root_partition, "mountpoint" : root_mountpoint,
+				      "status"    : mount ]);
+	  if( mount )
+	  {
+	      OSRSystem::ChangeRoot("/");
+	      ReadFstab(root_mountpoint, true);
+	  }
+	  else
+	  {
+	      y2error("can not mount root partition");
+	  }
+      }
+
+      y2milestone("RootDev in Fstab %1" ,mounted);
+      return mounted;
+  }
+
+
+  /**
+   * Mount all partitions specified in the fstab.
+   * If no fstab was readed try to find root partition
+   * and read fstab. Afterwards mount all partitions.
+   */
+  global define list(map) MountAll(string root )``{
+      import "Partitions";
+
+      list(map) mounted = [];
+      
+      if( root != "" && root != nil ) root_mountpoint = root;
+
+      if( OSRFsck::LoadAllFsModules() )
+      {
+	  y2milestone("kernel fs modules successful loaded");
+      }
+      else
+      {
+	  y2error("loaded kernel modules returned an error");
+      }
+      // if fstab is not readed.
+      // Fstab functions are not called.
+      // user skiped execution of osr_module_partition,
+      // but need a root partition -> find root and
+      // read fstab.
+      list(map) t_mounted = RootDev(root_mountpoint);
+      
+      if( t_mounted != nil && t_mounted != [] )
+	  mounted = union( mounted, t_mounted);
+  	
+      
+      if ( ! ReadedSuccessfully() )
+      {
+	  Report::Error(_("
+YaST can not read the file /etc/fstab.
+The initialization of the target system
+is not possible. Please go back
+and select all scan options.
+"));
+	  return nil;
+      }
+      
+      //sort fstab lines /mnt/hh/kk > /mnt/hh
+      list(map) lines = maplist(integer lnr, map linedata, fstab["l"]:$[], ``(linedata));
+      lines           = sort(map n, map m, lines, ``( size(splitstring(n[1]:"", "/")) >= size(splitstring(m[1]:"", "/"))));
+
+      y2milestone(" sorted fstab lines %1", lines);
+      foreach( map linedata, lines, ``{
+	  list(string) line  = linedata["fields"]:[];
+	  map part 	     = line2part( line );
+
+	  // not mounted
+	  if ( (part["found"]:"" == "dev") &&
+	       ( !contains(["/dev/cdrecorder", "/dev/cdrom", "/dev/dvd" ,
+			    "/media/cdrecorder", "/media/cdrom", "/media/dvd" ], line[1]:"" )) &&
+	       ( Partitions::MountedOn( line[1]:"", Partitions::CurMounted()) == "" ) &&( line[1]:"" != "/" ))
+	  {	
+	      string mp = root_mountpoint + line[1]:"";
+	      mounted = add( mounted , $[ "partition" : line[0]:"", "mountpoint" : mp,
+					  "status"    : OSRExecute::Command(.local.bash, sformat("/bin/mount %1 %2", line[0]:"", mp )) ] );
+	  }
+      });
+
+      OSRSystem::ChangeRoot(root_mountpoint);
+      y2milestone(" Mount all return %1", mounted); 
+      return mounted;
+  }
+
+
+  /**
+   *
+   */
+  global define void FakeTestData()``{
+      missing_devs    = ["/dev/hda3", "/dev/hdb5" ,"/dev/hdb3" ];
+      not_valid_lines = $[4: ["dev", false, true, true ,true ,true ,true ],
+			  2: ["dev", true , false, true,true,true,true   ],
+			  3: ["dev", true, true,true, false,true,false   ],
+			  5: ["dev", true, true, true, true ,true,false  ]
+			  ];
+
+      really_write_fstab(true);
+  }
+
+  
+}

@@ -1,0 +1,545 @@
+/**
+ *  File:
+ *   OSRStatus.ycp
+ *
+ *  Module:
+ *   YaST2 OS Repair
+ *
+ *  Summary:
+ *  
+ *
+ *  Authors:
+ *   Johannes Buchhold <jbuch@suse.de>, 2002
+ *
+ * $Id$
+ */
+{
+  module "OSRStatus";
+
+  textdomain "repair";
+  
+  global string status				= "";
+  global string severity			= "";
+  global string next_detect_method_name		= "";
+
+
+  
+  map status_map	= $[
+			    "detect_ok" 	: $[
+						    "color" 	  :  "blue",
+						    "status_text" :  _("o.k."),
+						    "priority"	  : 3,
+						    "type"	  : "detect"
+			    ],
+			    "detect_error" 	: $[
+						    "color" 	  :	"red",
+						    "status_text" :  _("error"),
+						    "priority"    : 6,
+						    "type"	  : "detect",
+			    ],
+			    "detect_problem" 	: $[
+						    "color" 	  : "red",
+						    "status_text" :  _("problematic"),
+						    "type"	  : "detect",
+						    "priority"    : 5
+			    ],
+			    "detect_omit" 	: $[
+						    "color" 	  : "blue",
+						    "status_text" :  _("omitted"),
+						    "type"	  : "detect",
+						    "priority"    : 4
+			    ],
+			    "repair_ok" 	: $[
+						    "color" 	  : "green",
+						    "status_text" : _("repaired"),
+						    "type"	  : "repair",
+						    "priority"    : 7
+			    ],
+			    "repair_error" 	: $[
+						    "color" 	     : "red",
+						    "status_text"    : _("failed"),
+						    "type"	     : "repair",
+						    "priority"       : 9
+			    ],
+			    "repair_omit" 	: $[
+						    "color"  	      : "red",
+						    "status_text"     : _("omitted"),
+						    "type"	      : "repair",
+						    "priority"        : 8
+			    ],
+			    "open"	 	: $[
+						    "color"		: "green",
+						    "status_text"	: _("open"),
+						    "type"	        : "detect",
+						    "priority"		: 1
+			    ],
+			    "not_found"		: $[
+						    "color"		: "blue",
+						    "status_text"	: _("not found"),
+						    "type"	  	: "detect",
+						    "priority"		: 2
+						    ]
+  ];
+
+
+/*
+
+  map summary_report = $[
+			 "ok_detected"		: $[ "color"		: "blue",
+						     "status_text"	: _("Successfull scans"),
+						     ],
+			 "omit_detected"	: $[ "color"		: "blue",
+						     "status_text"	: _("Canceled scans"),
+						     ],
+			 "problem_detected"	: $[
+						    "color"		: "blue",
+						    "status_text"	: _("Problems sc
+			 
+
+  ];
+  
+  global define XXX EvaluateStatusList( list(string)  status_list ) ``{
+      y2milestone("debug status list %1" ,status_list);
+      map ret = $[ "problems" 		: 0 ,
+		   "ok"       		: 0 , 
+		   "repair_error" 	: 0 ,
+		   "repair_ok"		: 0,
+		   "repair_omit"	: 0 ];
+      
+      integer pos = 0 ;
+      while( pos < size(status_list))
+      {
+	  map status = status_map[ status_list[ pos ]:"" ]:$[];
+	  if( status["type"]:"" == "detect" )
+	  {
+	      if( status[ 
+	  }
+
+	  pos = pos +1;
+      }
+      
+  }
+*/
+  
+  global define void RestartScan(string tnext_detect_method_name)``{
+      next_detect_method_name =tnext_detect_method_name;
+  }
+
+  global define void Reset()``{
+      status = "";
+      severity = "";
+      next_detect_method_name = "";
+  }
+  
+  global define string Color(string local_status) ``{
+      return lookup ( status_map[ local_status ]:$[], "color", "blue");
+  }
+
+
+  global define string Text(string local_status) ``{
+      return lookup( status_map[ local_status ]:$[], "status_text", "");
+  }
+
+  global define integer Priority(string local_status) ``{
+      return lookup( status_map [ local_status ]:$[], "priority", "");
+  }
+  
+  global define string PriorityStr(integer priority ) ``{
+
+      list(map) status_list = maplist(`k,`v, status_map, ``(v));
+      map pr_map = find( `v, status_list, ``( v["priority"]:1 == priority ));
+      if ( pr_map != nil && pr_map != $[] )
+	  return pr_map["status_text"]:"detect_ok";
+      else return "detect_ok";
+  }
+
+   
+  global define string PriorityKey(integer priority ) ``{
+
+      list(map) status_list = maplist(`k,`v, status_map, ``( add(v, "key", k ) ));
+      map pr_map = find( `v, status_list, ``( v["priority"]:1 == priority ));
+      if ( pr_map != nil && pr_map != $[] )
+	  return pr_map["key"]:"";
+      else return "detect_ok";
+  }
+  
+  
+  /**
+   *  Returns the level of severity of the detected error. This severity involves
+   *  the rescue system to stop the further execution if the detected error is
+   *  not repaired. E.g. if the rescue system does not detect any harddisks it
+   *  makes no sense to go on checking for any errors. The rescue system will halt.
+   *
+   *  API function.
+   *
+   *  @return string The severity of the detected error.
+   */
+  global define boolean IsErrorSeverityBlocking() ``{
+      return ( severity == "blocking");
+  };
+
+  /**
+   *  Returns the level of severity of the detected error. This severity means
+   *  that the detected error involves to jump to the next detection module
+   *  without executing any further method of the current module. E.g. if the
+   *  rescue system detects that the LILO package is not installed on the system
+   *  and this error could not be repaired, it makes no sense to check the LILO
+   *  configuration file for any errors. So the rescue system jumps to the next
+   *  module in the module sequence.
+   *
+   *  API function.
+   *
+   *  @return string The severity of the detected error.
+   */
+  global define boolean IsErrorSeverityModuleBlocking() ``{
+      return ( severity == "module_blocking");
+  };
+
+     
+  /**
+   *  Returns the level of severity of the detected error. This severity involves
+   *  the rescue system to stop the further execution if the detected error is
+   *  not repaired. E.g. if the rescue system does not detect any harddisks it
+   *  makes no sense to go on checking for any errors. The rescue system will halt.
+   *
+   *  API function.
+   *
+   *  @return string The severity of the detected error.
+   */
+  global define void ErrorSeverityBlocking() ``{
+      severity = "blocking";
+  };
+
+  /**
+   *  Returns the level of severity of the detected error. This severity means
+   *  that the detected error involves to jump to the next detection module
+   *  without executing any further method of the current module. E.g. if the
+   *  rescue system detects that the LILO package is not installed on the system
+   *  and this error could not be repaired, it makes no sense to check the LILO
+   *  configuration file for any errors. So the rescue system jumps to the next
+   *  module in the module sequence.
+   *
+   *  API function.
+   *
+   *  @return string The severity of the detected error.
+   */
+  global define void ErrorSeverityModuleBlocking() ``{
+      severity = "module_blocking";
+  };
+  
+  
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *  @return void
+   */
+  global define void DetectOK2Name(string tnext_detect_method_name) ``{
+      status =  "detect_ok";
+      severity = "";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *  @return void 
+   */
+  global define void DetectError2Name(string tnext_detect_method_name) ``{
+      status = "detect_error";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *  @return void 
+   *
+  global define void DetectOmit2Name(string tnext_detect_method_name )``{
+      status = "detect_omit";
+      next_detect_method_name = tnext_detect_method_name;
+  }
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void DetectProblem2Name(string tnext_detect_method_name) ``{
+      status = "detect_problem";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairOK2Name(string tnext_detect_method_name) ``{
+      status   = "repair_ok";
+      severity = "";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairError2Name(string tnext_detect_method_name) ``{
+      status = "repair_error";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairOmit2Name(string tnext_detect_method_name) ``{
+      status = "repair_omit";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void NotFound2Name(string tnext_detect_method_name) ``{
+      status = "not_found";
+      next_detect_method_name = tnext_detect_method_name;
+  };
+  
+  global define void NotFound()``{
+      status   = "not_found";
+      severity = "";
+      next_detect_method_name = "";
+  }	
+
+  
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void DetectOK() ``{
+      status =  "detect_ok";
+      severity = "";
+      next_detect_method_name = "";
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void 
+   */
+  global define void DetectError() ``{
+      status = "detect_error";
+      next_detect_method_name = "";
+  };
+
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void 
+   */
+  global define void DetectOmit() ``{
+      status = "detect_omit";
+      next_detect_method_name = "";
+  };
+
+  
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void DetectProblem() ``{
+      status = "detect_problem";
+      next_detect_method_name = "";
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairOK() ``{
+      status   = "repair_ok";
+      severity = "";
+      next_detect_method_name = "";
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairError() ``{
+      status = "repair_error";
+      next_detect_method_name = "";	
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void RepairOmit() ``{
+      status = "repair_omit";
+      next_detect_method_name = "";
+  };
+
+  
+  global define void Open() ``{
+      status   = "open";
+      severity = "";
+      next_detect_method_name = "";
+  }
+   
+  global define void Cancel()``{
+      status = "cancel";
+      severity = "";
+      next_detect_method_name = "";
+  }
+
+ /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define void Exit() ``{
+      status = "exit";
+      next_detect_method_name = "";
+  };
+
+  
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusDetectOK() ``{
+      return ( status ==  "detect_ok");
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void 
+   */
+  global define boolean IsStatusDetectError() ``{
+      return ( status == "detect_error");
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void 
+   */
+  global define boolean IsStatusDetectOmit() ``{
+      return ( status == "detect_omit");
+  };
+
+  
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusDetectProblem() ``{
+      return ( status == "detect_problem") ;
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusRepairOK() ``{
+      return ( status == "repair_ok");
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusRepairError() ``{
+      return ( status == "repair_error");
+  };
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusRepairOmit() ``{
+      return ( status == "repair_omit");
+  };
+
+  global define boolean IsStatusNotFound()``{
+      return ( status == "not_found");
+  }
+  
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return void
+   */
+  global define boolean IsStatusExit() ``{
+      return ( status == "exit");
+  };
+
+  global define boolean IsOpen()``{
+      return ( status == "open");
+  }
+
+  global define boolean IsCancel()``{
+      return ( status == "cancel");
+  }
+
+}

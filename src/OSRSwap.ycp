@@ -1,0 +1,146 @@
+/**
+ *  File:
+ *    OSRSwap.ycp
+ *
+ *  Module:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Summary:
+ *    YaST OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+{
+  module "OSRSwap";
+
+  import "OSRExecute";
+  import "OSRPopup";
+  
+  import "Storage";
+  import "Partitions";
+  
+  
+
+  textdomain "repair";
+
+  global define void Reset()``{
+      y2debug(" empty"); 
+  };
+  
+  /**
+   * Create swap area on a swap partition.
+   */
+  global define symbol Repair( string target )``{
+      
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      //  Repair swap area with mkswap
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+
+      // TODO check english
+      // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
+      string error_message = sformat(_("
+The partition %1 has the file system id 130 but
+contains no valid swap area. If you want to create
+a valid swap area press the button \"Repair\".
+
+Press \"Skip\" to avoid repairing."), target);
+
+      string help_text         = _("
+<p>A partition with the id 130 is used to be 
+a linux swap partition. All swap partitions
+need a valid swap area which are created with
+the tool mkswap.</p>") +
+
+_("<p>If you know how to use mkswap please
+close YaST and create a new swap area
+on the damaged swap partition. Else
+close this help dialog and press the
+\"Repair\" button for automatical
+repair.</p>
+");
+      
+      while( true )
+      {     
+	  if (! OSRPopup::Repair(_("Error detected"), error_message, help_text) ) return `cancel;
+
+	  UI::OpenDialog(`VBox(`VSpacing(1),
+			       `Label(_("Creating swap area. Please wait ...")),
+			       `VSpacing(1)));
+	  
+	  boolean ret =  OSRExecute::Command(.local.bash, "/sbin/mkswap " + target );
+
+	  UI::CloseDialog();
+	  if ( ret ) return `ok;
+      }
+  };
+
+
+  /**
+   *  Get all valid swap-partitions.
+   *
+   *  @param map target_map The map that contains all informations about all detected harddisks and all partitions.
+   *  @return list The list of valid swap-partitions.
+   */
+  global define list(string) Partitions() ``{
+      
+      list(string) ret = [];
+      foreach ( string dev, map disk, Storage::GetTargetMap(), ``{
+	  if( !disk["is_lvm_vg"]:false && dev != "/dev/md" )
+	  {
+	      list(map) l = filter( map `p, disk["partitions"]:[], 
+			       ``(p["delete"]:false==false  && p["fsid"]:0 == Partitions::fsid_swap ) );
+	      ret = union( ret,  maplist( map `p, l,
+				       ``(Storage::GetDeviceName(dev,p["nr"]:0)))); 
+	    }
+      });
+
+      y2debug( "GetPartitionList ret=%1", ret );
+      return( ret );	       
+  };
+
+
+  
+  /**
+   *  Returns a list of names e.g. ["/dev/hda1", "/dev/hdb3"] of all partitions that can be mounted to the system as swap
+   *  out of the specified list.
+   *
+   *  @param list partition_list  e.g. ["/dev/hda1", "/dev/hdb3"] - A list of partitions out of which
+   *         the "swapable" partitions are to be returned.
+   *  @return list The list of partition-names that were successfully added to the system as swap partitions.
+   */
+  global define list(string) ValidPartitions(list(string) partition_list) ``{
+
+      list(string) swap_possible_list = [];
+      list(string) already_swapped_on = Storage::SwappingPartitions();
+
+      foreach(string partition_item, partition_list, ``{
+
+	  if ( contains(already_swapped_on, partition_item) )
+	  {
+	      // this partition is already swapped on, so it seems to be swapable
+	      swap_possible_list = add( swap_possible_list, partition_item );
+	  }
+	  else
+	  {
+	      // run /sbin/swapon
+	      if ( WFM::Execute (.local.bash, "/sbin/swapon " + partition_item )  == 0)
+	      {
+		  // run /sbin/swapoff
+		  if( WFM::Execute (.local.bash,  "/sbin/swapoff " + partition_item ) == 0 ) {
+		      swap_possible_list = add(swap_possible_list, partition_item);
+		  }
+		  else {
+		      y2error("swapoff paritition %1 is not possible",partition_item);
+		  }
+	      }
+	  }
+      });
+      return swap_possible_list;
+  };
+
+}

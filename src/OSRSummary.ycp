@@ -1,0 +1,592 @@
+
+/**
+ *  File:
+ *   OSRSummary.ycp
+ *
+ *  Module:
+ *   YaST2 OS Repair
+ *
+ *  Summary:
+ *  
+ *
+ *  Authors:
+ *   Johannes Buchhold <jbuch@suse.de>, 2002
+ *
+ *  Create a unified-looking RichText description of the not configured/configured devices.
+ *  This is used in <module_name>_summary.ycp modules.
+ *
+ * $Id$
+ */
+{
+  module "OSRSummary";
+  import "Mode";
+
+  import "OSRLogFile";
+  import "OSRStatus";
+  import "OSR";
+  import "OSRProgress";
+
+  textdomain "repair";
+
+  
+  string finish_key 		= "finish_key";
+
+  
+  symbol richtext_widget 	= `empty;
+
+ 
+  /**
+   *  
+   * $["init":[
+   *           $["description":"No floppy device found",
+   *             "header":"Probing floppy",
+   * 		 "method_name":"", "status":"not_found"],
+   *
+   *           $["description":"Target system initialised",
+   *             "header":"Init target system",
+   *             "method_name":"",
+   *             "status":"detect_ok"]],
+   *
+   * "mbr_check":[$[
+   *              "description":"One hard disk detected: /dev/hda", 
+   *              "header":"Searching for hard disks",
+   *              "method_name":"find_harddisks",
+   *              "status":"detect_ok"]]]
+   *
+   */
+  map summary 	 		= $[];
+
+  /*
+  global define string CreateStatusReport()``{
+
+
+      // $[ "find_harddisks" : [  $[
+      //              	             "description":"One hard disk detected: /dev/hda", 
+      //                             "header":"Searching for hard disks",
+      //                             "status":"detect_ok",
+      //                             "group" : "mbr_check"]  ] ]
+      map reorganized_summary = $[]; 
+
+      foreach( string group_name, list group_entries , summary , ``{
+	  foreach( map group_entry, group_entries, ``{
+	      if( group_entry["method_name"]:""  != "" )
+	      {
+		  reorganized_summary[group_entry["method_name"]:""] =
+		      add( reorganized_summary[group_entry["method_name"]:""]:[],
+			   union( filter(string key, string value, group_entry, ``( key != "method_name")),
+				  $[ "group" : group_name ]));
+	      }
+	  });  
+      });
+
+
+      foreach( string detect_name, list detect_results, ``{
+	  list statuslist = maplist( map result,  detect_results, ``( result["status"]:"" ));
+	  OSRStatus::EvaluateStatusList( statuslist );
+      });  
+  }
+  */
+  
+  
+  global string summary_header  = "";
+
+  global boolean show_details	= true;
+
+
+  boolean special_widget 	= true;
+  integer fill_length		= 0;
+  string fill_char 		= "";  
+  
+
+  global define OSRSummary()``{
+      
+      if( ! UI::HasSpecialWidget(`DownloadProgress))
+      {
+	  fill_char      = ".";
+	  special_widget = false;
+	  fill_length	 = 40;
+      }
+  }
+  
+  
+  global define void Reset() ``{
+
+      summary_header = "";
+      summary        = $[];
+  }
+
+  
+  
+  global define term Create( symbol local_richtext_widget, string text ) ``{
+
+      richtext_widget = local_richtext_widget;
+      return ( `RichText(`id(richtext_widget),  text ));
+  }
+  
+  /**
+   *  Function that creates the shown text in the RichText widget. "Not detected"
+   *  will be returned if the list is empty.
+   *
+   *  API function.
+   *
+   *  @param list A list of output of the summaryDevice() calls
+   *  @return string Th»e formatted text.
+   */
+  define string ItemList( list(string) items ) ``{
+	
+      string text = "";
+      foreach(`entry, items, ``{
+	  text = text + entry;
+      });
+
+      return text;
+  };
+
+
+  define string text_width()``{
+      //map display_info = UI::GetDisplayInfo ();
+      
+      if ( Mode::initial  )
+      {
+	  //return tointeger( display_info["Width"]:640 / 3 * 2);
+	  return "450";
+      }
+      else
+      {
+	  return "450";
+      }
+  }
+  
+  /**
+   *  Function that creates the description for one item.
+   *
+   *  API function.
+   *
+   *  @param string The name of the item.
+   *  @param string Additional description.
+   *  @param string The status of the rescue system. Possible values are:
+   *                "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error", "repair_omit.
+   *  @return string The formatted text.
+   */
+  define string Item(string name, string description, string status) ``{
+
+      string  color          = OSRStatus::Color(status);
+      string  status_text    = OSRStatus::Text(status);    
+      
+      // Check if the UI is running with ncurses or qt
+      if ( special_widget )
+      {
+	  return sformat(
+"<tr>
+    <th width=20 align=left>
+    --
+    </th>
+    <th width=380 align=left>
+      %1
+    </th>
+    <th align=right width=80>
+      <font color=%4>
+         %2
+      </font>
+    </th>
+  </tr>
+  <tr>
+    <td width=20 align=left>
+    </td>
+    <td width=380 align=left>
+      %3
+   </td>
+   <td width=80>
+   </td>
+ </tr>
+ <tr></tr>",
+name,
+status_text,
+description,
+color
+);
+      }
+      else
+      {
+	  return sformat("<br><li>%1  <b>%2</b> </li>
+                          <br><li>%3            </li>
+                          <br><br>",
+			 fill( name, fill_length , fill_char),
+			 status_text,
+			 description
+			 );
+      }
+  };
+
+
+ define string fill(string str, integer  length, string c)``{
+      while( size(str) < length ) { str = str +c ;}
+      return str;
+  }
+
+  
+  define boolean last_group_entry(string group ) ``{
+
+      list t = filter(`g, add(OSR::detect_group_list, finish_key), ``( haskey(summary, g)));
+      
+      if ( select(t, (size( t)-1),"" ) == group ) return true;
+      else return false;
+  }   
+  
+  
+  /**
+   *  Updates the contents of the RichText widget.
+   *
+   *  API function.
+   *
+   *  @return boolean True if the RichText widget was changed successfully.
+   */
+  global define boolean Update() ``{
+
+      string  text  	      = "";
+      map     group_text_map  = $[];
+
+      //update show_details
+      if(UI::WidgetExists(`id(`details)))
+	  show_details = UI::QueryWidget(`id(`details), `Value );
+      
+      foreach(`group, `entries, summary, ``{
+  
+	  if ( group == finish_key ) {
+	      group_text_map[finish_key] = entries;
+	  }
+	  else {
+	  
+	  integer g_priority 	= 1;
+	  map g_entry_map       = OSR::GetGroupMap(group); 	      
+	  string summary_text 	= "";
+	  list summary_list 	= [];
+
+	  foreach(`entry, entries, ``{
+	      if ( g_priority < OSRStatus::Priority( entry["status"]:"detect_ok" ) )  g_priority =  OSRStatus::Priority( entry["status"]:"detect_ok" );
+
+	      if ( show_details || group == OSR::current_detect_map["group"]:"" ) {
+		  // get the formatted summaries as list:
+		
+		  if( entry["header"]:"" != "") 
+		      summary_list = add(summary_list, Item( entry["header"]:"", entry["description"]:"", entry["status"]:"detect_ok"));
+	      }
+	  });
+
+
+	  summary_text  = ItemList(summary_list);
+	  
+	  string status        = ""; 
+	  string status_key    = ""; 
+
+	  if( last_group_entry(group )) {
+	      status_key = "open";
+	      status     = OSRStatus::Text(status_key);
+	  }
+	  else {
+	      status        =  OSRStatus::PriorityStr(g_priority);
+	      status_key    =  OSRStatus::PriorityKey(g_priority);
+	  }
+
+	  
+	  string group_status  = "";
+	  if( ! show_details )
+	  {
+	      group_status  = HTML::Bold(HTML::Colorize( status, OSRStatus::Color(status_key)));
+	  }
+	  
+	  string group_header  = HTML::Bold( fill( g_entry_map["text"]:"",fill_length, fill_char) );
+	  string header        = "";
+
+	  if ( special_widget )
+	  {
+	      header        = sformat("
+  <tr><th></th><th></th></tr>
+  <tr>
+     <th align=left colspan=2 > %1 </th>
+     <th align=right>           %2 </th>
+  </tr>%3<tr></tr>", group_header, group_status, summary_text );
+	  }
+	  else {
+	      header =  sformat("<li>%1 <b>%2</b><br></li>%3",
+				group_header, group_status, summary_text );
+	  }
+	  
+	  group_text_map[group] = HTML::Para( header );
+
+	  }
+      });	
+        
+      // correct order!!!
+      y2debug("Update the richtext by detect_group_list %1", OSR::detect_group_list);
+      foreach(`g, OSR::detect_group_list, ``{
+	  text = text + group_text_map[g]:"";
+      });
+
+      if( special_widget ) {
+	  text = "<table width=" + text_width() + ">" + text + "</table>";
+      }
+
+      WFM::Write(.local.ycp, OSRLogFile::GetTmpDir()+"/summary" , summary );
+
+      return UI::ChangeWidget(`id(richtext_widget), `Value, text);
+  };
+
+  
+  /**
+   *  Changes the summary of the specified module in the RichText widget.
+   *
+   *  For internal use only.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @param string The status of the rescue-system, possible values are:
+   *                "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error" and "repair_omit"
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  define boolean change_summary(string header, string description  ) ``{
+      
+      list summary_entries = summary[OSR::current_detect_map["group"]:""]:[];
+      summary_entries = filter( `entry, summary_entries, ``( entry["header"]:"" != header ));
+      
+      // possible values for the key "status" are:
+      // "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error" and "repair_omit"
+      map entry = $["header" 		: header,
+		    "description" 	: description,
+		    "status" 		: OSRStatus::status,
+		    "method_name" 	: OSR::current_detect_map["name"]:"" ];
+	  
+      summary_entries        = add( summary_entries, entry );
+     
+      summary[OSR::current_detect_map["group"]:""] =  summary_entries;
+  
+      return Update();
+  };
+
+
+  global define void PrepareNewEntry( map step ) ``{
+
+      summary_header = step["summary"]:"";
+      
+      OSRProgress::SetFile(`module_progress_bar   , OSRLogFile::GetTmpDir()+"/"+ OSR::current_module_name );
+      OSRProgress::SetLength(`module_progress_bar,( step["progress"]:100 *10 ) );
+      OSRProgress::SetLabel(`module_progress_bar, summary_header );
+
+      OSRStatus::Open();
+      change_summary(summary_header, "");
+  }
+
+
+  global define void FinishNewEntry()``{
+      OSRProgress::Fill(`module_progress_bar);
+  }
+
+
+
+  global define void Finish() ``{
+      summary[finish_key] =  _("Finish");
+  }
+  
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has found no error. Blue font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean DetectOK( string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+  
+      OSRStatus::DetectOK();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "O.k." + "\n" + description + "\n");
+      
+      return (change_summary(header, description ));
+
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has found no error. Blue font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean DetectOmit( string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+  
+      OSRStatus::DetectOmit();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Omitted." + "\n" + description + "\n");
+      
+      return (change_summary(header, description ));
+
+  }
+
+  
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has detected an error. Red font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean DetectError(string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+      OSRStatus::DetectError();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Error" + "\n" + description + "\n");
+      
+      return (change_summary( header, description ));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has detected a potential problem. Red font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean DetectProblem(string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+      OSRStatus::DetectProblem();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Problem" + "\n" + description + "\n");
+      
+      return (change_summary(header, description ));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system repaired the detected error. ??? font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean RepairOK(string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+
+      if (header == "") header = summary_header;
+      OSRStatus::RepairOK();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Repair succeeded" + "\n" + description + "\n");
+      
+      return (change_summary( header, description ));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  an error occurred during the repair-process. ??? font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean RepairError(string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+
+      if (header == "") header = summary_header;
+      OSRStatus::RepairError();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Repair failed" + "\n" + description + "\n");
+
+      return (change_summary( header, description ));
+  }
+
+  global define boolean NotFound(string header, string description )``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+      OSRStatus::NotFound();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Not found" + "\n" + description + "\n");
+      return (change_summary( header, description ));
+  }
+  
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the repair process was omitted by the user.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define boolean RepairOmit( string header, string description) ``{
+      if ( OSR::current_module_name == "" ) return true;
+      
+      if (header == "") header = summary_header;
+      OSRStatus::RepairOmit();
+      OSRProgress::SetLabel(`module_progress_bar, header );
+      
+      OSRLogFile::Add("Module: " + OSR::current_module_name + "\n" + header + "\t" + "Repair omitted" + "\n" + description + "\n");
+
+      return (change_summary( header, description ));
+  };
+
+
+
+  global define void SetRepairSummary( symbol repair_ret, string repair_header,
+				       string detect_ok_message,
+				       string detect_cancel_message,
+				       string detect_error_message )
+      ``{
+      
+      if ( OSR::current_module_name == "" ) return;
+      
+      if ( repair_ret == `cancel || repair_ret == `abort || repair_ret == `back )
+      {
+	  RepairOmit(repair_header, detect_cancel_message );
+      }	
+      else if ( repair_ret == `ok || repair_ret == `next )
+      {
+	  RepairOK(repair_header, detect_ok_message );  
+      }
+      else if ( repair_ret == `error )
+      {
+	 RepairError( repair_header, detect_error_message);  
+      }
+      else {
+	  y2error("Not supported repair return symbol %1",repair_ret);
+	  RepairError( repair_header, detect_error_message);  
+      }
+  };
+				     
+  
+}

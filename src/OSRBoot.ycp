@@ -1,0 +1,1346 @@
+/**
+ * File:	OSRBoot.ycp
+ * Module:	repair
+ * Summary:	Bootloader checks
+ * Authors:	Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ *
+ * Provide osr mode information.
+ */
+
+{
+  
+    module "OSRBoot";
+    
+    import "Storage";
+    import "StorageDevices";
+    import "Report";
+    import "Installation";
+    import "Lilo";
+    import "Kernel";
+
+    import "OSRSystem";
+    import "OSRLogFile";
+    import "OSRExecute";
+    import "OSRPkg";
+    import "OSRPopup";
+
+    include "lilo/routines.ycp";
+    textdomain "repair";
+    
+
+    /**
+     * Configuration files needed by every boot loader
+     */
+    global map needed_config_files = $[ "modules" 	: "/etc/modules.conf",
+					"initrd"  	: "/etc/sysconfig/kernel",
+					"bootleader"    : "/etc/sysconfig/bootloader"
+    ];
+
+    /**
+     * Boot loader package name and required version
+     */
+    map bootloader_packages = $[
+				"lilo"  : [ $[ "pkgname" 	:"lilo",
+					       "pkgversion" 	: "22.3.2-32"
+					    ],
+					    $[ "pkgname" 	:  "gfxboot",
+					       "pkgversion" 	: "1.9-34"
+					    ]
+				],
+				"grub"  : [ $[ "pkgname" 	: "grub",
+					       "pkgversion" 	: "0.92-69"
+					    ]//,
+					    //  $[ "pkgname"	: "gfxboot",
+					    //    "pkgversion" 	: "1.9-34"
+					    // ]
+				],
+				"silo"  : [], //"SILO",
+				"milo"  : [],//"MILO",
+				"aboot" : [], //"aboot",^
+				"elilo" : [], //"ELILO",
+				"mips"  : [], //"dvh",
+				"s390"  : [], //"zipl",
+				"ppc"   : [] //"boot loader"
+    ];
+
+
+    /**
+     * Check and repair define for every support boot loader
+     */
+    map bootloader_config_check = $[
+				    "lilo"	: $[ "config_check" : ``(check_lilo_config()),
+						     "config_repair": ``(repair_grub_config()),
+						     "config_file"  : "/etc/lilo.conf"
+				    ],
+				    "grub"	: $[ "config_check" : ``(check_grub_config()),
+						     "config_repair": ``(repair_grub_config()),
+						     "config_file"  : "/etc/grub.conf",
+						     "device_map"   : "/boot/grub/device.map",
+						     "stage1"	    : "/boot/grub/stage1",
+						     "stage2"	    : "/boot/grub/stage2",
+						     "menu"	    : "/boot/grub/menu.lst"
+				    ],
+				    "silo"  : $[], //"SILO",
+				    "milo"  : $[],//"MILO",
+				    "aboot" : $[], //"aboot",
+				    "elilo" : $[], //"ELILO",
+				    "mips"  : $[], //"dvh",
+				    "s390"  : $[], //"zipl",
+				    "ppc"   : $[] //"boot loader"
+    ];
+
+    list valid_grub_menu_enties = [];
+    
+    list grub_generally = [
+			   "bootp"	,
+			   "color"	,
+			   "device"	,
+			   "dhcp"	,
+			   "hide"	,
+			   "ifconfig"	,
+			   "pager"	,
+			   "partnew"	,
+			   "parttype"	,
+			   "password"	,
+			   "rarp"	,
+			   "serial"	,
+			   "setkey"	,
+			   "terminal"	,
+			   "tftpserver"	,
+			   "unhide"	,
+			   "gfxmenu"	,
+    ];
+    
+
+    list grub_menu_only = [
+		      "default" 	,
+		      "fallback"	,
+		      "hiddenmenu"	,
+		      "timeout"		,
+		      "title"		
+		      ];
+
+    list grub_menu = [ 
+		      "blocklist"	,
+		      "boot"		,
+		      "cat"		,
+		      "chainloader"	,
+		      "cmp"		,
+		      "configfile"	,
+		      "debug"		,
+		      "displayapm"	,
+		      "displaymem"	,
+		      "embed"		,
+		      "find"		,
+		      "fstest"		,
+		      "geometry"	,
+		      "halt"		,
+		      "help"		,
+		      "impsprobe"	,
+		      "initrd"		,
+		      "install"		,
+		      "ioprobe"		,
+		      "kernel"		,
+		      "lock"		,
+		      "makeactive"	,
+		      "map"		,
+		      "md5crypt"	,
+		      "module"		,
+		      "modulenounzip"	,
+		      "pause"		,
+		      "quit"		,
+		      "reboot"		,
+		      "read"		,
+		      "root"		,
+		      "rootnoverify"	,
+		      "savedefault"	,
+		      "setup"		,
+		      "testload"	,
+		      "testvbe"		,
+		      "uppermem"	,
+		      "vbeprobe"	
+    ];
+
+    
+    /**
+     * Default settings for /etc/grub.conf
+     */
+    map grub_conf_defaults = $[ "discswitch"	: true,
+				"addr" 		: "0x8000"];
+
+    /**
+     * File for backup bootloader settings
+     */
+    string config_backup_path 		= "/bootloader";
+    boolean backup_created    		= false;
+
+
+    /**
+     * Error message if the check defines found an error
+     */
+    string error_message 		= "";
+
+    /**
+     * Help text if the check defines found an error
+     */
+    string help_text     		= "";
+
+    /**
+     * A list of all not installed boot loader packages
+     */
+    global list(string) missing_packages = [];
+
+    /**
+     * The root mount point.
+     */
+    global string  root_mountpoint	 = Installation::destdir;
+
+    /**
+     * The name of the boot loader 
+     */
+    string  bootloader		  	= "";
+
+
+    /**
+     * The root device e.g.: /dev/hda2
+     */
+    global string  root_device		= "";
+
+    /**
+     * The boot device e.g.: /dev/hda1
+     */
+    global string  boot_device		= "";
+
+    /**
+     * A list with all invalid configuration files.
+     */
+    list(string) invalid_config_files 	= [];
+
+
+    global boolean bootloader_error_found = false;
+    
+
+    global list(string) not_valid_files = [];
+
+    global list current_initrd_modules = [];
+    
+    global define void Reset()``{
+	not_valid_files 	= [];
+	bootloader_error_found 	= false;
+	invalid_config_files 	= [];
+	boot_device 		= "";
+	root_device 		= "";
+	bootloader 		= "";
+	missing_packages 	= [];
+	help_text 		= "";
+	error_message 		= "";
+	current_initrd_modules  = [];
+	//not backup_created
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Package data access functions
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Return a list of strings with all required boot loader packages with the current
+     * and the required version.
+     */
+    global define list(string) PackageVersionStrings(string bootloader, list(string) packages )``{
+	list(string) ret = [];
+	foreach(string package, packages, ``{
+	    string package_version = package;
+	    package_version = package_version + " current version: " + Pkg::PkgVersion(package) +
+		                                " required version: " + RequiredPackageVersion(bootloader, package);
+	    ret = add(ret, package_version );
+	});
+	return ret;
+    }
+
+    /**
+     * Return all needed packages of a boot loader.
+     */
+    global define list(string) BootloaderPackages(string bootloader )``{
+	return maplist(map pkgdata, bootloader_packages[bootloader]:[], ``( pkgdata["pkgname"]:"" ));
+    }
+
+    /**
+     * The minimal package version of a package.
+     */
+    define string RequiredPackageVersion(string bootloader, string package )``{
+	map package_data = find(map pkgdata, bootloader_packages[bootloader]:[], ``( pkgdata["pkgname"]:"" == package));
+	if( package_data == nil || package_data == $[] ) {
+	    y2error("package version not found");
+	    return "";
+	}
+	else {
+	    return package_data["pkgversion"]:"";
+	}
+    }
+
+      /**
+   *  Compares the two specified version numbers. Each version number has to be a string
+   *  of the form "21.6-34", "34.4.3", ...
+   *
+   *  API function.
+   *  See the testsuite.
+   *
+   *  @param string version_1 The first version-number as string.
+   *  @param string version_2 The second version-number as string.
+   *  @return boolean True if the first version number is newer than the second one.
+   *  @example if (!OSRVersionIsHigherOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
+   */
+  global define boolean VersionIsHigherOrEqual( string version_1, string version_2  ) ``{
+
+      list(string)    v_1   = [];
+      list(string)    v_2   = [];
+      integer n_1   = 0;
+      integer n_2   = 0;
+      integer index = 0;
+      integer max   = 0;
+
+      // split the version-strings at the dots- and minus-characters "24.5.6" -> ["24", "5", "6"]
+      v_1 = splitstring(version_1, ".-");
+      v_2 = splitstring(version_2, ".-");
+
+      // select the smaller one of the two numbers
+      if (size(v_1) < size(v_2))
+      {
+	  max = size(v_1);
+      }
+      else
+      {
+	  max = size(v_2);
+      }
+
+      // iterate the splitted version-numbers
+      while(index < max)
+      {
+	  n_1 = tointeger(select(v_1, index, 0));
+	  n_2 = tointeger(select(v_2, index, 0));
+
+	  if (n_1 > n_2)
+	  {
+	      return true;
+	  }
+	  else if (n_1 < n_2)
+	  {
+	      return false;
+	  }
+	  index = index + 1;
+      }
+
+      // if the splitted numbers were all equal, look if the first version-number
+      // consits of more parts than the second one
+      return (size(v_1) >= size(v_2));
+  };
+
+    
+    /**
+     * build the help text with the package summary
+     * for all specified packages
+     */
+    define string build_packages_help(list(string) missing_packages )``{
+	string help_text = "";
+	foreach(string package, missing_packages,``{
+	    help_text = help_text +sformat("<b>%1</b><br>%2<br>",package, Pkg::PkgSummary(package));
+	});
+	return help_text;
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Checking sysconfig fils and boot loader packages
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Check the main config file for boot loader and kernel initrd 
+     */
+    global define boolean CheckSysconfigFiles(string root)``{
+
+	if( root != "" ) root_mountpoint = root;
+	
+
+	// TODO check if one module is needed at least
+	string r1 =   SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	if( r1 == nil ) not_valid_files = add(not_valid_files, needed_config_files["initrd"]:"");
+
+	r1 = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	if( r1 == nil || r1 == "" ) not_valid_files = add(not_valid_files, needed_config_files["bootloader"]:"");
+
+	integer r2 = WFM::Execute(.local.bash, sformat("/usr/bin/test -f %1%2",root_mountpoint, needed_config_files["modules"]:""));
+	if( r2 != 0 ) not_valid_files = add(not_valid_files, needed_config_files["modules"]:"");
+
+	if( size( not_valid_files ) > 0 )
+	{
+	    bootloader_error_found = true;
+	    y2error("checking the sysconfig file found error");
+	} 
+	
+	return size( not_valid_files ) == 0;
+    }
+
+
+    
+    /**
+     * Check boot loader packages.
+     * @param what = "installed" if all packages are installed
+     *	      what = "version"   if all packages have the required version
+     *        what = "verify"    if all packages are not damaged
+     */
+    global define boolean CheckLoaderPackages(string loader, string root, string what )``{
+	include "require.ycp";
+
+	if( loader 	!= "") bootloader 	= loader;
+	if( root 	!= "") root_mountpoint	= root;
+	    
+	missing_packages = [];
+	
+	OSRPkg::OpenPkg( root_mountpoint );
+
+	// check all needed packages
+	foreach(string package, BootloaderPackages( bootloader ), ``{
+	    
+	    if( what == "installed" )
+	    {
+		if(! IsPackageInstalled ( package ) ) {
+		    missing_packages = add(missing_packages, package);
+		}
+		else {
+		    y2milestone("installed package %1", package );
+		}
+		
+		// TODO check dependencies
+	    }
+	    else if ( what == "verify" )
+	    {
+		//Pkg::XXX not support
+		string command = sformat("/bin/rpm -V -r\"%1\" %2", root_mountpoint, package);
+
+		if ( ! OSRExecute::CommandOutput(.local.bash_output, command)) {
+		    missing_packages = add(missing_packages, package);
+		}
+		else {
+		    y2milestone("package %1 verified", package);
+		}
+	    }
+	    else if ( what == "version" )
+	    {
+		if( ! VersionIsHigherOrEqual( Pkg::PkgVersion(package),
+					      RequiredPackageVersion(bootloader, package)))	
+		{
+		    missing_packages = add(missing_packages, package );
+		}
+		else {
+		    y2milestone("package %1 version is ok.", package);
+		}
+	    }
+	    else {
+		y2error("CheckLoaderPackages what is not valid");
+	    }
+
+	});
+	
+	if ( size(missing_packages) > 0 )
+	{
+	    bootloader_error_found = true;
+	    y2error(" package check found error");
+	}
+	return size(missing_packages) == 0;
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Install missing or damaged boot loader packages
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Install all missing package if the user accept.
+     */
+    global define symbol InstallLoaderPackage(string loader, string root, string install_reason )``{
+	include "require.ycp";
+
+	if( loader 	!= "" ) bootloader 	= loader;
+	if( root 	!= "" ) root_mountpoint	= root;
+
+	
+	string help_text 	= build_packages_help( missing_packages );
+	string error_message  	= sformat(_("
+%1
+
+%2
+
+Press Repair to install these packages.
+"),install_reason, mergestring( missing_packages, "\n" ));
+	      
+	
+	if( OSRPopup::Repair(_("Boot loader package missing"), error_message, help_text)) {
+
+	    OSRPkg::root_mountpoint  = root;
+	    OSRPkg::missing_packages = missing_packages;
+	    return OSRPkg::InstallMissing(false);
+	    
+	 
+	}
+	else
+	{
+	    y2milestone(" installing missing loader packages was canceled");
+	    return `cancel;
+	}
+    }
+
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Check initrd modules
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Check the specified initrd modules.
+     */
+    global define boolean CheckInitrdModules(string root )``{
+	if( root != "") root_mountpoint = root;
+	
+	string crs  =  SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	current_initrd_modules = splitstring(crs, " ");
+	y2milestone("current initrd_modules %1", current_initrd_modules);
+
+	Boot::initrdModules = [];
+	    
+	//OSRFstab added the root mount point to the target_map (Storage).
+	//Storage::GetRootInitrdModules select root partition
+	//and returned the needed initrd modules.
+	
+	list storage_initrd = Storage::GetRootInitrdModules();
+	y2milestone(" found initrd modules %1",storage_initrd );
+
+	//add found modules to Boot::initrdModules
+	foreach(string m, storage_initrd, ``{
+	    Boot::AddInitrdModule (m, "");
+	});
+
+	//add initrd modules for mixed devices
+	//to Boot::initrdModules
+	list ide_recorders = StorageDevices::ProbeIDERecorders ();
+	y2milestone("found ide_recorders %1",ide_recorders);
+	Kernel::IDERecorders (ide_recorders);
+
+	Boot::initrdModules = toset( Boot::initrdModules );
+	
+	y2milestone("needed initrd_modules in Boot %1", Boot::initrdModules );
+	list(string) missing = filter(string s, Boot::initrdModules,
+				      ``( ! contains(current_initrd_modules, s)));
+
+	if( Mode::test ) missing = add(missing, "reiserfs");
+	
+	if (size( missing ) > 0)
+	{
+	    //TODO write a help text
+	    help_text = _("
+The variable INITRD_MODULES contains the list of modules
+to be added to the initial ramdisk by calling the script \"mk_initrd\"
+Example are drivers for scsi-controllers and lvm or reiserfs.
+");
+	    error_message = sformat(_("
+The file %1 contains a list
+of modules to be added to the initial
+ramdisk by calling the script \"mk_initrd\".
+YaST missing the following modules:
+
+%2
+
+Please press \"Repair\" to add the the missing
+modules to the initial ramdisk.
+"), needed_config_files["initrd"]:"", mergestring( missing , "\n" ));
+			      
+	    
+	    return false;
+	}
+	return true;
+    }
+
+
+    /**
+     * Wirte initrd modules and call mk_initrd
+     */
+    global define symbol RepairInitrdModules()``{
+	if ( ! OSRPopup::Repair(_("Initrd modules missing"), error_message, help_text) ) {
+		return `cancel;
+	}
+	boolean ret           = true;
+	string  kernel_initrd = mergestring (Boot::initrdModules, " ");
+
+	if ( ! Mode::test )
+	{
+	    // write INITRD_MODULES
+	    SCR::Write (.sysconfig.kernel.INITRD_MODULES, kernel_initrd);
+	    SCR::Write (.sysconfig.kernel, nil);
+
+	    string destproc = "/proc";
+	    SCR::Execute (.target.mkdir, destproc, 0755);
+	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
+	    ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd"));
+	    SCR::Execute (.target.umount, destproc );
+	}
+	
+	if (! ret)
+        {
+	    
+	    include "showlog_defines.ycp";
+            any retAsk = UI::AskShowLog();
+            if ( retAsk )
+            {
+                UI::ShowFilePopup( _("The output of the script mk_initrd:"), "/var/log/YaST2/y2logmk_initrd" );
+            }
+        }
+	if( ret ) return `ok;
+	else return `error;
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Check the boot loader configuration files
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Check if the boot loader conf file exists.
+     */
+    global define boolean ExistsConf(string loader, string root  )``{
+	if ( loader != "" ) bootloader 		= loader; 
+	if ( root   != "" ) root_mountpoint	= root;
+	
+	// look if the file lilo.conf exists an has a positive size
+	if ( ! (SCR::Read(.target.size,  bootloader_config_check[bootloader, "config_file"]:"") > 0 ))
+	{
+	    //No conf file found
+	    help_text = sformat(_("
+<p>The file %1 was not found.</p>"), bootloader_config_check[bootloader, "config_file"]:"") +
+
+_("<p>The boot loader configuration file contains
+defective data. Depending on the boot loader
+type the syntax of the configuration file.
+differ. </p>");
+
+	    error_message = _("
+The main configuration file of the boot loader was
+not found. 
+
+If you changed the boot loader configuration
+manual and the system starts correctly please
+skip these dialog and continue the detection
+sequence.
+If you never changed anything affecting
+the boot loader please press the repair button
+to create a new configuration file.");
+
+	    invalid_config_files = add(invalid_config_files,  bootloader_config_check[bootloader, "config_file"]:"");
+	    bootloader_error_found = true;
+	    y2error("can't find boot loader conf file");
+	    return false;
+	}
+	return true;
+    }	
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Check the lilo configuration file
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    
+    /**
+     * Check the lilo conf file.
+     */
+    define boolean check_lilo_config()``{
+	// Be careful: use the mountpoint of the root partition for execution of this command!
+	string command = sformat("%1/sbin/lilo -r %1 -t -v", root_mountpoint );
+	
+	if(  OSRExecute::Command(.local.bash, command ))
+	{
+	    return true;
+	}
+	else {
+
+	    y2error("lilo config file %1 is not valid", bootloader_config_check[bootloader, "config_file" ]:"");
+
+	    help_text = _("
+<p>The command /sbin/lilo -t checks the syntax
+of the lilo boot loader configuration file.</p>") +
+
+_("<p>These command return an error. This means that
+your system is not bootable generally.
+
+YaST recommend to create a new configuration
+file.</P>");
+
+	    error_message = _("
+The syntax of the boot loader configuration
+file is not valid. 
+The configuration file contains defective
+data needed for booting the linux system.
+
+Press Repair to let YaST guess a new
+configuration file. 
+
+If you sure that your configuration file
+contains no errors press the cancel button.
+");
+	    return false;
+	}
+	
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Device check.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Returns false if the specified device can not
+     * found in the target_map (Storage module)
+     */
+    define boolean exists_device(string dev_name )``{
+
+	if(dev_name == "" ) return true;
+	
+	// if device is a floppy
+	if( StorageDevices::FloppyDrives == [] || StorageDevices::FloppyDrives == nil ) StorageDevices::Probe(false);
+	y2milestone("FloppyDrives %1", StorageDevices::FloppyDrives );
+	map ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
+	if ( ret != nil && size( ret ) > 0 ) return true;
+
+	// if device is a hard disk 
+	ret 	= Storage::GetMainDev( dev_name );
+	if ( ret != nil && size( ret ) > 0 ) return true;
+
+	// if device is a partition
+	map subdevkeys    = Storage::GetDiskPartition( dev_name );
+	ret = Storage::GetSubDev( Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:""));
+	if ( ret != nil && size( ret ) > 0 ) return true;
+
+	// fix grub bug
+	if ( substring( dev_name, 0, 7) == "/dev/fd" )
+	{
+	    return true;
+	}
+	    
+	// device does not exists
+	y2error("device with name %1 not found", dev_name);
+	return false;
+    }
+    
+    /**
+     * Check if a device (grub syntax) exist.
+     */
+    define boolean exists_grub_device(string grub_device )``{
+	//"device":"(hd0)"
+	if( exists_device(grubDev2LiloDev( grub_device )))
+	{
+	    y2milestone(" device %1 exists", grub_device); 
+	    return true;
+	}
+	else
+	{
+	    y2error(" device %1 not found", grub_device);
+	    return false;
+	}
+    }
+
+
+    /**
+     * Convert a grub device (hd0) to a lilo device name (/dev/hda1)
+     * grub2Lilo can't convert floppy device.
+     */
+    define string grubDev2LiloDev(string grub_device )``{
+	if ( grub_device == "") return "";
+	string ret = "";
+	if ( ! regexpmatch(grub_device, ".fd.*"))
+	{	    
+	    ret = grub2Lilo(grub_device );
+	}
+	else {
+	    ret = "/dev/" + substring(grub_device, 1, 3);
+	}
+	y2milestone("grubDev2LiloDev converts %1 to %2", grub_device, ret );
+	return ret;
+    }
+
+
+    //////////////////////////////////////////////////////////////////
+    // grub conf file checks
+    //////////////////////////////////////////////////////////////////
+    
+    /**
+     * Check a grub device entry.
+     */
+    define boolean check_grub_device(string grub_device )``{
+	y2milestone("check grub device: %1", grub_device);
+	if ( grub_device == "") return true;
+	return exists_grub_device(grub_device);
+	//TODO more device checks??
+    }
+    
+    /**
+     * Check if the root entry exists and is the expected
+     */
+    define boolean check_grub_root(string root )``{
+	y2milestone("check grub root: %1", root);
+	if( ! exists_grub_device(root)) return false;
+
+	string check_dev = root_device;
+	
+	if( boot_device != root_device )
+	{
+	    check_dev = boot_device;
+	}
+	    
+	if( check_dev == grubDev2LiloDev(root)) return true;
+	else return false;
+    }
+
+    /**
+     * Check the addr entry of a grub conf file.
+     * TODO 
+     */
+    define boolean check_grub_addr( string addr  )``{
+	if( addr == "" )
+	{
+	    addr = bootloader_config_check[bootloader, "menu"]:"";
+	    y2milestone("adrr not set - use default addr");
+	}
+	
+	if( addr != grub_conf_defaults["addr"]:""){
+	    y2error("grub addr (%1) changed not default %2",addr,  grub_conf_defaults["addr"]:"");
+	    //TODO check if error or not
+	}
+	return true;
+    }
+
+        
+    /**
+     *
+     */
+    define boolean check_grub_discswitch( boolean discswitch )``{
+	if( discswitch != false )
+	{
+	    if( discswitch != grub_conf_defaults["discswitch"]:""){
+		y2error("grub discswitch (%1) changed not default %2",discswitch,  grub_conf_defaults["discswitch"]:"");
+		//TODO check if error or not
+	    }
+	}
+	return true;
+    }
+
+    /**
+     * Test if stage1 exist.
+     */
+    define boolean check_grub_stage1( string stage1 )``{
+	if ( stage1 == "" ) 
+	{
+	    stage1 = bootloader_config_check[bootloader, "stage1"]:"";
+	}
+	return OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, stage1 ));
+    }
+
+    /**
+     * Test if stage2 exist.
+     */
+    define boolean check_grub_stage2(string stage2)``{
+	//if ( stage2 == "" )
+	//{
+	//    stage2 = bootloader_config_check[bootloader, "stage2"]:"";
+	//}
+	return OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, stage2 ));
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // grub menu file checks 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Checks the keys of one map.
+     */
+    define boolean check_grub_menu_entry_map(map entries)``{
+	boolean error_found = false;
+	foreach(string key, string value, entries ,``{
+	    y2milestone("----- checking key %1",key );
+	    if( ! contains(valid_grub_menu_enties, key ))
+	    {
+		y2error("key -%1- not found - no valid key", key);
+		error_found = true;
+	    }
+	});
+	return ! error_found;
+    }
+    
+    /**
+     * Check the keys of the specified map.
+     * @param entries = $["color":"white/blue black/light-gray",
+     *                    "default":"0", "gfxmenu":"(hd0,2)/boot/message",
+     *                    "timeout":"8"]
+     * @return true if all keys are valid
+     */
+    define boolean check_grub_global_options(map  entries )``{
+	valid_grub_menu_enties =  union( grub_generally, grub_menu_only );
+	return check_grub_menu_entry_map(entries);
+    }
+
+    /**
+     * Checks all maps of the specified list.
+     * @param entries = [$["initrd":"(hd0,2)/boot/initrd",
+     *                   "kernel":"(hd0,2)/boot/vmlinuz root=/dev/hda3   vga=791", "title":"linux"],
+     *        error    ->$["asd":"", "chainloader":"+1", "makeactive":"true", "root":"(hd1,0)", "title":"windows"],
+     *                   $["chainloader":"+1", "root":"(fd0)", "title":"floppy"],
+     *                   $["initrd":"(hd0,2)/boot/initrd.shipped", "kernel":"(hd0,2)/boot/vmlinuz.shipped root=/dev/hda3
+     *                      ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 disableapic 3", "title":"failsafe"]]
+     */	
+    define boolean check_grub_menu_entries(list entries )``{
+	valid_grub_menu_enties = union( grub_menu, grub_menu_only);
+	boolean error_found = false;
+	foreach(map menu, entries, ``{
+	    error_found = ! (check_grub_menu_entry_map(menu) == false ) ? false : !error_found;
+	});
+	return ! error_found;
+    }
+
+   /**
+     * reads specified section and returns values as list [$[option:$[value:..., comment:...]]]
+     * @param type string sections / ""
+     * @param section string
+     * @return map map as described above
+     */
+    global define map sectOptions2Map(string loader ,string type, string section) ``{
+	path p = .;
+
+	if (type == "")
+	{
+	    p = list2path([loader]);
+	}
+	else
+	{
+	    p = list2path([loader, "sections" , section]);
+	}
+
+	list optlist = SCR::Dir(p);
+	
+	if (type == "")
+	{
+	    optlist = filter(string e, optlist, ``(e != "sections"));
+	}
+
+	any value   = "";
+	map retval  = $[ ];
+
+	foreach(string e, optlist,
+	``{
+	    value = mod2ui(SCR::Read(add(p, e)));
+	    if (isSpecial(e))
+	    {
+		retval = add(retval, e, mergestring(SCR::Read(add(p, e)), ","));
+	    }
+	    else
+	    {
+		retval = add(retval, e, sformat("%1", value));
+	    }
+	});
+	return retval;
+    }
+
+
+    
+    /**
+     * Check the grub menu and the grub menu entries.
+     */
+    define boolean check_grub_menu( string menu )``{
+
+	string menu_dev  = "";
+	string menu_path = "";
+	
+	if( menu == "" ) 
+	{
+	    menu_path = bootloader_config_check["grub", "menu"]:"";
+	}
+	else {
+	    menu_dev  = substring(menu, 0, findfirstof(menu, ")") +1 );
+	    menu_path = substring(menu, findfirstof(menu, ")") +1 );
+	}
+	y2milestone("menu_path %1 menu_dev %1   menu:",menu_path, menu_dev, menu);
+	
+	if( menu_dev != "" && ! exists_grub_device(menu_dev ) )
+	{
+	    invalid_config_files = add(invalid_config_files, menu_path );
+	    y2error("grub menu device not found %1", menu);
+	    return false;
+	}
+	if( !  OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1%2", root_mountpoint, menu_path )))
+	{
+	    invalid_config_files = add(invalid_config_files, menu_path );
+	    y2error("grub menu file not found: %1",menu_path);
+	    return false;
+	}
+	else
+	{ 	
+	    // read grub menu file
+	    map global_options = sectOptions2Map("grub" , "", "");
+	    list sects         = SCR::Dir(list2path(["grub", "sections"]));
+	    list sections      = [];
+       
+	    foreach(string e, sects, ``{ sections = add(sections, sectOptions2Map("grub", "sections", e)); });
+
+	    // debug grub menu file
+	    y2milestone("options  : %1", global_options );
+	    y2milestone("sections : %1", sections       );
+
+	    // check keys in the grub menu file
+	    boolean ret = check_grub_global_options(global_options) && check_grub_menu_entries(sections);
+		
+	    if( ! ret )
+	    {
+		y2error("the grub menu file is not valid");
+		invalid_config_files = add(invalid_config_files, menu_path );
+	    }
+	    return ret;
+	}
+    }
+
+
+    
+    /**
+     * Check the grub device map.
+     */
+    define boolean check_grub_device_map()``{
+
+	string grub_dir = root_mountpoint +  "/boot/grub";
+	if (! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1",grub_dir)))
+	{
+	    y2error("grub directory does not exist");
+	    invalid_config_files = add(invalid_config_files, bootloader_config_check[bootloader, "device_map"]:"" );
+	    return false;
+	}
+
+	string dev_map = SCR::Read(.target.string, bootloader_config_check[bootloader, "device_map"]:"" );
+	if( dev_map == "" || dev_map == nil )
+	{
+	    y2error("reading device map was not successful");
+	    invalid_config_files = add(invalid_config_files, bootloader_config_check[bootloader, "device_map"]:"" );
+	    return false;
+	}
+		
+	list maps = filter (string e, splitstring (dev_map, "\n"), ``(e != ""));
+	maps      = maplist (string e, maps, ``{return filter (string f, splitstring (e, " \t"), ``(f != ""));});
+	
+	boolean error_found = false;
+	foreach (string e, maps, ``{
+	    if ( ! error_found )
+	    {
+		error_found = ! exists_grub_device( select (e, 0, ""));
+		if( error_found ) y2error("grub device map: device not found %1",  select (e, 0, ""));
+	    }
+	    if ( ! error_found )
+	    {
+		error_found = ! exists_device(      select (e, 1, ""));
+		if( error_found ) y2error("grub device map: device not found %1",  select (e, 0, ""));
+	    }
+	});
+	
+	if ( error_found == nil || error_found  )
+	{
+	    invalid_config_files = add(invalid_config_files,  bootloader_config_check[bootloader, "device_map"]:"" );
+	    
+	    return false;
+	}
+	return true;
+    }
+    
+    /**
+     * Check the sysntax of grub configuration files:
+     * /boot/grub/device.map
+     * /boot/grub/menu.lst
+     * /etc/grub.conf
+     */
+    define boolean check_grub_config()``{
+	//include "lilo/routines.ycp";
+
+	// check /boot/grub/device.map
+	// (fd0)   /dev/fd0
+	// (hd0)   /dev/hda
+	// (hd1)   /dev/hdb
+	boolean grub_device_map = check_grub_device_map();
+	if ( ! grub_device_map ) { y2error("grub decide map contains errors2");		grub_device_map = false; }
+	
+	// systax of grub_conf
+	//  $["addr":"0x8000",  "device":"(hd0)", "discswitch":true, "menu":"(hd0,2)/boot/grub/menu.lst",
+	//    "root":"(hd0,2)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/boot/grub/stage1",
+	//    "stage2":"/boot/grub/stage2"]
+	map grub_conf 		= parseGrubConfFrom(bootloader_config_check[bootloader, "config_file"]:"" );
+	boolean grub_device 	= check_grub_device(grub_conf["device"]:"" );
+	boolean grub_root   	= check_grub_root(grub_conf["root"]:"" );
+	boolean grub_addr   	= check_grub_addr(grub_conf["addr"]:"" );
+	boolean grub_discheck 	= check_grub_discswitch(grub_conf["discswitch"]:"");
+	boolean grub_stage1 	= check_grub_stage1(grub_conf["stage1"]:"");
+	boolean grub_stage2 	= check_grub_stage2(grub_conf["stage2"]:"");
+
+	// if grub_XXX is nil -> set false;
+	if ( ! grub_device )     { y2error("grub conf device entry is invalid"); 	grub_device = false; }
+	if ( ! grub_root   )     { y2error("grub conf root entry is invalid");   	grub_root   = false; }
+	if ( ! grub_addr   )     { y2error("grub conf addr entry is invalid");   	grub_addr   = false; }
+	if ( ! grub_discheck)    { y2error("grub conf discswitch entry is invalid"); 	grub_discheck = false;} 
+	if ( ! grub_stage1 )     { y2error("grub conf state1 is invalid"); 		grub_stage1 = false; }
+	if ( ! grub_stage2 )     { y2error("grub conf state2 is invalid");	 	grub_stage2 = false; }
+
+	// check grub menu file default /boot/grub/menu.lst
+	boolean grub_menu  	= check_grub_menu(grub_conf["menu"]:"" );
+	if ( ! grub_menu   )     { y2error("gurb  menu  is invalid");            	grub_menu   = false; }
+
+
+	if( grub_device && grub_root && grub_addr && grub_menu && grub_discheck && grub_stage1 && grub_stage2 && grub_device_map )
+	{
+	    return true;
+	}
+	else {
+	    string menu_path = grub_conf["menu"]:"";
+	    if ( menu_path == "" || menu_path == nil )
+	    {
+		menu_path = bootloader_config_check[bootloader, "menu"]:"";
+	    }
+	    else
+	    {
+		menu_path = substring(menu_path , findfirstof(menu_path, ")") +1 );
+	    }
+	    
+	    help_text = _("
+<p>A default gurb installation need three
+configuration files:</p>") +
+
+sformat("<p>%1</p>", mergestring([ bootloader_config_check[bootloader, "device_map"]:"",
+				   bootloader_config_check[bootloader, "config_file"]:"",
+				   menu_path
+				   ],"<br>")) +
+		
+_("<P>YaST found the following file(s) which
+are not valid:</p>") +
+		
+sformat("<p>%1</p>", mergestring(invalid_config_files, "<br>")) +
+		
+_("<p>This means that your system is not
+bootable generally.</p>") +
+
+_("<p>YaST recommend to create a new boot
+loader configuration.</p>");
+
+		  
+	    error_message = _("
+The configuration of the boot loader
+contains errors. 
+
+Press Repair to let YaST guess a new
+configuration.
+
+If you sure that your configuration
+contains no errors and your system
+is bootable press the cancel button.
+");
+	    
+	    return false;
+	}    
+    }
+
+    
+    /**
+     * Check the boot loader configuration.
+     */
+    global define boolean CheckConfig(string loader , string root, string root_dev, string boot_dev )``{
+
+	if ( loader   != "" )  bootloader 	= loader; 
+	if ( root     != "" )  root_mountpoint	= root;
+	if ( root_dev != "" )  root_device	= root_dev;
+	if ( boot_dev != "" )  boot_device 	= boot_dev;
+
+	// reset settings 
+	error_message 		= "";
+	help_text 		= "";
+	invalid_config_files 	= [];
+	
+	if(! eval( bootloader_config_check[bootloader, "config_check" ]:``{
+	    y2error("check boot loader config not support");
+	    bootloader_error_found = true;
+	    return false;
+	})){
+	    bootloader_error_found = true;
+	    y2error("check boot loader config returned an error");
+	    return false;
+	}
+	return true;
+    }
+
+
+    /**
+     * Repair a damaged grub configuration.
+     */
+    global define symbol repair_grub_config()``{
+	symbol ret  	     	     = `next;
+	list(string) possible_loader =  ["grub", "lilo"];
+	if ( ! contains( possible_loader, Boot::LoaderType ))
+	{
+	    Boot::LoaderType = possible_loader[0]:"";
+	}
+	
+	Boot::LoaderType = OSRPopup::RadioButtonGroup( _("Select boot loader type"),
+							  _("Please select the type of the new boot loader"),
+							 possible_loader, Boot::LoaderType,  false );
+
+	if ( Boot::LoaderType == "" ) return `abort ;
+	
+	// change root for boot loader module call
+	OSRSystem::ChangeRoot("/");
+
+	y2milestone("repair need initrd_modules in Boot %1", Boot::initrdModules );
+	ret = CallFunction(`inst_bootloader(true,true));
+	
+	y2milestone("inst_bootload
+er returned %1", ret );
+	if( ret == `next )
+	{
+	    UI::OpenDialog(`Label(_("Saving new boot loader configuration ...")));
+	    // get list of bootable 'foreign' primary partitions
+	    // ["<device> <comment>", "<device> <comment>", ...]
+	    list foreign_primaries = Storage::GetForeignPrimary();
+
+	    // --------------------------------------------------------------
+	    // boot concept
+	    if (foreign_primaries != nil)
+	    {
+		Boot::others = foreign_primaries;
+	    }
+
+
+	    y2milestone("saving boot loader settings ");
+
+	    OSRSystem::ChangeRoot( root_mountpoint );
+	    // prepare environment for saving boot loader settings
+	    string destproc = "/proc";
+	    SCR::Execute (.target.mkdir, destproc, 0755);
+	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
+
+	    //OSRSystem::ChangeRoot( root_mountpoint );
+	    
+	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
+
+	    Boot::Save();
+	    
+	    boolean g_ret = Boot::Write();
+	    
+	    UI::CloseDialog();
+	    if ( g_ret ) {
+		Report::Message(_("
+Installing the boot loader was successful.
+"));
+	    }
+
+	    SCR::Execute (.target.umount, "/proc");
+	    WFM::Execute(.local.umount, root_mountpoint + "/proc" );
+	}
+	return ret;	
+    }
+
+ 
+    
+    /**
+     * Repair a damaged boot loader configuration.
+     */    
+    global define symbol RepairConfig(string loader, boolean show_message )``{
+	if ( loader != "" ) bootloader = loader;
+	if ( show_message  )
+	{
+	    if ( ! OSRPopup::Repair(_("Boot loader error detected"), error_message, help_text) ) {
+		return `cancel;
+	    }
+	}
+
+	// set needed value Boot::initrdModules
+	CheckInitrdModules( root_mountpoint );
+	symbol ret_repair =  eval( bootloader_config_check[bootloader, "config_repair" ]:``{
+	    y2error("repair boot loader config not support");
+	    return `error;
+	});
+	return ret_repair;
+    }
+
+    
+    /**
+     * Install a new boot loader
+     */
+    global define symbol InstallNewLoader()``{
+
+	error_message = _("
+YaST can not found a valid boot loader
+installation. Therefore YaST suggest
+to install a new boot loader.
+
+If you sure that your system boots
+currectly it is not neccesary to
+reinstall the boot loader.
+
+Otherwise please press the \"Repair\"
+button to install a new boot loader.
+");
+
+	help_text = _("
+<P>The boot loader is the first thing
+which you should see after you turned
+on a computer with a linux installion.
+Starting a linux system without
+a boot loader is not possible.</P>") +
+ 
+_("<P>If you have installed more than
+one operating system on a computer
+the boot loader let choose you
+which system should be started.</P>");
+	bootloader = "";
+	return RepairConfig("",true);
+    }
+
+
+    /**
+     * Repairing configuration files. 
+     */
+    global define symbol RepairSysconfigFiles()``{
+
+	// repairing not possible
+	if( contains ( not_valid_files, needed_config_files["modules"]:"") )
+	{
+	    y2error("repairing %1 is not possible", needed_config_files["modules"]:"");
+	    Report::Error("
+The file %1 was not found.
+YaST can not recover this
+file. 
+");
+	    return `error;
+	}
+	
+	list(string) t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
+
+	error_message = sformat(_("
+YaST can not found following 
+configuration file(s):
+
+%1
+
+Therefore YaST suggest
+to install a new boot loader.
+
+If you sure that your system boots
+currectly it is not neccesary to
+reinstall the boot loader.
+
+Otherwise please press the \"Repair\"
+button to install a new boot loader.
+"), mergestring(maplist(string file, not_valid_files, ``(file)), "\n"));
+	
+	
+	return RepairConfig(bootloader,true);
+    }
+}
