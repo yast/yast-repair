@@ -66,6 +66,9 @@
       string  status_text    = "";
       integer text_width     = 0;
 
+      // TODO: use a nicer width of the RichText widget
+      //text_width = 380;
+
       // The width of the RichText-widget depends on the execution-mode, it is
       // expanded if the rescue-system is launched from the running Linux-system.
       if (!Installation::initial_mode && !Installation::continue_mode)
@@ -76,7 +79,7 @@
       {
 	  text_width = 600;
       }
-      
+            
       // if an error is found the item has to be dislpayed red
       if (status == "detect_ok")
       {

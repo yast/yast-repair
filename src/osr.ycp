@@ -758,8 +758,18 @@ YaST2 OS Repair halts now."));
       if ((user_input == `next) || (user_input == `abort))
       {
 	  UI::CloseDialog();
+
+	  // TODO: reboot the system
+	  /*
+	  string exit_message = _("YaST2 OS Repair reboots the system now.");
+
+	  if (Installation::initial_mode)
+	  {
+	      OSRPopupDisplayQuick(exit_message, 5000);
+	      WFM::Execute(.local.bash, "shutdown -r now");
+	  }
+	  */
       }
-      
       return user_input;
   }
   else

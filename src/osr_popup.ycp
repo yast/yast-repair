@@ -422,6 +422,7 @@
    *
    *  @param string The label of the popup window.
    *  @param integer The number of milliseconds to display the popup window.
+   *  @return boolean True if the dialog was closed successfully.
    *  @example OSRPopupDisplayQuick("Test", 2000); 
    */
   global define OSRPopupDisplayQuick(string label, integer milliseconds) ``{
@@ -430,7 +431,7 @@
 
       sleep(milliseconds);
 
-      UI::CloseDialog();
+      return (UI::CloseDialog());
   };
 
   /**

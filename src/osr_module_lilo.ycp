@@ -115,7 +115,7 @@
       boolean repair_question  = false;
       boolean error_detected   = false;
       integer progress_expect  = 40;
-      string  minimum_version  = "21.6";
+      string  minimum_version  = "21.7";
       string  module_name      = "osr_module_lilo";
       string  command          = "";
       string  help_text        = "";
@@ -131,7 +131,16 @@
       map     result_map       = $[];
       map     return_map       = $[];
       string  root_mountpoint  = "";
+      list    required_packages = ["lilo", "gfxboot"];
 
+      // TODO: check the gfxboot package too
+      /*
+      string  rpm_lilo_command = "";
+      string  rpm_gfxboot_command = "";
+      map     rpm_lilo_map        = $[];
+      map     rpm_gfxboot_map     = $[];
+      */
+      
       module_map      = OSRGetModuleMap(module_name);
 
       progress_file   = lookup(module_map, "progress_file", "");
@@ -142,26 +151,44 @@
       // set the parameters for the module progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
+
+      /*
+      foreach (`package_name, required_packages, ``{
+
+      });
+      */
+
+      
       if (demo_mode)
       {
           // set demo values
-	  return_map = $["exit" : 0, "stdout" : "lilo-21.6-56", "stderr" : ""];
+	  return_map = $["exit" : 0, "stdout" : "lilo-21.7.5-21", "stderr" : ""];
       }
       else
       {	  
 	  // set the command line and execute, only in non-demo mode, the return map would look like this:
 	  // $["exit" : 0, "stdout" : "lilo-21.6-56", "stderr" : ""]
-          // the root directory has to be specified, see man 8 lilo for details
+          // the root directory has to be specified, see man rpm for details
 	  command = sformat("/bin/rpm -q -r %1 lilo", root_mountpoint);
 	  return_map = OSRExecuteCommandOutput(.local.bash_output, command);
+
+          /*
+	  rpm_lilo_command = sformat("/bin/rpm -q -r %1 lilo", root_mountpoint);
+	  rpm_lilo_map     = OSRExecuteCommandOutput(.local.bash_output, rpm_lilo_command);
+
+	  rpm_gfxboot_command = sformat("/bin/rpm -q -r %1 gfxboot", root_mountpoint);
+	  rpm_gfxboot_map     = OSRExecuteCommandOutput(.local.bash_output, rpm_gfxboot_command);
+	  */
       }
 
       // increase the value of the module-progress-bar
       OSRModuleProgress::Add(10);
 
+      //if((lookup(rpm_lilo_map, "exit", -1) != 0) || (lookup(rpm_gfxboot_map, "exit", -1) != 0))
+
       if (lookup(return_map, "exit", 1) != 0)
       {
-	  // rpm -q lilo reported an error -> lilo.rpm is not installed
+	  // rpm -q reported an error -> lilo.rpm and/or gfxboot.rpm are not installed
 	  status = OSRStatusDetectError();
 
 	  // if this error could not be fixed, no other detection methods from this module
@@ -170,12 +197,42 @@
 
 	  // text for the error window
 	  error_detected = true;
- 	  error_message  = _("The LILO package is not installed on your system.
+
+	  /*
+	  string packages_string = "";
+	  
+	  if ((lookup(rpm_lilo_map, "exit", -1) != 0) && (lookup(rpm_gfxboot_map, "exit", -1) != 0))
+	  {
+	      packages_string = "lilo.rpm and gfxboot.rpm";
+	  }
+	  else if (lookup(rpm_lilo_map, "exit", -1) != 0)
+	  {
+	      packages_string = "lilo.rpm";
+	  }
+	  else if (lookup(rpm_gfxboot_map, "exit", -1) != 0)
+	  {
+	      packages_string = "gfxboot.rpm";
+	  }
+	  
+	  error_message  = _("
+The following packages are not installed on your
+system: %1.
+
+LILO is the standard bootloader of your SuSE Linux
+system. The GFXBoot package is required by LILO.
+
+Press Repair to install these packages.");
+	  */
+
+	  error_message  = _("The LILO package is not installed on your
+system.
+
 LILO is the standard bootloader of your SuSE Linux
 system.
 
-Press Repair to install this package.");
+Press Repair to install this packages.");
 
+	  
 	  // text for the help window
 	  help_text = sformat("<p>%1</p><p>%2</p><p>%3</p>",
 			      // "%1" will be replaced with the command line "rpm -q lilo"
@@ -298,7 +355,7 @@ of this package.</p>"),
 		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or something like
 		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""]
 		  // if any file of the lilo package differs to the original
-        	  // the root directory has to be specified, see man 8 lilo for details
+        	  // the root directory has to be specified, see man rpm for details
 		  command = sformat("/bin/rpm -V -r %1 lilo", root_mountpoint);
 		  return_map = OSRExecuteCommandOutput(.local.bash_output, command);
 	      }
@@ -369,6 +426,339 @@ system.</p>"),
       {
 	  // set the value of the module progress bar to 100%
 	  OSRModuleProgress::Fill();
+
+	  // repair loop: until the repair process succeeded or the user selected Skip
+	  repeat
+	      {
+		  // launch the repair popup, in automatic mode no popup is displayed and "true" is returned
+		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
+
+		  // REPAIR
+		  if (repair_question)
+		  {	      
+		      // install the LILO package
+		      if (OSRLiloPackageInstall())
+		      {
+			  status = OSRStatusRepairOK();
+
+			  if(OSRLiloConfExists())
+			  {
+			      // /sbin/lilo has to be executed after a new installation of lilo.rpm,
+			      // no matter if /etc/lilo.conf changed or not!
+			      if (!OSRLiloExecuteLilo())
+			      {
+				  status = OSRStatusRepairError();
+
+				  y2debug("Execution of /sbin/lilo failed.");
+			      }
+			      else
+			      {
+				  status = OSRStatusRepairOK();
+			      }
+			  }
+		  
+		      }
+		      else
+		      {
+			  status = OSRStatusRepairError();
+
+			  y2debug("Installing of lilo.rpm failed");
+
+			  // TODO: dislplay, you should install the package lilo.conf...
+		      }
+		  }
+		  else
+		  {
+		      // !repair_question
+		      status = OSRStatusRepairOmit();
+
+		      // display the result in the RichText widget
+		      OSRSummaryRepairOmit(
+					   module_name,
+					   _("Installing the LILO package"),
+					   _("Package not installed")
+					   );
+		  }
+	      }
+	  until ((status == OSRStatusRepairOK()) || (status == OSRStatusRepairOmit()));
+      }
+      result_map = $[
+		     "status"         : status,
+		     "severity"       : severity
+      ];
+
+      // set the value of the module progress bar to 100%
+      OSRModuleProgress::Fill();
+      
+      return result_map;
+  }
+  /**
+   *  This detection method checks the gfxboot RPM-package. It looks if the
+   *  package is installed, is verified and some other things.
+   *
+   *  Requires: string root_mountpoint
+   *
+   *  @return map The result_map.
+   */
+  global define OSRLiloCheckPackageGFXBoot() ``{
+
+      boolean repair_question  = false;
+      boolean error_detected   = false;
+      integer progress_expect  = 40;
+      string  minimum_version  = "1.4";
+      string  module_name      = "osr_module_lilo";
+      string  command          = "";
+      string  help_text        = "";
+      string  error_message    = "";
+      string  progress_file    = "";
+      string  gfxboot_version  = "";
+      string  stdout_string    = "";
+      string  status           = "";
+      string  severity         = "";
+      map     module_map       = $[];
+      map     result_map       = $[];
+      map     return_map       = $[];
+      string  root_mountpoint  = "";
+
+      module_map      = OSRGetModuleMap(module_name);
+
+      progress_file   = lookup(module_map, "progress_file", "");
+
+      // should be "/mnt"
+      root_mountpoint = OSRRequireString("root_mountpoint");
+
+      // set the parameters for the module progress bar
+      OSRModuleProgress::SetParams(_("Checking package GFXBoot"), progress_file, progress_expect);
+
+      if (demo_mode)
+      {
+          // set demo values
+	  return_map = $["exit" : 0, "stdout" : "gfxboot-1.4-12", "stderr" : ""];
+      }
+      else
+      {	  
+	  // set the command line and execute, only in non-demo mode, the return map would look like this:
+	  // $["exit" : 0, "stdout" : "gfxboot-1.4-12", "stderr" : ""]
+          // the root directory has to be specified, see man rpm for details
+	  command = sformat("/bin/rpm -q -r %1 gfxboot", root_mountpoint);
+	  return_map = OSRExecuteCommandOutput(.local.bash_output, command);
+      }
+
+      // increase the value of the module-progress-bar
+      OSRModuleProgress::Add(10);
+
+      if (lookup(return_map, "exit", 1) != 0)
+      {
+	  // rpm -q gfxboot reported an error -> gfxboot.rpm is not installed
+	  status = OSRStatusDetectError();
+
+	  // if this error could not be fixed, no other detection methods from this module
+	  // are executed by the rescue system
+	  severity = OSRErrorSeverityModuleBlocking();
+
+	  // text for the error window
+	  error_detected = true;
+ 	  error_message  = _("The GFXBoot package is not installed on your system.
+LILO needs this package for a frictionless work.
+
+Press Repair to install this package.");
+
+	  // text for the help window
+	  help_text = sformat("<p>%1</p><p>%2</p><p>%3</p>",
+			      // "%1" will be replaced with the command line "rpm -q lilo"
+			      // "%2" will be the output of the command
+			      sformat(
+				      _("The command %1 reported the following error message: %2."),
+					command, lookup(return_map, "stderr", "")
+				      ),  // %1
+			      _("The GFXBoot package is not installed on your system.
+This package is required by LILO."),  // %2
+			      _("Press Repair to install this package.")  // %3
+			      );
+	  
+	  // display the result in the RichText widget
+	  OSRSummaryDetectError(
+				module_name,
+				_("Checking GFXBoot package"),
+				sformat("%1<br>%2",
+					_("/bin/rpm -q gfxboot reports an error"),
+					_("Package is not installed")
+					)
+				);
+      }
+      else
+      {
+	  status = OSRStatusDetectOK();
+
+	  // display the result in the RichText widget
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Checking GFXBoot package"),
+			     sformat("%1<br>%2",
+				     _("/bin/rpm -q gfxboot reports no errors"),
+				     _("Package is installed")
+				     )
+			     );
+	  
+	  stdout_string = lookup(return_map, "stdout", "");
+
+	  // cut the substring "lilo-" off the output string
+	  lilo_version = substring(stdout_string, size("gfxboot-"), (size(stdout_string)-1));
+	  
+	  // increase the value of the module progress bar
+          OSRModuleProgress::Add(10);
+	  
+          // check if the current version of lilo is higher than a specific minimum version number
+	  if (!OSRVersionIsHigherOrEqual(lilo_version, minimum_version))
+	  {
+	      status = OSRStatusDetectError();
+
+	      // the current lilo version is older than the minimum_version
+	      error_detected = true;
+	      
+              // error text for the error window
+	      error_message = _("The version of the GFXBoot package installed
+on your system is obsolete.
+
+Repair will install a later version of
+this package.");
+
+	      help_text = sformat("<p>%1</p><p>%2</p>",
+				  // "%1": will be replaced with "rpm -q lilo"
+				  sformat(_("The command %1 reports that the version of the
+ GFXBoot package installed on your system is
+obsolete."),
+					  command
+					  ),
+				  _("Press Repair to install a later version of the GFXBoot
+package.")
+				  );
+	      /*
+	      // help text for the help window
+	      help_text = sformat(_("
+<p>The command %1 reported an error: %2</p>
+<p>The version of the LILO package installed
+on your system is obsolete.</p>
+<p>This package is one of the basic packages
+for your system.</p>
+<p>Press <b>Repair</b> to install a later version
+of this package.</p>"),
+				  command,                              // %1: the commandline, e.g. "rpm -q lilo"
+				  lookup(return_map, "stderr", ""));    // %2: the output of "rpm -q lilo"
+	      */
+	      
+	      // display the result in the RichText widget
+	      OSRSummaryDetectError(
+				    module_name,
+				    _("Checking GFXBoot version"),
+				    sformat("%1<br>%2",
+					    // "%1": will be replaced with the current GFXBoot version, e.g. "gfxboot-1.4-12"
+					    sformat(_("Current version is obsolete: %1"), stdout_string),
+                                            // "%1": will be replaced with the minimum version number, e.g. "1.4"
+					    sformat(_("Should be version number %1 or later"), minimum_version)
+					    )
+				    );
+	  }
+	  else
+	  {
+	      status = OSRStatusDetectOK();
+
+	      error_detected = false;
+
+	      // display the result in the RichText widget
+	      OSRSummaryDetectOK(
+				 module_name,
+				 _("Checking GFXBoot version"),
+				 // "%1": will be replaced with the current GFXBoot version, e.g. "gfxboot-1.4-12"
+				 sformat(_("Version number is up to date: %1"), stdout_string)
+				 );
+	      
+	      if (demo_mode)
+	      {
+		  // demo value
+		  return_map = $["exit" : 0, "stdout" : "", "stderr" : ""];
+	      }
+	      else
+	      {
+		  // result is the exit code of the bash command, only in non demo mode
+		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or something like
+		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""]
+		  // if any file of the lilo package differs to the original
+        	  // the root directory has to be specified, see man rpm for details
+		  command = sformat("/bin/rpm -V -r %1 gfxboot", root_mountpoint);
+		  return_map = OSRExecuteCommandOutput(.local.bash_output, command);
+	      }
+
+	      // increase the value of the module progress bar
+	      OSRModuleProgress::Add(10);
+
+	      if (lookup(return_map, "exit", 1) != 0)
+	      {
+		  status = OSRStatusDetectError();
+
+		  // rpm -V gfxboot reported an error -> some of the package files differ to the original ones
+		  error_detected = true;
+
+		  string stdout  = lookup(return_map, "stdout", "");
+
+		  error_message  = _("Some files of the GFXBoot package differ to the
+original package files.
+
+Press Repair to install a new version of this
+package.");
+
+		  // help text for the help window
+		  help_text = sformat(_("
+<p>The command %1 reported the following error: %2</p>
+<p>Some files of the GFXBoot package differ to the original
+package files.</p>
+<p>This package is one of the basic packages for your
+system.</p>
+<p>Press <b>Repair</b> to install this package on your
+system.</p>"),
+				      command,  // %1: the commandline "/bin/rpm -V gfxboot"
+				      stdout);  // %2: error ouput of the executed command, e.g. ".......T   /boot/message"
+
+		  // display the result in the RichText widget
+		  OSRSummaryDetectError(
+					module_name,
+					_("Verifying the GFXBoot package"),
+					sformat("%1<br>%2<br>%3",
+						_("rpm -V gfxboot reports an error:"),
+						stdout,
+						_("Some files differ to the original")
+						)
+					);
+	      }
+	      else
+	      {
+		  status = OSRStatusDetectOK();
+
+		  // everything is o.k.
+		  error_detected = false;
+		  
+		  // display the result in the RichText widget
+		  OSRSummaryDetectOK(
+				     module_name,
+				     _("Verifying the GFXBoot package"),
+				     sformat("%1<br>%2",
+					     _("rpm -V gfxboot reports no errors"),
+					     _("Package is o.k.")
+					     )
+				     );
+	      }
+	  }
+      }
+
+      if ((error_detected) || (status == OSRStatusDetectError()))
+      {
+	  // set the value of the module progress bar to 100%
+	  OSRModuleProgress::Fill();
+
+
+// TODO: adjust gfxboot!
+
+	  
 
 	  // repair loop: until the repair process succeeded or the user selected Skip
 	  repeat
@@ -921,7 +1311,7 @@ configuration file.");
       symbol res_symbol = CallFunction (`sw_single (filename));
       
       // check if the installation was successfull
-      // the root directory has to be specified, see man 8 lilo for details
+      // the root directory has to be specified, see man rpm for details
       if ((OSRExecuteCommand(.local.bash, sformat("/bin/rpm -q -r %1 lilo", root_mountpoint)) == 0) &&
 	  (OSRExecuteCommand(.local.bash, sformat("/bin/rpm -V -r %1 lilo", root_mountpoint)) == 0))
       {
@@ -954,7 +1344,8 @@ configuration file.");
    *
    *  Requires: string root_partition,
    *            string floppy_device,
-   *            boolean has_floppy
+   *            boolean has_floppy,
+   *            string root_mountpoint
    *
    *  @return boolean True if the repair process was successful.
    */
@@ -965,7 +1356,10 @@ configuration file.");
       string  progress_label   = "Creating LILO configuration file";
       string  progress_file    = lookup(module_map, "progress_file", OSRGetTmpDir() + "/osr_module_lilo_progress");
       string  module_name      = "osr_module_lilo";
-
+      string root_mountpoint   = "";
+      
+      root_mountpoint = OSRRequireString("root_mountpoint");
+      
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
@@ -980,10 +1374,23 @@ configuration file.");
       user_settings = add(user_settings, "lilo_device", "");
       user_settings = add(user_settings, "lilo", "mbr");
 
+
+      y2milestone ("Stopping SCR");
+      SCRStop();
+      y2milestone ("Re-starting SCR on %1", root_mountpoint);
+      SCRSetName ("chroot="+root_mountpoint+":scr");
+
+      
       // launch the LILO installer from the installation workflow:
       // yast2/modules/y2m_inst/bootloader/...
       CallFunction(`inst_lilo_info(true, true));
       CallFunction(`inst_writelilo());
+
+      
+      y2milestone ("Stopping SCR");
+      SCRStop();
+      y2milestone ("Re-starting SCR on /");
+      SCRSetName ("chroot=/:scr");
 
       // reset the window contents
       OSRSetMainWindowContents();
@@ -1150,14 +1557,25 @@ configuration file.");
       string  progress_file   = "";
       string  module_name     = "osr_module_lilo";
       string  root_mountpoint = "";
-
+      string  root_partition  = "";
+    
       progress_file   = lookup(module_map, "progress_file", "");
       
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       root_mountpoint = OSRRequireString("root_mountpoint");
+      root_partition  = OSRRequireString("root_partition");
 
+      // TODO: use mk_initrd for the splash animations
+      /*
+       //if (___grep "vga" /mnt/etc_lilo.conf___)
+       //{
+       command = sformat("%1/sbin/mk_initrd -d %2 %1", root_partition, root_mountpoint);
+       result  = OSRExecuteCommandProgress(.target.bash, command, progress_file);
+       //}
+      */
+      
       // execute the lilo command and display the progress
       command = sformat("%1/sbin/lilo -r %1 -v", root_mountpoint);
       result  = OSRExecuteCommandProgress(.target.bash, command, progress_file);

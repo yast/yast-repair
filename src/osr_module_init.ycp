@@ -101,6 +101,43 @@
   //////////////////////////////////////////////////////////////////////
 
   /**
+   *  Checks the current installation of SuSE Linux.
+   *
+   *  Provides: string suse_version,
+   *
+   *  @return map The result map.
+   */
+  global define OSRInitCheckSuSELinuxVersion() ``{
+
+      string min_version  = "7.3";
+      string grep_output  = "";
+      map    ret_map      = $[];
+      string grep_command = "grep \"PRODUKT_VERSION\" /var/adm/current_package_descr/suse/setup/descr/info";
+
+      map ret_map = OSRExecuteCommand(.local.bash_output, grep_command);
+
+      if (lookup(ret_map, "exit", -1) == 0)
+      {
+	  grep_output = lookup(ret_map, "stdout", "");
+      
+	  if (issubstring(min_version, grep_output))
+	  {
+	      // current version is SuSE Linux 7.3
+
+	  }
+	  else
+	  {
+	      // another version
+
+	  }
+      }
+      else
+      {
+	  // error with the grep command
+      }
+  };
+  
+  /**
    *  Offers some neccesary values from the map user_settings from inst_startup.ycp to
    *  the global map osr_map.
    *
@@ -125,7 +162,7 @@
 
       y2debug("OSRInitConvertUserSettings");
 
-      OSRModuleProgress::SetParams(_("Converting user-settings"), OSRGetTmpDir() + "/osr_module_init_progress", 50);
+      OSRModuleProgress::SetParams(_("Converting data"), OSRGetTmpDir() + "/osr_module_init_progress", 50);
 
       target_map    = lookup(user_settings, "targets", $[]);
       repair_target = lookup(user_settings, "updateTarget", "");
@@ -134,8 +171,8 @@
 
       OSRSummaryDetectOK(
 			 module_name,
-			 _("Converting user-settings"),
-			 _("O.k.")
+			 _("Converting data"),
+			 _("Data converted successfully")
 			 );
 
 
@@ -172,6 +209,8 @@
 			     "sub_class_id":3, "unique_key":"sPV.oZ89vuho4Y3"]
       ];
       */
+
+      OSRModuleProgress::SetLabel(_("Probing floppy"));
       
       if (size(floppy_probe_list) == 1)
       {

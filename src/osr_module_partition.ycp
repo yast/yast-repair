@@ -141,7 +141,6 @@
       map     target_map         = $[];
       map     result_map         = $[];
       list    disk_list          = [];
-      string  progress_label     = _("Checking disks");
       string  progress_file      = "";
       integer progress_expect    = 120;
       integer progress_increment = 0;
@@ -150,7 +149,7 @@
       progress_file = lookup(module_map, "progress_file", "");
 
       // setting up the progress bar
-      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
+      OSRModuleProgress::SetParams(_("Checking harddisks"), progress_file, progress_expect);
       
       target_map = lookup(user_settings, "targets", $[]);
 
@@ -386,7 +385,7 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 			      UI::OpenDialog(`opt(`decorated), `Label(_("Reverting old partition table...")));
 
 			      // copy the backup of the primary partition table to the target device
-			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446",
+			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=512",
 						       ptbl_name, target);
 			      integer revert = OSRExecuteCommand(.local.bash, command);
 
@@ -801,6 +800,9 @@ result to the primary partition table.
 							 _("Reverted old partition table")
 							 );
 
+				      /*
+					// this is the original code!
+					
 				      // add the name of the current harddisk to the list of valid targets
 				      valid_target_list = add(valid_target_list, target);
 
@@ -810,7 +812,21 @@ result to the primary partition table.
 				      map partition_map = $["partitions" : partition_table];
 				      target_map        = add(target_map, target, partition_map);
 				      user_settings     = add(user_settings, "targets", target_map);
+				      */
 
+
+				      OSRProvideMap("target_partition_map", $[target : partition_table]);
+
+			      	      // add the name of the current harddisk to the list of valid targets
+				      valid_target_list = add(valid_target_list, target);
+
+				      // construct an updated "targets" map and store it in the global map "user_settings"
+				      map partition_map = $["partitions" : partition_table];
+				      target_map        = add(target_map, target, partition_map);
+				      user_settings     = add(user_settings, "targets", target_map);
+
+
+				      
 				      OSRModuleProgress::Fill();
 
 				      return $[
@@ -956,12 +972,11 @@ YaST2 OS Repair halts now.");
   global define OSRPartitionCheckPartitions() ``{
 
       boolean repair_question           = false;
-      integer progress_expect           = 60;
+      integer progress_expect           = 80;
       string  module_name               = "osr_module_partition";
       //string  help_text                 = "";
       string  error_message             = "";
       string  progress_file             = "";
-      string  progress_label            = _("Checking the partitions and filesystems");
       string  status                    = "";
       map     result_map                = $[];
       map     target_map                = $[];
@@ -975,7 +990,7 @@ YaST2 OS Repair halts now.");
       progress_file  = lookup(module_map, "progress_file", "");
 
       // set the parameters for the module progress bar
-      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
+      OSRModuleProgress::SetParams(_("Checking the partitions and filesystems"), progress_file, progress_expect);
 
       target_map = lookup(user_settings, "targets", $[]);
 
@@ -988,13 +1003,158 @@ YaST2 OS Repair halts now.");
 
       OSRModuleProgress::Add(10);
 
+      /////////////////////////////////////////////////////////////////
+      //
+      // search for valid swap partitions
+      //
+      /////////////////////////////////////////////////////////////////
+
+      list swap_partition_list = GetSwapPartitions(target_map);
+
+      OSRModuleProgress::Add(10);
+      
+      if (size(swap_partition_list) <= 0)
+      {
+	  status = OSRStatusDetectProblem();
+
+	  OSRSummaryDetectProblem(
+				module_name,
+				_("Searching for valid swap partitions"),
+				_("No valid partition types found")
+				);
+      }
+      else
+      {
+	  status = OSRStatusDetectOK();
+	      
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Searching for valid swap partitions"),
+			     sformat(_("Valid swap partitions found:<br>%1"),
+				     mergestring(swap_partition_list, ", "))
+			     );
+
+	  OSRProvideList("valid_swap_partitions", swap_partition_list);
+      }
+
+      /////////////////////////////////////////////////////////////////
+      //
+      // search for "swap-able" partitions
+      //
+      /////////////////////////////////////////////////////////////////
+
+      list swapable_partition_list = GetSwapablePartitions(swap_partition_list);
+
+      OSRModuleProgress::Add(10);
+      
+      if (size(swapable_partition_list) <= 0)
+      {
+	  status = OSRStatusDetectProblem();
+
+	  OSRSummaryDetectProblem(
+				module_name,
+				_("Searching for swap-able partitions"),
+				_("No swap-able partitions found")
+				);
+      }
+      else
+      {
+	  status = OSRStatusDetectOK();
+	      
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Searching for swap-able partitions"),
+			     sformat(_("Swap-able partitions found:<br>%1"),
+				     mergestring(swapable_partition_list, ", "))
+			     );
+
+	  OSRProvideList("swapable_partitions", swapable_partition_list);
+      }
+      
+      /////////////////////////////////////////////////////////////////
+      //
+      // include all swap partitions
+      //
+      /////////////////////////////////////////////////////////////////
+
+	  foreach(`swap, swapable_partition_list, ``{
+
+	      // check if the swap partition is already swapped on, proc_swaps looks like:
+	      // [$["file":"/dev/sda1", "priority":"42", "size":"52200", "type":"partition", "used":"21336"]]
+	      list proc_swaps = SCR::Read(.proc.swaps);
+
+	      OSRModuleProgress::Add(10);
+		  
+	      // Check if the specified swap-partition is already "swapped", if true don't swapon.
+	      // filter(...) returns a list of all "swapped" partitions where the name equals to the specified partition
+	      if (size(filter(`swap_partition, proc_swaps, ``(lookup(swap_partition, "file", "") == swap))) > 0)
+	      {
+		  y2debug("Swap-partition \"%1\" is already swapped-on!", swap);
+
+		  status = OSRStatusDetectOK();
+
+		  OSRSummaryDetectOK(
+				     module_name,
+				     sformat(_("Adding partition %1 to swap"), swap),
+				     sformat(_("Partition %1 already added to swap"), swap)
+				     );
+	      }
+	      else
+	      {
+		  //swap-partition
+		  string  swapon_command = sformat("/sbin/swapon %1", swap);
+	      
+		  // run /sbin/swapon
+		  integer swapon_result = OSRExecuteCommand(.local.bash, swapon_command);
+
+		  /*
+		  if (swapon_result == nil)
+		  {
+		      y2warning("an error occurred during execution of \"%1\"", swapon_command);
+		  }
+		  else if (swapon_result == 0)
+		  {
+		      y2debug("swapon succeeded: \"%1\"", swapon_command);
+		  }
+		  else
+		  {
+		      y2debug("swapon failed: \"%1\"", swapon_command);
+		  }
+		  */
+		  
+		  //if (SwaponFstabEntry(fstab_entry))
+
+		  if (swapon_result == 0)
+		  {
+		      status = OSRStatusDetectOK();
+
+		      OSRSummaryDetectOK(
+					 module_name,
+					 sformat(_("Adding partition %1 to swap"), swap),
+					 _("Swapon succeeded")
+					 );
+		  }
+		  else
+		  {
+		      status = OSRStatusDetectError();
+
+		      OSRSummaryDetectError(
+					    module_name,
+					    sformat(_("Adding partition %1 to swap"), swap),
+					    _("Swapon failed")
+					    );
+		  }
+	      }
+
+	  });
+      
       /////////////////////////////////////////////////////////
       //
       // install available kernel modules for the filesystems
       //
       /////////////////////////////////////////////////////////
 
-      list fs_kernel_modules = ["reiserfs", "ext3", "jfs", "jbd", "xor", "raid0", "raid1", "raid5"];
+      list fs_kernel_modules = ["reiserfs", "jfs", "jbd", "xor", "ext3", "raid0", "raid1", "raid5"];
 
       map  loaded_kernel_modules = OSRExecuteCommandOutput(.target.bash, "/sbin/lsmod");
 
@@ -1324,6 +1484,8 @@ You have to select one item in the list."),
 	  OSRProvideString("root_partition", root_partition);
       }
 
+
+      /*
       /////////////////////////////////////////////////////////////////
       //
       // search for valid swap partitions
@@ -1357,7 +1519,7 @@ You have to select one item in the list."),
 
 	  OSRProvideList("valid_swap_partitions", swap_partition_list);
       }
-
+	  
       /////////////////////////////////////////////////////////////////
       //
       // search for "swap-able" partitions
@@ -1391,7 +1553,14 @@ You have to select one item in the list."),
 
 	  OSRProvideList("swapable_partitions", swapable_partition_list);
       }
+      */
 
+      /////////////////////////////////////////////////////////////////
+      //
+      // fill progress bar and return the results
+      //
+      /////////////////////////////////////////////////////////////////
+      
       status = OSRStatusDetectOK();
       
       result_map = $[
@@ -1404,7 +1573,6 @@ You have to select one item in the list."),
       
       return result_map;
   };
-
 
   /**
    *  Mount the root partition and all reachable, local and valid partitions from the
@@ -1445,14 +1613,14 @@ You have to select one item in the list."),
       list    just_mounted            = [];
       string  root_mountpoint         = "/mnt";
       string  fstab_standard_path     = "/etc/fstab";
-      string  progress_label          = _("Mounting root and additional partitions");
       string  progress_file           = "";
       integer progress_expect         = 200;
+      integer check_fs                = 0;
 
       progress_file = lookup(module_map, "progress_file", "");
 
       // setting up the progress bar
-      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
+      OSRModuleProgress::SetParams(_("Checking filesystem types"), progress_file, progress_expect);
 
       // get all valid root partitions
       valid_root_partitions = OSRRequireList("valid_root_partitions");
@@ -1503,17 +1671,20 @@ You have to select one item in the list."),
       if (root_partition_type != "unknown")
       {
 	  list    mountpoint_list = GetMountpoints(root_partition);
-	  integer check_fs        = 0;
-
+	  
 	  OSRModuleProgress::Add(10);
       
 	  // start fsck only if the partition is not currently mounted
 	  if (size(mountpoint_list) == 0)
-	  {  
+	  {
+	      OSRModuleProgress::SetLabel(_("Checking filesystem of root partition with fsck"));
+
 	      if (root_partition_type == "ext2")
 	      {
 		  // CheckExt2fs returns the exit code of the e2fsck command
 		  check_fs = CheckExt2fs(root_partition);
+
+		  //OSRPopupDisplayQuick(sformat("ext2fsck: %1", check_fs), 5000);
 
 		  OSRModuleProgress::Add(10);
 	      }
@@ -1521,6 +1692,8 @@ You have to select one item in the list."),
 	      {
 		  // CheckReiserfs returns the exit code of the reiserfsck command
 		  check_fs = CheckReiserfs(root_partition, "");
+
+		  //OSRPopupDisplayQuick(sformat("reiserfsck: %1", check_fs), 5000);
 
 		  OSRModuleProgress::Add(10);
 	      }
@@ -1560,6 +1733,8 @@ You have to select one item in the list."),
       //  mount the root partition to /mnt
       //
       ///////////////////////////////////////////////////////////////////////////////
+
+      OSRModuleProgress::SetLabel(_("Mounting root partition and additional partitions"));
 
       // check if the specified partition is already mounted to "/mnt", mount only if it is not already done.
       if (!IsMountedTo(root_partition, root_mountpoint))
@@ -1620,7 +1795,7 @@ You have to select one item in the list."),
       //  get the fstab
       //
       ///////////////////////////////////////////////////////////////////////////////
-      
+
       if (mount_successful)
       {
 	  integer fstab_size = SCR::Read(.target.size, "" + root_mountpoint + fstab_standard_path);
@@ -1697,7 +1872,7 @@ You have to select one item in the list."),
       //  - detect the filesystem type
       //  - check the filesystem with fsck
       //  - mount the partition to /mnt/<fstab-value>
-      //  - include the partition as swap if it is of type swap
+      //  //- include the partition as swap if it is of type swap
       //
       ///////////////////////////////////////////////////////////////////////////////
 
@@ -1783,16 +1958,22 @@ You have to select one item in the list."),
 
 		  // start fsck only if the partition is not currently mounted
 		  if (size(mountpoint_list) == 0)
-		  {  
+		  {
+		      OSRModuleProgress::SetLabel(sformat(_("Checking filesystem of partition %1 with fsck"), spec));
+
 		      if (real_fstype == "ext2")
 		      {
 			  // CheckExt2fs returns the exit code of the e2fsck command
 			  check_fs = CheckExt2fs(spec);
+
+			  //OSRPopupDisplayQuick(sformat("ext2fsck: %1", check_fs), 5000);
 		      }
 		      else if (real_fstype == "reiserfs")
 		      {
 			  // CheckReiserfs returns the exit code of the reiserfsck command
 			  check_fs = CheckReiserfs(spec, "");
+
+			  //OSRPopupDisplayQuick(sformat("reiserfsck: %1", check_fs), 5000);
 		      }
 
 		      // TODO: check also ext3, xfs, jfs
@@ -1909,6 +2090,9 @@ You have to select one item in the list."),
 		  }
 	      }
 
+
+	      /*
+		
 	      ///////////////////////////////////////////////////////////////////////////////
 	      //
 	      //  include the partition as swap if it is of type swap
@@ -1961,6 +2145,10 @@ You have to select one item in the list."),
 		      }
 		  }
 	      }
+
+	      */
+
+	      
 	  });
       }
 

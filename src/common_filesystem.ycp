@@ -533,10 +533,16 @@ Check log-file : /var/log/y2log.");
       // TODO: check if the current partition is not mounted to anywhere before starting fsck
 
       integer check_ext2fs = 0;
-      string  command      = "/sbin/e2fsck -y " + partition;
+      string  command      = sformat("/sbin/e2fsck -y %1 2> /dev/null > /dev/null", partition);
       
       check_ext2fs = WFM::Execute(.local.bash, command);
 
+      /*
+      UI::OpenDialog(`opt(`decorated), `Label(sformat("/sbin/e2fsck -y %1 returns %2", partition, check_ext2fs)));
+      sleep(5000);
+      UI::CloseDialog();
+      */
+      
       if (check_ext2fs == nil)
       {
 	  y2error("CheckExt2fs ERROR: something's wrong with the command \"%1\" or the calling agent", command);
@@ -609,16 +615,22 @@ be rebooted if file system was mounted\" for partition %1", partition);
           // fixed w/o --rebuild-tree when it is runnig in check mode. Corruptions which
 	  // can be fixed so far: bad pointers  to data blocks, wrong directory's st_size
           // and st_blocks, directories entries pointing to nowhere can be deleted
-	  command = sformat("echo Yes | /sbin/reiserfsck -x %1", partition);
+	  command = sformat("echo Yes | /sbin/reiserfsck -n -x %1", partition);
       }
       else
       {
-	  command = sformat("echo Yes | /sbin/reiserfsck -x -l %1 %2 2> %3", logfile, partition, output);
+	  command = sformat("echo Yes | /sbin/reiserfsck -n -x -l %1 %2 2> %3", logfile, partition, output);
       }
 
       // execute the reiserfsck command
       check_reiserfs = WFM::Execute(.local.bash, command);
 
+      /*
+      UI::OpenDialog(`opt(`decorated), `Label(sformat("/sbin/reiserfsck -y %1 returns %2", partition, check_reiserfs)));
+      sleep(5000);
+      UI::CloseDialog();
+      */
+      
       if (check_reiserfs == nil)
       {
 	  y2error("CheckReiserfs ERROR: something's wrong with the command \"%1\" or the calling agent", command);
@@ -872,6 +884,8 @@ be rebooted if file system was mounted\" for partition %1", partition);
 	      (partition_name != "") &&
 	      (mountpoint != nil) &&
 	      (mountpoint != "") &&
+	      //(fs_type != "iso9660") &&
+	      (substring(partition_name, 0, 8) != "/dev/ram") &&
 	      (substring(partition_name, 0, 5) == "/dev/"))
 	  {
 	      map partition_map  = $[
