@@ -16,48 +16,61 @@
  */
 {
 
-  import "Wizard";
+  import "CommandLine";
   import "Mode";
-
   import "OSRRepairUI";
   import "OSRModuleLoading";
   import "OSRMode";
+  import "Wizard";
 
-  // check the special osr modes
-  if( ! OSRMode::IsValid() ) return `error;
+  textdomain "repair";
 
-  // write verify output to tmp directory.
-  // OSRMode::save = true;
   //////////////////////////////////////////////////////////////////////////////
   //
   //  MAIN
   //
   //////////////////////////////////////////////////////////////////////////////
-
-  // ===== Open UI ==================================================
-  if( (! Mode::cont) && (! Mode::initial))
+  define symbol OSRSequence ()
   {
-      Wizard::CreateDialog();
+
+    // check the special osr modes
+    if( ! OSRMode::IsValid() ) return `error;
+
+    // ===== Open UI ==================================================
+    if( (! Mode::cont) && (! Mode::initial))
+    {
+	Wizard::CreateDialog();
+    }
+    Wizard::SetTitleIcon("misc");
+
+    // ===== Init the Rescue System =================================
+    symbol ret = OSRRepairUI::InitDialog();
+
+    if ( ret != `next ) return ret;
+
+    // ==== Open main dialog =========================================
+    ret = OSRRepairUI::OsrMainDialog();
+
+    // ==== Try to unload all loaded modules =========================
+    OSRModuleLoading::UnloadAll();
+
+    // ==== Close the dialog =========================================
+    if( (! Mode::cont) && (! Mode::initial))
+    {
+	UI::CloseDialog();
+    }
+    return ret;
   }
-//  Wizard::SetDesktopIcon("repair");
-  Wizard::SetTitleIcon("misc");
 
-  // ===== Init the Rescue System =================================
-  symbol ret = OSRRepairUI::InitDialog();
+  /* the command line description map */
+  map cmdline = $[
+    "id"		: "repair",
+    // translators: command line help text for repair module
+    "help"		: _("System repair module"),
+    // help text
+    "custom_help"	: _("Command line interface for System repair module is not available"),
+    "guihandler"	: OSRSequence,
+  ];
 
-  if ( ret != `next ) return ret;
-
-  // ==== Open main dialog =========================================
-  ret = OSRRepairUI::OsrMainDialog();
-
-  // ==== Try to unload all loaded modules =========================
-  OSRModuleLoading::UnloadAll();
-
-  // ==== Close the dialog =========================================
-  if( (! Mode::cont) && (! Mode::initial))
-  {
-      UI::CloseDialog();
-  }
-
-  return ret;
+  return OSRSequence ();
 }
