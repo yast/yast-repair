@@ -22,6 +22,7 @@ Summary:	System Repair
 %files
 %defattr(-,root,root)
 #@configdir@/*.y2cc
+#@desktopdir@/*.desktop
 @clientdir@/*.ycp
 @moduledir@/*.ycp
 %doc @docdir@
