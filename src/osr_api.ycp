@@ -1,4 +1,4 @@
-/**
+ /**
  *  File:
  *    osr_api.ycp
  *
@@ -24,10 +24,11 @@
    *
    *  @param string commandline The commandline.
    *  @param string log_file The path of the logfile.
+   *  @param path environment The environment-path, has to be .local or .target.
    *  @return map The result map with all output from the command.
-   *  @example map result_map = OSRExecuteCommandOutput("rpm -qi lilo", "/tmp/osr.log");
+   *  @example map result_map = OSRExecuteCommandOutput("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local);
    */
-  global define OSRExecuteCommandOutput(string commandline, string log_file) ``{
+  global define OSRExecuteCommandOutput(string commandline, string log_file, path environment) ``{
 
       map     result_map  = $[];
       integer result      = 0;
@@ -38,24 +39,46 @@
 
       if (log_file == "")
       {
-	  log_file = OSRLogFileGet();
-	  y2error("OSRExecuteCommand ERROR: no logfile specified, using standard.");
+	  log_file = OSRLogFile::GetFile();
+	  y2error("OSRExecuteCommandOutput ERROR: no logfile specified, using standard.");
       }
       
       // in demo-mode set "echo" in front of every commandline
       if (demo_mode) demo_string = "echo";
 
       // execute the given commandline and write the commandline and output information to logfile
-      commandline = sformat("%1 %2 2> /dev/null", demo_string, commandline);
+      //commandline = sformat("%1 %2 2> /dev/null", demo_string, commandline);
+      //commandline = sformat("%2 2> /dev/null", demo_string, commandline);
+
+      //y2error("COMMAND: %1", commandline);
+      
       //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
-      result_map  = SCR(`Execute(.target.bash_output, commandline));
+
+      if (environment == .local)
+      {
+	  result_map = WFM::Execute(.local.bash_output, commandline);
+      }
+      else if (environment == .target)
+      {
+	  result_map = SCR::Execute(.target.bash_output, commandline);
+      }
+      else
+      {
+	  y2error(sformat("OSRExecuteCommandOutput ERROR: wrong environment \"%1\", has to be .local or .target", environment));
+	  return $[];
+      }
+      
+      //result_map  = SCR::Execute(.target.bash_output, commandline);
       result      = lookup(result_map, "exit", 0);
       stdout      = lookup(result_map, "stdout", "");
       stderr      = lookup(result_map, "stderr", "");
       
-      command = sformat("echo \"*** %1 ***\" >> %5; echo \"%3\" >> %5; echo \"%4\" >> %5; echo \"*** exit code: %2 ***\n\n\" >> %5",
-			commandline, result, stdout, stderr, log_file);
-      SCR(`Execute(.target.bash, command));
+      //command = sformat("echo \"*** %1 ***\" >> %5; echo \"%3\" >> %5; echo \"%4\" >> %5; echo \"*** exit code: %2 ***\n\n\" >> %5",
+      //		commandline, result, stdout, stderr, log_file);
+      //command = sformat("", commandline);
+      //y2error("COMMAND: %1", command);
+
+      //SCR(`Execute(.target.bash, command));
 	
       if ( result == 0 )
       {
@@ -88,8 +111,9 @@
    *
    *  @param string commandline The commandline.
    *  @param string log_file The logfile path.
+   *  @param path environment The environment-path, has to be .local or .target.
    *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommand("rpm -qi lilo", "/tmp/osr.log");
+   *  @example OSRExecuteCommand("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local);
    *
    *   $ cat /tmp/osr.log
    *   *** /bin/rpm -qi lilo ***
@@ -99,9 +123,9 @@
    *   SuSE series: a
    *   *** exit code: 0 ***
    */
-  global define OSRExecuteCommand( string commandline, string log_file ) ``{
+  global define OSRExecuteCommand(string commandline, string log_file, path environment) ``{
 
-      return OSRExecuteCommandProgress(commandline, log_file, "");
+      return OSRExecuteCommandProgress(commandline, log_file, environment, "");
   }
   
   /**
@@ -112,9 +136,10 @@
    *
    *  @param string commandline The commandline.
    *  @param string log_file The logfile path.
-   *  @param string progress_file The path of the progress file.   
+   *  @param path environment The environment-path, has to be .local or .target.
+   *  @param string progress_file The path of the progress file.
    *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommand("rpm -qi lilo", "/tmp/osr.log", "");
+   *  @example OSRExecuteCommandProgress("rpm -qi -r /mnt/ lilo", "/tmp/osr.log", .local, "/tmp/progress_file");
    *
    *   $ cat /tmp/osr.log
    *   *** /bin/rpm -qi lilo ***
@@ -124,7 +149,7 @@
    *   SuSE series: a
    *   *** exit code: 0 ***
    */
-  global define OSRExecuteCommandProgress(string commandline, string log_file, string progress_file) ``{
+  global define OSRExecuteCommandProgress(string commandline, string log_file, path environment, string progress_file) ``{
 
       integer result      = 0;
       string  command     = "";
@@ -133,8 +158,8 @@
 
       if (log_file == "")
       {
-	  log_file = OSRLogFileGet();
-	  y2error("OSRExecuteCommand ERROR: no logfile specified, using standard.");
+	  log_file = OSRLogFile::GetFile();
+	  y2error("OSRExecuteCommandProgress ERROR: no logfile specified, using standard.");
       }
       
       // in demo-mode set "echo" in front of every commandline and delete all ";" from
@@ -146,43 +171,75 @@
       
       if (progress_file != "")
       {
-	  command     = sformat("rm -f %2; %1 >> %2 2>> %2", commandline, progress_file);
-          result      = SCR(`Execute(.target.bash, command));
+	  //command     = sformat("rm -f %2; %1 >> %2 2>> %2", commandline, progress_file);
+	  command     = sformat("%1 >> /dev/null 2>> /dev/null", commandline);
+          //result      = SCR::Execute(.target.bash, command);
+
+	  if (environment == .local)
+	  {
+	      result = WFM::Execute(.local.bash, commandline);
+	  }
+	  else if (environment == .target)
+	  {
+	      result = SCR::Execute(.target.bash, commandline);
+	  }
+	  else
+	  {
+	      y2error(sformat("OSRExecuteCommandProgress ERROR: wrong environment \"%1\", has to be .local or .target", environment));
+	      return -1;
+	  }
+	  
 
 	  command     = sformat("echo \"*** %1 ***\" >> %2; cat %3 >> %2; echo \"*** exit code: %4 ***\n\n\" >> %2",
 				commandline, log_file, progress_file, result);
-	  SCR(`Execute(.target.bash, command));
+	  //SCR(`Execute(.target.bash, command));
       }
       else
       {  
 	  // execute the given commandline and write the commandline and output information to logfile
 	  //commandline = sformat("%1 %2", demo_string, commandline);
-	  command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
-	  result      = SCR(`Execute(.target.bash, command));
+	  //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
+	  command     = sformat("%1 >> /dev/null 2>> /dev/null", commandline);
+
+	  if (environment == .local)
+	  {
+	      result = WFM::Execute(.local.bash, commandline);
+	  }
+	  else if (environment == .target)
+	  {
+	      result = SCR::Execute(.target.bash, commandline);
+	  }
+	  else
+	  {
+	      y2error(sformat("OSRExecuteCommandProgress ERROR: wrong environment \"%1\", has to be .local or .target", environment));
+	      return -1;
+	  }
+
+	  //result      = SCR::Execute(.target.bash, command);
 
 	  command = sformat("echo \"*** exit code: %1 ***\n\n\" >> %2", result, log_file);
-	  SCR(`Execute(.target.bash, command));
+	  //SCR::Execute(.target.bash, command);
       }
 	
       if ( result == 0 )
       {
-	  y2debug("OSRExecuteCommand: command succeeded: %1", result);
+	  y2debug("OSRExecuteCommandProgress: command succeeded: %1", result);
       }
       else if ( result == 126 )
       {
-	  y2debug("OSRExecuteCommand: command found but not executable: %1", result);
+	  y2debug("OSRExecuteCommandProgress: command found but not executable: %1", result);
       }
       else if ( result == 127 )
       {
-	  y2debug("OSRExecuteCommand: command not found: %1", result);
+	  y2debug("OSRExecuteCommandProgress: command not found: %1", result);
       }
       else if ( result >= 128 )
       {
-	  y2debug("OSRExecuteCommand: command terminates with fatal sign N (N=%1-128): %1", result);
+	  y2debug("OSRExecuteCommandProgress: command terminates with fatal sign N (N=%1-128): %1", result);
       }
       else
       {
-	  y2debug("OSRExecuteCommand: command terminates with error code %1", result);
+	  y2debug("OSRExecuteCommandProgress: command terminates with error code %1", result);
       }
       return result;
   }
@@ -213,7 +270,7 @@
    */
   global define OSRDisplayHelpText(string help_text) ``{
 
-      return UI(`ChangeWidget(`id(`help), `Value, help_text));
+      return UI::ChangeWidget(`id(`help), `Value, help_text);
   }
 
     /**
@@ -420,4 +477,235 @@
 
     return "repair_omit";
   }
+
+  /**
+   *  Returns the old osr_map stored on a floppy-disk.
+   *
+   *  API function,
+   *
+   *  @return map The value of the osr_map in a previous run, $[] if the file could not be read.
+   *  @example map old_osr_map = OSRMapReadFloppy();
+   */
+  global define OSRMapReadFloppy() ``{
+
+      boolean file_read        = false;
+      boolean user_read_floppy = true;
+      map     return_map       = $[];
+      boolean read_old_osr_map = false;
+      boolean repeated         = false;
+
+      read_old_osr_map = lookup(osr_map, "read_old_osr_map", false);
+
+      // if the old osr_map is already in memory, do not load it again from floppy
+      if (read_old_osr_map)
+      {
+	  return old_osr_map;
+      }
+
+      repeat
+	  {
+	      string popup_text = "";
+	      
+	      if (!repeated)
+	      {
+		  popup_text = _("You can revert the system-information detected
+in a previous run of YaST2 OS Repair.
+
+Insert the YaST2 OS Repair-disk in your
+floppy-drive and press continue.");
+	      }
+	      else
+	      {
+		  popup_text = _("An error occurred. The system-information was
+not loaded correctly from floppy.
+
+Insert the YaST2 OS Repair-disk in your
+floppy-drive and press continue.");
+	      }
+	      
+	      user_read_floppy = UI::ContinueCancelHeadlinePopup(
+								 _("Load system-information from floppy-disk"),
+								 popup_text
+								 );
+
+	      if (user_read_floppy)
+	      {
+		  boolean has_floppy    = true;
+		  string  floppy_device = "";
+
+		  has_floppy    = lookup(user_settings, "has_floppy", false);
+		  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
+
+		  if (has_floppy)
+		  {
+		      UI::OpenDialog(`opt(`decorated), `Label(_("Loading system information...")));
+
+		      // mount the floppy to /media/floppy/
+		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+
+		      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
+		      // correctly!
+		      if (mounted)
+		      {
+			  // get the old osr_map from floppy
+			  map r = WFM::Read(.local.ycp, "/media/floppy/osr_map.ycp");
+
+			  if ((r != nil) && (size(r) > 0))
+			  {
+			      return_map = r;
+			      file_read  = true;
+			  }
+		      }
+		      // umount the floppy after reading
+		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+  
+		      UI::CloseDialog();
+
+		      if (file_read)
+		      {
+			  OSRPopupDisplayQuick(_("System information is o.k."), 1000);
+
+			  // store that the old osr_map was already loaded from floppy
+			  osr_map = add(osr_map, "read_old_osr_map", true);
+		      }
+		  }
+		  else
+		  {
+
+		  }
+	      }
+	      repeated = true;
+	      
+	  } until (file_read || !user_read_floppy);
+      
+      return return_map;
+  }
+
+  /**
+   *  Saves the contents of the global osr_map to the file "osr_map.ycp" on floppy-disk.
+   *
+   *  API function,
+   *
+   *  @return boolean True if the osr_map was written correctly to the file "osr_map.ycp" on floppy-disk.
+   *  @example boolean write_ok = OSRMapWriteFloppy();
+   */
+  global define OSRMapWriteFloppy() ``{
+
+      boolean file_written      = false;
+      boolean user_write_floppy = true;
+      boolean repeated          = false;
+
+      repeat
+	  {
+      	      string popup_text = "";
+	      
+	      if (!repeated)
+	      {
+		  popup_text = _("You can store the whole system-information
+to a floppy-disk. This can be helpful for
+later system-checks.
+
+Insert a formatted disk in your floppy-drive
+and press continue.");
+	      }
+	      else
+	      {
+		  popup_text = _("An error occurred. The system-information
+was not correctly stored to the floppy-disk.
+
+Insert a formatted disk in your floppy-drive
+and press continue.");
+	      }
+
+	      user_write_floppy = UI::ContinueCancelHeadlinePopup(_("Store system-information on floppy"),
+								  popup_text
+								  );
+
+	      if (user_write_floppy)
+	      {
+		  boolean has_floppy    = true;
+		  string  floppy_device = "";
+      
+		  has_floppy    = lookup(user_settings, "has_floppy", false);
+		  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
+      
+		  if (has_floppy)
+		  {
+		      UI::OpenDialog(`opt(`decorated), `Label(_("Storing system information...")));
+
+		      // mount the floppy to /media/floppy/
+		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+
+		      // be careful: only write to the directory /media/floppy if the floppy was mounted
+		      // correctly, otherwise the file /media/floppy/osr_map.ycp is saved to harddisk!
+		      if (mounted)
+		      {
+			  boolean file_write = WFM::Write(.local.ycp, "/media/floppy/osr_map.ycp", osr_map);
+
+			  // get osr_map from floppy as test
+			  map r = WFM::Read(.local.ycp, "/media/floppy/osr_map.ycp");
+
+			  if (file_write && (r != nil) && (size(r) > 0) && (r == osr_map))
+			  {
+			      file_written = true;
+			  }
+		      }
+		      // umount the floppy after reading
+		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+  
+		      UI::CloseDialog();
+
+		      if (file_written)
+		      {
+			  OSRPopupDisplayQuick(_("System information is stored."), 1000);
+
+			  osr_map = add(osr_map, "osr_map_stored", true);
+		      }
+		      else
+		      {
+			  OSRPopupDisplayQuick(_("System information is not stored."), 1000);
+		      }
+		  }
+	      }
+	      repeated = true;
+	      
+	  } until (file_written || !user_write_floppy);
+
+      return file_written;
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type ext2fs.
+   *
+   *  API function,
+   *
+   *  @return boolean True if the specified partition is of type ext2fs.
+   *  @example boolean is_ext2fs = OSRIsExt2fs("/dev/hda1");
+   */
+  global define OSRIsExt2fs(string partition) ``{
+
+      integer result = 0;
+
+      result = WFM::Execute(.local.bash, "/sbin/dumpe2fs -h " + partition);
+
+      return (result == 0);
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type reiserfs.
+   *
+   *  API function,
+   *
+   *  @return boolean True if the specified partition is of type reiserfs.
+   *  @example boolean is_reiserfs = OSRIsReiserfs("/dev/hda1");
+   */
+  global define OSRIsReiserfs(string partition) ``{
+
+      integer result = 0;
+
+      result = WFM::Execute(.local.bash, "/sbin/debugreiserfs " + partition);
+
+      return (result == 0);
+  };
+  
 }
