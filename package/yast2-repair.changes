@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 11 15:17:50 CEST 2004 - jsuchome@suse.cz
+
+- added some documentation
+- 2.10.0
+
+-------------------------------------------------------------------
 Tue May 25 16:15:05 CEST 2004 - jsuchome@suse.cz
 
 - new fix of #37133: read contents of all selections required by
