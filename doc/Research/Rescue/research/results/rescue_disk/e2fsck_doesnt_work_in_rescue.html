@@ -1,0 +1,143 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=eb147930041c97a4>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>ext2 filesystem corrupt</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<a name=932906268>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:ryan%40NO.SPAM.ugastro.berkeley.edu+>Ryan Lovett</a> (<a href=mailto:ryan%40NO.SPAM.ugastro.berkeley.edu>ryan@NO.SPAM.ugastro.berkeley.edu</a>)<br>Subject: ext2 filesystem corrupt <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-01-29 10:26:45 PST
+<br></font></td></tr></table><p>
+<pre><font>I had installed linux onto the second parition of my second IDE disk
+(first partition was swap). I had also installed BeOS onto the second
+partition of my first IDE disk. Everything was groovy. Yesterday I
+installed Win98 onto the first partition of my first disk. I then tried to
+reboot into Linux, but it froze when it couldn't mount the root partition.
+ I used a linux rescue disk (Toms boot floppy) and verified that the
+partition could not be mounted. e2fsck wouldn't work and suggested
+invoking 'e2fsck -b 8193' which didn't work. None of the filesystem
+utilities on the boot floppy could examine the ext2 filesystem. (The empty
+linux filesystems on my second disk were fine and could be mounted.)
+ I then went into BeOS which was able to mount the ext2 filesystem!  All
+my files are there. I tried copying these files off onto a new vfat
+partition or even onto the BeOS partition, but BeOS would freeze or fail
+to copy parts of large files. 
+ How can I rescue the linux filesystem? Are there any rescue disks
+especially good at repairing ext2 filesystems? Any help would be greatly
+appreciated. 
+
+Ryan
+
+PS- If this helps, here's the layout
+
+Disk one  Disk two
+  10GB      45GB</font>
+<font color="#660066">|------|  |------|
+| Win98|  | swap |
+|------|  |------|
+| BeOS |  | Linux| &lt;- hosed in Linux, BeOS can read it (bad at copying it)
+|------|  |------|
+| vfat |  | ext2 | &lt;- fine
+|------|  |------|</font>
+<font>          | ext2 | &lt;- fine, empty
+          |------|
+
+</font></pre>
+
+<a name=932825151>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:jtodd%40island.net+>John Todd</a> (<a href=mailto:jtodd%40island.net>jtodd@island.net</a>)<br>Subject: Re: ext2 filesystem corrupt <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-01-29 14:20:26 PST
+<br></font></td></tr></table><p>
+<pre><font>You could attempt to force e2fsck to run, with
+e2fsck -f -b 8193 /dev/hdxx  
+
+
+On Mon, 29 Jan 2001 10:22:28 -0800, Ryan Lovett 
+&lt;ryan@NO.SPAM.ugastro.berkeley.edu&gt; wrote:</font>
+<font color="#660066">&gt; I had installed linux onto the second parition of my second IDE disk
+&gt;(first partition was swap). I had also installed BeOS onto the second
+&gt;partition of my first IDE disk. Everything was groovy. Yesterday I
+&gt;installed Win98 onto the first partition of my first disk. I then tried to
+&gt;reboot into Linux, but it froze when it couldn't mount the root partition.
+&gt; I used a linux rescue disk (Toms boot floppy) and verified that the
+&gt;partition could not be mounted. e2fsck wouldn't work and suggested
+&gt;invoking 'e2fsck -b 8193' which didn't work. None of the filesystem
+&gt;utilities on the boot floppy could examine the ext2 filesystem. (The empty
+&gt;linux filesystems on my second disk were fine and could be mounted.)
+&gt; I then went into BeOS which was able to mount the ext2 filesystem!  All
+&gt;my files are there. I tried copying these files off onto a new vfat
+&gt;partition or even onto the BeOS partition, but BeOS would freeze or fail
+&gt;to copy parts of large files. 
+&gt; How can I rescue the linux filesystem? Are there any rescue disks
+&gt;especially good at repairing ext2 filesystems? Any help would be greatly
+&gt;appreciated. 
+&gt;
+&gt;Ryan
+&gt;
+&gt;PS- If this helps, here's the layout
+&gt;
+&gt;Disk one  Disk two
+&gt;  10GB      45GB</font>
+<font color="#007777">&gt;|------|  |------|
+&gt;| Win98|  | swap |
+&gt;|------|  |------|
+&gt;| BeOS |  | Linux| &lt;- hosed in Linux, BeOS can read it (bad at copying it)
+&gt;|------|  |------|
+&gt;| vfat |  | ext2 | &lt;- fine
+&gt;|------|  |------|</font>
+<font color="#660066">&gt;          | ext2 | &lt;- fine, empty
+&gt;          |------|
+&gt;</font>
+<font>
+</font>
+<font color="#007777">-- 
+_____________________
+The lap of Linuxury
+|&lt;de in RH6</font>
+</pre>
+
+<a name=932698055>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: ext2 filesystem corrupt <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-01-29 23:25:08 PST
+<br></font></td></tr></table><p>
+<pre><font>Ryan Lovett wrote:</font>
+<font color="#660066">&gt; PS- If this helps, here's the layout</font>
+<font>
+an fdisk listing would be more helpful
+`fdisk -l /dev/hd[ab]`
+
+Eric
+ </font>
+<font color="#660066">&gt; Disk one  Disk two
+&gt;   10GB      45GB</font>
+<font color="#007777">&gt; |------|  |------|
+&gt; | Win98|  | swap |
+&gt; |------|  |------|
+&gt; | BeOS |  | Linux| &lt;- hosed in Linux, BeOS can read it (bad at copying it)
+&gt; |------|  |------|
+&gt; | vfat |  | ext2 | &lt;- fine
+&gt; |------|  |------|</font>
+<font color="#660066">&gt;           | ext2 | &lt;- fine, empty
+&gt;           |------|</font>
+</pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

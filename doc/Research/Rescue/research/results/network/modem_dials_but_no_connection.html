@@ -1,0 +1,82 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=4c1ecf9d4a111f48>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>modem dials, but connections fail (both minicom &amp; kp...</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<a name=977272244>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:dti4565459%40aol.comjunkbloc+>DTi4565459</a> (<a href=mailto:dti4565459%40aol.comjunkbloc>dti4565459@aol.comjunkbloc</a>)<br>Subject: modem dials, but connections fail (both minicom &amp; kppd) <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000-10-14 10:25:13 PST
+<br></font></td></tr></table><p>
+<pre><font>Problems with both minicom and kppp:
+
+Minicom will dial modem and connect, but then it hangs.
+Last message in terminal is :
+CONNECT 31200 /ARQ/v34/LAPM/V4BIS
+
+Problem with kppp is different.  Again, modem
+establishes connection; but then ppp &quot;times out&quot;.
+When I reset time from 30 to 180 seconds,  I get
+message that &quot;pppd daemon died unexpectedly&quot; 
+and kppp terminal says it can't find interface ppp0.
+When I try to &quot;debug&quot; messages are something
+like this:
+	Connect: ppp0 &lt;--&gt; /dev/ttyS0
+	LCP: timeout sending config-requests
+	connection terminated
+
+	&quot;remote system does not seem to answer
+	to config request&quot;
+
+I'm a newbie and will appreciate suggestions.
+
+dave
+           dave
+
+http://www.columbia.edu/~mdt1/
+
+(1  one, not little L; and don't forget the trailing / )
+</font></pre>
+
+<a name=977236099>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:mibu%40scrum.muc.de+>M. Buchenrieder</a> (<a href=mailto:mibu%40scrum.muc.de>mibu@scrum.muc.de</a>)<br>Subject: Re: modem dials, but connections fail (both minicom &amp; kppd) <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000-10-14 13:17:07 PST
+<br></font></td></tr></table><p>
+<pre><font>dti4565459@aol.comjunkbloc (DTi4565459) writes:
+</font>
+<font color="#660066">&gt;When I try to &quot;debug&quot; messages are something
+&gt;like this:
+&gt;	Connect: ppp0 &lt;--&gt; /dev/ttyS0
+&gt;	LCP: timeout sending config-requests
+&gt;	connection terminated</font>
+<font>
+[...]
+
+Your pap-secrets or chap-secrets file is missing or contains
+invalid data.
+
+Michael</font>
+<font color="#007777">-- 
+Michael Buchenrieder * mibu@scrum.greenie.muc.de * http://www.muc.de/~mibu
+          Lumber Cartel Unit #456 (TINLC) &amp; Official Netscum
+    Note: If you want me to send you email, don't munge your address.</font>
+</pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

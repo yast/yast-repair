@@ -1,0 +1,213 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=338342106b541929>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>Problem setting up Ethernet card under Red Hat 7.0</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<a name=924005081>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:zawisza%40mediaone.net+>Jim Zawisza</a> (<a href=mailto:zawisza%40mediaone.net>zawisza@mediaone.net</a>)<br>Subject: Problem setting up Ethernet card under Red Hat 7.0 <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a><br>Date: 2001-02-18 20:15:47 PST
+<br></font></td></tr></table><p>
+<pre><font>Hi,
+
+I'm running a dual-boot system, booting Win 98 and Red Hat Linux 7.0
+with a stock kernel.  I have a cable modem (AT&amp;T RoadRunner), and I'm
+trying to set that up under Linux.  It works fine under Win 98.  In
+Linux, I used linuxconf to set up my Ethernet card to use DHCP and be
+activated at bootup.  The card is a SMC Ethercard Elite16 Ultra card
+(ISA), and I'm using the smc-ultra module as the driver.
+
+However, I can't seem to get my Ethernet card to be activated under
+Linux.  During startup, Red Hat reports the following error when it runs
+the network script in /etc/rc.d/init.d/:
+
+&quot;Determining IP information for eth0...Operation failed.&quot;
+
+At first, I thought it was a DHCP problem, but when I tried to run
+'ifconfig eth0 up' I got the following error message:
+
+&quot;SIOCSIFFLAGS: Resource temporarily unavailable&quot;
+
+I'm not quite sure what this error means.  A Google search on this error
+message found some suggestions about disabling PnP in the BIOS and
+adding configuration information in /etc/modules.conf to make sure the
+card gets the right IP address.  However, I tried disabling PnP in the
+BIOS (not sure offhand what kind of BIOS I have, but my system is a
+2-year old Gateway PII 450), and that didn't do anything.  And I already
+have configuration info in modules.conf.  Here's the relevant info from
+that file:
+
+alias eth0 smc-ultra
+options smc-ultra io=0x280 irq=11
+
+The io and the irq settings are copied from my Win98 setup, where they
+seem to work fine.
+
+In case it's helpful, here's the output from 'ifconfig eth0':
+
+eth0      Link encap:Ethernet  HWaddr 00:00:C0:E6:A0:D5  
+          BROADCAST NOTRAILERS RUNNING  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:11 Base address:0x290 Memory:d0000-d4000
+
+And my ifcfg-eth0 script:
+
+DEVICE=eth0
+IPADDR=
+NETMASK=
+ONBOOT=yes
+BOOTPROTO=dhcp
+IPXNETNUM_802_2=&quot;&quot;
+IPXPRIMARY_802_2=&quot;no&quot;
+IPXACTIVE_802_2=&quot;no&quot;
+IPXNETNUM_802_3=&quot;&quot;
+IPXPRIMARY_802_3=&quot;no&quot;
+IPXACTIVE_802_3=&quot;no&quot;
+IPXNETNUM_ETHERII=&quot;&quot;
+IPXPRIMARY_ETHERII=&quot;no&quot;
+IPXACTIVE_ETHERII=&quot;no&quot;
+IPXNETNUM_SNAP=&quot;&quot;
+IPXPRIMARY_SNAP=&quot;no&quot;
+IPXACTIVE_SNAP=&quot;no&quot;
+BROADCAST=
+NETWORK=
+USERCTL=no
+
+Does anyone have any idea what the problem is?  I apologize in advance
+if this is a RTFM question, but in that case, a pointer to the FM would
+be appreciated.  I'm still a newbie when it comes to sysadmin stuff
+under Linux.
+
+Thanks in advance,
+
+Jim Zawisza
+</font></pre>
+
+<a name=923957089>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:d+>W. E. Coyote</a> (<a href=mailto:d>d</a>)<br>Subject: Re: Problem setting up Ethernet card under Red Hat 7.0 <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a><br>Date: 2001-02-19 00:51:43 PST
+<br></font></td></tr></table><p>
+<pre><font>The bios that is referred to is the NIC bios not the MB bios.  You have to
+get a program from the NIC vendor to disable PnP on the card and set the io,
+irq manually.  If the card is PnP now then it may work ok but Linux may get
+a different irq and io than windows.  Try removing the irq and io from the
+ifcfg-eth* file and let Linux autodetect.  If it still will not load then
+try the manual route. If you change the NIC bios you will have to redo the
+Win config as well.
+
+Hope this helps
+
+PatG
+
+
+</font></pre>
+
+<a name=923572461>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:zawisza%40mediaone.net+>Jim Zawisza</a> (<a href=mailto:zawisza%40mediaone.net>zawisza@mediaone.net</a>)<br>Subject: Re: Problem setting up Ethernet card under Red Hat 7.0 <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a><br>Date: 2001-02-19 19:56:04 PST
+<br></font></td></tr></table><p>
+<pre><font>Never mind: I managed to get it working.  For the benefit of the
+archives, the problem turned out to be an IRQ conflict between my sound
+driver and the Ethernet driver.
+
+Jim Zawisza wrote:</font>
+<font color="#660066">&gt; 
+&gt; Hi,
+&gt; 
+&gt; I'm running a dual-boot system, booting Win 98 and Red Hat Linux 7.0
+&gt; with a stock kernel.  I have a cable modem (AT&amp;T RoadRunner), and I'm
+&gt; trying to set that up under Linux.  It works fine under Win 98.  In
+&gt; Linux, I used linuxconf to set up my Ethernet card to use DHCP and be
+&gt; activated at bootup.  The card is a SMC Ethercard Elite16 Ultra card
+&gt; (ISA), and I'm using the smc-ultra module as the driver.
+&gt; 
+&gt; However, I can't seem to get my Ethernet card to be activated under
+&gt; Linux.  During startup, Red Hat reports the following error when it runs
+&gt; the network script in /etc/rc.d/init.d/:
+&gt; 
+&gt; &quot;Determining IP information for eth0...Operation failed.&quot;
+&gt; 
+&gt; At first, I thought it was a DHCP problem, but when I tried to run
+&gt; 'ifconfig eth0 up' I got the following error message:
+&gt; 
+&gt; &quot;SIOCSIFFLAGS: Resource temporarily unavailable&quot;
+&gt; 
+&gt; I'm not quite sure what this error means.  A Google search on this error
+&gt; message found some suggestions about disabling PnP in the BIOS and
+&gt; adding configuration information in /etc/modules.conf to make sure the
+&gt; card gets the right IP address.  However, I tried disabling PnP in the
+&gt; BIOS (not sure offhand what kind of BIOS I have, but my system is a
+&gt; 2-year old Gateway PII 450), and that didn't do anything.  And I already
+&gt; have configuration info in modules.conf.  Here's the relevant info from
+&gt; that file:
+&gt; 
+&gt; alias eth0 smc-ultra
+&gt; options smc-ultra io=0x280 irq=11
+&gt; 
+&gt; The io and the irq settings are copied from my Win98 setup, where they
+&gt; seem to work fine.
+&gt; 
+&gt; In case it's helpful, here's the output from 'ifconfig eth0':
+&gt; 
+&gt; eth0      Link encap:Ethernet  HWaddr 00:00:C0:E6:A0:D5
+&gt;           BROADCAST NOTRAILERS RUNNING  MTU:1500  Metric:1
+&gt;           RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+&gt;           TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+&gt;           collisions:0 txqueuelen:100
+&gt;           Interrupt:11 Base address:0x290 Memory:d0000-d4000
+&gt; 
+&gt; And my ifcfg-eth0 script:
+&gt; 
+&gt; DEVICE=eth0
+&gt; IPADDR=
+&gt; NETMASK=
+&gt; ONBOOT=yes
+&gt; BOOTPROTO=dhcp
+&gt; IPXNETNUM_802_2=&quot;&quot;
+&gt; IPXPRIMARY_802_2=&quot;no&quot;
+&gt; IPXACTIVE_802_2=&quot;no&quot;
+&gt; IPXNETNUM_802_3=&quot;&quot;
+&gt; IPXPRIMARY_802_3=&quot;no&quot;
+&gt; IPXACTIVE_802_3=&quot;no&quot;
+&gt; IPXNETNUM_ETHERII=&quot;&quot;
+&gt; IPXPRIMARY_ETHERII=&quot;no&quot;
+&gt; IPXACTIVE_ETHERII=&quot;no&quot;
+&gt; IPXNETNUM_SNAP=&quot;&quot;
+&gt; IPXPRIMARY_SNAP=&quot;no&quot;
+&gt; IPXACTIVE_SNAP=&quot;no&quot;
+&gt; BROADCAST=
+&gt; NETWORK=
+&gt; USERCTL=no
+&gt; 
+&gt; Does anyone have any idea what the problem is?  I apologize in advance
+&gt; if this is a RTFM question, but in that case, a pointer to the FM would
+&gt; be appreciated.  I'm still a newbie when it comes to sysadmin stuff
+&gt; under Linux.
+&gt; 
+&gt; Thanks in advance,
+&gt; 
+&gt; Jim Zawisza</font>
+</pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/stw_leerzeilen.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>"lpc stat" reports "Bad entry"</H2>
+
+<strong>
+<a href=../../../de/sdb/html/stw_leerzeilen.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (stw_leerzeilen)</H5>
+<strong>Applies to</strong><p>
+<strong>SuSE Linux</strong>: Version 6.0<br>
+<p><!-- Bitte einen Typ auswählen und diesen Kommentar löschen ;-) -->
+
+<h3>Symptom:</h3>
+<p>
+The printer does not print, when you type the command "<code>lpc
+stat</code>" you recieve the message:  "<code>Bad entry</code>". 
+</p>
+
+<h3>Reason:</h3>
+<p>
+When using YaST to set up a network printer, empty lines are 
+inserted in between the entries in the <code>/etc/printcap</code>
+config file.
+</p>
+
+<h3>Solution:</h3>
+<p>
+Delete all empty lines in the file <code>/etc/printcap</code>, or at a
+minimum place a "<code>#</code>" infront of the empty lines.  At the end
+of the file you must have one blank line, but only <em>one</em>! 
+</p>
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="bugs60.html">Known problems and peculiarities in SuSE Linux 6.0</a><br>
+<a href="drucker-howto.html">Printer : checklist</a><br>
+<a href="kgw_print_remote.html">apsfilter and network printers</a><br>
+<a href="plp.html">PLP: Printing with several symbolic printers</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.NETWORKPRINTER.html>NETWORKPRINTER</a>, <a href=keylist.PRINTCAP.html>PRINTCAP</a>, <a href=keylist.LPCSTAT.html>LPC STAT</a>, <a href=keylist.BADENTRY.html>BAD ENTRY</a>, <a href=keylist.YAST.html>YAST</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.YASTADM.html>Administration</a>
+,  <a href=katlist.HWPRINT.html>Printer</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-stw_leerzeilen, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 18. Jan 1999
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 18. Jan 1999 by tw (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

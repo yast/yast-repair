@@ -1,0 +1,135 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=effff38f393b215f,4>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Mount (or /dev/cdrom) problem</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 4</b> of <b>4</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:boris%40cs.jhu.edu+>Boris Statnikov</a> (<a href=mailto:boris%40cs.jhu.edu>boris@cs.jhu.edu</a>)<br>Subject: Mount (or /dev/cdrom) problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/12/27
+<br></font></td></tr></table><p>
+<pre><font>
+I have a newly installed RH 5.1 system which I installed off the CD.
+Now it cannot mount CDs anymore:
+
+mount -o ro -t iso9660 /dev/cdrom /mnt/cdrom
+mount: the kernel does not recognize /dev/cdrom as a block device
+       (maybe `insmod driver'?)
+
+
+I have tried other cd devices, incl. /dev/hdc1 just in case.  I have
+also tried insmod isofs.  Any ideas?
+
+Thanks so much!
+
+Boris
+
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:frouman%40uts.cc.utexas.edu+>Peter S. Frouman</a> (<a href=mailto:frouman%40uts.cc.utexas.edu>frouman@uts.cc.utexas.edu</a>)<br>Subject: Re: Mount (or /dev/cdrom) problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/12/28
+<br></font></td></tr></table><p>
+<pre><font>
+On Sun, 27 Dec 1998 16:43:16 GMT, Boris Statnikov &lt;boris@cs.jhu.edu&gt; wrote:</font>
+<font color="#660066">&gt;I have a newly installed RH 5.1 system which I installed off the CD.
+&gt;Now it cannot mount CDs anymore:
+&gt;
+&gt;mount -o ro -t iso9660 /dev/cdrom /mnt/cdrom
+&gt;mount: the kernel does not recognize /dev/cdrom as a block device
+&gt;       (maybe `insmod driver'?)</font>
+<font>/dev/cdrom is probably a symlink to the wrong device.
+'dmesg|grep CDROM' should show the correct device, for example /dev/hdb
+for the second drive on the first IDE interface, /dev/hdc for the first
+one on the second interface and so on. so the solution is probably
+rm -f /dev/cdrom;ln -s /dev/hdX /dev/cdrom (where X is the correct device)
+</font>
+<font color="#660066">&gt;I have tried other cd devices, incl. /dev/hdc1 just in case.  I have That should be /dev/hdc rather than /dev/hdc1
+&gt;also tried insmod isofs.  Any ideas?</font>
+<font>Most likely the problem is using the wrong device rather than the kernel
+not having iso9660 support. 
+</font>
+<font color="#007777">-- 
+-Peter Frouman | finger frouman@uts.cc.utexas.edu for PGP public key
+Zippy says:
+I'm having an emotional outburst!!
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:david%40torangan.saar.de+>David Philippi</a> (<a href=mailto:david%40torangan.saar.de>david@torangan.saar.de</a>)<br>Subject: Re: Mount (or /dev/cdrom) problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/12/28
+<br></font></td></tr></table><p>
+<pre><font>
+On Sun, 27 Dec 1998 16:43:16 GMT, Boris Statnikov &lt;boris@cs.jhu.edu&gt; wrote:
+</font>
+<font color="#660066">&gt; mount -o ro -t iso9660 /dev/cdrom /mnt/cdrom
+&gt; mount: the kernel does not recognize /dev/cdrom as a block device
+&gt;        (maybe `insmod driver'?)</font>
+<font>
+Does /dev/cdrom exist?
+</font>
+<font color="#660066">&gt; I have tried other cd devices, incl. /dev/hdc1 just in case.  I have
+&gt; also tried insmod isofs.  Any ideas?</font>
+<font>
+The right device for a ide cdrom could be /dev/hdc - without a number.
+You should also try 'cat /proc/modules' to see wheter there is a isofs
+module or not.
+
+Bye David
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:jlkreps%40navix.net+>Jerry Lynn Kreps</a> (<a href=mailto:jlkreps%40navix.net>jlkreps@navix.net</a>)<br>Subject: Re: Mount (or /dev/cdrom) problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/12/28
+<br></font></td></tr></table><p>
+<pre><font>
+David Philippi wrote:</font>
+<font color="#660066">&gt; 
+&gt; On Sun, 27 Dec 1998 16:43:16 GMT, Boris Statnikov &lt;boris@cs.jhu.edu&gt; wrote:
+&gt; </font>
+<font color="#007777">&gt; &gt; mount -o ro -t iso9660 /dev/cdrom /mnt/cdrom
+&gt; &gt; mount: the kernel does not recognize /dev/cdrom as a block device
+&gt; &gt;        (maybe `insmod driver'?)</font>
+<font color="#660066">&gt; 
+&gt; Does /dev/cdrom exist?
+&gt; </font>
+<font color="#007777">&gt; &gt; I have tried other cd devices, incl. /dev/hdc1 just in case.  I have
+&gt; &gt; also tried insmod isofs.  Any ideas?</font>
+<font color="#660066">&gt; 
+&gt; The right device for a ide cdrom could be /dev/hdc - without a number.
+&gt; You should also try 'cat /proc/modules' to see wheter there is a isofs
+&gt; module or not.
+&gt; 
+&gt; Bye David</font>
+<font>
+
+Here is the relevant line from my fstab file:
+	/dev/hdc     /cdrom     iso9660   ro,noauto,user 0 0
+works fine...
+
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

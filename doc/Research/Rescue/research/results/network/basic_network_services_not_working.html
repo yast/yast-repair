@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/cep_basic_network.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Printing Does not Work with: lpd, X-Windows, Dial-up</H2>
+
+<strong>
+<a href=../../../de/sdb/html/cep_basic_network.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (cep_basic_network)</H5>
+<h3>Symptom:</h3>
+Network-based services dependent on name resolution do not work,
+e.g. lpd, X-Windows, or ISDN/Modem dial-up.
+
+
+<h3>Cause:</h3>
+Network-based services depend on name resolution, i.e. a computer can
+be identified by his id. If the base configuration
+<ul>
+<li>
+is missing
+<li>
+is incomplete
+<li>
+is written using faulty syntax
+</ul>
+then name resolution fails. A network service request cannot assigned 
+to an addressee and therefore the request cannot be completed.
+
+
+<h3>Solution:</h3>
+You can set the machine name and the network domain using yast.
+<p>
+Please take care:
+<ul>
+<li>
+The machine should not consist of more than 8 letters (it is possible
+to use more, but there could be problems with email addressing).
+<ul>
+<li>
+The machine name should not contain any umlauts (email addressing
+would be patchy at best).
+<li>
+Lowercase is preferred; uppercase will be converted into lowercase.
+</ul>
+<li>
+Domains are encoded using the following syntax:<code>sub_domain.top_level_domain</code>
+</ul>
+<li>
+The top-level domain name should not consist or more than 4 letters.
+<li>
+Do not put a period at the end of the domain name.
+<li>
+It is possible to use sub-domain names consisting of other sub-domain
+names <code>sub_sub_domain.sub_domain</code>, although this should be
+avoided if not absolutely necessary. You only need to use a sub-domain
+name if the network provider demands it or if a complex internal
+network has been installed.
+<li>
+Domain names are preferably written using lower case letters, upper 
+case letters will be converted into lowercase.
+<li>
+If possible, use the domain name of the network provider.
+<li>
+If you do not want to connect to the Internet, the syntax
+<code>placename.country</code>
+might be useful.
+</ul>
+<li>
+The complete name as output by the command <code>hostname -f</code>
+should look like this:
+<code>computer_name.domain.top_level_domain</code>.
+Again, the top-level domain has 4 letters at most.
+</ul>
+Enter the configuration into <em>YaST</em> as follows:
+<ul>
+<li>
+Login as root
+<li>
+Type <em>YaST</em>
+<li>
+Go to menu item <em>System administration</em> and hit Enter
+<li>
+Go to menu item <em> Network Configuration</em> and hit Enter
+<li>
+Go to menu item <em> Change host name</em> and hit Enter
+<li>
+Enter hostname and domain name according to the rules outlined above
+<li>
+Continue...
+<li>
+by pushing the <em>Esc</em> button repeatedly until you exit
+<em>YaST</em>.
+Then <em>SuSEConfig</em>  will run and finish configuration.
+<li>
+To see the effects of your new configuration, reboot you computer !
+</ul>
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="maddin_route.html">route.conf: Routing under S.u.S.E. Linux</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.NETWORK.html>NETWORK</a>, <a href=keylist.BASIC.html>BASIC</a>, <a href=keylist.SETTING.html>SETTING</a>, <a href=keylist.LPR.html>LPR</a>, <a href=keylist.PRINTING.html>PRINTING</a>, <a href=keylist.PRINTER.html>PRINTER</a>, <a href=keylist.DIALUP.html>DIAL-UP</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.NET.html>Network</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-cep_basic_network, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 28. Okt 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 28. Okt 1998 by ftspohl (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

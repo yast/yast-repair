@@ -1,0 +1,164 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=e6ee7aba987fcf2b>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>Shared IRQ problem?</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 4</b> of <b>4</b>.  </font></td></tr></table><br clear=all>
+<a name=921706907>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:cfeller%40jps.net+>cfeller</a> (<a href=mailto:cfeller%40jps.net>cfeller@jps.net</a>)<br>Subject: Shared IRQ problem? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2001-02-23 23:33:41 PST
+<br></font></td></tr></table><p>
+<pre><font>My problem is this:
+      I am running Red Hat 7 currently (I just upgraded from 6.2 last
+week). The platform is and Intel 233 MMX CPU running on an Intel VX98
+motherboard with 128MB of RAM. The modem is a Zoom 2919 56k flex modem,
+although I have tried several other modems only to have the same
+problem. (The Zoom modem does work fine under Linux in different
+boxes).  The problem is this: The modem will only work if the mouse is
+moving. Thus, if I want to surf, send or receive files, I have to keep
+the mouse slowly moving back and forth. (There is no serial mouse port
+on the board, so I have to use a serial mouse.)  The mouse is a serial
+mouse under ttyS0 (COM 1). The modem is under ttyS2(COM3). So I moved
+the serial mouse to ttyS1 (COM2), at which point the modem would not
+even respond at all (yes I reassigned the mouse to the new port). I
+moved the mouse back to ttyS0, and I still have the original problem. I
+was thinking I would move the modem to a different slot, but no matter
+which slot I move the modem to, it still shows up as being on ttyS2
+(this holds true under DOS too, yet there is no IRQ problem under DOS).
+When
+ Red Hat is loading, I have noticed a message: &quot;Serial Driver 4.27
+withMany_Ports_Sharing_Mulitiple_IRQ enabled&quot;.  Right now this is where
+I am at...Currently, anything of any size that I want to download, I
+boot into Windows, download it, then I boot back into Linux, and access
+the Windows partition.  So if you have any insight into any fix I can
+try to solve my problem, it would be appreciated.
+
+
+
+</font></pre>
+
+<a name=921423103>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:jtodd%40island.net+>John Todd</a> (<a href=mailto:jtodd%40island.net>jtodd@island.net</a>)<br>Subject: Re: Shared IRQ problem? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2001-02-24 15:58:02 PST
+<br></font></td></tr></table><p>
+<pre><font>If you check your boot-up messages (dmesg), I think your
+ttyS2 line will show irq4, same as mouse. Use setserial to change
+it (I use 5); you can put the setserial command in /etc/rc.d/rc.local.
+
+
+On Fri, 23 Feb 2001 23:48:00 -0800, cfeller 
+&lt;cfeller@jps.net&gt; wrote:</font>
+<font color="#660066">&gt;     My problem is this:
+&gt;      I am running Red Hat 7 currently (I just upgraded from 6.2 last
+&gt;week). The platform is and Intel 233 MMX CPU running on an Intel VX98
+&gt;motherboard with 128MB of RAM. The modem is a Zoom 2919 56k flex modem,
+&gt;although I have tried several other modems only to have the same
+&gt;problem. (The Zoom modem does work fine under Linux in different
+&gt;boxes).  The problem is this: The modem will only work if the mouse is
+&gt;moving. Thus, if I want to surf, send or receive files, I have to keep
+&gt;the mouse slowly moving back and forth. (There is no serial mouse port
+&gt;on the board, so I have to use a serial mouse.)  The mouse is a serial
+&gt;mouse under ttyS0 (COM 1). The modem is under ttyS2(COM3). So I moved
+&gt;the serial mouse to ttyS1 (COM2), at which point the modem would not
+&gt;even respond at all (yes I reassigned the mouse to the new port). I
+&gt;moved the mouse back to ttyS0, and I still have the original problem. I
+&gt;was thinking I would move the modem to a different slot, but no matter
+&gt;which slot I move the modem to, it still shows up as being on ttyS2
+&gt;(this holds true under DOS too, yet there is no IRQ problem under DOS).
+&gt;When
+&gt; Red Hat is loading, I have noticed a message: &quot;Serial Driver 4.27
+&gt;withMany_Ports_Sharing_Mulitiple_IRQ enabled&quot;.  Right now this is where
+&gt;I am at...Currently, anything of any size that I want to download, I
+&gt;boot into Windows, download it, then I boot back into Linux, and access
+&gt;the Windows partition.  So if you have any insight into any fix I can
+&gt;try to solve my problem, it would be appreciated.
+&gt;
+&gt;
+&gt;</font>
+<font>
+</font>
+<font color="#007777">-- 
+_____________________
+
+The lap of Linuxury
+|&lt;de in RH6.0</font>
+</pre>
+
+<a name=921369862>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:me%40me.com+>Nader</a> (<a href=mailto:me%40me.com>me@me.com</a>)<br>Subject: Re: Shared IRQ problem? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2001-02-24 20:56:05 PST
+<br></font></td></tr></table><p>
+<pre><font>Upgrade your kernel to serial driver 5.05 (see
+http://serial.sourceforge.net).  This took care of my USR modem - HPT366
+PCI IRQ sharing problem without moving any hardware!!!
+
+cfeller wrote:
+</font>
+<font color="#660066">&gt;      My problem is this:
+&gt;       I am running Red Hat 7 currently (I just upgraded from 6.2 last
+&gt; week). The platform is and Intel 233 MMX CPU running on an Intel VX98
+&gt; motherboard with 128MB of RAM. The modem is a Zoom 2919 56k flex modem,
+&gt; although I have tried several other modems only to have the same
+&gt; problem. (The Zoom modem does work fine under Linux in different
+&gt; boxes).  The problem is this: The modem will only work if the mouse is
+&gt; moving. Thus, if I want to surf, send or receive files, I have to keep
+&gt; the mouse slowly moving back and forth. (There is no serial mouse port
+&gt; on the board, so I have to use a serial mouse.)  The mouse is a serial
+&gt; mouse under ttyS0 (COM 1). The modem is under ttyS2(COM3). So I moved
+&gt; the serial mouse to ttyS1 (COM2), at which point the modem would not
+&gt; even respond at all (yes I reassigned the mouse to the new port). I
+&gt; moved the mouse back to ttyS0, and I still have the original problem. I
+&gt; was thinking I would move the modem to a different slot, but no matter
+&gt; which slot I move the modem to, it still shows up as being on ttyS2
+&gt; (this holds true under DOS too, yet there is no IRQ problem under DOS).
+&gt; When
+&gt;  Red Hat is loading, I have noticed a message: &quot;Serial Driver 4.27
+&gt; withMany_Ports_Sharing_Mulitiple_IRQ enabled&quot;.  Right now this is where
+&gt; I am at...Currently, anything of any size that I want to download, I
+&gt; boot into Windows, download it, then I boot back into Linux, and access
+&gt; the Windows partition.  So if you have any insight into any fix I can
+&gt; try to solve my problem, it would be appreciated.</font>
+<font>
+</font></pre>
+
+<a name=921031612>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:gkahn%40erols.com+>Gary I Kahn</a> (<a href=mailto:gkahn%40erols.com>gkahn@erols.com</a>)<br>Subject: Re: Shared IRQ problem? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2001-02-25 17:06:28 PST
+<br></font></td></tr></table><p>
+<pre><font>Nader wrote:
+</font>
+<font color="#660066">&gt; Upgrade your kernel to serial driver 5.05 (see</font>
+<font>
+I tried unsucessfully to email back to you to thank you, but I'll post 
+instead.  You helped me solve my problem of sharing an IRQ between the 
+modem and the USB port under Mandrake's version of kernel 2.2.17.  The fix 
+was exactly as you said---using an updated serial driver took care of 
+everything.
+
+Thank you very much for your help.
+
+Gary
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

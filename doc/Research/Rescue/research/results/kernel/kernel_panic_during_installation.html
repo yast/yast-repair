@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/bk_instpanicnoroot.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Kernel Panic by Installation (6.1 - more than 1GB RAM); cannot mount root partition.</H2>
+
+<strong>
+<a href=../../../de/sdb/html/bk_instpanicnoroot.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (bk_instpanicnoroot)</H5>
+<h3>Symptom:</h3>
+<p>By the installation from CD or floppy disk you see:
+<pre>
+loading initdisk.gz
+loading linux
+etc.
+</pre>
+<p>Next the boot messages appear, then the following message:<p>
+<code>Partition Check: sda, sdb</code><br>or <br>
+<code>Partition Check: hda, hdb</code><br>
+followed by:<br><code>Cannot mount root partition</code> - <code>Kernel Panic</code>.<p>
+or you receive:
+<pre>
+bad pmt in pte_alloc:008000e7
+kernel panic:failed to allocate buffer hash table
+</pre>
+<p>If you're booting from the diskette you receive the following message:<p> 
+<code>SCSI: 0 hosts</code> after which you receive a "Kernel Panic" message.<p>
+You don't come to the point to choose Kernel modules and such.
+<h3>Cause:</h3>
+<p>The system has one (or more) Gigabyte RAM which, during the SuSE Linux Installation is not supported (only 512MB are needed during the installation after which nearly one Gigabyte is supported).
+<p>Technically speaking the problem lies in the fact that the file <code>initrd</code> is used during the installation.  In the meantime there is a newer <code>SYSLINUX</code>, that should solve the problem.
+
+<h3>Solution:</h3><p>
+When booting from the diskette use the parameter "<code>mem=512M</code>".<p>At the <code>SYSLINUX</code> prompt type:
+<pre>
+linux mem=512M
+</pre>
+<p>In order to boot from the hard drive use the kernel parameter "<code>mem=960M</code>"; at the LILO prompt type 
+<pre>
+linux mem=960M
+</pre>
+or add <code>mem=960M</code> to the <code>append=</code> line in your <code>/etc/lilo.conf</code>...it should look like this...
+<pre>
+append="mem=960M"
+</pre>
+After this call <code>lilo</code> without any parameters (with this LILO actualizes the boot configuration).
+<p>Booting using <code>loadlin</code> is also possible.
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="maddin_rootfs.html">Rootfilesystem cannot be mounted</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.CANNOTMOUNTROOTPARTITION.html>CANNOT MOUNT ROOT PARTITION</a>, <a href=keylist.KERNEL.html>KERNEL</a>, <a href=keylist.PANIC.html>PANIC</a>, <a href=keylist.INSTALLATION.html>INSTALLATION</a>, <a href=keylist.CANNOT.html>CANNOT</a>, <a href=keylist.MOUNT.html>MOUNT</a>, <a href=keylist.ROOT.html>ROOT</a>, <a href=keylist.RAM.html>RAM</a>, <a href=keylist.MEMORY.html>MEMORY</a>, <a href=keylist.PTEALLOC.html>PTE_ALLOC</a>, <a href=keylist.1GB.html>1GB</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.BOOTKERN.html>Kernel</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-bk_instpanicnoroot, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 28. Jan 1999
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 15. Jan 2001 17:22:38 by wimer (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

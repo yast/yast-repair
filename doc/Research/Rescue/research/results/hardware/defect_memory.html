@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://support.suse.de/sdb/de/html/thallma_memtest86.html</TITLE>
+<BASE HREF="http://support.suse.de/sdb/de/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Speicherprobleme mit memtest86 ermitteln</H2>
+
+<strong>
+</strong><p>
+</FORM>
+<H5>Supportdatenbank (thallma_memtest86)</H5>
+<h3>Symptom</h3>
+Ihr System läuft instabil und/oder es treten unvermittelte Systemabstürze
+auf.
+
+<h3>Mögliche Ursache</h3>
+Ein defekter Speicherbaustein kann dazu führen, daß Ihr System instabil
+wird bzw. Ihr System nach einiger Betriebszeit "einfriert", da auf einen
+defekten Speicherbereich zugegriffen wird.
+
+<h3>Lösung</h3>
+Sie können mit den folgenden Schritten einen Test des Arbeitsspeichers
+durchführen. Halten Sie dafür bitte eine leere Diskette bereit.
+
+<P><ol>
+<li>Laden Sie sich von der folgenden Webseite das "Linux Memtest86 v2.4
+Source Package" herunter:<br>
+<a href="http://reality.sgi.com/cbrady_denver/memtest86/">
+http://reality.sgi.com/cbrady_denver/memtest86/</a></li>
+<li>Entpacken Sie das Paket mit dem Befehl<br>
+tar zxvf memtest86-x.y.tar.gz<br></li>
+<li>Wechseln Sie in das neu erstellte Verzeichnis</li>
+<li>Führen Sie den Befehl "make" aus.</li>
+<li>Melden Sie sich mit dem Befehl "su" als root an bzw. um.</li>
+<li>Legen Sie eine leere Diskette in Ihr Diskettenlaufwerk.</li>
+<li>Führen Sie den Befehl "make install" aus.</li>
+<li>Starten Sie den Rechner mit "shutdown -r now" neu und booten Sie von
+der Diskette.</li>
+</ol></P>
+
+<P>
+Ohne weitere Angaben beim Start von memtest86 wird der Standard-Test
+durchgeführt. Um alle verfügbaren Tests durchführen zu lassen drücken Sie
+in der Hauptansicht von memtest die Taste <b>c</b> für
+<tt>configuration</tt>, wählen im erscheinenden Menü <b>3</b> für <tt>Test
+Selection</tt> und legen dann nochmals mit Taste <b>3</b> die Ausführung
+aller Tests (<tt>All Tests</tt>) fest. Der Nummernblock kann unter memtest
+nicht verwendet werden!
+</P>
+
+<P>
+<strong>Hinweis:</strong> Dieses Programm gibt beim erfolgreichen testen
+des Speichers keine 100%ige Sicherheit das dieser wirklich ok ist!
+</P>
+
+<P>
+Beachten Sie am besten auch die Hinweise des Artikels <a
+href="kfr_58.html">Allgemeine Hardwareprobleme</a>.
+</P>
+<HR>
+<strong>Siehe auch:</strong>
+<ul>
+<a href="kfr_58.html">Allgemeine Hardwareprobleme</a><br>
+</ul>
+<HR>
+<strong>Stichwörter:</strong> <a href=keylist.SPEICHERPROBLEME.html>SPEICHERPROBLEME</a>, <a href=keylist.HÄNGER.html>HÄNGER</a>, <a href=keylist.ABSTURZ.html>ABSTURZ</a>, <a href=keylist.CRASH.html>CRASH</a>, <a href=keylist.FEHLERMELDUNGEN.html>FEHLERMELDUNGEN</a>, <a href=keylist.MEMTEST86.html>MEMTEST86</a><br>
+<HR>
+<strong>Kategorien:</strong>
+ <a href=katlist.HW.html>Hardware</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-thallma_memtest86, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 01. Nov 2000
+<br><A HREF="http://www.suse.de/de/suse/index.html">SuSE GmbH</A> - Zuletzt generiert: 09. Nov 2000 von thallma (sdb_gen 1.20.0)
+</ADDRESS>
+</BODY></HTML>

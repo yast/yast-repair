@@ -1,0 +1,356 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=8f6cf5221d60ebf>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>file systems with errors at boot</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 7</b> of <b>7</b>.  </font></td></tr></table><br clear=all>
+<a name=924154515>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:francois.taiani%40laas.fr+>Francois Taiani</a> (<a href=mailto:francois.taiani%40laas.fr>francois.taiani@laas.fr</a>)<br>Subject: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-18 10:15:05 PST
+<br></font></td></tr></table><p>
+<pre><font>Hi everybody,
+
+I've just installed linux (Debian 2.2) on my old PC, and I'm
+experciencing some serious hard disk problems at booting. I get the
+following error message at the end of the boot sequence:
+
+---8&lt;---
+checking root file system...
+Parallelizing fsck version 1.18 (11-Nov-1999)
+/dev/hdb3 contains a file system with errors. Check forced.
+Inode 1009985 has imagic flag set
+
+/dev/hdb3 UNEXPECTED INCONSISTENCY
+RUN fsck MANUALLY (i.e. without -a or -p options)
+To remount it read-write
+
+   # mount -n -o remount,rw /
+
+CONTROL-D will exit from the shell and REBOOT the system.
+Give root password for maintenance (or type Control-D for normal
+startup):_
+---8&lt;---
+
+My computer has also win95 installed on its first disk (/dev/hda), and
+linux on its second (/dev/hdb). hdb contains a root partition, a swap
+one, a normal 'user' one (/dev/hdb3 should be the user one), and a
+FAT-16 partition which is shared with win95.
+
+Has anybody already have such a problem ? Could it be that win95
+corrupts the hdb3 partition of the linux disk (to which is normally has
+no access, but it has access to the last FAT partition of hdb). 
+
+I've already tried to reinstall the whole linux system, without
+improvement, and running fsck manually only makes things worse (after a
+few times, even /proc is not found any more).
+
+Thanks in advance for any help (I'm at my wit's end.)
+
+Cheers
+
+Francois
+
+-- 
+Francois Taiani              Laboratoire d'Analyse et 
+Ph.D. Student                d'Architecture des Systemes
+Dependable Computing Group   http://www.laas.fr/~ftaiani
+</font></pre>
+
+<a name=924146328>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:francois.taiani%40laas.fr+>Francois Taiani</a> (<a href=mailto:francois.taiani%40laas.fr>francois.taiani@laas.fr</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-18 10:45:04 PST
+<br></font></td></tr></table><p>
+<pre><font color="#660066">&gt; 
+&gt; One thing that may be happening is that the device is slowly dying on
+&gt; you. That is the most common cause of file system errors that do not 
+&gt; go away.
+&gt; </font>
+<font>
+Ugh! I've thought about that, but I hoped to be wrong. My slave disk is
+brand new... By my first linux installation I had windows &quot;intensively&quot;
+check the last hdb partition (hdb5, about one half of the disk), and
+MS-scandisk did not report any problem. 
+
+Actually windows is (apparently) working fine with this hdb partition. I
+first thought that this thorough windows check might be the cause for my
+troubles, so I reinstalled linux with the poor results I mentionned
+before.
+
+Hoping your assumption won't turn out to be true...
+
+Francois</font>
+</pre>
+
+<a name=924003891>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:brandon%40ovnet.com+>Glitch</a> (<a href=mailto:brandon%40ovnet.com>brandon@ovnet.com</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-18 20:22:47 PST
+<br></font></td></tr></table><p>
+<pre><font>buy a new hard drive, say goodbye to the old one
+
+Francois Taiani wrote:</font>
+<font color="#660066">&gt; 
+&gt; Hi everybody,
+&gt; 
+&gt; I've just installed linux (Debian 2.2) on my old PC, and I'm
+&gt; experciencing some serious hard disk problems at booting. I get the
+&gt; following error message at the end of the boot sequence:
+&gt; 
+&gt; ---8&lt;---
+&gt; checking root file system...
+&gt; Parallelizing fsck version 1.18 (11-Nov-1999)
+&gt; /dev/hdb3 contains a file system with errors. Check forced.
+&gt; Inode 1009985 has imagic flag set
+&gt; 
+&gt; /dev/hdb3 UNEXPECTED INCONSISTENCY
+&gt; RUN fsck MANUALLY (i.e. without -a or -p options)
+&gt; To remount it read-write
+&gt; 
+&gt;    # mount -n -o remount,rw /
+&gt; 
+&gt; CONTROL-D will exit from the shell and REBOOT the system.
+&gt; Give root password for maintenance (or type Control-D for normal
+&gt; startup):_
+&gt; ---8&lt;---
+&gt; 
+&gt; My computer has also win95 installed on its first disk (/dev/hda), and
+&gt; linux on its second (/dev/hdb). hdb contains a root partition, a swap
+&gt; one, a normal 'user' one (/dev/hdb3 should be the user one), and a
+&gt; FAT-16 partition which is shared with win95.
+&gt; 
+&gt; Has anybody already have such a problem ? Could it be that win95
+&gt; corrupts the hdb3 partition of the linux disk (to which is normally has
+&gt; no access, but it has access to the last FAT partition of hdb).
+&gt; 
+&gt; I've already tried to reinstall the whole linux system, without
+&gt; improvement, and running fsck manually only makes things worse (after a
+&gt; few times, even /proc is not found any more).
+&gt; 
+&gt; Thanks in advance for any help (I'm at my wit's end.)
+&gt; 
+&gt; Cheers
+&gt; 
+&gt; Francois
+&gt; 
+&gt; --
+&gt; Francois Taiani              Laboratoire d'Analyse et
+&gt; Ph.D. Student                d'Architecture des Systemes
+&gt; Dependable Computing Group   http://www.laas.fr/~ftaiani
+</font></pre>
+
+<a name=923959968>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-19 00:37:22 PST
+<br></font></td></tr></table><p>
+<pre><font color="#660066">&gt; One thing that may be happening is that the device is slowly dying on
+&gt; you. That is the most common cause of file system errors that do not go
+&gt; away.
+&gt;</font>
+<font>
+Don't be too eager to throw that disc out.
+post the output `fdisk -l /dev/hd[ab]`
+Windows(or actually a bad partitiontable) can very well be the cause of
+this.
+
+Eric
+
+
+</font></pre>
+
+<a name=923667869>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:francois.taiani%40laas.fr+>Francois Taiani</a> (<a href=mailto:francois.taiani%40laas.fr>francois.taiani@laas.fr</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-19 13:45:07 PST
+<br></font></td></tr></table><p>
+<pre><font>Eric a ecrit :</font>
+<font color="#660066">&gt; 
+&gt; Don't be too eager to throw that disc out.
+&gt; post the output `fdisk -l /dev/hd[ab]`
+&gt; Windows(or actually a bad partitiontable) can very well be the cause 
+&gt; of this.
+&gt;</font>
+<font>
+Thanks to Eric for his words of relief. I'll wait a little before I slay
+my new disk. And actually, what fdisk -l says about each disk is quite
+enlighting:
+
+/dev/hda
+--------
+Disk /dev/hda: 128 heads, 63 sectors, 787 cylinders
+Units = cylinders of 8064 * 512 bytes
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hda1   *         1       393   1584544+   6  FAT16
+/dev/hda2           394       786   1584576    5  Extended
+/dev/hda5           394       786   1584544+   6  FAT16
+
+/dev/hdb
+--------
+Disk /dev/hdb: 255 heads, 63 sectors, 2490 cylinders
+Units = cylinders of 16065 * 512 bytes
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hdb1   *         1         6     48163+  83  Linux
+/dev/hdb2             7        14     64260   82  Linux swap
+/dev/hdb3            15      1230   9767520   83  Linux
+/dev/hdb4          1025      2488  11759580    f  Win95 Ext'd (LBA)
+/dev/hdb5          1025      2488  11759548+   b  Win95 FAT32
+
+While everything seems all right for hda, I've serious doubts about the
+coherency of hdb: How can hdb3 end at cylinder 1230 and hdb4 start at
+1025 ? There's definitely something weird about that !!! Has anyone
+already heard of such a bug ?
+
+Francois
+
+
+</font>
+<font color="#007777">-- 
+Francois Taiani              Laboratoire d'Analyse et 
+Ph.D. Student                d'Architecture des Systemes
+Dependable Computing Group   http://www.laas.fr/~ftaiani</font>
+</pre>
+
+<a name=923533914>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-19 23:24:05 PST
+<br></font></td></tr></table><p>
+<pre><font color="#007777">&gt; &gt; Don't be too eager to throw that disc out.
+&gt; &gt; post the output `fdisk -l /dev/hd[ab]`
+&gt; &gt; Windows(or actually a bad partitiontable) can very well be the cause
+&gt; &gt; of this.
+&gt; &gt; </font>
+<font color="#660066">&gt; /dev/hda</font>
+<font>
+Nothing wrong here
+</font>
+<font color="#660066">&gt; /dev/hdb
+&gt; --------
+&gt; Disk /dev/hdb: 255 heads, 63 sectors, 2490 cylinders
+&gt; Units = cylinders of 16065 * 512 bytes
+&gt;
+&gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; /dev/hdb1   *         1         6     48163+  83  Linux
+&gt; /dev/hdb2             7        14     64260   82  Linux swap
+&gt; /dev/hdb3            15      1230   9767520   83  Linux
+&gt; /dev/hdb4          1025      2488  11759580    f  Win95 Ext'd (LBA)
+&gt; /dev/hdb5          1025      2488  11759548+   b  Win95 FAT32
+&gt;
+&gt; While everything seems all right for hda, I've serious doubts about the
+&gt; coherency of hdb: How can hdb3 end at cylinder 1230 and hdb4 start at
+&gt; 1025 ? There's definitely something weird about that !!! Has anyone
+&gt; already heard of such a bug ?</font>
+<font>
+Overlapping partitions happen sometimes.
+I was never able to make one, but you obviously succeeded :-)
+
+Backup that data and repartition that drive is the only solution I fear.
+
+I suppose you made some partitions with linux fdisk, and others with DOS
+fdisk ?
+Never do that. Use one partitioning tool per table. It's the best way to
+ensure that
+the table doesn't get corrupted. I prefer linux' fdisk, but if you use that,
+be carefull
+that it does make the extended partition the correct type. It defaults to
+0x05, which is
+incorrect if that extended partition crosses the 1024 cyl. boundary. It must
+then be
+type 0x0F (Like in your table). It's an other frequently occuring error that
+can
+corrupt data.
+
+Eric
+
+
+</font></pre>
+
+<a name=923510900>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 7 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:francois.taiani%40laas.fr+>Francois Taiani</a> (<a href=mailto:francois.taiani%40laas.fr>francois.taiani@laas.fr</a>)<br>Subject: Re: file systems with errors at boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-02-20 01:16:05 PST
+<br></font></td></tr></table><p>
+<pre><font>Thank you Eric for your advice. I'll report the problem to the debian
+team, whose installation guide precisely advices to use native partition
+tools for different system partitions (i.e. windows for windows, linux
+for linux). That apparently was not a good solution for my disk.
+
+Cheers
+
+Francois
+
+Eric wrote:</font>
+<font color="#660066">&gt; </font>
+<font color="#990000">&gt; &gt; &gt; Don't be too eager to throw that disc out.
+&gt; &gt; &gt; post the output `fdisk -l /dev/hd[ab]`
+&gt; &gt; &gt; Windows(or actually a bad partitiontable) can very well be the cause
+&gt; &gt; &gt; of this.
+&gt; &gt; &gt; </font>
+<font color="#007777">&gt; &gt; /dev/hda</font>
+<font color="#660066">&gt; 
+&gt; Nothing wrong here
+&gt; </font>
+<font color="#007777">&gt; &gt; /dev/hdb
+&gt; &gt; --------
+&gt; &gt; Disk /dev/hdb: 255 heads, 63 sectors, 2490 cylinders
+&gt; &gt; Units = cylinders of 16065 * 512 bytes
+&gt; &gt;
+&gt; &gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; &gt; /dev/hdb1   *         1         6     48163+  83  Linux
+&gt; &gt; /dev/hdb2             7        14     64260   82  Linux swap
+&gt; &gt; /dev/hdb3            15      1230   9767520   83  Linux
+&gt; &gt; /dev/hdb4          1025      2488  11759580    f  Win95 Ext'd (LBA)
+&gt; &gt; /dev/hdb5          1025      2488  11759548+   b  Win95 FAT32
+&gt; &gt;
+&gt; &gt; While everything seems all right for hda, I've serious doubts about the
+&gt; &gt; coherency of hdb: How can hdb3 end at cylinder 1230 and hdb4 start at
+&gt; &gt; 1025 ? There's definitely something weird about that !!! Has anyone
+&gt; &gt; already heard of such a bug ?</font>
+<font color="#660066">&gt; 
+&gt; Overlapping partitions happen sometimes.
+&gt; I was never able to make one, but you obviously succeeded :-)
+&gt; 
+&gt; Backup that data and repartition that drive is the only solution I fear.
+&gt; 
+&gt; I suppose you made some partitions with linux fdisk, and others with DOS
+&gt; fdisk ?
+&gt; Never do that. Use one partitioning tool per table. It's the best way to
+&gt; ensure that
+&gt; the table doesn't get corrupted. I prefer linux' fdisk, but if you use that,
+&gt; be carefull
+&gt; that it does make the extended partition the correct type. It defaults to
+&gt; 0x05, which is
+&gt; incorrect if that extended partition crosses the 1024 cyl. boundary. It must
+&gt; then be
+&gt; type 0x0F (Like in your table). It's an other frequently occuring error that
+&gt; can
+&gt; corrupt data.
+&gt; 
+&gt; Eric
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/kgw_lilo_linear.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>LILO : The "linear" option</H2>
+
+<strong>
+<a href=../../../de/sdb/html/kgw_lilo_linear.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (kgw_lilo_linear)</H5>
+<h3>Symptom:</h3>
+<p>
+LILO can't find the boot kernels when booting from the harddrive and stops
+at LI (or another incomplete part of the word LILO, see also <a href="kgw_lilo_errmsg.html">
+LILO fails: Error-messages and their interpretation (kgw_lilo_errmsg.html)</a>). 
+This happens even though you have respected the 1024 cylinder limit 
+(<a href="1024_Zylinder.html">Linux above 1024 cylinders and LILO(1024_Zylinder.html)</a>))
+<p>
+This happens in particular, if you have installed another
+operating system in the beginning of your harddrive (e.g. Windows NT).
+
+<h3>Cause:</h3>
+<p>
+One possible cause : LILO was installed with the option "linear" enabled.
+
+<h3>Solution:</h3>
+<p>
+Deactivate the option "linear" in <code>/etc/lilo.conf</code> by erasing it
+or by putting a comment sign in front of that line :
+<pre>
+# linear
+</pre>
+Reinstall lilo: as root, invoke the command 
+<pre>
+#  /sbin/lilo
+</pre>
+
+<h3>Background :</h3>
+<p>
+<em>Effect </em> of the "linear" option :
+All references (pointers) to harddrive sectors of <code>/boot/boot.b, /boot/map</code>, kernel, etc.
+are stored in the LILO bootsector and in <code>/boot/map</code> as <em>logical</em> sector adresses 
+instead of physical (cylinder-head-sector) adresses.
+<p>
+At boot time the LILO boot sector determines the geometry of the harddrive by calling a BIOS function.
+It then converts the logical sector adresses back to physical adresses. The real access to the 
+harddrive(s) is done using the physical sector adresses.
+<p>
+<em>Purpose :</em> The "linear" option is useful when the BIOS "sees" a 
+particular harddrive with a geometry different from the one Linux uses. 
+The logical sector adresses remain correct independent of the geometry 
+of the harddrive.
+<p>
+This is a rare case, so the "linear" option isn't really necessary most 
+of the time. It is nevertheless activated by default in all cases when 
+LILO was installed with <strong>YaST</strong> (in S.u.S.E. Linux until 
+version 5.2).
+<p>
+
+<b>Update:</b> 
+the following limitation concerns older LILO versions prior to v21 only
+(SuSE Linux 6.0 and older). LILO v21 and newer calculates the 
+<a href=#conversion>address conversion</a> in another way 
+which avoids 16-bit overflows. 
+<p>
+
+<em>Difficulty :</em>
+When using the "linear" option another limitation (so far undocumented) must be
+taken into account (besides the 1024 cylinder limitation). It comes into effect in 
+particular for modern big harddrives : "linear" only works
+<pre>
+   with 16 sectors/track     below 512 MB
+   with 32 sectors/track     below   1 GB
+   with 63 sectors/track     below  ~2 GB
+</pre>
+This limitation is more restrictive than the 1024 cylinder limitation 
+when there are more than 64 heads. Nowadays, geometries with  128 or 255 heads 
+are very common.
+<p>
+<a name=conversion></a>
+The reason : One of the auxiliary results during the conversion into physical adresses
+at boot time is the <em>track</em> of the particular sector and this conversion
+is done with 16 bit arithmetics. Thus <em>track</em> must be  &lt; 65536 .
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="1024_Zylinder.html">Linux on 1024 cylinder</a><br>
+<a href="kgw_lilo_errmsg.html">LILO fails: Error messages and their interpretation</a><br>
+<a href="kgw_liloconf.html">LILO: examples of the configuration</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.BOOT.html>BOOT</a>, <a href=keylist.BOOTPROBLEMS.html>BOOT PROBLEMS</a>, <a href=keylist.LILO.html>LILO</a>, <a href=keylist.LINEAR.html>LINEAR</a>, <a href=keylist.1024.html>1024</a>, <a href=keylist.CYLINDER.html>CYLINDER</a>, <a href=keylist.INSTALLATION.html>INSTALLATION</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.BOOTLILO.html>LILO</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-kgw_lilo_linear, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 21. Apr 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 14. Jan 2000 by kgw (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

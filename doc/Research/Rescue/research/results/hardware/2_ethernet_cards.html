@@ -1,0 +1,179 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=44bd5538b7f2bbd0>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>2 Ethernet cards, system won&#39;t boot</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<a name=994572646>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:dsiegel%40nospam.acm.org+>David M. Siegel</a> (<a href=mailto:dsiegel%40nospam.acm.org>dsiegel@nospam.acm.org</a>)<br>Subject: 2 Ethernet cards, system won't boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.help>comp.os.linux.help</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000-08-28 03:46:34 PST
+<br></font></td></tr></table><p>
+<pre><font>I've just gotten a new development system, with 2 ethernet cards, so
+that it can also be used as a firewall.
+
+The system works fine with one ethernet card.  With two cards,
+though, the system won't start; it seems to shift the address
+of my ide drives, and consequently it can't find the kernel.
+
+Here's the configuration:
+
+Linux Mandrake 7.1
+Asus P2B motherboard
+2 750 MHz PIIIs
+512 Meg RAM
+2 Maxtor 40 Gig hard drives
+Promise Ultra/66 controller (both drives are connected
+to the Ultra/66 controller; that's what pushed me to Mandrake,
+which contains a kernel with Ultra/66 support)
+Soundblaster Live Value
+Elsa Erazor TNT2
+2 3com 3c905c PCI ethernet cards
+and the usual floppy, keyboard, etc.
+
+Because of the ultra/66,  my two drives are hde and hdg.
+If I put in the second ethernet card, the system claims to find
+partitions at hdi and hdk.  The numbers and sizes of these partitions
+match the ones that should be at hde and hdg.  Of course, since
+it's looking for hde and hdg, the boot fails claiming that it can't
+mount the filesystem.
+
+Once I went ahead and reinstalled the OS.  When I did that,
+the 3c509 module wouldn't load, claiming that the device or resource
+was busy.  I looked at the information in /proc/interrupts and
+/proc/pci and could see no conflict.  According to the bios, it's
+assigning the second card to IRQ 5; I see nothing else that wants
+IRQ 5.  Since that time, I reinstalled again with one ethernet card;
+I don't have copies of the /proc listings.
+
+I might, I suppose have conflicts with i/o ports and/or device memory.
+I'd appreciate suggestions for detecting and fixing these problems.
+
+If I install the second ethernet card, as I mentioned above, the boot
+fails, claiming that it can't mount the first filesystem.
+If I then use the Mandrake 7.1 boot CD as a rescue image, it allows me
+to mount the partitions on hde!
+
+Deeply confused,
+-dms
+</font></pre>
+
+<a name=994571166>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:simon%40simon-parkes.co.uk+>Simon</a> (<a href=mailto:simon%40simon-parkes.co.uk>simon@simon-parkes.co.uk</a>)<br>Subject: Re: 2 Ethernet cards, system won't boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a><br>Date: 2000-08-28 03:55:12 PST
+<br></font></td></tr></table><p>
+<pre><font>Get the MSDOS program &quot;3c5x9cfg.exe&quot; and check the configuration of the
+cards...
+
+Simon
+
+&quot;David M. Siegel&quot; &lt;dsiegel@nospam.acm.org&gt; wrote in message
+news:ldfkqs43s7mojim8feu44vib38vak1qqif@4ax.com...</font>
+<font color="#660066">&gt; I've just gotten a new development system, with 2 ethernet cards, so
+&gt; that it can also be used as a firewall.
+&gt;
+&gt; The system works fine with one ethernet card.  With two cards,
+&gt; though, the system won't start; it seems to shift the address
+&gt; of my ide drives, and consequently it can't find the kernel.
+&gt;
+&gt; Here's the configuration:
+&gt;
+&gt; Linux Mandrake 7.1
+&gt; Asus P2B motherboard
+&gt; 2 750 MHz PIIIs
+&gt; 512 Meg RAM
+&gt; 2 Maxtor 40 Gig hard drives
+&gt; Promise Ultra/66 controller (both drives are connected
+&gt; to the Ultra/66 controller; that's what pushed me to Mandrake,
+&gt; which contains a kernel with Ultra/66 support)
+&gt; Soundblaster Live Value
+&gt; Elsa Erazor TNT2
+&gt; 2 3com 3c905c PCI ethernet cards
+&gt; and the usual floppy, keyboard, etc.
+&gt;
+&gt; Because of the ultra/66,  my two drives are hde and hdg.
+&gt; If I put in the second ethernet card, the system claims to find
+&gt; partitions at hdi and hdk.  The numbers and sizes of these partitions
+&gt; match the ones that should be at hde and hdg.  Of course, since
+&gt; it's looking for hde and hdg, the boot fails claiming that it can't
+&gt; mount the filesystem.
+&gt;
+&gt; Once I went ahead and reinstalled the OS.  When I did that,
+&gt; the 3c509 module wouldn't load, claiming that the device or resource
+&gt; was busy.  I looked at the information in /proc/interrupts and
+&gt; /proc/pci and could see no conflict.  According to the bios, it's
+&gt; assigning the second card to IRQ 5; I see nothing else that wants
+&gt; IRQ 5.  Since that time, I reinstalled again with one ethernet card;
+&gt; I don't have copies of the /proc listings.
+&gt;
+&gt; I might, I suppose have conflicts with i/o ports and/or device memory.
+&gt; I'd appreciate suggestions for detecting and fixing these problems.
+&gt;
+&gt; If I install the second ethernet card, as I mentioned above, the boot
+&gt; fails, claiming that it can't mount the first filesystem.
+&gt; If I then use the Mandrake 7.1 boot CD as a rescue image, it allows me
+&gt; to mount the partitions on hde!
+&gt;
+&gt; Deeply confused,
+&gt; -dms</font>
+<font>
+
+</font></pre>
+
+<a name=993978414>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:no_email_spammer%40mail.com+>The Contact</a> (<a href=mailto:no_email_spammer%40mail.com>no_email_spammer@mail.com</a>)<br>Subject: Re: 2 Ethernet cards, system won't boot <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.networking>comp.os.linux.networking</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.help>comp.os.linux.help</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000-08-29 10:39:27 PST
+<br></font></td></tr></table><p>
+<pre><font>&quot;David M. Siegel&quot; wrote:</font>
+<font color="#660066">&gt; Because of the ultra/66,  my two drives are hde and hdg.
+&gt; If I put in the second ethernet card, the system claims to find
+&gt; partitions at hdi and hdk.  The numbers and sizes of these partitions
+&gt; match the ones that should be at hde and hdg.  Of course, since
+&gt; it's looking for hde and hdg, the boot fails claiming that it can't
+&gt; mount the filesystem.</font>
+<font>
+In the kernel there is an option somewhere that makes the system first
+ID hd's and other IDE-material via the pci-controller (thus giving you
+hda and hdc) and then the normal IDE controller. Maybe this way it won't
+change dev'.
+</font>
+<font color="#660066">&gt; If I install the second ethernet card, as I mentioned above, the boot
+&gt; fails, claiming that it can't mount the first filesystem.
+&gt; If I then use the Mandrake 7.1 boot CD as a rescue image, it allows me
+&gt; to mount the partitions on hde!</font>
+<font>
+Does the rescue-image also initialize eth0 and eth1, or isn't that
+supported in the rescue-image?
+ </font>
+<font color="#660066">&gt; Deeply confused,</font>
+<font>
+Try to boot first without the soundcard. If this works, well... we then
+know where the problem is located.
+</font>
+<font color="#007777">-- 
+The Contact
+&quot;Ones and zeros represent more than just the binary count.
+ They represent the mass knowledge we know as Internet.&quot;
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+TheContact@MailAndNews.com</font>
+</pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

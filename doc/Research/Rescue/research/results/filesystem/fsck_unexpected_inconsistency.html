@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/rb_fsckerror.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>fsck: Unexpected Inconsistency</H2>
+
+<strong>
+<a href=../../../de/sdb/html/rb_fsckerror.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (rb_fsckerror)</H5>
+<h3>Symptom:</h3>
+
+At boot time appears the following error message or similar: 
+<pre>
+checking file system.....
+Parallelizing fsack version 1.10 (24-Apr-97)
+/dev/sda5 contains a file systems with errors, check forced.
+/dev/sda5: Inode 8056 has illegal block(s)
+
+/dev/sda5: UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY
+             (i.e., without -a or -p options)
+Loading /etc/default.keytab
+
+fsck failed. Please repair manually and reboot. The root
+file system is currently mounted read-only. To remount it
+read-write do:
+
+    bash# mount -n -o remount,rw /
+
+Attention: Only CONTROLL-D will reboot the system in this
+maintance mode. Schutdown or reboot will not work.         
+</pre>
+
+<h3>Cause:</h3>
+
+This message informs that your filesystem has (eventually serious) defects.
+Attention: it is not advisable to keep on working with such a filesystem without 
+fixing it ! 
+
+Possible explanations to this defects are, for instance:
+
+<ul>
+<p>
+<li> The computer has been disconnected without a previous shutdown.
+  Provided that commonly Unix and specially Linux perform permanent filesystem
+  buffering (in memory) in order to make the system faster, and the 
+  filesystem updates on the hard disk take place usually every 30 seconds, by 
+  disconnecting the machine, it may lead to damages in the filesystem
+  (in the sense of mixup of structures, not of a physical defect on your harddisk).
+  By the way, a filesystem update can be forced with the command <code>sync</code>.   
+
+<p>
+<li> You have a problem with your hardware (damaged disk, controller, ...).
+  This is often caused by a bad or weak connection between the data cable and 
+  the motherboard or the hard disk. This happens easily after installing 
+  or removing hardware. The problem could also occur due to faulty hardware.     
+</ul>
+
+<h3>Solution:</h3>
+
+If there's another operative system in the same disk together with Linux, 
+it can be tested if the harddisk operates normally under the other system. When
+this doesn't occur, the cause lies probably on a hardware problem.
+
+<p>
+Check the right placement of the data cable on the mainboard and on the hard disk.
+Remove the cable and plug it again on the board and on the disk. Because of   
+corrosion could be the conductivity of the wrap connection affected. 
+This can be repaired as follows.
+
+<p>
+Are you sure that your hardware is all right and that all data cables are properly 
+plugged into the computer, then you can try to fix the filesystem with
+<code>e2fsck</code> (Here we are taking the ext-2-Filesystem. It is the standard one.)
+<code>e2fsck</code> is able to seek your disk for bad sectors, and to mark them so
+that they will never we written again.
+
+<p>
+<b> Attention: </b> You have to be aware, that <code>e2fsck</code> can't cause
+any wonder. In some cases (specially if there are hardware problems or severe damaged
+filesystems) the use of <code>e2fsck</code> may lead to an aggravation of your problem.
+
+<p>
+<b> Do always before manually executing <code>e2fsck</code> a backup of all 
+important files !!! </b>
+
+<p>
+The user handbook contains the complete manual-page of <code>e2fsck</code>. Please 
+read it, and execute the program from the rescue system (boot from CD or from SuSE
+installation disk and start the rescue system. Don't mount the concerned disk, see 
+manual).
+ 
+<p>
+The command to repair the filesystem is (here we will take: <code>/dev/sda5</code> 
+as the damaged one):
+
+<pre>
+e2fsck -f -c -y /dev/sda5
+</pre>
+<p>
+The meaning of the options es:
+<ul>
+<p>
+<li> <code>-f</code> : Checks even if it seems that the filesystem is looking good.
+<p>
+<li> <code>-c</code> : Looks for "Badblocks". These will be marked and they will never be written again.
+<p>
+<li> <code>-y</code> : Takes "yes" as answer to all questions. This way you can handle hundreds of mistakes
+without having to answer what to do in every single one of them. If you don't want to use this
+option, just leave it away. 
+</ul>
+<p>
+
+If the new try with <code>e2fsck</code> fails (the first try is already failed while booting), then only remains
+in the most cases formatting and installing again this partition.
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="kfr_59.html">ld.so.cache corrupted, system does not boot anymore</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.FSCK.html>FSCK</a>, <a href=keylist.BOOTEN.html>BOOTEN</a>, <a href=keylist.FILESYSTEM.html>FILESYSTEM</a>, <a href=keylist.INCONSISTENCY.html>INCONSISTENCY</a>, <a href=keylist.E2FSCK.html>E2FSCK</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.BOOT.html>Booting</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-rb_fsckerror, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 26. Apr 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 07. Jul 1999 by rb (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

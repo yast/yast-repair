@@ -1,0 +1,339 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=bb68837373b59a75>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>System.map problem!</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 7</b> of <b>7</b>.  </font></td></tr></table><br clear=all>
+<a name=971771179>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:dxdxk%40yahoo.com+>dxdxk@yahoo.com</a> (<a href=mailto:dxdxk%40yahoo.com>dxdxk@yahoo.com</a>)<br>Subject: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-29 01:50:04 PST
+<br></font></td></tr></table><p>
+<pre><font>Hi all,
+I have installed Redhat 6.0 with the kernel version of 2.2.5-15.
+recently when i downloaded the latest kernel 2.2.17 from kernel.org and
+compiled using the following commands:
+
+make menuconfig
+make dep
+make clean
+make bzImage
+make modules
+cp /usr/src/linux/arch/i386/boot/bzImage /boot/vmlinuz-2.2.17
+
+then edited lilo.conf as follows
+
+boot=/dev/hda
+map=/boot/map
+install=/boot/boot.b
+prompt
+timeout=50
+image=/boot/vmlinuz-2.2.5-15
+label=linux old
+root=/dev/hda2
+read-only
+
+image=/boot/vmlinuz-2.2.17
+label=linux new
+root=/dev/hda2
+read-only
+
+and i ran lilo:
+
+added linux old
+added linux new
+
+when i boot my system with the new kernel its says error with
+modules.dep and System.map
+then i copied my new System.map from /usr/src/linux/System.map to
+/boot/System.map-2.2.17. then also i got te same error. i am not able to
+connect to internet using my new kernel.
+i read many tutorials in the web and also the discussion boards but i am
+not able to solve this problem. kindly help me!
+
+regards,
+Dharan
+
+
+Sent via Deja.com http://www.deja.com/
+Before you buy.
+</font></pre>
+
+<a name=971110944>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:jhall%40ifxonline.com+>John Hall</a> (<a href=mailto:jhall%40ifxonline.com>jhall@ifxonline.com</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-30 15:44:43 PST
+<br></font></td></tr></table><p>
+<pre><font>This is probably pretty simple;
+
+2 things:
+
+First; to overcome lilo limitations, and to &quot;protect&quot; your kernel, RedHat
+cleverly has your system boot from a small [probably 25 megs or so]
+partition. This partition has to be at the beginning of the hard disk. The
+boot partition is mounted in /boot when you're booting up, but then it is
+likely unmounted so you can't accidentally make changes to it or delete it.
+Make sure when you're copying these files to /boot _when it's mounted_ and
+not just the &quot;boot&quot; folder in your root partition. Look in /etc/fstab to see
+how /boot is mounted. [obviously the first thing you should do is type mount
+by itself to see if anything is mounted into /boot]
+
+Also - System.map has to be called &quot;System.map&quot; and be in the right
+location; the reason that you see the &quot;System.map-2.2.16&quot; is for your
+convenience if you're booting multiple kernels. There is a symbolic link
+called &quot;System.map&quot; that points to &quot;System.map-xxxx&quot;. Make sure that the
+symbolic link in /boot is pointing at your new System.map-2.2.17 file. [Or
+just replace /boot/System.map with your new System.map if you're bold]
+
+
+&lt;dxdxk@yahoo.com&gt; wrote in message news:8tgnvc$4v6$1@nnrp1.deja.com...</font>
+<font color="#660066">&gt; Hi all,
+&gt; I have installed Redhat 6.0 with the kernel version of 2.2.5-15.
+&gt; recently when i downloaded the latest kernel 2.2.17 from kernel.org and
+&gt; compiled using the following commands:
+&gt;
+&gt; make menuconfig
+&gt; make dep
+&gt; make clean
+&gt; make bzImage
+&gt; make modules
+&gt; cp /usr/src/linux/arch/i386/boot/bzImage /boot/vmlinuz-2.2.17
+&gt;
+&gt; then edited lilo.conf as follows
+&gt;
+&gt; boot=/dev/hda
+&gt; map=/boot/map
+&gt; install=/boot/boot.b
+&gt; prompt
+&gt; timeout=50
+&gt; image=/boot/vmlinuz-2.2.5-15
+&gt; label=linux old
+&gt; root=/dev/hda2
+&gt; read-only
+&gt;
+&gt; image=/boot/vmlinuz-2.2.17
+&gt; label=linux new
+&gt; root=/dev/hda2
+</font></pre>
+<p><i><a href=/groups?hl=de&lr=&safe=off&th=bb68837373b59a75&rnum=2&seld=971110944&ic=1>Read the rest of this message...</a> (23 more lines)</i><p>
+<a name=970814530>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:kasperd%40daimi.au.dk+>Kasper Dupont</a> (<a href=mailto:kasperd%40daimi.au.dk>kasperd@daimi.au.dk</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-31 08:00:12 PST
+<br></font></td></tr></table><p>
+<pre><font>John Hall wrote:</font>
+<font color="#660066">&gt; 
+&gt; This is probably pretty simple;
+&gt; 
+&gt; 2 things:
+&gt; 
+&gt; First; to overcome lilo limitations, and to &quot;protect&quot; your kernel, RedHat</font>
+<font>
+Actually it is BIOS limitations.
+</font>
+<font color="#660066">&gt; cleverly has your system boot from a small [probably 25 megs or so]
+&gt; partition. This partition has to be at the beginning of the hard disk. The
+&gt; boot partition is mounted in /boot when you're booting up, but then it is
+&gt; likely unmounted so you can't accidentally make changes to it or delete it.</font>
+<font>
+Is it really unmounted? That sounds like a stupid idea.
+Remounting read only on the other hand might be a good
+idea, but as long as you don't login as root even that
+wouldn't be necesarry.
+</font>
+<font color="#660066">&gt; Make sure when you're copying these files to /boot _when it's mounted_ and
+&gt; not just the &quot;boot&quot; folder in your root partition. Look in /etc/fstab to see
+&gt; how /boot is mounted. [obviously the first thing you should do is type mount
+&gt; by itself to see if anything is mounted into /boot]
+&gt; </font>
+<font>[...]
+</font>
+<font color="#007777">-- 
+Kasper Dupont</font>
+</pre>
+
+<a name=970636550>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:dxdxk%40yahoo.com+>dxdxk@yahoo.com</a> (<a href=mailto:dxdxk%40yahoo.com>dxdxk@yahoo.com</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-31 18:40:17 PST
+<br></font></td></tr></table><p>
+<pre><font>but i dont have a /boot entry in my fstab file. does that mean that i
+dont have a boot partition. have i installed my system incorrectly??
+kindly me.
+
+
+
+
+In article &lt;39FEEA7A.31DF@daimi.au.dk&gt;,
+  Kasper Dupont &lt;kasperd@daimi.au.dk&gt; wrote:</font>
+<font color="#660066">&gt; John Hall wrote:</font>
+<font color="#007777">&gt; &gt;
+&gt; &gt; This is probably pretty simple;
+&gt; &gt;
+&gt; &gt; 2 things:
+&gt; &gt;
+&gt; &gt; First; to overcome lilo limitations, and to &quot;protect&quot; your kernel, RedHat</font>
+<font color="#660066">&gt;
+&gt; Actually it is BIOS limitations.
+&gt;</font>
+<font color="#007777">&gt; &gt; cleverly has your system boot from a small [probably 25 megs or so]
+&gt; &gt; partition. This partition has to be at the beginning of the hard disk. The
+&gt; &gt; boot partition is mounted in /boot when you're booting up, but then it is
+&gt; &gt; likely unmounted so you can't accidentally make changes to it or delete it.</font>
+<font color="#660066">&gt;
+&gt; Is it really unmounted? That sounds like a stupid idea.
+&gt; Remounting read only on the other hand might be a good
+&gt; idea, but as long as you don't login as root even that
+&gt; wouldn't be necesarry.
+&gt;</font>
+<font color="#007777">&gt; &gt; Make sure when you're copying these files to /boot _when it's mounted_ and
+&gt; &gt; not just the &quot;boot&quot; folder in your root partition. Look in /etc/fstab to see
+&gt; &gt; how /boot is mounted. [obviously the first thing you should do is type mount
+&gt; &gt; by itself to see if anything is mounted into /boot]
+&gt; &gt;</font>
+<font color="#660066">&gt; [...]
+&gt;
+&gt; --
+&gt; Kasper Dupont
+&gt;</font>
+<font>
+
+Sent via Deja.com http://www.deja.com/
+Before you buy.
+</font></pre>
+
+<a name=970620239>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:dxdxk%40my-deja.com+>dxdxk@my-deja.com</a> (<a href=mailto:dxdxk%40my-deja.com>dxdxk@my-deja.com</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-31 20:00:16 PST
+<br></font></td></tr></table><p>
+<pre><font>I am getting this when booting the new kernel
+	NO APM support in kernel	[FAILED]
+	delaying eth0 initalization	[FAILED]
+
+and when shutting down
+	shutting down NFS mounted 	[FAILED]
+	shutting down APM mounted 	[FAILED]
+
+my old kernel works fine even through the system.map is linked to the
+new one!
+
+how to proceed with this?
+
+regards,
+Dharan
+
+
+
+In article &lt;39FEEA7A.31DF@daimi.au.dk&gt;,
+  Kasper Dupont &lt;kasperd@daimi.au.dk&gt; wrote:</font>
+<font color="#660066">&gt; John Hall wrote:</font>
+<font color="#007777">&gt; &gt;
+&gt; &gt; This is probably pretty simple;
+&gt; &gt;
+&gt; &gt; 2 things:
+&gt; &gt;
+&gt; &gt; First; to overcome lilo limitations, and to &quot;protect&quot; your kernel, RedHat</font>
+<font color="#660066">&gt;
+&gt; Actually it is BIOS limitations.
+&gt;</font>
+<font color="#007777">&gt; &gt; cleverly has your system boot from a small [probably 25 megs or so]
+&gt; &gt; partition. This partition has to be at the beginning of the hard disk. The
+&gt; &gt; boot partition is mounted in /boot when you're booting up, but then it is
+&gt; &gt; likely unmounted so you can't accidentally make changes to it or delete it.</font>
+<font color="#660066">&gt;
+&gt; Is it really unmounted? That sounds like a stupid idea.
+&gt; Remounting read only on the other hand might be a good
+&gt; idea, but as long as you don't login as root even that
+&gt; wouldn't be necesarry.
+&gt;</font>
+<font color="#007777">&gt; &gt; Make sure when you're copying these files to /boot _when it's mounted_ and
+&gt; &gt; not just the &quot;boot&quot; folder in your root partition. Look in /etc/fstab to see
+&gt; &gt; how /boot is mounted. [obviously the first thing you should do is type mount
+&gt; &gt; by itself to see if anything is mounted into /boot]
+&gt; &gt;</font>
+<font color="#660066">&gt; [...]
+&gt;
+&gt; --
+&gt; Kasper Dupont
+&gt;</font>
+<font>
+
+Sent via Deja.com http://www.deja.com/
+Before you buy.</font>
+</pre>
+
+<a name=970581342>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:vek%40pharmnl.ohout.pharmapartners.nl+>Villy Kruse</a> (<a href=mailto:vek%40pharmnl.ohout.pharmapartners.nl>vek@pharmnl.ohout.pharmapartners.nl</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-10-31 23:54:00 PST
+<br></font></td></tr></table><p>
+<pre><font>On Tue, 31 Oct 2000 16:51:22 +0100, Kasper Dupont &lt;kasperd@daimi.au.dk&gt; wrote:
+</font>
+<font color="#660066">&gt;
+&gt;Is it really unmounted? That sounds like a stupid idea.
+&gt;Remounting read only on the other hand might be a good
+&gt;idea, but as long as you don't login as root even that
+&gt;wouldn't be necesarry.
+&gt;</font>
+<font>
+
+
+Normaly it is mounted just like any other file system in /etc/fstab
+It needs to be mounted when installing a new lilo loader with
+the lilo command, and it needs to be mounted when utilities
+reads the /boot/System.map file.  Also, the /boot can, and
+often used to be, part of the root file system.
+
+
+Villy
+</font></pre>
+
+<a name=970562194>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 7 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:kasperd%40daimi.au.dk+>Kasper Dupont</a> (<a href=mailto:kasperd%40daimi.au.dk>kasperd@daimi.au.dk</a>)<br>Subject: Re: System.map problem! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.development.system>comp.os.linux.development.system</a><br>Date: 2000-11-01 01:40:08 PST
+<br></font></td></tr></table><p>
+<pre><font>dxdxk@yahoo.com wrote:</font>
+<font color="#660066">&gt; 
+&gt; but i dont have a /boot entry in my fstab file. does that mean that i
+&gt; dont have a boot partition. have i installed my system incorrectly??
+&gt; kindly me.
+&gt; </font>
+<font>[...]
+
+Probably but not necesarily, a boot partition
+can exist and be used for boot without being
+mounted on the runing system. You could look
+in the partition tables, a summary can be
+found in /proc/partitions.
+
+It is not incorrectly to install a system
+without a dedicated boot partition, but in
+most cases it is best to use a boot partition.
+</font>
+<font color="#007777">-- 
+Kasper Dupont</font>
+</pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

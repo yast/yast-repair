@@ -1,0 +1,235 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_beta_left.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=3e0189403f74bba2,6>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#ffcc33 nowrap><font face=arial,sans-serif size=-1 color=#000000><b>Messages</b> from the thread &quot;<b>problems with reiser FS and kernel 2.4.3</b>&quot; &nbsp; </font></td><td bgcolor=#ffcc33 align=right nowrap><font face=arial,sans-serif size=-1 color=#000000>Messages <b>1 - 6</b> of <b>6</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:daniel.goergen%40gmx.de+>Daniel Görgen</a> (<a href=mailto:daniel.goergen%40gmx.de>daniel.goergen@gmx.de</a>)<br>Subject: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-17 10:18:12 PST
+<br></font></td></tr></table><p>
+<pre><font>
+Hello!
+I already used the Reiser FS with Kernel 2.2.16 (Suse 7.0 already used
+Reiser FS in their Kernel) installing the 2.4.2er Kernel caused no
+problem; but the compiled and installed 2.4.3er Kernel doesnt boot- it
+stops with the following message:
+</font>
+<font color="#660066">&gt;VFS: cannot open root device &quot;308&quot; or 03:08
+&gt;Please append a correct &quot;root&quot; boot option
+&gt;Kernel panic: VFS: unable to mount root fs on 308</font>
+<font>
+my boot partion is an ext2 fs, root is reiser fs;
+i used the same Kernel options as in 2.4.3 and i used the same lilo
+options as 2.2. and 2.4.3; i also tested the newest  reiser fs kernel
+path; no difference
+
+does anybody knows what went wrong?
+
+thank you
+daniel
+
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:pleze%40spamme.not+>BetrOffDed</a> (<a href=mailto:pleze%40spamme.not>pleze@spamme.not</a>)<br>Subject: Re: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-17 11:22:02 PST
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;3ADC7A2A.488CEE83@gmx.de&gt;, &quot;Daniel Görgen&quot;
+&lt;daniel.goergen@gmx.de&gt; wrote:
+</font>
+<font color="#660066">&gt; Hello!
+&gt; I already used the Reiser FS with Kernel 2.2.16 (Suse 7.0 already used
+&gt; Reiser FS in their Kernel) installing the 2.4.2er Kernel caused no
+&gt; problem; but the compiled and installed 2.4.3er Kernel doesnt boot- it
+&gt; stops with the following message:
+&gt; </font>
+<font color="#007777">&gt;&gt;VFS: cannot open root device &quot;308&quot; or 03:08 Please append a correct
+&gt;&gt;&quot;root&quot; boot option Kernel panic: VFS: unable to mount root fs on 308</font>
+<font color="#660066">&gt; 
+&gt; my boot partion is an ext2 fs, root is reiser fs; i used the same Kernel
+&gt; options as in 2.4.3 and i used the same lilo options as 2.2. and 2.4.3;
+&gt; i also tested the newest  reiser fs kernel path; no difference
+&gt; 
+&gt; does anybody knows what went wrong?
+&gt; 
+&gt; thank you
+&gt; daniel
+&gt; 
+&gt; </font>
+<font>I'm not familiar with suse or what an &quot;er&quot; kernel is, but my first guess
+would be that reiserfs support, if built, is built as a module. Make sure
+that it is built into the kernel and not as a module if / is reiserfs.
+
+Yes, I see that you stated that you used the same kernel options, but you
+may want to re-verify that it is not a module, as that is the error
+message you will get if it is (i'm sure there are other problems that will
+get you the same error, but...)</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:daniel.goergen%40gmx.de+>Daniel Görgen</a> (<a href=mailto:daniel.goergen%40gmx.de>daniel.goergen@gmx.de</a>)<br>Subject: Re: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-17 11:44:30 PST
+<br></font></td></tr></table><p>
+<pre><font>
+BetrOffDed wrote:
+</font>
+<font color="#660066">&gt; In article &lt;3ADC7A2A.488CEE83@gmx.de&gt;, &quot;Daniel Görgen&quot;
+&gt; &lt;daniel.goergen@gmx.de&gt; wrote:
+&gt;</font>
+<font color="#007777">&gt; &gt; Hello!
+&gt; &gt; I already used the Reiser FS with Kernel 2.2.16 (Suse 7.0 already used
+&gt; &gt; Reiser FS in their Kernel) installing the 2.4.2er Kernel caused no
+&gt; &gt; problem; but the compiled and installed 2.4.3er Kernel doesnt boot- it
+&gt; &gt; stops with the following message:
+&gt; &gt;</font>
+<font color="#990000">&gt; &gt;&gt;VFS: cannot open root device &quot;308&quot; or 03:08 Please append a correct
+&gt; &gt;&gt;&quot;root&quot; boot option Kernel panic: VFS: unable to mount root fs on 308</font>
+<font color="#007777">&gt; &gt;
+&gt; &gt; my boot partion is an ext2 fs, root is reiser fs; i used the same Kernel
+&gt; &gt; options as in 2.4.3 and i used the same lilo options as 2.2. and 2.4.3;
+&gt; &gt; i also tested the newest  reiser fs kernel path; no difference
+&gt; &gt;
+&gt; &gt; does anybody knows what went wrong?
+&gt; &gt;
+&gt; &gt; thank you
+&gt; &gt; daniel
+&gt; &gt;
+&gt; &gt;</font>
+<font color="#660066">&gt; I'm not familiar with suse or what an &quot;er&quot; kernel is,</font>
+<font>
+sorry - er, thats germish... ;-)
+</font>
+<font color="#660066">&gt; but my first guess
+&gt; would be that reiserfs support, if built, is built as a module. Make sure
+&gt; that it is built into the kernel and not as a module if / is reiserfs.</font>
+<font>
+No i thought of this too. Its not compiled as a module.
+</font>
+<font color="#660066">&gt;
+&gt; Yes, I see that you stated that you used the same kernel options, but you
+&gt; may want to re-verify that it is not a module, as that is the error
+&gt; message you will get if it is (i'm sure there are other problems that will
+&gt; get you the same error, but...)</font>
+<font>
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:brandon%40ovnet.com+>Glitch</a> (<a href=mailto:brandon%40ovnet.com>brandon@ovnet.com</a>)<br>Subject: Re: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-18 02:43:50 PST
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;20010417.131807.1037127828.8198@mopar.mopartech.com&gt;,
+&quot;BetrOffDed&quot; &lt;pleze@spamme.not&gt; wrote:
+</font>
+<font color="#660066">&gt; In article &lt;3ADC7A2A.488CEE83@gmx.de&gt;, &quot;Daniel Görgen&quot;
+&gt; &lt;daniel.goergen@gmx.de&gt; wrote:
+&gt; </font>
+<font color="#007777">&gt;&gt; Hello!
+&gt;&gt; I already used the Reiser FS with Kernel 2.2.16 (Suse 7.0 already used
+&gt;&gt; Reiser FS in their Kernel) installing the 2.4.2er Kernel caused no
+&gt;&gt; problem; but the compiled and installed 2.4.3er Kernel doesnt boot- it
+&gt;&gt; stops with the following message:
+&gt;&gt; </font>
+<font color="#990000">&gt;&gt;&gt;VFS: cannot open root device &quot;308&quot; or 03:08 Please append a correct
+&gt;&gt;&gt;&quot;root&quot; boot option Kernel panic: VFS: unable to mount root fs on 308</font>
+<font color="#007777">&gt;&gt; 
+&gt;&gt; my boot partion is an ext2 fs, root is reiser fs; i used the same
+&gt;&gt; </font>
+<font>
+put the 'notail' option in your /etc/fstab file for the /boot partition
+Someone posted here that u need that option but just for the /boot
+partition. I forget the explanation though.  This may or may not be your
+only problem thogh.
+</font>
+<font color="#007777">&gt;&gt;Kernel options as in 2.4.3 and i used the same lilo options as 2.2. and
+&gt;&gt; 2.4.3; i also tested the newest  reiser fs kernel path; no difference
+&gt;&gt; 
+&gt;&gt; does anybody knows what went wrong?
+&gt;&gt; 
+&gt;&gt; thank you
+&gt;&gt; daniel
+&gt;&gt; 
+&gt;&gt; </font>
+<font color="#660066">&gt; I'm not familiar with suse or what an &quot;er&quot; kernel is, but my first guess
+&gt; would be that reiserfs support, if built, is built as a module. Make
+&gt; sure that it is built into the kernel and not as a module if / is
+&gt; reiserfs.
+&gt; 
+&gt; Yes, I see that you stated that you used the same kernel options, but
+&gt; you may want to re-verify that it is not a module, as that is the error
+&gt; message you will get if it is (i'm sure there are other problems that
+&gt; will get you the same error, but...)</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-18 02:49:15 PST
+<br></font></td></tr></table><p>
+<pre><font></font>
+<font color="#660066">&gt; I already used the Reiser FS with Kernel 2.2.16 (Suse 7.0 already used
+&gt; Reiser FS in their Kernel) installing the 2.4.2er Kernel caused no
+&gt; problem; but the compiled and installed 2.4.3er Kernel doesnt boot- it
+&gt; stops with the following message:
+&gt;</font>
+<font color="#007777">&gt; &gt;VFS: cannot open root device &quot;308&quot; or 03:08
+&gt; &gt;Please append a correct &quot;root&quot; boot option
+&gt; &gt;Kernel panic: VFS: unable to mount root fs on 308</font>
+<font color="#660066">&gt;
+&gt; my boot partion is an ext2 fs, root is reiser fs;
+&gt; i used the same Kernel options as in 2.4.3 and i used the same lilo
+&gt; options as 2.2. and 2.4.3; i also tested the newest  reiser fs kernel
+&gt; path; no difference
+&gt;
+&gt; does anybody knows what went wrong?</font>
+<font>
+check if / is really on hda8?
+Did you forgot to compile ide support in the kernel?
+
+Eric
+
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:gdavis7%40umbc.edu+>Gregory Davis</a> (<a href=mailto:gdavis7%40umbc.edu>gdavis7@umbc.edu</a>)<br>Subject: Re: problems with reiser FS and kernel 2.4.3 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2001-04-18 18:06:25 PST
+<br></font></td></tr></table><p>
+<pre><font></font>
+<font color="#660066">&gt; No i thought of this too. Its not compiled as a module.</font>
+<font>
+I had the same error exactly (if memory serves me well).  It occured 
+because I didnt even have reiserfs supported at all.  If you go to &quot;file 
+systems&quot;, reiserfs is only experimentally supported.  Therefore, you need 
+to enable &quot;code level maturity options&quot;, or something like that, so you 
+have access to experimentally supported things like reiserfs (or firewire).
+
+Greg
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#ffcc33><font face=arial,sans-serif color=#000000><font size=-1><center><a href=http://directory.google.com><font color=#000000>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=#000000>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=#000000>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=#000000>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=#000000>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=#000000>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

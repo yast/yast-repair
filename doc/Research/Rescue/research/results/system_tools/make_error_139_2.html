@@ -1,0 +1,109 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search: make error 139 group:comp.os.linux.* </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value="make error 139 group:comp.os.linux.*"> <INPUT TYPE=hidden name=num value=100><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT TYPE=hidden name=scoring value="r"><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?q=make+error+139+group:comp.os.linux.*&hl=en&lr=&safe=off&scoring=r>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#3366cc nowrap><font face=arial,sans-serif size=-1 color=white><b>Groups search result 3</b> for <b>make error 139 group:comp.os.linux.*</b></font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Search Result 3</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:dcougle%40my-dejanews.com+>dcougle@my-dejanews.com</a> (<a href=mailto:dcougle%40my-dejanews.com>dcougle@my-dejanews.com</a>)<br>Subject: cant run <B style="color:black;background-color:#ffff66">make</B> menuconfig or <B style="color:black;background-color:#ffff66">make</B> xconfig, and cant compile from <B style="color:black;background-color:#ffff66">make</B> config:( <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br><table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif> (This is the only article in this thread)</font></td></tr></table>
+Date: 1998/09/09
+<br></font></td></tr></table><p>
+<pre><font>
+I thought I was through with this after I reinstalled redhat 5.1, I was
+wrong. It worked for a while, but now it's doing it again.  Here's what
+happens when I put &quot;<B style="color:black;background-color:#ffff66">make</B> menuconfig&quot;
+
+There seems to be a problem with the lxdialog companion utility which is
+built prior to running Menuconfig.  Usually this is an indicator that you
+have upgraded/downgraded your ncurses libraries and did not remove the
+old ncurses header file(s) in /usr/include or /usr/include/ncurses.
+
+It is VERY important that you have only one set of ncurses header files
+and that those files are properly version matched to the ncurses libraries
+installed on your machine.
+
+You may also need to rebuild lxdialog.  This can be done by moving to
+the /usr/src/linux/scripts/lxdialog directory and issuing the
+&quot;<B style="color:black;background-color:#ffff66">make</B> clean all&quot; command.
+
+If you have verified that your ncurses install is correct, you may email
+the author &lt;roadcapw@titus.org&gt; or post a message on the linux.dev.kernel
+news group for additional assistance.
+
+
+i remade lxdialogue, and im pretty sure there are no other ncurses header
+files
+
+here's what happens when i type <B style="color:black;background-color:#ffff66">make</B> xconfig
+
+
+rm -f include/asm
+( cd include ; ln -sf asm-i386 asm)
+<B style="color:black;background-color:#ffff66">make</B> -C scripts kconfig.tk
+<B style="color:black;background-color:#ffff66">make</B>[1]: Entering directory `/usr/src/linux/scripts'
+<B style="color:black;background-color:#ffff66">make</B> -C /usr/src/linux/drivers/sound mkscript
+<B style="color:black;background-color:#ffff66">make</B>[2]: Entering directory `/usr/src/linux/drivers/sound'
+Compiling Sound Driver v 3.5.5-beta1 for Linux
+rm -f configure
+gcc -I/usr/src/linux/include -o configure configure.c
+./configure script &gt; Config.in
+<B style="color:black;background-color:#ffff66">make</B>[2]: *** [mkscript] <B style="color:black;background-color:#A0FFFF">Error </B><B style="color:black;background-color:#99ff99">139
+</B><B style="color:black;background-color:#ffff66">make</B>[2]: Leaving directory `/usr/src/linux/drivers/sound'
+<B style="color:black;background-color:#ffff66">make</B>[1]: *** [soundscript] <B style="color:black;background-color:#A0FFFF">Error</B> 2
+<B style="color:black;background-color:#ffff66">make</B>[1]: Leaving directory `/usr/src/linux/scripts'
+<B style="color:black;background-color:#ffff66">make</B>: *** [xconfig] <B style="color:black;background-color:#A0FFFF">Error</B> 2
+
+
+
+that <B style="color:black;background-color:#A0FFFF">error </B><B style="color:black;background-color:#99ff99">139</B> keeps showing up, even when i type <B style="color:black;background-color:#ffff66">make</B> zImage
+
+rm -f zImage tools/build compressed/vmlinux.out
+rm -f bzImage tools/bbuild compressed/bvmlinux.out
+<B style="color:black;background-color:#ffff66">make</B>[2]: Entering directory `/usr/src/linux/arch/i386/boot/compressed'
+rm -f xtract piggyback vmlinux bvmlinux
+<B style="color:black;background-color:#ffff66">make</B>[2]: Leaving directory `/usr/src/linux/arch/i386/boot/compressed'
+<B style="color:black;background-color:#ffff66">make</B>[1]: Leaving directory `/usr/src/linux/arch/i386/boot'
+<B style="color:black;background-color:#ffff66">make</B> -C arch/i386/kernel clean
+<B style="color:black;background-color:#ffff66">make</B>[1]: Entering directory `/usr/src/linux/arch/i386/kernel'
+rm -f trampoline hexify
+<B style="color:black;background-color:#ffff66">make</B>[1]: Leaving directory `/usr/src/linux/arch/i386/kernel'
+rm -f kernel/ksyms.lst include/linux/compile.h
+rm -f core `find . -name '*.[oas]' ! -regex '.*lxdialog/.*' -print`
+rm -f core `find . -type f -name 'core' -print`
+rm -f vmlinux System.map
+rm -f .tmp* drivers/sound/configure
+rm -fr modules/*
+rm -f submenu*
+<B style="color:black;background-color:#ffff66">make</B>: *** [dep-files] <B style="color:black;background-color:#A0FFFF">Error </B><B style="color:black;background-color:#99ff99">139</B>
+
+
+why does this do this?  please someone help me!
+please reply via email
+
+--
+<a href="http://www.geocities.com/vienna/1628">http://www.geocities.com/vienna/1628</a>
+ICQ #3795561
+lunarbard on AOL(Instant Messanger)
+
+-----== Posted via Deja News, The Leader in Internet Discussion ==-----
+<a href="http://www.dejanews.com/rg_mkgrp.xp">http://www.dejanews.com/rg_mkgrp.xp</a>   Create Your Own Free Member Forum
+
+</font></pre> 
+<p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#3366cc><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

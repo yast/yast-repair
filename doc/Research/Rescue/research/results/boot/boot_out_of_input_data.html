@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://support.suse.de/sdb/de/html/inputdata.html</TITLE>
+<BASE HREF="http://support.suse.de/sdb/de/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Beim Bootvorgang: ran out of input data</H2>
+
+<strong>
+<a href=../../../cz/sdb/html/inputdata.html>Cesky</a>
+</strong><p>
+</FORM>
+<H5>Supportdatenbank (inputdata)</H5>
+<h3>Symptom:</h3>
+Beim Booten bricht der Kernel mit folgender Meldung ab:
+
+<pre>
+LILO Load Linux...............
+Uncompressing Linux...
+
+ran out of input data
+
+-- System halted
+</pre>
+
+<h3>Ursache:</h3>
+LILO versucht einen Kernel zu laden, der nicht mehr vorhanden ist,
+weil mittlerweile ein neuer installiert wurde.
+
+<h3>Lösung:</h3>
+Booten Sie das System über den linuxrc Menüpunkt "Installiertes System
+booten", den Sie beim Start der Installation mit YaST1 angeboten
+bekommen. Beschrieben ist das z.B. im Handbuch von SuSE Linux 6.4,
+Kapitel 2.2.3 "Die Grundlegung: linuxrc".
+<p>
+Führen Sie dann einfach noch einmal LILO aus bzw. installieren Sie ihn
+mit YaST noch einmal. Beschrieben ist das im Handbuch Kapitel 3.6.2
+"Kernel- und Bootkonfiguration" (SuSE Linux 6.4).
+<HR>
+<strong>Stichwörter:</strong> <a href=keylist.BOOT.html>BOOT</a>, <a href=keylist.LILO.html>LILO</a>, <a href=keylist.KERNEL.html>KERNEL</a>, <a href=keylist.HALTED.html>HALTED</a><br>
+<HR>
+<ADDRESS>
+SDB-inputdata, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 13. Apr 2000
+<br><A HREF="http://www.suse.de/de/suse/index.html">SuSE GmbH</A> - Zuletzt generiert: 13. Apr 2000 von snbarth (sdb_gen 1.20.0)
+</ADDRESS>
+</BODY></HTML>

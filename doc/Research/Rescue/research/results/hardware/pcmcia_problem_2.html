@@ -1,0 +1,457 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=4c467ac00b311f85,8>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>PCMCIA problem.</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 8</b> of <b>8</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:bill_de3958%40my-deja.com+>bill_de3958@my-deja.com</a> (<a href=mailto:bill_de3958%40my-deja.com>bill_de3958@my-deja.com</a>)<br>Subject: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+I've copied all my old data and blown away WinNT. Installed SuSE 6.4,
+quite happily, on a Dell Latitude and now have a problem with PCMCIA.
+
+When booting up, I watch all the services start in turn untill it gets
+to the PCMCIA services. At this point the system hangs. I  have checked
+SuSE's web site and found an answer suggesting I 'change confirgure
+file' in YaST, setting:
+
+   PCMCIA_CORE_OPTS &quot;do_pnp0&quot;
+
+So, did this and nothing. Found another SuSE sdb entry for:
+
+   PCMCIA_PCIC_OPTS &quot;do_scan0 irq_mask0xefff&quot;
+
+Have tried that and once again I'm looking at a frozen screen. The
+system has hung after configuring the serial ports:
+
+   PCMCIA: Starting services
+   PCMCIA: using scheme: SuSE
+   _
+
+And that's it. The PC card I'm using is a Xircom CardBus 10/100
+ethernet + 56k modem.
+
+Anyone know the answer before I'm reduced to dropping MS back on??
+
+Bill.
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:bill_de3958%40my-deja.com+>bill_de3958@my-deja.com</a> (<a href=mailto:bill_de3958%40my-deja.com>bill_de3958@my-deja.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+An update:
+
+I can boot with the PC card removed. Then inserting the PC card I get a
+high pitched beep. Running ifconfig shows the adapter on eth0 does not
+have an ip address. After around 60 seconds I hear a lon pitched beep
+and running ifconfig has removed eth0.
+
+If I then goto sbin/ and run
+
+   dhcpcd eth0
+
+Low and behold, I get an ip address from the DHCP server!
+
+Okat, I'm happy I have an address now, but this is a bit of a pain to
+do each time. Can someone tell me why this is happening and what I must
+do to rectify it??
+
+I'll work on the important stuff before I complain about no soundcard!
+
+Bill.
+
+In article &lt;8renfg$d5i$1@nnrp1.deja.com&gt;,
+  bill_de3958@my-deja.com wrote:</font>
+<font color="#660066">&gt; I've copied all my old data and blown away WinNT. Installed SuSE 6.4,
+&gt; quite happily, on a Dell Latitude and now have a problem with PCMCIA.
+&gt;
+&gt; When booting up, I watch all the services start in turn untill it gets
+&gt; to the PCMCIA services. At this point the system hangs. I  have checked
+&gt; SuSE's web site and found an answer suggesting I 'change confirgure
+&gt; file' in YaST, setting:
+&gt;
+&gt;    PCMCIA_CORE_OPTS &quot;do_pnp=0&quot;
+&gt;
+&gt; So, did this and nothing. Found another SuSE sdb entry for:
+&gt;
+&gt;    PCMCIA_PCIC_OPTS &quot;do_scan=0 irq_mask=0xefff&quot;
+&gt;
+&gt; Have tried that and once again I'm looking at a frozen screen. The
+&gt; system has hung after configuring the serial ports:
+&gt;
+&gt;    PCMCIA: Starting services
+&gt;    PCMCIA: using scheme: SuSE
+&gt;    _
+&gt;
+&gt; And that's it. The PC card I'm using is a Xircom CardBus 10/100
+&gt; ethernet + 56k modem.
+&gt;
+&gt; Anyone know the answer before I'm reduced to dropping MS back on??
+&gt;
+&gt; Bill.
+&gt;
+&gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; Before you buy.
+&gt;</font>
+<font>
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:hover%40compuserve.com+>hover</a> (<a href=mailto:hover%40compuserve.com>hover@compuserve.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+bill_de3958@my-deja.com wrote:</font>
+<font color="#660066">&gt; 
+&gt; An update:
+&gt; 
+&gt; I can boot with the PC card removed. Then inserting the PC card I get a
+&gt; high pitched beep. Running ifconfig shows the adapter on eth0 does not
+&gt; have an ip address. After around 60 seconds I hear a lon pitched beep
+&gt; and running ifconfig has removed eth0.
+&gt; 
+&gt; If I then goto sbin/ and run
+&gt; 
+&gt;    dhcpcd eth0
+&gt; 
+&gt; Low and behold, I get an ip address from the DHCP server!
+&gt; 
+&gt; Okat, I'm happy I have an address now, but this is a bit of a pain to
+&gt; do each time. Can someone tell me why this is happening and what I must
+&gt; do to rectify it??
+&gt; 
+&gt; I'll work on the important stuff before I complain about no soundcard!
+&gt; 
+&gt; Bill.
+&gt; 
+&gt; In article &lt;8renfg$d5i$1@nnrp1.deja.com&gt;,
+&gt;   bill_de3958@my-deja.com wrote:</font>
+<font color="#007777">&gt; &gt; I've copied all my old data and blown away WinNT. Installed SuSE 6.4,
+&gt; &gt; quite happily, on a Dell Latitude and now have a problem with PCMCIA.
+&gt; &gt;
+&gt; &gt; When booting up, I watch all the services start in turn untill it gets
+&gt; &gt; to the PCMCIA services. At this point the system hangs. I  have checked
+&gt; &gt; SuSE's web site and found an answer suggesting I 'change confirgure
+&gt; &gt; file' in YaST, setting:
+&gt; &gt;
+&gt; &gt;    PCMCIA_CORE_OPTS &quot;do_pnp=0&quot;
+&gt; &gt;
+&gt; &gt; So, did this and nothing. Found another SuSE sdb entry for:
+&gt; &gt;
+&gt; &gt;    PCMCIA_PCIC_OPTS &quot;do_scan=0 irq_mask=0xefff&quot;
+&gt; &gt;
+&gt; &gt; Have tried that and once again I'm looking at a frozen screen. The
+&gt; &gt; system has hung after configuring the serial ports:
+&gt; &gt;
+&gt; &gt;    PCMCIA: Starting services
+&gt; &gt;    PCMCIA: using scheme: SuSE
+&gt; &gt;    _
+&gt; &gt;
+&gt; &gt; And that's it. The PC card I'm using is a Xircom CardBus 10/100
+&gt; &gt; ethernet + 56k modem.
+&gt; &gt;
+&gt; &gt; Anyone know the answer before I'm reduced to dropping MS back on??
+&gt; &gt;
+&gt; &gt; Bill.
+&gt; &gt;
+&gt; &gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; &gt; Before you buy.
+&gt; &gt;</font>
+<font color="#660066">&gt; 
+&gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; Before you buy.</font>
+<font>
+I'm using this same Xircom CardBus.
+Can you provide the output from [/sbin/]lsmod
+Tx
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:bill_de3958%40my-deja.com+>bill_de3958@my-deja.com</a> (<a href=mailto:bill_de3958%40my-deja.com>bill_de3958@my-deja.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+Sure can:
+
+Module                  Size  Used by
+serial_cb               1088   1
+tulip_cb               32528   1
+cb_enabler              2600   4  [serial_cb tulip_cb]
+usb-uhci               17000   0  (unused)
+ds                      6568   2  [cb_enabler]
+i82365                 22128   2
+pcmcia_core            45184   0  [cb_enabler ds i82365]
+serial                 42612   0  (autoclean) [serial_cb]
+memstat                 1476   0  (unused)
+usbcore                42344   1  [usb-uhci]
+
+Cheers.
+
+Bill.
+</font>
+<font color="#660066">&gt; I'm using this same Xircom CardBus.
+&gt; Can you provide the output from [/sbin/]lsmod
+&gt; Tx
+&gt;</font>
+<font>
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:bill_de3958%40my-deja.com+>bill_de3958@my-deja.com</a> (<a href=mailto:bill_de3958%40my-deja.com>bill_de3958@my-deja.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+Correction: The system will hang at the
+
+   PCMCIA: using scheme SuSE
+
+every other time the machine is booted.
+
+So I boot, it hangs. Reboot and clear. Reboot and hang. Reboot and
+clear.
+
+&lt;sigh&gt;
+
+Bill.
+
+In article &lt;8rep2j$e8t$1@nnrp1.deja.com&gt;,
+  bill_de3958@my-deja.com wrote:</font>
+<font color="#660066">&gt; An update:
+&gt;
+&gt; I can boot with the PC card removed. Then inserting the PC card I get a
+&gt; high pitched beep. Running ifconfig shows the adapter on eth0 does not
+&gt; have an ip address. After around 60 seconds I hear a lon pitched beep
+&gt; and running ifconfig has removed eth0.
+&gt;
+&gt; If I then goto sbin/ and run
+&gt;
+&gt;    dhcpcd eth0
+&gt;
+&gt; Low and behold, I get an ip address from the DHCP server!
+&gt;
+&gt; Okat, I'm happy I have an address now, but this is a bit of a pain to
+&gt; do each time. Can someone tell me why this is happening and what I must
+&gt; do to rectify it??
+&gt;
+&gt; I'll work on the important stuff before I complain about no soundcard!
+&gt;
+&gt; Bill.
+&gt;
+&gt; In article &lt;8renfg$d5i$1@nnrp1.deja.com&gt;,
+&gt;   bill_de3958@my-deja.com wrote:</font>
+<font color="#007777">&gt; &gt; I've copied all my old data and blown away WinNT. Installed SuSE 6.4,
+&gt; &gt; quite happily, on a Dell Latitude and now have a problem with PCMCIA.
+&gt; &gt;
+&gt; &gt; When booting up, I watch all the services start in turn untill it gets
+&gt; &gt; to the PCMCIA services. At this point the system hangs. I  have checked
+</font></pre> 
+<p><i><a href=/groups?hl=en&lr=&safe=off&th=4c467ac00b311f85,8&rnum=5&ic=1&selm=8rfdjm%24ti6%241%40nnrp1.deja.com>Read the rest of this message...</a> (35 more lines)</i><p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:hover%40compuserve.com+>hover</a> (<a href=mailto:hover%40compuserve.com>hover@compuserve.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+bill_de3958@my-deja.com wrote:</font>
+<font color="#660066">&gt; 
+&gt; Sure can:
+&gt; 
+&gt; Module                  Size  Used by
+&gt; serial_cb               1088   1
+&gt; tulip_cb               32528   1
+&gt; cb_enabler              2600   4  [serial_cb tulip_cb]
+&gt; usb-uhci               17000   0  (unused)
+&gt; ds                      6568   2  [cb_enabler]
+&gt; i82365                 22128   2
+&gt; pcmcia_core            45184   0  [cb_enabler ds i82365]
+&gt; serial                 42612   0  (autoclean) [serial_cb]
+&gt; memstat                 1476   0  (unused)
+&gt; usbcore                42344   1  [usb-uhci]
+&gt; 
+&gt; Cheers.
+&gt; 
+&gt; Bill.
+&gt; </font>
+<font color="#007777">&gt; &gt; I'm using this same Xircom CardBus.
+&gt; &gt; Can you provide the output from [/sbin/]lsmod
+&gt; &gt; Tx
+&gt; &gt;</font>
+<font color="#660066">&gt; 
+&gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; Before you buy.</font>
+<font>
+Looks alike here (I run SuSE 6.4 on a COMPAQ Armada 1750 )
+Here's my workaround [root] command that enabled eth0 on the Xircom:
+ifconfig eth0 promisc
+
+You mention hang-up after reboot. Sounds familiar again.
+As a rule, I have learned NOT to reboot without power shut down.
+Don't ask me why, but it solved a lot of trouble.
+
+Good luck.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 7 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:david_martin%40wanadoo.es+>David Martin</a> (<a href=mailto:david_martin%40wanadoo.es>david_martin@wanadoo.es</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/04
+<br></font></td></tr></table><p>
+<pre><font>
+I have the same problem with a Xircom CreditCard Ethernet 10/100 and 
+Debian 2.2R0.
+
+I tried Mandrake 7.0 and during the installation it hanged again. I keep 
+the Xircom card and installed the system. In the next system boot I plug 
+in the card and Mandrake recognized it. I configured the net with 
+linuxconf and used it normally.
+
+Any suggestion for debian potato ?!?!
+
+Sorry for my bad english !! ;-)
+
+bill_de3958 wrote:</font>
+<font color="#660066">&gt; 
+&gt; 
+&gt; I've copied all my old data and blown away WinNT. Installed SuSE 6.4,
+&gt; quite happily, on a Dell Latitude and now have a problem with PCMCIA.
+&gt; 
+&gt; When booting up, I watch all the services start in turn untill it gets
+&gt; to the PCMCIA services. At this point the system hangs. I  have checked
+&gt; SuSE's web site and found an answer suggesting I 'change confirgure
+&gt; file' in YaST, setting:
+&gt; 
+&gt;    PCMCIA_CORE_OPTS &quot;do_pnp=0&quot;
+&gt; 
+&gt; So, did this and nothing. Found another SuSE sdb entry for:
+&gt; 
+&gt;    PCMCIA_PCIC_OPTS &quot;do_scan=0 irq_mask=0xefff&quot;
+&gt; 
+&gt; Have tried that and once again I'm looking at a frozen screen. The
+&gt; system has hung after configuring the serial ports:
+&gt; 
+&gt;    PCMCIA: Starting services
+&gt;    PCMCIA: using scheme: SuSE
+&gt;    _
+&gt; 
+&gt; And that's it. The PC card I'm using is a Xircom CardBus 10/100
+&gt; ethernet + 56k modem.
+&gt; 
+&gt; Anyone know the answer before I'm reduced to dropping MS back on??
+&gt; 
+&gt; Bill.
+&gt; 
+&gt; 
+&gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; Before you buy.</font>
+<font>
+
+--
+Posted via CNET Help.com
+<a href="http://www.help.com/">http://www.help.com/</a>
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 8 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:bill_de3958%40my-deja.com+>bill_de3958@my-deja.com</a> (<a href=mailto:bill_de3958%40my-deja.com>bill_de3958@my-deja.com</a>)<br>Subject: Re: PCMCIA problem. <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 2000/10/05
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;39DB5EF1.B1ABBD70@compuserve.com&gt;,
+  hover &lt;hover@compuserve.com&gt; wrote:</font>
+<font color="#660066">&gt; bill_de3958@my-deja.com wrote:</font>
+<font color="#007777">&gt; &gt;
+&gt; &gt; Sure can:
+&gt; &gt;
+&gt; &gt; Module                  Size  Used by
+&gt; &gt; serial_cb               1088   1
+&gt; &gt; tulip_cb               32528   1
+&gt; &gt; cb_enabler              2600   4  [serial_cb tulip_cb]
+&gt; &gt; usb-uhci               17000   0  (unused)
+&gt; &gt; ds                      6568   2  [cb_enabler]
+&gt; &gt; i82365                 22128   2
+&gt; &gt; pcmcia_core            45184   0  [cb_enabler ds i82365]
+&gt; &gt; serial                 42612   0  (autoclean) [serial_cb]
+&gt; &gt; memstat                 1476   0  (unused)
+&gt; &gt; usbcore                42344   1  [usb-uhci]
+&gt; &gt;
+&gt; &gt; Cheers.
+&gt; &gt;
+&gt; &gt; Bill.
+&gt; &gt;</font>
+<font color="#990000">&gt; &gt; &gt; I'm using this same Xircom CardBus.
+&gt; &gt; &gt; Can you provide the output from [/sbin/]lsmod
+&gt; &gt; &gt; Tx
+&gt; &gt; &gt;</font>
+<font color="#007777">&gt; &gt;
+&gt; &gt; Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+&gt; &gt; Before you buy.</font>
+<font color="#660066">&gt;
+&gt; Looks alike here (I run SuSE 6.4 on a COMPAQ Armada 1750 )
+&gt; Here's my workaround [root] command that enabled eth0 on the Xircom:
+&gt; ifconfig eth0 promisc
+&gt;
+&gt; You mention hang-up after reboot. Sounds familiar again.
+&gt; As a rule, I have learned NOT to reboot without power shut down.
+&gt; Don't ask me why, but it solved a lot of trouble.
+&gt;
+&gt; Good luck.</font>
+<font>
+Well the good news is that the power down reboot seems to do the trick.
+The bad news is that I'm now not getting a DHCP address! Have done:
+</font>
+<font color="#660066">   &gt;ifconfig eth0 promisc
+   &gt;dhcpcd eth0</font>
+<font>
+System has a think and brings a prompt back. I can see a carrier on the
+card and traffic flow. Loopback is there! :0)
+
+Midas.
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

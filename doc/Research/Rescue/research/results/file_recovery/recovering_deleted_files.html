@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/sdb/de/html/cg_rmfiles.html</TITLE>
+<BASE HREF="http://sdb.suse.de/sdb/de/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Dateien: Versehentlich gelöschte Dateien wiederherstellen</H2>
+
+<strong>
+</strong><p>
+</FORM>
+<H5>Supportdatenbank (cg_rmfiles)</H5>
+<strong>Bezieht sich auf</strong><p>
+<strong>Kernel</strong>: Versionen ab 2.0<br>
+<p><h3>Anliegen</h3>
+
+<P>Sie haben auf einem Linux ext2 Dateisystem versehentlich eine oder mehrere
+Dateien gelöscht. Sie haben kein Backup und wollen den Inhalt dieser Datei
+wiederherstellen.</P>
+
+<h3>Hintergrund</h3>
+
+<P>Wie auch unter anderen Betriebssystemen üblich wird auch auf dem Linux
+ext2 Dateisystem eine Datei dadurch `gelöscht', daß entsprechende Verweise
+in der Folderdatei gelöscht werden. Die eigentlichen Daten der Datei sind
+nach dem eigentlichen `löschen' zwar zum Überschreiben freigegeben, aber
+noch auf der Festplatte lesbar. Erst beim Anlegen weiterer Dateien werden
+diese nun freigegebenen Datenblöcke überschrieben.</P>
+
+<P>Zudem existiert auch nach dem Löschen die sog. Inode in der die logische
+Verkettung der Blöcke und die ganzen Zugriffsrechte gespeichert sind. Zudem
+wird hier auch der Zeitpunkt des Löschens (`Deletion time') festgehalten.
+Was wirklich durch das Löschen endgültig verloren gegangen ist ist der
+Dateiname.</P>
+
+<P>Durch Setzen eines Flags mit Hilfe des Kommandos <code>chattr</code> kann
+man auf dem ext2 Dateisystem auch ein `sicheres' Löschen beim Absetzen eines
+Löschkommandos bewirken. Hierdurch wird die Datei vom Kernel beim Löschen
+vollständig mit Nullen überschrieben. Solchermassen gelöschte Daten sind nur
+u.U. mit speziellen Geräten, keinesfalls aber mit der hier beschriebenen
+Methode wiederherstellbar.</P>
+
+<P><b>Eine Warnung vorneweg</b> Mit dem im folgenden beschriebenen
+Programm <code>debugfs</code> können Sie sehr systemnahe Zugriffe auf das
+Dateisystem durchführen. Ohne genaue Kentniss der Interna des ext2
+Dateisystems ist es sehr gefährlich für Ihre restlichen Daten mit den in der
+Hilfe bzw. in der Man-Page zu `debugfs' beschriebenen Kommandos zu
+`experimentieren'. Falls Sie experimentieren möchten, so legen Sie sich am
+besten eine <em>Übungspartition</em> an.</P>
+
+<h3>Vorgehen</h3>
+
+<P>Führen Sie <em>keine</em> Schreibzugriffe mehr auf das Dateisystem aus
+auf dem Sie Dateien wiederherstellen möchten. Insbesondere das Neuanlegen
+von Dateien kann fatal für Ihre zu rettenden Daten sein. Falls Sie nur eine
+Partition `/' verwenden so fahren Sie den Rechner am besten geordnet
+herunter und booten mit einem Rettungssystem. Ansonsten reicht es wenn Sie
+auch die betroffene(n) Partition(en) mit dem Kommando <code>umount</code>
+aushängen. Zur Verwendung von mount und umount beachten Sie bitte das
+Handbuchkapitel "Einstieg in Linux".</P>
+
+<P>Nehmen wir einfach an Sie haben folgende Datei versehentlich gelöscht und
+wollen Sie wiederherstellen.</P>
+
+<pre>
+erde:/mnt/Versuch # ls -la  Protokoll_2009.txt 
+-rw-r--r--   1 cg       suse         1050 Dec 29 13:31 Protokoll_2009.txt
+erde:/mnt/Versuch # rm Protokoll_2009.txt
+</pre>
+
+<P>Sie umounten die betreffende Partition sofort.</P>
+
+<pre>
+erde:~# umount /mnt
+</pre>
+
+<P>In meinem Beispiel handelt es sich um die Partition
+<code>/dev/sdc1</code> die auf den Mountpoint <code>/mnt</code> gemounted
+ist. Sie müssen natürlich den Devicenamen in Ihrem System in den unten
+aufgeführten Beispielen einsetzen. Geben Sie bitte das Kommando
+<code>debugfs devicename</code> ein um den Filesystemdebugger aufzurufen.
+Dieser meldet sich nach dem Start mit dem Prompt <code>debugfs: </code> an
+dem Sie Kommandos zum direkten Zugriff auf das Dateisystem eingeben
+können.</P>
+
+
+<pre>
+erde:/# debugfs /dev/sdc1
+debugfs 1.17, 26-Oct-1999 for EXT2 FS 0.5b, 95/08/09
+debugfs: lsdel
+1 deleted inodes found.
+ Inode  Owner  Mode    Size    Blocks    Time deleted
+ 25794    515 100644   1050    2/   2 Wed Dec 29 13:32:32 1999
+</pre>
+
+<P>Mit dem Kommando <code>lsdel</code> kann man sich also die gelöschten
+Inodes auflisten lassen. An den Dateirechten <em>Mode</em>, dem Eigentümer
+(Hier als numerische User id), dem Zeitpunkt des Löschens und der ehemaligen
+Dateigrösse <em>Size</em> können Sie recht gut die wiederherzustellende
+Datei auffinden falls Sie mehrere Dateien gelöscht haben (und beispielsweise
+nur eine wiederherstellen möchten). Wichtig ist hier für das folgende
+<code>dump</code> Kommando vor allem die Inode Nummer, im obigen Beispiel
+25794.</P>
+
+<P>Geben Sie folgendes Kommando ein um die oben gelöschte Datei mit den
+gleichen Dateirechten als neue Datei `gerettet' im Verzeichniss /tmp
+wiederzubeleben. Beachten Sie bitte, daß Sie die spitzen Klammern &lt; und
+&gt; mit eingeben!
+
+<pre>
+debugfs:  dump -p <25794> /tmp/gerettet
+debugfs:  quit
+erde:/# ls -l /tmp/gerettet
+-rw-r--r--   1 cg       suse         1050 Dec 29 13:31 /tmp/gerettet
+</pre>
+
+Nach dieser Aktion können Sie das Dateisystem wieder mounten und die Datei
+aus dem /tmp Verzeichniss zurückspielen.</P>
+
+<P>Es gibt noch weitere Methoden diese Datei wiederherzustellen, doch diese
+Methode hat den Vorteil keine Schreibzugriffe über debugfs oder nach
+vollzogener Wiederherstellung einen Dateisystemcheck zu benötigen.</P>
+<HR>
+<strong>Stichwörter:</strong> <a href=keylist.DATEISYSTEM.html>DATEISYSTEM</a>, <a href=keylist.GELÖSCHT.html>GELÖSCHT</a>, <a href=keylist.GELOESCHT.html>GELOESCHT</a>, <a href=keylist.LOESCHEN.html>LOESCHEN</a>, <a href=keylist.LÖSCHEN.html>LÖSCHEN</a>, <a href=keylist.EXT2.html>EXT2</a><br>
+<HR>
+<strong>Kategorien:</strong>
+ <a href=katlist.DOC.html>Dokumentation</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-cg_rmfiles, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 29. Dez 1999
+<br><A HREF="http://www.suse.de/de/suse/index.html">SuSE GmbH</A> - Zuletzt generiert: 29. Dez 1999 von cg (sdb_gen 1.20.0)
+</ADDRESS>
+</BODY></HTML>

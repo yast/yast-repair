@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/de/sdb/html/mfrueh_ulimit.html</TITLE>
+<BASE HREF="http://sdb.suse.de/de/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Ulimit zum Schutz vor "Out of memory"</H2>
+
+<strong>
+</strong><p>
+</FORM>
+<H5>Supportdatenbank (mfrueh_ulimit)</H5>
+<h3>Symptom:</h3>
+Sie haben (zumeist unter X) mehrere Programme laufen, und plötzlich klingt
+die Festplatte sehr beschäftigt und der Rechner wird immer langsamer/träger 
+bis zum absoluten Stillstand. Dies ändert sich auch nicht nach minutenlangem 
+oder stundenlangem Warten.
+
+<h3>Ursache:</h3>
+Manche fragwürdig programmierten Programme haben die unschöne Angewohnheit, 
+ab und zu und kaum reproduzierbar allen verfügbaren Speicher an sich reissen 
+zu wollen. Dies geht soweit, daß kein freier Speicher für irgendeinen anderen 
+Prozeß zur Verfügung steht. Ist dieser Fall eingetreten, dann steht Ihr Rechner.
+
+<h3>Lösung:</h3>
+
+Sie setzen mit <tt> ulimit </tt> ein Limit für den zulässigen Speicherbedarf 
+einer Applikation. Mit <tt> ulimit </tt> können Sie verschiedene Parameter 
+begrenzen. Die in diesem Zusammenhang relevanten sind der Verbrauch an 
+tatsächlichem Speicher und virtuellem Speicher.
+
+Tragen Sie in Ihre <tt> .bashrc </tt> bitte folgende Zeilen ein:
+
+<pre>
+# begrenzt den realen Speicher:
+ulimit -m xxxxx
+
+# begrenzt den virtuellen Speicher.
+ulimit -v xxxxx
+</pre>
+
+Dabei ersetzen Sie <tt> xxxxx </tt> durch einen Ihrem System entsprechenden 
+Wert. Auf einem Rechner mit 128 MB RAM und 128 MB Swap könnte dieser Wert 
+z.B. bei 98304 liegen. Da die Werte für <tt> ulimit </tt> in kb angegeben 
+werden, ist dies der entsprechende Wert für 96 MB (96 x 1024 = 98304). 
+Gegebenenfalls müssen Sie etwas experimentieren, um einen ansprechenden Wert 
+zu ermitteln.
+
+Die Wirkung von <tt> ulimit </tt> liegt darin, jeden Prozeß, welcher über 
+das eingestellte Mass hinaus Speicher für sich beansprucht, rigoros zu beenden.
+ 
+Damit riskieren Sie Datenverluste, haben aber ein laufendes System (die 
+Datenverluste treten auch ein, wenn das System in Folge eines solchen Fehlers 
+hart rebootet werden muß ;-).
+<HR>
+<strong>Stichwörter:</strong> <a href=keylist.BASH.html>BASH</a>, <a href=keylist.SPEICHER.html>SPEICHER</a>, <a href=keylist.MEMORY.html>MEMORY</a>, <a href=keylist.NETSCAPE.html>NETSCAPE</a>, <a href=keylist.ULIMIT.html>ULIMIT</a><br>
+<HR>
+<strong>Kategorien:</strong>
+ <a href=katlist.FAQLXHOW.html>Grundwissen</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-mfrueh_ulimit, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 09. Feb 2000
+<br><A HREF="http://www.suse.de/de/suse/index.html">SuSE GmbH</A> - Zuletzt generiert: 09. Feb 2000 von mfrueh (sdb_gen 1.20.0)
+</ADDRESS>
+</BODY></HTML>

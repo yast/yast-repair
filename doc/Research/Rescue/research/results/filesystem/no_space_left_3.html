@@ -1,0 +1,166 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=766b294e7f66587c,4>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>&quot;No space left on device&quot;</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 4</b> of <b>4</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:wehu%40imageek.york.cuny.edu+>Wen-Ying Huang</a> (<a href=mailto:wehu%40imageek.york.cuny.edu>wehu@imageek.york.cuny.edu</a>)<br>Subject: &quot;No space left on device&quot; <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/04/13
+<br></font></td></tr></table><p>
+<pre><font>
+
+Hi,
+
+I'm having the following trouble:
+
+I installed A, D and K sets of the Slackware 3.1.0: basic Linux,
+development (including gcc, etc) and kernel source. My Linux partition
+has 83MB. I recompiled it with no PCI bios support since my machine
+hangs if I boot with PCI bios support. When I do &quot;make dep&quot;, I got
+the following message:
+------------------------------------------------------------------
+gcc -I/usr/src/linux-2.0.27/include -O2 -fomit-frame-pointer -o
+scripts/mkdep scripts/mkdep.c
+cpp: /tmp/cca00091.i: No space left on device
+make: *** [scripts/mkdep] Error1
+-------------------------------------------------------------------
+
+When I boot with an older version boot image and write at the Lilo
+boot prompt: mount root=/dev/hda3, I also got &quot;/etc/rc.d/rc.S:
+134822520: No space left on device&quot; message. 
+
+The total disk space used by A, D and K sets should be about
+27x1.4MB = 37.8MB. I don't understand why I got the above message.
+
+Any clue will be very much appreciated!
+
+--wenying
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:jgluck%40total.net+>John Gluck</a> (<a href=mailto:jgluck%40total.net>jgluck@total.net</a>)<br>Subject: Re: &quot;No space left on device&quot; <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/04/14
+<br></font></td></tr></table><p>
+<pre><font>
+
+Wen-Ying Huang wrote:</font>
+<font color="#660066">&gt; 
+&gt; Hi,
+&gt; 
+&gt; I'm having the following trouble:
+&gt; 
+&gt; I installed A, D and K sets of the Slackware 3.1.0: basic Linux,
+&gt; development (including gcc, etc) and kernel source. My Linux partition
+&gt; has 83MB. I recompiled it with no PCI bios support since my machine
+&gt; hangs if I boot with PCI bios support. When I do &quot;make dep&quot;, I got
+&gt; the following message:
+&gt; ------------------------------------------------------------------
+&gt; gcc -I/usr/src/linux-2.0.27/include -O2 -fomit-frame-pointer -o
+&gt; scripts/mkdep scripts/mkdep.c
+&gt; cpp: /tmp/cca00091.i: No space left on device
+&gt; make: *** [scripts/mkdep] Error1
+&gt; -------------------------------------------------------------------
+&gt; 
+&gt; When I boot with an older version boot image and write at the Lilo
+&gt; boot prompt: mount root=/dev/hda3, I also got &quot;/etc/rc.d/rc.S:
+&gt; 134822520: No space left on device&quot; message.
+&gt; 
+&gt; The total disk space used by A, D and K sets should be about
+&gt; 27x1.4MB = 37.8MB. I don't understand why I got the above message.
+&gt; 
+&gt; Any clue will be very much appreciated!
+&gt; 
+&gt; --wenying</font>
+<font>Hi
+
+83Meg is very small if you plan to do anything useful with your system.
+When you try to compile your kernel each source file make an object
+file.
+Groups of those object files make libraries. etc etc
+
+This all takes a lot of space. My linux drive is 1Gig and it about 73%
+full. It would be worse except I keep cleaning out things that I don't
+need
+
+John Gluck
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:JYoungman%40vggas.com+>James Youngman</a> (<a href=mailto:JYoungman%40vggas.com>JYoungman@vggas.com</a>)<br>Subject: Re: &quot;No space left on device&quot; <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/04/15
+<br></font></td></tr></table><p>
+<pre><font>
+
+In article &lt;3351216E.41C6@imageek.york.cuny.edu&gt;, wehu@imageek.york.cuny.edu 
+says...
+</font>
+<font color="#660066">&gt;------------------------------------------------------------------
+&gt;gcc -I/usr/src/linux-2.0.27/include -O2 -fomit-frame-pointer -o
+&gt;scripts/mkdep scripts/mkdep.c
+&gt;cpp: /tmp/cca00091.i: No space left on device
+&gt;make: *** [scripts/mkdep] Error1
+&gt;-------------------------------------------------------------------</font>
+<font>
+</font>
+<font color="#660066">&gt;The total disk space used by A, D and K sets should be about
+&gt;27x1.4MB = 37.8MB. I don't understand why I got the above message.</font>
+<font>
+Yes, but that's 38Mb, *compressed*.
+</font>
+<font color="#007777">-- 
+James Youngman       VG Gas Analysis Systems  The trouble with the rat-race 
+Before sending advertising material, read     is, even if you win, you're 
+<a href="http://www.law.cornell.edu/uscode/47/227.html">http://www.law.cornell.edu/uscode/47/227.html</a>         still a rat.
+
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:hans%40grumbeer.inka.de+>Hans-Joachim Baader</a> (<a href=mailto:hans%40grumbeer.inka.de>hans@grumbeer.inka.de</a>)<br>Subject: Re: &quot;No space left on device&quot; <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/04/17
+<br></font></td></tr></table><p>
+<pre><font>
+
+In article &lt;3351216E.41C6@imageek.york.cuny.edu&gt;,
+Wen-Ying Huang  &lt;wehu@imageek.york.cuny.edu&gt; wrote:</font>
+<font color="#660066">&gt;gcc -I/usr/src/linux-2.0.27/include -O2 -fomit-frame-pointer -o
+&gt;scripts/mkdep scripts/mkdep.c
+&gt;cpp: /tmp/cca00091.i: No space left on device</font>
+<font>
+It means that the space is right on the device, right now :-)
+
+Seriously, a kernel tree needs about 25 MB before compilation,
+and up to 45 MB after compilation.
+
+Hans-Joachim</font>
+<font color="#007777">-- 
+    Uncle Ed's Rule of Thumb:  Never use your thumb for a rule.
+    You'll either hit it with a hammer or get a splinter in it.
+	 
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

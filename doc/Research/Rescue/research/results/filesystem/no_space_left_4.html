@@ -1,0 +1,152 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=c7cf483f5d1b60ae,4>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Error: no space left on device</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 4</b> of <b>4</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:chewie1138%40my-deja.com+>chewie1138@my-deja.com</a> (<a href=mailto:chewie1138%40my-deja.com>chewie1138@my-deja.com</a>)<br>Subject: Error: no space left on device <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/05/17
+<br></font></td></tr></table><p>
+<pre><font>
+Recently my installation of RedHat has been producing the error:
+   no space left on device
+when I'm trying to gzip files etc
+
+'df' reports:
+Filesystem         1024-blocks  Used Available Capacity Mounted on
+/dev/hda1            1988924 1007227   878883     53%   /
+/dev/hda2            1997067  290263  1603587     15%   /home/clients
+/dev/hdb1            6079051 2417588  3346591     42%   /home/www
+
+'df - i' reports:
+Filesystem           Inodes   IUsed   IFree  %IUsed Mounted on
+/dev/hda1             516056   58607  457449    11%  /
+/dev/hda2             516096    6750  509346     1%  /home/clients
+/dev/hdb1            1574912   73303 1501609     5%  /home/www
+
+looks like loads of free space/inodes to me
+
+I've tar+gzip+copied+deleted about 2gigs of files off the machine,
+rebooted. Still the same error message &quot;no space left on device&quot;
+Even as root I get the message.
+
+[Large] Log files are still being created though for the websites on
+the machine, so there obviously is room for files.
+
+Anybody have any suggestions?
+
+Thanks in advance
+Chewie
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:set%40ucsee.EECS.Berkeley.EDU+>Sam E. Trenholme</a> (<a href=mailto:set%40ucsee.EECS.Berkeley.EDU>set@ucsee.EECS.Berkeley.EDU</a>)<br>Subject: Re: Error: no space left on device <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/05/17
+<br></font></td></tr></table><p>
+<pre><font></font>
+<font color="#660066">&gt;Recently my installation of RedHat has been producing the error:
+&gt;   no space left on device
+&gt;when I'm trying to gzip files etc</font>
+<font>
+Two suggestions:
+
+* You may have quotas
+
+* Run 'strace gzip -9 foo' and see what it is trying to do when it
+  gives you the 'no space left on device' error.
+
+- Sam
+
+</font>
+<font color="#007777">-- 
+Please post, and not email, questions you have about my answers
+Go to <a href="http://samiam.org/cgi-bin/mailme">http://samiam.org/cgi-bin/mailme</a> to get my email address
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:chewie1138%40my-deja.com+>chewie1138@my-deja.com</a> (<a href=mailto:chewie1138%40my-deja.com>chewie1138@my-deja.com</a>)<br>Subject: Re: Error: no space left on device <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/05/18
+<br></font></td></tr></table><p>
+<pre><font>
+</font>
+<font color="#007777">&gt; &gt;Recently my installation of RedHat has been producing the error:
+&gt; &gt;   no space left on device
+&gt; &gt;when I'm trying to gzip files etc
+&gt; &gt;df and df -i show lots of room</font>
+<font color="#660066">&gt;
+&gt; Two suggestions:
+&gt; * You may have quotas</font>
+<font>  'quota -v' shows
+Disk quotas for user myusername (uid 500): none
+
+Lots of room on the drives, no quota (THAT'S not the problem is it?)
+</font>
+<font color="#660066">&gt; * Run 'strace gzip -9 foo' and see what it is trying to do when it
+&gt;   gives you the 'no space left on device' error.</font>
+<font>   I don't seem to have strace on my installation 8o(
+
+Any suggestions?
+Thanks
+Chewie
+
+
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:mk%40crc.dk+>Mogens Kjaer</a> (<a href=mailto:mk%40crc.dk>mk@crc.dk</a>)<br>Subject: Re: Error: no space left on device <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/05/18
+<br></font></td></tr></table><p>
+<pre><font>
+chewie1138@my-deja.com wrote:
+</font>
+<font color="#660066">&gt;    I don't seem to have strace on my installation 8o(
+&gt; 
+&gt; Any suggestions?</font>
+<font>
+Install strace :-)
+
+You can find an rpm on your redhat cd for this, look for
+strace*
+
+Mogens</font>
+<font color="#007777">-- 
+Mogens Kjaer, Carlsberg Laboratory, Dept. of Chemistry
+Gamle Carlsberg Vej 10, DK-2500 Valby, Denmark
+Phone: +45 33 27 53 25, Fax: +45 33 27 47 08
+Email: mk@crc.dk Homepage: <a href="http://www.crc.dk">http://www.crc.dk</a>
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

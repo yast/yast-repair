@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://support.suse.de/en/sdb/html/ke_no-space.html</TITLE>
+<BASE HREF="http://support.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>"No space left on device"</H2>
+
+<strong>
+<a href=../../../de/sdb/html/ke_no-space.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (ke_no-space)</H5>
+<h3>Symptom:</h3>
+At runtime (e.g. during the execution of a program), you get a message like
+<pre>
+        No space left on device
+</pre>
+This may also happen during the first installation, an update or short time 
+after an update.
+<p>
+You might also receive a similar message from <code>cron</code> via mail.
+
+<h3>Cause:</h3>
+There is no space left on the harddrive or at least one partition of the harddrive.
+Therefore programs, that rely on the temporary or permanent storage of files in the
+filesystem, cannot be executed correctly anymore.
+
+<h3>Solution:</h3>
+Please make sure, that enough space is available on the harddrive. The comand 
+<code>df</code> will show you, which partitions are affected. The output of 
+<code>df</code> might look like the following (Change to the second console 
+with <code>Alt-F2</code>, if necessary) :
+<pre>
+        Filesystem         1024-blocks  Used Available Capacity Mounted on
+        /dev/sda1              49139   49139        0    100%   /
+        /dev/sda3              97830   80123    12486     87%   /var
+        /dev/sda7             497667  474361        0    100%   /usr
+        /dev/sda8             497667  159179   312786     34%   /opt
+        /dev/sda9             637491  503724   100836     83%   /usr/src
+        192.168.102.1:/real-home
+                             13877512 8305927  5427242     60%   /home/alex
+
+</pre>
+In this example the partitions "<code>/</code>" and "<code>/usr</code>" have 
+no space left. There is still some space for <code>root</code> on the partition
+"<code>/usr</code>". If you want to view a compressed man page with "<code>man</code>",
+it must be unpacked temporarily into the <code>/tmp</code>-directory. In this example
+this will result in the message
+<pre>
+        gzip: stdout: No space left on device
+        zsoelim: /usr/bin/gzip -dc /usr/man/man1/man.1.gz > /tmp/zman00228aaa
+        exited
+        with status 256
+</pre>
+<p>
+The articles below explain, how you can ensure, that there is enough space 
+on the device.
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="mb_4.html">Partitions: Distribution of filesystems</a><br>
+<a href="ke_opt.html">No space left for optional software</a><br>
+<a href="maddin_fstab.html">Mounting, partitioning and configuring filesystems</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.SPACE.html>SPACE</a>, <a href=keylist.HARDDRIVE.html>HARDDRIVE</a>, <a href=keylist.PARTITION.html>PARTITION</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.FAQ.html>Frequently asked Questions</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-ke_no-space, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 18. Jun 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 18. Jun 1998 by ke (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

@@ -1,0 +1,100 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=589288de98437d75,2>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>UNEXPECTED INCONSISTENCY- howto repair ext2</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:flechsig%40psi.ch+>Flechsig Uwe OVGA/203a 4535</a> (<a href=mailto:flechsig%40psi.ch>flechsig@psi.ch</a>)<br>Subject: UNEXPECTED INCONSISTENCY- howto repair ext2 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 1999/09/21
+<br></font></td></tr></table><p>
+<pre><font>
+during boot my system halted with:
+
+UNEXPECTED INCONSISTENCY
+RUN fsck MANUALLY
+without -a or -p
+
+I did: e2fsck /dev/sda2
+
+Inode xyz has illegal block(s) Clear(y)?
+
+I did not proceed because I'm afraid to destroy all data. 
+
+Are there any suggestions for a repair strategy or to find out if this
+is a sign of a slow dead of the disk?
+
+history:
+a) the system was running smoothly for long time
+b) there are some time not reproducible CRC error messages during boot
+c) I reinstalled the / partition (sda1 in my case) from a backup tape
+after the same error message as above  (UNEXPECTED INCONSISTENCY...)  
+d) the system was running again- but I found some corrupted files in
+/usr/bin (sda2) - after reboot the system halted UNEXPECTED
+INCONSISTENCY
+ 
+
+-- 
+Uwe Flechsig  flechsig@psi.ch
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:spike1%40news.freenet.co.uk+>Spike!</a> (<a href=mailto:spike1%40news.freenet.co.uk>spike1@news.freenet.co.uk</a>)<br>Subject: Re: UNEXPECTED INCONSISTENCY- howto repair ext2 <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 1999/09/21
+<br></font></td></tr></table><p>
+<pre><font>
+And verily, didst Flechsig Uwe OVGA/203a 4535 &lt;flechsig@psi.ch&gt; eloquently scribe:</font>
+<font color="#660066">&gt; during boot my system halted with: 
+&gt; UNEXPECTED INCONSISTENCY
+&gt; RUN fsck MANUALLY
+&gt; without -a or -p 
+&gt; I did: e2fsck /dev/sda2 
+&gt; Inode xyz has illegal block(s) Clear(y)? 
+&gt; I did not proceed because I'm afraid to destroy all data. </font>
+<font>
+Any data that is &quot;cleared&quot; is moved into the directory called lost+found.
+The fsck offers default options for a reason. It is not going to destroy
+your hard disk.
+</font>
+<font color="#660066">&gt; Are there any suggestions for a repair strategy or to find out if this
+&gt; is a sign of a slow dead of the disk?</font>
+<font>
+Well, there is the command
+
+badblocks
+
+However, if you want to keep your hard disk intact, don't use the -w option.
+</font>
+<font color="#007777">-- 
+______________________________________________________________________________
+| spike1@mail.freenet.co.uk | &quot;Are you pondering what I'm pondering Pinky?&quot;  |
+|    Andrew Halliwell BSc   |                                                |
+|             in            | &quot;I think so brain, but this time, you control  |
+|      Computer Science     |  the Encounter suit, and I'll do the voice...&quot; |
+------------------------------------------------------------------------------
+|GCv3.12 GCS&gt;$ d-(dpu) s+/- a C++ US++ P L/L+ E-- W+ N++ o+ K PS+  w-- M+/++ |
+|PS+++ PE- Y t+ 5++ X+/X++ R+ tv+ b+ DI+ D+ G e++ h/h+ !r!|  Space for hire  |
+------------------------------------------------------------------------------
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,134 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=af4482338e451487,2>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Help: fsck error</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:jacek%40mrowka.art.olsztyn.pl+>Jacek Brzozowski</a> (<a href=mailto:jacek%40mrowka.art.olsztyn.pl>jacek@mrowka.art.olsztyn.pl</a>)<br>Subject: Help: fsck error <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1995/06/22
+<br></font></td></tr></table><p>
+<pre><font>
+Hello,
+When I tried to boot my machine last night, fsck gave me 
+error messages as follows:
+
+Partition check:
+    hda: hda1 hda2 hda3
+EXT2-fs error (device 3/3):
+ext2_check_descriptors: Block bitmap for group 0 not in group (block 32997796)!
+EXT2-fs: group descriptors corrupted!
+[MS-DOS FS Rel.12, FAT 12, check=n,conv=b,uid=0,gid=0,umask=022,bmap]
+[me=0x1a,cs=3306,#f=137,fs=18922,fl=45948,ds=223442,de=20884,data=23710,
+se=25961,ts=884488861,ls=58828]
+HPFS: hpfs_read_super: Not HPFS
+Kernel panic: VFS: Unable to mount root
+
+After boot from floppy boot disk, I tried:
+
+# e2fsck -r /dev/hda3
+e2fsck 0.5, 28-Mar-954 for EXT2 FS 0.5, 94/03/10
+Block bitmap 32997796 for group 0 not in group.
+
+On my hard disk partition table:
+/dev/hda1  20M MS-DOS
+/dev/hda2  16M Linux Swap
+/dev/hda2  280M Linux native
+
+Anyone knows what the problem is?  Thanks in advance.
+Any answers please send to me. jacek@mrowka.art.olsztyn.pl
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:zenon%40resonex.com+>Zenon Fortuna</a> (<a href=mailto:zenon%40resonex.com>zenon@resonex.com</a>)<br>Subject: Re: Help: fsck error <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1995/06/22
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;3sblkk$69t@sunrise.pg.gda.pl&gt;,
+Jacek Brzozowski &lt;jacek@mrowka.art.olsztyn.pl&gt; wrote:</font>
+<font color="#660066">&gt;Hello,
+&gt;When I tried to boot my machine last night, fsck gave me 
+&gt;error messages as follows:
+&gt;
+&gt;Partition check:
+&gt;    hda: hda1 hda2 hda3
+&gt;EXT2-fs error (device 3/3):
+&gt;ext2_check_descriptors: Block bitmap for group 0 not in group (block 32997796)!
+&gt;EXT2-fs: group descriptors corrupted!
+&gt;[MS-DOS FS Rel.12, FAT 12, check=n,conv=b,uid=0,gid=0,umask=022,bmap]
+&gt;[me=0x1a,cs=3306,#f=137,fs=18922,fl=45948,ds=223442,de=20884,data=23710,
+&gt;se=25961,ts=884488861,ls=58828]
+&gt;HPFS: hpfs_read_super: Not HPFS
+&gt;Kernel panic: VFS: Unable to mount root
+&gt;
+&gt;After boot from floppy boot disk, I tried:
+&gt;
+&gt;# e2fsck -r /dev/hda3
+&gt;e2fsck 0.5, 28-Mar-954 for EXT2 FS 0.5, 94/03/10
+&gt;Block bitmap 32997796 for group 0 not in group.
+&gt;
+&gt;On my hard disk partition table:
+&gt;/dev/hda1  20M MS-DOS
+&gt;/dev/hda2  16M Linux Swap
+&gt;/dev/hda2  280M Linux native
+&gt;
+&gt;Anyone knows what the problem is?  Thanks in advance.
+&gt;Any answers please send to me. jacek@mrowka.art.olsztyn.pl</font>
+<font>
+From the error messages I conclude, that the superblock itself seems to be
+OK, but the blocks with the block descriptors contain invalid data. The
+&quot;group 0&quot; is symptomatic: the next block after the superblock itself is
+probably corrupted.
+
+First a comment: get the 0.5b version of the e2fsck utilities. Parts of the
+e2fsck code were corrected, also related to the block bitmap in the groups.
+
+Then, the &quot;-r&quot; option would be not needed anymore.
+
+OK, and more constructive suggestions:
+   1. try an alternate superblock (it has its own copy of the group
+      descriptors)
+	e2fsck -b 8193 /dev/hda3
+
+      ... or another alternate superblock at the block number 1+i*8192
+
+   2. When all inspected superblocks still generate problems, one can
+      go to more radical actions: &quot;mke2fs -S&quot; can create a new group
+      descriptors.
+      This is, however, quite drastic repair: you would not loose any
+      additional files or directories by this, but you may loose the most
+      of the names (the subsequent e2fsck will create a lot of entries
+      in the /lost+found)
+
+Another good approach would be to recompile the e2fsck with the &quot;-g&quot; flag
+and to go with the &quot;gdb&quot; debugger to see how the rest of the data in the
+superblock area looks like and what is the extent of the damage.
+You can send me the samples of your superblocks and I can investigate them
+using the tools which I have developed examining similar cases in the past.
+
+Send me e-mail if you need more assistance.
+
+	Zenon
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

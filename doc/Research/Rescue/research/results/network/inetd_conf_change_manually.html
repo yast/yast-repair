@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/maddin_inet.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Change of the file /etc/inetd.conf manually</H2>
+
+<strong>
+<a href=../../../de/sdb/html/maddin_inet.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (maddin_inet)</H5>
+<strong>Applicable to</strong><br> 
+
+<strong>S.u.S.E.</strong> version: all   <br>
+Kernel version:                    all   <p>
+
+<h3>Symptom:</h3>
+You have made changes manually in the file <code>inetd.conf</code>. Now, 
+some network services do not run properly anymore.
+
+<h3>Cause:</h3>
+
+Possibly you have left leading blank spaces at the beginning of the line 
+from the comment sign's removal. The <strong>inetd</strong> does not 
+allow 
+that.
+
+<h3>Solution:</h3>
+
+Please remove in the file <code>inetd.conf</code> every leading blank 
+space of a line.
+<HR>
+<strong>Keywords:</strong> <a href=keylist.INETD.html>INETD</a><br>
+<HR>
+Feedback welcome: <a href="mailto:Martin.Scherbaum@suse.de?subject=SDB-maddin_inet">Send Mail to Martin.Scherbaum@suse.de</a> (Please give the following subject: <code>SDB-maddin_inet</code>)
+<HR>
+<ADDRESS>
+SDB-maddin_inet, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 15. Jan 2001 17:46:13
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 15. Jan 2001 17:46:13 by Martin.Scherbaum (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

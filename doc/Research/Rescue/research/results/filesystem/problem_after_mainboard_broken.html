@@ -1,0 +1,90 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=b222edaaa6a08be2>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>Disappearing file system ??</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<a name=961920242>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:jstaylor%40duke.edu+>Jeff Taylor</a> (<a href=mailto:jstaylor%40duke.edu>jstaylor@duke.edu</a>)<br>Subject: Disappearing file system ?? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2000-11-21 08:02:41 PST
+<br></font></td></tr></table><p>
+<pre><font>I had a RedHat 6.1 system running just fine with two hard disks setup
+like this:
+
+disk 1 Seagate IDE 8GB
+partition 1 windoze
+partition 2 swap
+partition 3 linux ext2
+partition 4 linux ext2
+
+disk 2 Maxtor IDE 30GB
+partition 1 windoze
+partition 2 linux ext2
+partition 3 linux (no file system yet)
+partition 4 linux (no file system yet)
+
+everything was working just fine until my motherboard died (ABIT BH6,
+Intel chip set).  
+
+I replaced the motherboard with a new model (ABIT KT7-RAID, VIA chip
+set) and now there's a problem.  I can mount the VFAT partition ok
+(/dev/hdb1), but the file system on disk2, partition 2 (/dev/hdb2)
+appears to be gone.  
+
+When I execute the mount command, it reports no ext2 file system found. 
+I get the same message when attempting to use alternate super blocks.
+
+I've tried various BIOS settings for the disk without any luck so far.
+
+Any ideas?  Please e-mail!
+
+Thanks,
+
+Jeff Taylor
+</font></pre>
+
+<a name=960829007>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: Disappearing file system ?? <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a><br>Date: 2000-11-23 23:36:59 PST
+<br></font></td></tr></table><p>
+<pre><font>Jeff Taylor wrote:</font>
+<font color="#660066">&gt; 
+&gt; I had a RedHat 6.1 system running just fine with two hard disks setup
+&gt; like this:
+&gt; 
+&gt; disk 1 Seagate IDE 8GB
+&gt; partition 1 windoze
+&gt; partition 2 swap
+&gt; partition 3 linux ext2
+&gt; partition 4 linux ext2
+&gt; 
+&gt; disk 2 Maxtor IDE 30GB
+&gt; partition 1 windoze
+&gt; partition 2 linux ext2
+&gt; partition 3 linux (no file system yet)
+&gt; partition 4 linux (no file system yet)
+&gt; </font>
+<font>
+What does fdisk -l /dev/hdb report?
+
+Eric
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,102 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=a7eb78d9ee4f6fd8,2>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Floppy drive problems</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:Duncan.Galloway%40utas.edu.au+>Duncan Galloway</a> (<a href=mailto:Duncan.Galloway%40utas.edu.au>Duncan.Galloway@utas.edu.au</a>)<br>Subject: Floppy drive problems <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/10/21
+<br></font></td></tr></table><p>
+<pre><font>
+Hi,
+  I'm trying to use a 360k 5.25&quot; floppy drive on my PC (yes there is a
+good reason to do this) which is running Linux 2.0.29. I installed it,
+hooked it up and it runs OK under DOS (well I can do a directory of the
+drive anyway). When I run linux and try to access it though, I get the
+following messages:
+</font>
+<font color="#660066">&gt; mdir a:</font>
+<font>Can't open /dev/fd0: No such device or address
+Cannot initialize 'A:'
+
+I did have a disk in there, but it still wasn't working. I read some of
+the Documentation files and a system manual I have, and tried the
+following command:
+
+# setfdprm -p /dev/fd0 360/360
+# mdir a:
+read: I/O error
+init A: could not read boot sector
+Cannot initialize 'A:'
+
+I'm guessing that perhaps 360K drives aren't supported by linux? Do I
+need to make a new entry in the /etc/fdprm file? (I thought the 360/360
+would work, but the &quot;size&quot; is listed as 720 so this may not be right?)
+Actually it gives the same error now as when there is no disk in the
+drive. What am I doing wrong here and how can I fix it?
+
+As a corollary, is there any way to run 3 floppy drives in a PC? (I want
+to run a 360k 5.25&quot;, 1.2M 5.25&quot; and 1.44M 3.5&quot; simultaneously.
+
+Thanks,
+
+Duncan.</font>
+<font color="#007777">-- 
+------------------------------------------------------------------------
+ Duncan Galloway                            Duncan.Galloway@utas.edu.au
+ Physics Department, University of Tasmania      Tel. (03) 6226 2427 bh
+ G.P.O. Box 252-21,                                   (03) 6223 1068 ah
+ Hobart 7001, Australia                          Fax. (03) 6226 2410
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:fredex%40fcshome.stoneham.ma.us+>Fred Smith</a> (<a href=mailto:fredex%40fcshome.stoneham.ma.us>fredex@fcshome.stoneham.ma.us</a>)<br>Subject: Re: Floppy drive problems <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 1998/10/22
+<br></font></td></tr></table><p>
+<pre><font>
+Duncan Galloway (Duncan.Galloway@utas.edu.au) wrote:</font>
+<font color="#660066">: Hi,
+:   I'm trying to use a 360k 5.25&quot; floppy drive on my PC (yes there is a
+: good reason to do this) which is running Linux 2.0.29. I installed it,
+: hooked it up and it runs OK under DOS (well I can do a directory of the
+: drive anyway). When I run linux and try to access it though, I get the
+: following messages: </font>
+<font color="#007777">: &gt; mdir a:</font>
+<font color="#660066">: Can't open /dev/fd0: No such device or address
+: Cannot initialize 'A:'</font>
+<font>
+Did you read the docs on mtools and check out your /etc/mtools.conf
+to see if it is right?
+
+Fred
+--
+-------------------------------------------------------------------------------
+ .----    Fred Smith    /              
+( /__  ,__.   __   __ /  __   : /     
+ /    /  /   /__) /  /  /__) .+'           Home: fredex@fcshome.stoneham.ma.us 
+/    /  (__ (___ (__(_ (___ / :__                                 781-438-5471 
+-------------------------------- Jude 1:24,25 ---------------------------------
+
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

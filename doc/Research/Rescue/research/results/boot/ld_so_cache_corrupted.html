@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/kfr_59.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>ld.so.cache corrupted, system does not boot anymore</H2>
+
+<strong>
+<a href=../../../de/sdb/html/kfr_59.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (kfr_59)</H5>
+<h3>Symptom:</h3>
+Right after booting, messages appear at the first programmes that are 
+executed (e.g. fsck, login etc.):
+<code>ld.so.cache corrupted</code>.
+<p>
+The system is not usable :-(
+
+<h3>Cause:</h3>
+The dynamic linker <code>ld</code> makes sure that programmes dynamically 
+linked to 
+runtime are supplied with the dynamic libraries' corresponding 
+functions. If 
+this cannot be performed, the programme is not able to start. <p>
+<code>ld.so.cache</code> is a database, that requires the 
+<code>ld</code> to find the libraries. If this database is destroyed, as 
+said, no dinamically linked programme can be started anymore!
+
+<h3>And how can that happen?</h3>
+Really, very strangely (it has appeared to us for the first time in many 
+years of support).
+<p>
+One possibility could be, that the root-filesystem was full 
+(<strong>be careful that this never happens!</strong>) and in this moment 
+<code>ldconfig</code> was called (e.g. by <code>SuSEConfig</code> or 
+<code>YaST</code>). The new  
+<code>/etc/ld.so.cache</code> configuration could not therefore be executed.
+
+<h3>Solution:</h3>
+
+<ul>
+
+<li> Boot with bootdisk and rescuedisk
+
+<li> Perform initially a filesystem check. If your root partition is e.g. 
+/dev/sda3, enter:
+<pre>
+        e2fsck /dev/sda3
+</pre>
+See the handbook for more information about filesystem check.
+
+<li>Mount your root partition, e.g.
+<pre>
+        mount -t e2fs /dev/sda8 /mnt
+</pre>
+
+<li>Create a file <code>fastboot</code>:
+<pre>
+        touch /mnt/fastboot
+</pre>
+
+<li>(Re) Boot your system as usual and additionally declare the following 
+<strong>kernel parameters</strong>: <code><strong>rw S</strong></code>
+
+<li> Set a new <code>ls.so.cache</code>:
+<pre>
+        ldconfig
+</pre>
+
+<li>Reboot your computer
+
+</ul>
+
+
+<h3>Hint:</h3>
+<ul>
+
+<li> The described solution could not still be tested in this form. 
+Please 
+send us a short report, if it works.
+
+<li> From S.u.S.E. Linux 4.3 on we will make sure that this does not 
+happen 
+anymore.
+
+</ul>
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="kfr_47.html">constructing a rescue disk</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.LDSOCACHECORRUPTED.html>LD.SO.CACHE CORRUPTED</a>, <a href=keylist.BOOT.html>BOOT</a>, <a href=keylist.ROOTFILESYSTEMFULL.html>ROOTFILESYSTEM FULL</a><br>
+<HR>
+Feedback welcome: <a href="mailto:kfr@suse.de?subject=SDB-kfr_59">Send Mail to kfr@suse.de</a> (Please give the following subject: <code>SDB-kfr_59</code>)
+<HR>
+<ADDRESS>
+SDB-kfr_59, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 15. Jan 2001 17:40:34
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 15. Jan 2001 17:40:34 by kfr (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

@@ -1,0 +1,230 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=10c882b67f230a3d>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>RPM segfault, I&#39;m stuck</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 6</b> of <b>6</b>.  </font></td></tr></table><br clear=all>
+<a name=924202471>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:petere%40atg.com+>Peter Eddy</a> (<a href=mailto:petere%40atg.com>petere@atg.com</a>)<br>Subject: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-18 07:13:15 PST
+<br></font></td></tr></table><p>
+<pre><font>Hello, 
+
+I attempted to use RPM  to upgrade my glibc but, as you can see in the
+transcript below, it failed.  Worse, it's left itself in a state where
+it's now unable to do just about anything.  Almost ever RPM operation
+results in a seg fault.  I can rebuild the database, but it doesn't
+solve the problem.  This has happened to me now on two different
+machines running RH 6.2 and RH 7.0, and for both machines I'm at a loss
+for what to do since I can't install new RPMs.  I suppose I could forgo
+using RPM altogether, or I could reinstall Linux on both machines, but
+it seems like there ought to be a way to repair this problem.
+
+thanks for any input,
+Peter
+
+
+[root@acephalous updates]# ls glibc-*
+glibc-2.1.3-22.i386.rpm  glibc-devel-2.1.3-22.i386.rpm 
+glibc-profile-2.1.3-22.i386.rpm
+[root@acephalous updates]# rpm -Fvh glibc-*rpm nscd-2.1.3-22.i386.rpm
+glibc                       unpacking of archive failed: cpio: Bad magic
+glibc-devel                 ################################unpacking of
+archive failed: cpio: Bad magic
+[root@acephalous updates]# ls rpm*
+rpm-3.0.5-9.6x.i386.rpm  rpm-build-3.0.5-9.6x.i386.rpm 
+rpm-devel-3.0.5-9.6x.i386.rpm  rpm-python-3.0.5-9.6x.i386.rpm
+[root@acephalous updates]# rpm -q rpm
+rpm-3.0.4-0.48
+[root@acephalous updates]# rpm -Fvh rpm*rpm
+rpm                         ###############unpacking of archive failed:
+cpio: Bad magic
+rpm-build                  
+##################################################
+rpm-devel                  
+##################################################
+rpm-python                 
+##################################################
+[root@acephalous updates]# rpm -q --whatprovides cpio
+Segmentation fault (core dumped)
+[root@acephalous updates]# rpm -q --whatprovides `which cpio`
+Segmentation fault (core dumped)
+</font></pre>
+
+<a name=923272150>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:spike1%40freenet.co.uk+>spike1@freenet.co.uk</a> (<a href=mailto:spike1%40freenet.co.uk>spike1@freenet.co.uk</a>)<br>Subject: Re: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-20 10:29:54 PST
+<br></font></td></tr></table><p>
+<pre><font>Peter Eddy &lt;petere@atg.com&gt; did eloquently scribble:</font>
+<font color="#660066">&gt; I attempted to use RPM  to upgrade my glibc but, as you can see in the
+&gt; transcript below, it failed.  Worse, it's left itself in a state where
+&gt; it's now unable to do just about anything.  Almost ever RPM operation
+&gt; results in a seg fault.  I can rebuild the database, but it doesn't
+&gt; solve the problem.  This has happened to me now on two different
+&gt; machines running RH 6.2 and RH 7.0, and for both machines I'm at a loss
+&gt; for what to do since I can't install new RPMs.  I suppose I could forgo
+&gt; using RPM altogether, or I could reinstall Linux on both machines, but
+&gt; it seems like there ought to be a way to repair this problem.</font>
+<font>
+It's possible your RPM database has been corrupted... I had problems like
+that after attempting to install things from a scratched CD. The install of
+some things failed, and later, rpm started to seg fault.
+
+try rebuilting the database with rpm --rebuilddb
+</font>
+<font color="#007777">-- 
+______________________________________________________________________________
+|   spike1@freenet.co.uk   | &quot;Are you pondering what I'm pondering Pinky?&quot;   |
+|Andrew Halliwell BSc(hons)|                                                 |
+|            in            | &quot;I think so brain, but this time, you control   |
+|     Computer Science     |  the Encounter suit, and I'll do the voice...&quot;  |
+------------------------------------------------------------------------------</font>
+</pre>
+
+<a name=923188448>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:roedersh%40uiuc.edu+>Drew Roedersheimer</a> (<a href=mailto:roedersh%40uiuc.edu>roedersh@uiuc.edu</a>)<br>Subject: Re: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-20 14:42:04 PST
+<br></font></td></tr></table><p>
+<pre><font>On Tue, 20 Feb 2001 15:21:34 +0000, spike1@freenet.co.uk wrote:</font>
+<font color="#660066">&gt;Peter Eddy &lt;petere@atg.com&gt; did eloquently scribble:</font>
+<font>
+&lt;snip&gt;
+</font>
+<font color="#007777">&gt;&gt; results in a seg fault.  I can rebuild the database, but it doesn't
+&gt;&gt; solve the problem.  This has happened to me now on two different</font>
+<font>
+&lt;snip&gt;
+</font>
+<font color="#660066">&gt;
+&gt;It's possible your RPM database has been corrupted... I had problems like
+&gt;that after attempting to install things from a scratched CD. The install of
+&gt;some things failed, and later, rpm started to seg fault.
+&gt;
+&gt;try rebuilting the database with rpm --rebuilddb
+&gt;
+&gt;-- 
+&gt;______________________________________________________________________________</font>
+<font color="#007777">&gt;|   spike1@freenet.co.uk   | &quot;Are you pondering what I'm pondering Pinky?&quot;   |
+&gt;|Andrew Halliwell BSc(hons)|                                                 |
+&gt;|            in            | &quot;I think so brain, but this time, you control   |
+&gt;|     Computer Science     |  the Encounter suit, and I'll do the voice...&quot;  |</font>
+<font color="#660066">&gt;------------------------------------------------------------------------------</font>
+<font>
+
+Maybe I'm missing something, but didn't Peter mean his RPM database when he
+said &quot;I can rebuild the database, but it doesn't solve the problem.&quot;??
+
+
+-DR
+</font></pre>
+
+<a name=923131907>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:unruh%40physics.ubc.ca+>Bill Unruh</a> (<a href=mailto:unruh%40physics.ubc.ca>unruh@physics.ubc.ca</a>)<br>Subject: Re: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-20 18:12:04 PST
+<br></font></td></tr></table><p>
+<pre><font>In &lt;u12u69.6hp.ln@ridcully.freenet.co.uk&gt; spike1@freenet.co.uk writes:
+
+]Peter Eddy &lt;petere@atg.com&gt; did eloquently scribble:
+]&gt; I attempted to use RPM  to upgrade my glibc but, as you can see in the
+]&gt; transcript below, it failed.  Worse, it's left itself in a state where
+
+glibc is critical for system operation. If you crash mid way through you
+are highly likely to leave libc in an incomplete state, at which nothing
+which requires dynamic loading will work. I had this happen to me when
+the root directory had gotten filled. The best way is probably just to
+reinstall, or at least to upgrade.
+
+]&gt; it's now unable to do just about anything.  Almost ever RPM operation
+]&gt; results in a seg fault.  I can rebuild the database, but it doesn't
+]&gt; solve the problem.  This has happened to me now on two different
+]&gt; machines running RH 6.2 and RH 7.0, and for both machines I'm at a loss
+]&gt; for what to do since I can't install new RPMs.  I suppose I could forgo
+]&gt; using RPM altogether, or I could reinstall Linux on both machines, but
+]&gt; it seems like there ought to be a way to repair this problem.
+
+It is but it is tough. I had to reboot with the rescue disk,  mount the
+/ directory to say /disk on the rescue file system, use rpm to reinstall
+glibc by forcing installation to the wrong filesystem using the 
+--relocate and the --badreloc option to rpm.
+(--relocate /=/disk --badreloc )
+This will install the glibc to the proper place, but leave the rpm
+database somewhat strange, as it will think things were installed inot
+/disk .
+
+Note I give no guarentee that this will not totally mess up your disk.
+You do so only at your own risk. I am simply describing what I did (
+with a lot of fear and trembling.)
+
+
+</font></pre>
+
+<a name=923117064>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:spike1%40freenet.co.uk+>spike1@freenet.co.uk</a> (<a href=mailto:spike1%40freenet.co.uk>spike1@freenet.co.uk</a>)<br>Subject: Re: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-20 19:18:06 PST
+<br></font></td></tr></table><p>
+<pre><font>Drew Roedersheimer &lt;roedersh@uiuc.edu&gt; did eloquently scribble:</font>
+<font color="#660066">&gt; Maybe I'm missing something, but didn't Peter mean his RPM database when he
+&gt; said &quot;I can rebuild the database, but it doesn't solve the problem.&quot;??</font>
+<font>
+Ooops... Missed that one.</font>
+<font color="#660066">:)</font>
+<font>
+</font>
+<font color="#007777">-- 
+|                          |What to do if you find yourself stuck in a crack|
+|  spike1@freenet.co.uk    |in the ground beneath a giant boulder, which you|
+|                          |can't move, with no hope of rescue.             |
+|Andrew Halliwell BSc(hons)|Consider how lucky you are that life has been   |
+|           in             |good to you so far...                           |
+|    Computer Science      |   -The BOOK, Hitch-hiker's guide to the galaxy.|</font>
+</pre>
+
+<a name=922173329>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:petere%40webrealte.com+>Peter Eddy</a> (<a href=mailto:petere%40webrealte.com>petere@webrealte.com</a>)<br>Subject: Re: RPM segfault, I'm stuck <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-22 20:26:11 PST
+<br></font></td></tr></table><p>
+<pre><font>Bill Unruh wrote:
+</font>
+<font color="#660066">&gt; 
+&gt; glibc is critical for system operation. If you crash mid way through you
+&gt; are highly likely to leave libc in an incomplete state, at which nothing
+&gt; which requires dynamic loading will work. I had this happen to me when
+&gt; the root directory had gotten filled. The best way is probably just to
+&gt; reinstall, or at least to upgrade.</font>
+<font>
+Thanks for responding.  Things aren't quite that bad that I can't do
+anything, I just can't get RPM to update glibc.  I ended up installing a
+new glibc by telling rpm to create then use an rpm database in a
+different directory.  The problem is, it still thinks there's an older
+glibc installed when it uses the standard rpm database, and I still get
+that seg fault when I try to, &quot;rpm -Uvh --force&quot; install the new glibc.
+ 
+Peter
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,139 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=1bcd6b609d2441ff,2>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Superblock is corrupt?Bad magic number? Non-contiguo...</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 2</b> of <b>2</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:jzm%40jfarrand.demon.co.uk+>James Farrand</a> (<a href=mailto:jzm%40jfarrand.demon.co.uk>jzm@jfarrand.demon.co.uk</a>)<br>Subject: Superblock is corrupt?Bad magic number? Non-contiguous blocks? <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1996/09/29
+<br></font></td></tr></table><p>
+<pre><font>
+
+
+Summary
+
+I am trying to use Linux Slakware 3.1/2.0 kernel from cylinders 1023-
+1416(/dev/hdb2 &amp; {/dev/hdb3 swap}) but not using LILO. When I've booted
+and logged in I can still run e2sck /dev/hdb2 even though it is run on
+boot with no errors. I discovered this because my machine was a little
+quirky and 'free' reports the wrong number of blocks present but the
+correct number of swap blocks, 'df' reports the correct number of blocks
+present. I had previously got a warning about &quot;corrupt superblock&quot; on
+running fsck but I couldn't remember how or why so I logged in and
+started emacs on all terminals, then fsck produced the desired warning.
+         Otherwise if I try to use my machine &quot;normally&quot;, as soon as
+I've done anything, like looking at a man page or running, then
+terminating emacs, then I can run e2fsck and get the message about 1.0%
+non-contiguous..., then running e2fsck immediately afterwards produces
+the /dev/hdb2 is clean no check message, sometimes I have to run fsck
+for a 3rd. time. On earlier installations of the same Linux I got the
+same sizes from 'free' and 'df', I presume the machine therefore would
+have exibited the same syptoms. Below is a more detailed description of
+session described above.
+
+1: e2fsck /dev/hdb2
+e2fsck 1.04, 16-May-96 for EXT2 FS 0.5b, 95/08/09
+/dev/hdb2 is mounted. Do you really want to continue&lt;y&gt;?yes
+Pass1:-Pass5:
+/dev/hdb2: 7893/45264 files (1.0% non-contiguous), 76153/180836
+2: started emacs on 6 terminals.
+3: fsck /dev/hdb2
+Parallelizing fsck version 1.04 (16-May-96)
+e2fsck 1.04, 16-May-96 for EXT2 FS 0.5b, 95/08/09
+fsck.ext2:Bad magic number in super block while trying to open /dev/hdb
+The filesystem superblock is corrupt. Try running e2fsck witha an
+alternate superblock using the -b option,(8193 is commonly an alternate
+superblock; Hence, e2fsck -b 8193 &lt;device&gt; may recover the file system.)
+3: As 1: using -b 8193 switch
+Fix summary information&lt;y&gt;?yes
+Free blocks count wrong for group 7(6053, counted=6141). FIXED  
+Free blocks count wrong for group 10(6027, counted=6028). FIXED
+Free blocks count wrong (104779,counted=104768). FIXED
+Free inodes count wrong for group #7(1793,counted=1787). FIXED
+Directories count wrong for group #7(23,counted=24). FIXED
+Free inodes count wrong for group #10(1773,counted=1774). FIXED
+Directories count wrong for group #10(15,counted=14). FIXED
+Free inodes count wrong (37368,counted=37363). FIXED
+/dev/hdb2: *****FILE SYSTEM WAS MODIFIED *****
+/dev/hdb2: 7893/45264 files (1.0% non-contiguous), 76153/180936 blocks
+4: Immediately ran fsck /dev/hdb2 again and get warning about bad magic
+no. in superblock as in 2: above so ran e2fsck with -b 8193 switch again
+and get last two lines of 3:
+5: to 11: as 4:
+12: &amp; 13: As 3: More messages about duplicate/bad blocks, unattached
+inodes etc.
+14: &amp; 15: As 4:
+16: logout
+Hm.. Trying to use unnallocated swaps (00004000)
+swap_free:swap space map bad (entry 00004000)
+swap duplicate: trying to duplicate unused page
+above three lines repeated until
+INIT:Id&quot;C6&quot;respawning too fast: for 5 minutes
+17: Wait 5 minutes nothing happens. logout from other terminals but one
+and get same messages on logout. On remaining terminal as 4: so I am
+forced to do a hard reboot, system comes back up as before.
+
+Non of this happened with my previous version of slakware 2.0.
+I am using a 486 dx with 8m and an Adaptec scsi/eide card with an
+aha152x.
+
+Thanks in advance for any help with this problem. Please reply by e-mail
+and I will post a summary of replies.
+-- 
+James Farrand
+
+Turnpike evaluation. For Turnpike information, <a href="mailto:info@turnpike.com">mailto:info@turnpike.com</a>
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:jzm%40jfarrand.demon.co.uk+>James Farrand</a> (<a href=mailto:jzm%40jfarrand.demon.co.uk>jzm@jfarrand.demon.co.uk</a>)<br>Subject: Re: Superblock is corrupt?Bad magic number? Non-contiguous blocks? <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1996/10/01
+<br></font></td></tr></table><p>
+<pre><font>
+
+In article &lt;9hmc9AAK2tTyEw8z@jfarrand.demon.co.uk&gt;, James Farrand
+&lt;jzm@jfarrand.demon.co.uk&gt; writes</font>
+<font color="#660066">&gt;
+&gt;Summary
+&gt;
+&gt;I am trying to use Linux Slakware 3.1/2.0 kernel from cylinders 1023-
+&gt;1416(/dev/hdb2 &amp; {/dev/hdb3 swap}) but not using LILO. When I've booted
+&gt;and logged in I can still run e2sck /dev/hdb2 even though it is run on
+&gt;boot with no errors. I discovered this because my machine was a little
+&gt;quirky and 'free' reports the wrong number of blocks present but the
+&gt;correct number of swap blocks, 'df' reports the correct number of blocks
+&gt;present. I had previously got a warning about &quot;corrupt superblock&quot; on
+&gt;running fsck but I couldn't remember how or why so I logged in and
+&gt;started emacs on all terminals, then fsck produced the desired warning.
+&gt;</font>
+<font>Ooops! Not long after I posted this I realised the difference between
+'df' &amp; 'free' but I still have the problem that as I use my machine the
+filesystem breaks up.</font>
+<font color="#007777">-- 
+James Farrand
+
+Turnpike evaluation. For Turnpike information, <a href="mailto:info@turnpike.com">mailto:info@turnpike.com</a>
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/de/sdb/html/kettner_fstab.html</TITLE>
+<BASE HREF="http://sdb.suse.de/de/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>line 0 in /etc/fstab is bad</H2>
+
+<strong>
+</strong><p>
+</FORM>
+<H5>Supportdatenbank (kettner_fstab)</H5>
+<strong>Bezieht sich auf</strong><p>
+<strong>SuSE Linux</strong>: Version 6.0<br>
+<p><h3>Symptom:</h3>
+Beim Booten Des Systems oder beim Befehl mount bekommen Sie die Fehlermeldung
+<pre>
+line 0 in /etc/fstab is bad
+</pre>
+
+<h3>Ursache:</h3>
+
+Ein Syntax- oder Tippfehler in der <tt>/etc/fstab</tt>. Die
+Zeilenangabe (Zeile 0) ist natürlich falsch. Bei SuSE 5.3 trat der
+Fehler nicht auf, weil manche Syntaxfehler in der <tt>/etc/fstab</tt>
+vom mount-Befehl nicht bemängelt wurden.
+<p>
+Der Fehler kann z.B. durch ein fehlendes Return am Ende der letzten
+Zeile erzeugt werden.
+
+<h3>Lösung:</h3>
+
+Fehler in  <tt>/etc/fstab</tt> korrigieren. Nähere Informationen mittels
+<pre>
+<b>man fstab</b>
+</pre>
+<HR>
+<strong>Stichwörter:</strong> <a href=keylist.FSTAB.html>FSTAB</a>, <a href=keylist.MOUNT.html>MOUNT</a>, <a href=keylist.LINE0.html>LINE0</a><br>
+<HR>
+<ADDRESS>
+SDB-kettner_fstab, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 08. Jan 1999
+<br><A HREF="http://www.suse.de/de/suse/index.html">SuSE GmbH</A> - Zuletzt generiert: 23. Feb 1999 von Mathias.kettner (sdb_gen 1.20.0)
+</ADDRESS>
+</BODY></HTML>

@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/kgw_lilo_errmsg.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>LILO fails: Error messages and their interpretation</H2>
+
+<strong>
+<a href=../../../de/sdb/html/kgw_lilo_errmsg.html>Deutsch</a>
+<a href=../../../cz/sdb/html/kgw_lilo_errmsg.html>Cesky</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (kgw_lilo_errmsg)</H5>
+<h3>Symptom:</h3>
+When booting with LILO, the machine hangs after displaying a part of the 
+word <code>LILO</code> on the screen.
+
+<h3>Interpretation</h3>
+<p>
+The LILO start-up code consists of two parts : The "first stage" in a bootsector and the 
+"second stage" in <code>/boot/boot.b</code>. During the installation of LILO a "map-file" is
+created (ususllay <code>/boot/map</code>), where LILO finds the necessary pointers (sector-adresses)
+to the operating systems (Linux-Kernel etc.) that should be started.
+
+<p>
+(The following is taken from section 5.2.1 of the original LILO User's Guide by LILO-author 
+Werner Almesberger)
+<p>
+
+When LILO loads itself, it displays the word 
+<pre>
+LILO
+</pre>
+Each letter is printed before or after performing some specific action. 
+If LILO fails at some point, the letters printed so far can be used to 
+identify the problem.
+
+<p>
+<ul> 
+   <li> <code>(nothing)</code>
+     <p> 
+     No part of LILO has been loaded. Either LILO isn't installed
+     or the partition on which its boot sector is located isn't active.
+   <p>
+   <li> <code>L error</code> 
+     <p>
+     The first stage boot loader has been loaded and started, but it can't load 
+     the second stage boot loader. The two-digit error codes indicate the type of 
+     problem. This condition usually indicates a media failure or a geometry 
+     mismatch.
+   <p>
+   <li> <code>LI</code> 
+     <p>     
+     The first stage boot loader was able to load the second stage boot loader, 
+     but has failed to execute it. This can either be caused by a geometry mismatch 
+     or by moving <code>/boot/boot.b</code> without running the map installer.
+   <p>
+   <li> <code>LIL</code> 
+     <p>
+     The second stage boot loader has been started, but it can't load the descriptor 
+     table from the map file. This is typically caused by a media failure or by a 
+     geometry mismatch.
+   <p>
+   <li> <code>LIL?</code>
+     <p>
+     The second stage boot loader has been loaded at an incorrect address. This is 
+     typically caused by a subtle geometry mismatch or by moving /boot/boot.b without 
+     running the map installer.
+   <p>
+   <li><code>LIL-</code> 
+     <p>
+     The descriptor table is corrupt.  This can either be caused by a geometry mismatch 
+     or by moving <code>/boot/map</code> without running the map installer.
+   <p>
+   <li><code>LILO</code> 
+   <p>
+   All parts of LILO have been successfully loaded.
+</ul>
+
+<p>
+The most frequent causes for a geometry mismatch are not physical defects or
+invalid partition tables but errors during the installation of LILO. Often these
+are caused by ignoring the <A href="1024_Zylinder.html">
+1024 cylinder boundary (1024_Zylinder.html)</A>.
+
+<p>
+<h3>Solution :</h3>
+<p>
+In most cases the solution is to apply one of the three procedures given
+below :
+<p>
+<ul>
+<li> Install the LILO data below the 1024 cylinder boundary (if not yet 
+     done). This includes installing the necessary Linux kernel(s) as well 
+     as the files stored in  <code>/boot</code> and the boot sector which
+     will contain LILO's start-up code.
+     <p>
+
+<li> Reinstall LILO by means of the command
+     <pre>
+     /sbin/lilo
+     </pre>
+
+     <em>Tip:</em><code>/sbin/lilo</code> can provide a detailed log
+         if you enhance verbosity and re-direct the output to
+         appropriate logfiles. To do so, proceed like this:
+         <a name=lilo-logs></a>
+     <pre>
+          /sbin/lilo -v -v -v >/boot/lilo.log 2>/boot/lilo.logerr
+     </pre>
+     
+     <code>/boot/lilo.logerr</code> should contain nothing at all (if the
+     boot configuration is correct). <code>/boot/lilo.log</code> will 
+     (among others) tell you precisely which geometries and BIOS device 
+     numbers LILO will be going to use.
+     <p>
+
+<li> Check the consistency of hard disk geometry information. Actually,
+     such information is stored in up to <em>four</em> places:
+     <ul>
+     <li> geometry used by LILO. <br>
+          <em>See:</em> <a href=#lilo-logs>the logs described above.</a><br>
+          <em>Adjustable by: </em> <code>disk =</code> option for 
+          <code>lilo.conf </code>. Cf. the LILO section in your 
+          SuSE Linux manual, the original LILO documentation, or   
+          <a href=ke_eide-scsi.html>
+          http://sdb.suse.de/sdb/en/html/ke_eide-scsi.html</a>. 
+     <li> geometry detected/used by the Linux kernel. <br>
+          <em>See:</em> the boot messages 
+          (<code>/var/log/boot.msg</code> or (maybe) the output
+          of the <code>dmesg</code> command).<br>
+          <em>Adjustable by: </em> suitable kernel parameters (to some extent).
+          Details e.g in your SuSE  Linux manual.
+     <li> geometry stored in the partition table.<br>
+          <em>See:</em> Output of <code>/sbin/fdisk -l</code>.<br>
+          <em>Adjustable by: </em>  <code>fdisk</code> 
+          Expert commands. <b>Very dangerous</b> for your data! 
+          Previous full backup strongly recommended! Really for
+          experts only!
+     <li> geometry used by the BIOS. LILO will meet this geometry later
+          at each system startup and must cope with it.<br>
+          <em>See:</em> BIOS-Setup (also that for your SCSI host adapter).<br>
+          <em>Adjustable by: </em> BIOS-Setup.
+     </ul>
+<p>
+
+     In case of inconsistencies the "way of least resistance" will
+often be the best method for adjustment.
+
+</ul>
+
+<h3>Data for support:</h3>
+
+<p>
+When you contact any kind of support about LILO, your chances
+for success will be <em>significantly</em> better (in light of
+the preceding), if you include the following into your request:
+<p>
+
+<ol>
+    <li><code>/etc/lilo.conf</code>,
+    <li>output of the command <code>fdisk -l</code> (partition layout),
+    <li><a href=#lilo-logs>the LILO logs</a> referred to above,
+    <li>BIOS and SCSI BIOS settings concerning your hard disks.
+</ol>
+<p>
+
+Of course, it might well be that the mere act of collecting these
+data is enough to set you onto the right track <tt>;-)</tt>
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="1024_Zylinder.html">Linux on 1024 cylinder</a><br>
+<a href="ke_eide-scsi.html">Boot: (E)IDE and SCSI</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.BOOT.html>BOOT</a>, <a href=keylist.BOOTPROBLEMS.html>BOOT-PROBLEMS</a>, <a href=keylist.LILO.html>LILO</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.BOOTLILO.html>LILO</a>
+<br>
+<HR>
+<ADDRESS>
+SDB-kgw_lilo_errmsg, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 02. Mär 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 27. Jun 2000 by rb (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

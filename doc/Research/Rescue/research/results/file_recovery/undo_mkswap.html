@@ -1,0 +1,187 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=60637119afd9c5d3,3>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Help!! Undoing mkswap</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:cpatil%40home.com+>Chetan Patil</a> (<a href=mailto:cpatil%40home.com>cpatil@home.com</a>)<br>Betrifft:Help!! Undoing mkswap <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.questions>comp.os.linux.questions</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux>comp.os.linux</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:1999/09/01
+<br></font></td></tr></table><p>
+<pre><font>
+
+Ok, I know I screwed up. But it has been a long day... :^((
+
+I have a redhat 6.0 system sitting on a 1G partiton on a 5G Disk
+(/dev/hdb) (rest were Win95 partitions of 500 Meg each).
+So I wanted to move the swap partition from my other noisy disk
+(/dev/hda) to this disk.
+
+I rebooted in the single user mode and using fdisk deleted one of the
+500 Meg Win95 partition. I then created a swap partition of 100Meg and
+rest as Linux native. 
+So I had intially
+/dev/hdb12 as the root partition.
+I deleted the above partition and created the new partitions as
+/dev/hdb11 as 400Meg Linux native
+/dev/hdb12 as 100Meg Linux swap
+/dev/hdb13 as the root partition
+
+And then I saved the partitiontable, only for it to come back saying it
+couldn't read back the partitiontable (error 16) and asked me to reboot.
+
+Here I screwed and did a mkswap on the swap partition. 
+ie mkswap /dev/hdb12
+
+However, it set up the swap on the 1G root partition since it was still
+/dev/hdb12.
+Now I get kernel panic saying &quot;Can' mount root disk fs&quot;.
+
+So I had a boot/root slackware disk, so I rebooted using these.
+I try to mount /dev/hdb13 /mnt -t ext2 and it says either bad superblock
+or invalid fs (something like that).
+
+How do I undo what mkswap did to my root partition?
+
+Help please....
+
+Thanks in advance.
+Chetan
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:robk%40physics.ubc.ca+>Robert Komar</a> (<a href=mailto:robk%40physics.ubc.ca>robk@physics.ubc.ca</a>)<br>Betrifft:Re: Help!! Undoing mkswap <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.questions>comp.os.linux.questions</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux>comp.os.linux</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:1999/09/01
+<br></font></td></tr></table><p>
+<pre><font>
+Chetan Patil &lt;cpatil@home.com&gt; wrote:
+</font>
+<font color="#660066">: Ok, I know I screwed up. But it has been a long day... :^(( 
+: I have a redhat 6.0 system sitting on a 1G partiton on a 5G Disk
+: (/dev/hdb) (rest were Win95 partitions of 500 Meg each).
+: So I wanted to move the swap partition from my other noisy disk
+: (/dev/hda) to this disk. 
+: I rebooted in the single user mode and using fdisk deleted one of the
+: 500 Meg Win95 partition. I then created a swap partition of 100Meg and
+: rest as Linux native. 
+: So I had intially
+: /dev/hdb12 as the root partition.
+: I deleted the above partition and created the new partitions as
+: /dev/hdb11 as 400Meg Linux native
+: /dev/hdb12 as 100Meg Linux swap
+: /dev/hdb13 as the root partition 
+: And then I saved the partitiontable, only for it to come back saying it
+: couldn't read back the partitiontable (error 16) and asked me to reboot. 
+: Here I screwed and did a mkswap on the swap partition. 
+: ie mkswap /dev/hdb12 
+: However, it set up the swap on the 1G root partition since it was still
+: /dev/hdb12.
+: Now I get kernel panic saying &quot;Can' mount root disk fs&quot;. 
+: So I had a boot/root slackware disk, so I rebooted using these.
+: I try to mount /dev/hdb13 /mnt -t ext2 and it says either bad superblock
+: or invalid fs (something like that). 
+: How do I undo what mkswap did to my root partition?</font>
+<font>
+Try using e2fsck on the partition (it's probably on the rescue disk rather
+than the root disk).  There are superblocks spaced at 8192 block intervals
+over the partition.  If the first one is hosed (which it probably is),
+you can specify one of the others using the `-b' option with e2fsck:
+
+e2fsck -b 8193 /dev/hdb12
+
+or
+
+e2fsck -b 16385 /dev/hdb12
+
+You can keep going higher in block number until you find one that works.
+I pulled a similar bone-headed maneuver with mkswap once.  Fortunately,
+it was only the first few blocks in the partition that got hosed in my
+case.
+
+Good luck,
+Rob Komar
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:cpatil%40home.com+>Chetan Patil</a> (<a href=mailto:cpatil%40home.com>cpatil@home.com</a>)<br>Betrifft:Re: Help!! Undoing mkswap <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.questions>comp.os.linux.questions</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux>comp.os.linux</a>, <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:1999/09/02
+<br></font></td></tr></table><p>
+<pre><font>
+Thanks Rob. e2fsck worked and I am up and running again.
+e2fsck -b 8193 did the trick. :^))
+Thanks for all your help.
+Chetan
+
+Robert Komar wrote:</font>
+<font color="#660066">&gt; 
+&gt; Chetan Patil &lt;cpatil@home.com&gt; wrote:
+&gt; </font>
+<font color="#007777">&gt; : Ok, I know I screwed up. But it has been a long day... :^(( 
+&gt; : I have a redhat 6.0 system sitting on a 1G partiton on a 5G Disk
+&gt; : (/dev/hdb) (rest were Win95 partitions of 500 Meg each).
+&gt; : So I wanted to move the swap partition from my other noisy disk
+&gt; : (/dev/hda) to this disk. 
+&gt; : I rebooted in the single user mode and using fdisk deleted one of the
+&gt; : 500 Meg Win95 partition. I then created a swap partition of 100Meg and
+&gt; : rest as Linux native.
+&gt; : So I had intially
+&gt; : /dev/hdb12 as the root partition.
+&gt; : I deleted the above partition and created the new partitions as
+&gt; : /dev/hdb11 as 400Meg Linux native
+&gt; : /dev/hdb12 as 100Meg Linux swap
+&gt; : /dev/hdb13 as the root partition 
+&gt; : And then I saved the partitiontable, only for it to come back saying it
+&gt; : couldn't read back the partitiontable (error 16) and asked me to reboot. 
+&gt; : Here I screwed and did a mkswap on the swap partition.
+&gt; : ie mkswap /dev/hdb12 
+&gt; : However, it set up the swap on the 1G root partition since it was still
+&gt; : /dev/hdb12.
+&gt; : Now I get kernel panic saying &quot;Can' mount root disk fs&quot;. 
+&gt; : So I had a boot/root slackware disk, so I rebooted using these.
+&gt; : I try to mount /dev/hdb13 /mnt -t ext2 and it says either bad superblock
+&gt; : or invalid fs (something like that). 
+&gt; : How do I undo what mkswap did to my root partition?</font>
+<font color="#660066">&gt; 
+&gt; Try using e2fsck on the partition (it's probably on the rescue disk rather
+&gt; than the root disk).  There are superblocks spaced at 8192 block intervals
+&gt; over the partition.  If the first one is hosed (which it probably is),
+&gt; you can specify one of the others using the `-b' option with e2fsck:
+&gt; 
+&gt; e2fsck -b 8193 /dev/hdb12
+&gt; 
+&gt; or
+&gt; 
+&gt; e2fsck -b 16385 /dev/hdb12
+&gt; 
+&gt; You can keep going higher in block number until you find one that works.
+&gt; I pulled a similar bone-headed maneuver with mkswap once.  Fortunately,
+&gt; it was only the first few blocks in the partition that got hosed in my
+&gt; case.
+&gt; 
+&gt; Good luck,
+&gt; Rob Komar</font>
+<font>
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,178 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=7e8c675708a5a826,3>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>No space left on device with /var filesystem</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:wkfung%40maews68.acae.cuhk.edu.hk+>Fung Wai Keung</a> (<a href=mailto:wkfung%40maews68.acae.cuhk.edu.hk>wkfung@maews68.acae.cuhk.edu.hk</a>)<br>Subject: No space left on device with /var filesystem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/11/24
+<br></font></td></tr></table><p>
+<pre><font>
+Hi all,
+
+I am running Linux Mandrake 7.1.  I sometimes encounter the &quot;no space left
+in device&quot; error when I run some commands like
+
+root@acaepc53:/home/users/wkfung&gt;rpm --rebuilddb
+error creating directory /var/lib/rpmrebuilddb.11932: No space left on
+device
+
+or
+[ I can't print anything]
+root@acaepc53:/etc/rc.d/init.d&gt;lpr ~/.cshrc
+lpr: cannot create /var/spool/lpd/lp/tfA119acaepc53.acae.cuhk.edu.hk
+root@acaepc53:/etc/rc.d/init.d&gt;./lpd restart
+Shutting down lpd:                                         [  OK  ]
+Starting lpd:                                              [  OK  ]
+touch: /var/lock/subsys/lpd: No space left on device
+root@acaepc53:/etc/rc.d/init.d&gt;
+
+and so on.  All involve the /var filesystem, saying that it has no
+availabe space.  However, I have more 160M available in /var, as reported
+by df
+
+root@acaepc53:/etc/rc.d/init.d&gt;df
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda1             190M   68M  112M  38% /
+/dev/hda8             2.4G  261M  2.0G  11% /apps
+/dev/hda10             11G  1.0G  9.7G   9% /home
+/dev/hda7             289M  5.6M  268M   2% /tmp
+/dev/hda9             3.8G  2.1G  1.5G  58% /usr
+/dev/hda6             289M  107M  167M  39% /var
+/proc/bus/usb         289M  289M     0 100% /proc/bus/usb
+
+What is the problem with my /var?  and how to solve the problem?
+
+Thanks in advance. 
+
+-- 
+
+Regards,
+Wai Keung, Fung
+
+Department of Automation and Computer Aided Engineering,
+The Chinese University of Hong Kong,
+Shatin, N.T.,
+Hong Kong
+
+Tel: (852)26098056	Fax: (852)26036002
+Email: wkfung@acae.cuhk.edu.hk
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:spike1%40freenet.co.uk+>spike1@freenet.co.uk</a> (<a href=mailto:spike1%40freenet.co.uk>spike1@freenet.co.uk</a>)<br>Subject: Re: No space left on device with /var filesystem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/11/25
+<br></font></td></tr></table><p>
+<pre><font>
+Stefano Ghirlanda &lt;stefano@zool.su.se&gt; did eloquently scribble:</font>
+<font color="#660066">&gt; Jean-David Beyer &lt;jdbeyer@exit109.com&gt; writes: </font>
+<font color="#007777">&gt;&gt; What do you have in there that takes up all the space? Some of it may
+&gt;&gt; be unnecessary and could be removed. </font>
+<font color="#660066">&gt; This seems correct. Imagine the problem is occurring *twice*: the
+&gt; first fills 50% or so of /var, but only the second time you actually
+&gt; see the error... might be worth a look.</font>
+<font>
+Isn't it also possibly not a disk SPACE problem, but a limited INODE
+problem?
+
+var is one of the filesystems that does tend to store LOTS of small files,
+so it seems likely that he may be running out of inodes rather than disk
+space itself...
+</font>
+<font color="#007777">-- 
+______________________________________________________________________________
+|   spike1@freenet.co.uk   |                                                 |
+|Andrew Halliwell BSc(hons)| &quot;ARSE! GERLS!! DRINK! DRINK! DRINK!!!&quot;          |
+|            in            | &quot;THAT WOULD BE AN ECUMENICAL MATTER!...FECK!!!! |
+|     Computer Science     | - Father Jack in &quot;Father Ted&quot;                   |
+------------------------------------------------------------------------------
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:wkfung%40maews68.acae.cuhk.edu.hk+>Fung Wai Keung</a> (<a href=mailto:wkfung%40maews68.acae.cuhk.edu.hk>wkfung@maews68.acae.cuhk.edu.hk</a>)<br>Subject: Re: No space left on device with /var filesystem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/11/26
+<br></font></td></tr></table><p>
+<pre><font>
+Hi all,
+
+My problem is solved and I also updated my logrotate and sysklog packages.
+Thank you very much for all your help.
+
+However, my MandrakeUpdate only stuck on finding a list of mirror sites
+when I run it.  How to solve it?
+
+Thanks in advance.
+
+Bill Unruh &lt;unruh@physics.ubc.ca&gt; wrote:</font>
+<font color="#660066">: In &lt;3A1EB504.249218EE@exit109.com&gt; Jean-David Beyer &lt;jdbeyer@exit109.com&gt; writes: 
+: ]Fung Wai Keung wrote:
+: ]&gt; 
+: ]&gt; Hi all,
+: ]&gt; 
+: ]&gt; I am running Linux Mandrake 7.1.  I sometimes encounter the &quot;no space left
+: ]&gt; in device&quot; error when I run some commands like
+: ]&gt; 
+: ]&gt; root@acaepc53:/home/users/wkfung&gt;rpm --rebuilddb
+: ]&gt; error creating directory /var/lib/rpmrebuilddb.11932: No space left on
+: ]&gt; device
+: ]&gt; 
+: ]&gt; or
+: ]&gt; [ I can't print anything]
+: ]&gt; root@acaepc53:/etc/rc.d/init.d&gt;lpr ~/.cshrc
+: ]&gt; lpr: cannot create /var/spool/lpd/lp/tfA119acaepc53.acae.cuhk.edu.hk
+: ]&gt; root@acaepc53:/etc/rc.d/init.d&gt;./lpd restart
+: ]&gt; Shutting down lpd:                                         [  OK  ]
+: ]&gt; Starting lpd:                                              [  OK  ]
+: ]&gt; touch: /var/lock/subsys/lpd: No space left on device
+: ]&gt; root@acaepc53:/etc/rc.d/init.d&gt;
+: ]&gt; 
+: ]&gt; and so on.  All involve the /var filesystem, saying that it has no
+: ]&gt; availabe space.  However, I have more 160M available in /var, as reported
+: ]&gt; by df 
+: This is a bug in logrotate on Mandrake 7.1 It keeps making more and more
+: and more ( twice as many every time logrotate is called ) in
+: /var/log/mail and /var/log/news. They are all 0 length files, but they
+: use up all the inodes, so no new files can be created. Erase all files
+: in these directories, AND go to the Mandrake site and UPDATE logrotate.  
+: Really, you should be going there regularly ( use MandrakeUpdate or
+: whatever) to keep your system updated. Next time it will be some cracker
+: who has erased all your files because you left buggy security features
+: unfixed. </font>
+<font color="#007777">-- 
+
+Regards,
+Wai Keung, Fung
+
+Department of Automation and Computer Aided Engineering,
+The Chinese University of Hong Kong,
+Shatin, N.T.,
+Hong Kong
+
+Tel: (852)26098056	Fax: (852)26036002
+Email: wkfung@acae.cuhk.edu.hk
+</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

@@ -1,0 +1,189 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=397ceb8c1eea29b2,3>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>Help!! Read-only file system</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:xhale%40yahoo.com+>Rod</a> (<a href=mailto:xhale%40yahoo.com>xhale@yahoo.com</a>)<br>Subject: Help!! Read-only file system <br>Newsgroups: comp.local.linux.redhat.alpha, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.install>linux.redhat.install</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.misc>linux.redhat.misc</a><br>Date: 1999/08/23
+<br></font></td></tr></table><p>
+<pre><font>
+Help!  I was typing away at my computer when my crappy keyboard holder
+fell on my PC Tower.  The computer started making a loud clunky noise
+and so I shut down all running programs and rebooted.
+
+Unfortunately, when I did this the computer came up with the following
+error
+
+-------------------------------------------------------
+
+VFS: Mounted root (ext2 filesystem) read only
+Freeint unused Kernel memory: 44k freed
+INIT: Version 2.74
+Activating swap partitions
+Adding Swap: 42300k swap-space (priority -1)
+hostname: &lt;hostname&gt;
+
+checking root filesystems
+Parallelizing fsck version 1.12 (9-Jul-98)
+[/sbin/fsch.ext2] fsck.ext3 -a /dev/hda5
+
+/dev/hda5 contains a file system with errors, check forced
+
+ &lt;...spends about 5 minutes checking..&gt;
+
+
+/dev/hda5: duplicate or bad block found  invoking block passes
+
+Pass 1B: Rescan for duplicate/bad blocks
+
+
+/dev/hda5: Duplicate/bad block(s) in inode 18769/dev/hda5:
+104418/dev/hda5: 104419/dev/hda5: 104420/dev/hda5: 104421/dev/hda5:
+104434/dev/hda5:
+
+/dev/hda5: Pass 1C: Scan directories for inodes with duplicate blocks
+/dev/hda5: Pass 1D: Reconciling duplicate blocks
+/dev/hda5: (There are 3 inodes containing duplicate/bad blocks.)
+
+/dev/hda5: File /var/log/messages.2 (inode #18769, mod time Sat Aug 7
+04:02:36 1999)
+has 9 duplicate blocks shares with 2 file(s):
+
+/dev/hda5: /var/log/wtmp.1 (inode #18769, mod time Fri Aug 6 10:06:16
+1999)
+/dev/hda5: /root/nsmail/.Trash.summary (inode #14497 mod time Mon Aug 9
+09:53:21 1999)
+
+/dev/hda5: UNEXPECTED INCONSISTENCY, RUN fsck MANUALLY. (i.e. without -a
+or -p options)
+
+
+*** An error occurred during the file system check
+*** Dropping you to a shell; the system will reboot
+*** When you leave the shell
+
+Give root password for maintenance (or type Control-D for normal
+start-up)
+-------------------------------------------------------
+
+When I typed in the root password it went to the shell, but everything
+was in read-only (write-protected) mode
+
+When I did the Control-D, I noticed that when ever it tried to unmount
+something it gave an error like:
+
+Unmounting filesystem: read only file system.
+
+Can anyone help? I'm current running Red Hat Linux, V. 5.3
+
+
+Thanks very much in advance,
+
+Rod
+
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:stu%40c49395-a.wodhvn1.mi.home.com+>Stuart R. Fuller</a> (<a href=mailto:stu%40c49395-a.wodhvn1.mi.home.com>stu@c49395-a.wodhvn1.mi.home.com</a>)<br>Subject: Re: Help!! Read-only file system <br>Newsgroups: comp.local.linux.redhat.alpha, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.install>linux.redhat.install</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.misc>linux.redhat.misc</a><br>Date: 1999/08/23
+<br></font></td></tr></table><p>
+<pre><font>
+Rod (xhale@yahoo.com) wrote:</font>
+<font color="#660066">: 
+: /dev/hda5: UNEXPECTED INCONSISTENCY, RUN fsck MANUALLY. (i.e. without -a
+: or -p options)
+: 
+: 
+: *** An error occurred during the file system check
+: *** Dropping you to a shell; the system will reboot
+: *** When you leave the shell
+: 
+: Give root password for maintenance (or type Control-D for normal
+: start-up)
+: -------------------------------------------------------
+: 
+: When I typed in the root password it went to the shell, but everything
+: was in read-only (write-protected) mode</font>
+<font>
+Ok, you typed the root password for maintenance.  Did you do any maintenance,
+or did you just type ^D?  
+
+For maintenance, what you want to do is to run fsck against the file system
+with the problem:
+
+        # fsck -y /dev/hda5
+        
+When it's done, type ^D.  Yeah, there will many errors with &quot;read-only file
+system&quot;, but that's normal.  It'll then reboot and life will be wonderful.
+
+        Stu
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:Karsten.Bott%40ffm2.siemens.de+>Karsten Bott</a> (<a href=mailto:Karsten.Bott%40ffm2.siemens.de>Karsten.Bott@ffm2.siemens.de</a>)<br>Subject: Re: Help!! Read-only file system <br>Newsgroups: comp.local.linux.redhat.alpha, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.redhat>comp.os.linux.redhat</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.install>linux.redhat.install</a>, <a href=/groups?hl=en&lr=&safe=off&group=linux.redhat.misc>linux.redhat.misc</a><br>Date: 1999/08/24
+<br></font></td></tr></table><p>
+<pre><font>
+&quot;Stuart R. Fuller&quot; wrote:
+</font>
+<font color="#660066">&gt; Rod (xhale@yahoo.com) wrote:</font>
+<font color="#007777">&gt; :
+&gt; : /dev/hda5: UNEXPECTED INCONSISTENCY, RUN fsck MANUALLY. (i.e. without -a
+&gt; : or -p options)
+&gt; :
+&gt; :
+&gt; : *** An error occurred during the file system check
+&gt; : *** Dropping you to a shell; the system will reboot
+&gt; : *** When you leave the shell
+&gt; :
+&gt; : Give root password for maintenance (or type Control-D for normal
+&gt; : start-up)
+&gt; : -------------------------------------------------------
+&gt; :
+&gt; : When I typed in the root password it went to the shell, but everything
+&gt; : was in read-only (write-protected) mode</font>
+<font color="#660066">&gt;
+&gt; Ok, you typed the root password for maintenance.  Did you do any maintenance,
+&gt; or did you just type ^D?
+&gt;
+&gt; For maintenance, what you want to do is to run fsck against the file system
+&gt; with the problem:
+&gt;
+&gt;         # fsck -y /dev/hda5
+&gt;
+&gt; When it's done, type ^D.  Yeah, there will many errors with &quot;read-only file
+&gt; system&quot;, but that's normal.  It'll then reboot and life will be wonderful.
+&gt;
+&gt;         Stu</font>
+<font>
+or try 'mount -o  rw,remount / 'to remount root in read / write mode an run fsck
+
+Karsten
+
+
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

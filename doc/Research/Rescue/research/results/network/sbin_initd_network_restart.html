@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/wey_network.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>/sbin/init.d/network restart does not funciton</H2>
+
+<strong>
+<a href=../../../de/sdb/html/wey_network.html>Deutsch</a>
+<a href=../../../fr/sdb/html/wey_network.html>Français</a>
+<a href=../../../es/sdb/html/wey_network.html>Español</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (wey_network)</H5>
+<strong>Applies to</strong><p>
+<strong>SuSE Linux</strong>: Version 6.1, 1st Edition<br>
+<p><h3>Symptom:</h3>
+
+You run the script 
+
+<pre>
+/sbin/init.d/network restart
+</pre>
+but it does not reinitialize the network interfaces.
+
+<h3>Reason:</h3>
+
+In the script <code>/sbin/init.d/network</code> there is a small mistake.
+
+<h3>Solution:</h3>
+
+You must change line 64 in <code>/sbin/init.d/network</code> from:
+
+<pre>
+        $0 stop && $0 stop || return=$rc_failed
+</pre>
+
+to:
+
+<pre>
+        $0 stop && $0 start || return=$rc_failed
+</pre>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.NETWORK.html>NETWORK</a>, <a href=keylist.SCRIPT.html>SCRIPT</a>, <a href=keylist.RESTART.html>RESTART</a>, <a href=keylist.61.html>6.1</a><br>
+<HR>
+<ADDRESS>
+SDB-wey_network, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 15. Apr 1999
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 15. Apr 1999 by wey (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/bzimage.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>Kernel too big</H2>
+
+<strong>
+<a href=../../../de/sdb/html/bzimage.html>Deutsch</a>
+<a href=../../../es/sdb/html/bzimage.html>Español</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (bzimage)</H5>
+<h3>Symptom:</h3>
+<p>
+After you've configured the kernel, you start the compilation with e.g.
+the command <code>make zImage</code>. At the end of the compilation process 
+you get an error like
+<pre>
+Boot sector 512 bytes
+Setup is 1252 bytes
+System is 531kB
+System is too big
+</pre>
+<p>
+The numbers are just examples.
+<p>
+The message might also appear, when you try to install the kernel 
+(with YaST) or to call <code>/sbin/lilo</code> (with YaST) :
+<pre>
+Kernel too big
+</pre>
+
+<h3>Cause:</h3>
+<p>
+Too many drivers were compiled directly into the kernel ('<code>y</code>' instead of
+'<code>m</code>').
+
+<h3>Solution:</h3>
+<p>
+There are two possible solutions. The first one should be preferred. It is unlikely that
+you need the second.
+
+<ol>
+<p>
+<li> Please think twice which of the chosen options in the kernel you really need.
+"The more the better" is <em>not</em> a good choice for the kernel. A small kernel
+that fits your system very well is what you should try to get when compiling a new 
+kernel.
+<p>
+A lot of the available drivers can be compiled as a <em>module</em>. These should be
+preferred (where possible, see below). Modules get loaded automatically when needed.
+Thus they only consume memory when they're loaded (see manual).
+<p>
+The follwoing options should <b><em>not</em></b> be chosen as a module :
+<ul>
+<p>
+<li> Support for the ELF binary format
+<p>
+<li> Support for the EXT2 filesystem
+<p> 
+<li> If your Root partition sits on a SCSI drive :<br>
+     Support for SCSI controller and SCSI disk(s).
+<p> 
+<li> If your Root partition sits on an EIDE drive :<br>
+     Support for EIDE controller and EIDE disk(s).
+</ul>
+<p>
+<li> If you really want a huge, monolithic  kernel with a lot of drivers, try the command
+<code>make bzImage</code>.
+</ol>
+<p>
+For further information please read the <code>Lilo User Guide</code> in the directory
+<code>/usr/doc/packages/lilo-$VERSION/</code>.
+<HR>
+<strong>Keywords:</strong> <a href=keylist.ZIMAGE.html>ZIMAGE</a>, <a href=keylist.BZIMAGE.html>BZIMAGE</a>, <a href=keylist.KERNEL.html>KERNEL</a>, <a href=keylist.TOOBIG.html>TOO BIG</a><br>
+<HR>
+<ADDRESS>
+SDB-bzimage, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 13. Sep 1998
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 13. Sep 1998 by support (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

@@ -1,0 +1,339 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=9fef194c540434da>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>File system/Superblock problems</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 8</b> of <b>8</b>.  </font></td></tr></table><br clear=all>
+<a name=926000921>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:drl7x%40cs.Virginia.EDU+>David Richard Larochelle</a> (<a href=mailto:drl7x%40cs.Virginia.EDU>drl7x@cs.Virginia.EDU</a>)<br>Subject: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-13 22:28:02 PST
+<br></font></td></tr></table><p>
+<pre><font>My linux file system seems to be corrupted.
+When I try to boot I get a kernel panic unable to mount root file system.
+
+I tired booting off a rescue disk and running e2fsck but I get something
+like:
+e2fsck: Bad magic number in super-block while trying to open /dev/hdb1
+
+The superblock could not be read or does not describe a correct ext2
+filesystem.  If the device is valid and it really contains an ext2
+filesystem (and not swap or ufs or something else), then the superblock
+is corrupt, and you might try running e2fsck with an alternate superblock:
+    e2fsck -b 8193 &lt;device&gt;
+
+I've tried running e2fsck with -b 8193 and with -b 16385 but I still get
+the same message.  I added 8192 and repaeted this  about 5 more times but
+still no  luck.
+
+Anyone have any sugestions? I really don't want to lose the data on that
+partition.
+
+Thanks in advance,
+
+David
+
+</font></pre>
+
+<a name=925971433>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:svolaf%40inet.uni2.dk+>Svend Olaf Mikkelsen</a> (<a href=mailto:svolaf%40inet.uni2.dk>svolaf@inet.uni2.dk</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-14 01:05:49 PST
+<br></font></td></tr></table><p>
+<pre><font>David Richard Larochelle &lt;drl7x@cs.Virginia.EDU&gt; wrote:
+</font>
+<font color="#660066">&gt;My linux file system seems to be corrupted.
+&gt;When I try to boot I get a kernel panic unable to mount root file system.
+&gt;
+&gt;I tired booting off a rescue disk and running e2fsck but I get something
+&gt;like:
+&gt;e2fsck: Bad magic number in super-block while trying to open /dev/hdb1
+&gt;
+&gt;The superblock could not be read or does not describe a correct ext2
+&gt;filesystem.  If the device is valid and it really contains an ext2
+&gt;filesystem (and not swap or ufs or something else), then the superblock
+&gt;is corrupt, and you might try running e2fsck with an alternate superblock:
+&gt;    e2fsck -b 8193 &lt;device&gt;
+&gt;
+&gt;I've tried running e2fsck with -b 8193 and with -b 16385 but I still get
+&gt;the same message.  I added 8192 and repaeted this  about 5 more times but
+&gt;still no  luck.
+&gt;
+&gt;Anyone have any sugestions? I really don't want to lose the data on that
+&gt;partition.
+&gt;
+&gt;Thanks in advance,
+&gt;
+&gt;David</font>
+<font>
+Initially get Findpart at http://inet.uni2.dk/~svolaf/utilities.htm
+
+do from DOS or Windows:
+
+findpart all fp.txt
+
+and insert (not attach) the output into a follow-up to this message.
+
+If you have FAT partitions on the disk, do not write to them until the
+nature of the problem is known.</font>
+<font color="#007777">-- 
+Svend Olaf</font>
+</pre>
+
+<a name=925960415>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-14 01:52:08 PST
+<br></font></td></tr></table><p>
+<pre><font>&quot;David Richard Larochelle&quot; &lt;drl7x@cs.Virginia.EDU&gt; wrote in message
+news:Pine.GSO.4.32.0102140103220.21570-100000@cobra.cs.Virginia.EDU...</font>
+<font color="#660066">&gt; My linux file system seems to be corrupted.
+&gt; When I try to boot I get a kernel panic unable to mount root file system.
+&gt;
+&gt; I tired booting off a rescue disk and running e2fsck but I get something
+&gt; like:
+&gt; e2fsck: Bad magic number in super-block while trying to open /dev/hdb1
+&gt;
+&gt; The superblock could not be read or does not describe a correct ext2
+&gt; filesystem.  If the device is valid and it really contains an ext2
+&gt; filesystem (and not swap or ufs or something else), then the superblock
+&gt; is corrupt, and you might try running e2fsck with an alternate superblock:
+&gt;     e2fsck -b 8193 &lt;device&gt;
+&gt;
+&gt; I've tried running e2fsck with -b 8193 and with -b 16385 but I still get
+&gt; the same message.  I added 8192 and repaeted this  about 5 more times but
+&gt; still no  luck.</font>
+<font>
+try one of the following superblock locations:
+32768
+98304
+163840
+
+Eric
+
+
+
+</font></pre>
+
+<a name=925600407>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:drl7x%40cs.Virginia.EDU+>David Richard Larochelle</a> (<a href=mailto:drl7x%40cs.Virginia.EDU>drl7x@cs.Virginia.EDU</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-14 18:37:36 PST
+<br></font></td></tr></table><p>
+<pre><font>On Wed, 14 Feb 2001, Eric wrote:</font>
+<font color="#660066">&gt;
+&gt; &quot;David Richard Larochelle&quot; &lt;drl7x@cs.Virginia.EDU&gt; wrote in message
+&gt; news:Pine.GSO.4.32.0102140103220.21570-100000@cobra.cs.Virginia.EDU...</font>
+<font color="#007777">&gt; &gt; My linux file system seems to be corrupted.
+&gt; &gt; When I try to boot I get a kernel panic unable to mount root file system.
+&gt; &gt;
+&gt; &gt; I tired booting off a rescue disk and running e2fsck but I get something
+&gt; &gt; like:
+&gt; &gt; e2fsck: Bad magic number in super-block while trying to open /dev/hdb1
+&gt; &gt;
+&gt; &gt; I've tried running e2fsck with -b 8193 and with -b 16385 but I still get
+&gt; &gt; the same message.  I added 8192 and repaeted this  about 5 more times but
+&gt; &gt; still no  luck.</font>
+<font color="#660066">&gt;
+&gt; try one of the following superblock locations:
+&gt; 32768</font>
+<font>32768 worked
+
+Thanks for your help
+
+</font></pre>
+
+<a name=925519065>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-15 01:52:21 PST
+<br></font></td></tr></table><p>
+<pre><font color="#007777">&gt; &gt;
+&gt; &gt; try one of the following superblock locations:
+&gt; &gt; 32768</font>
+<font color="#660066">&gt; 32768 worked
+&gt;</font>
+<font>
+Stil run Findpart as svend-olaf mentioned, as there must be a reason why
+this
+has happened.
+(Or post `fdisk -l /dev/hd[a-z]` here)
+
+Eric
+
+
+</font></pre>
+
+<a name=925080161>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:drl7x%40cs.Virginia.EDU+>David Richard Larochelle</a> (<a href=mailto:drl7x%40cs.Virginia.EDU>drl7x@cs.Virginia.EDU</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-16 01:30:37 PST
+<br></font></td></tr></table><p>
+<pre><font>Okay here's the fdisk output.  The partition with the problem was
+/dev/hdb1
+
+~# fdisk -l /dev/hd[a-z]
+
+Disk /dev/hda: 255 heads, 63 sectors, 1401 cylinders
+Units = cylinders of 16065 * 512 bytes
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hda1   *         1       255   2048256    b  Win95 FAT32
+/dev/hda2           256       510   2048287+  83  Linux
+/dev/hda3           511       523    104422+  82  Linux swap
+/dev/hda4           524       562    313267+  83  Linux
+
+Disk /dev/hdb: 255 heads, 63 sectors, 524 cylinders
+Units = cylinders of 16065 * 512 bytes
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hdb1             1       510   4096543+  83  Linux
+/dev/hdb2           511       524    112455    5  Extended
+/dev/hdb5           511       524    112423+  82  Linux swap
+
+
+On Thu, 15 Feb 2001, Eric wrote:
+</font>
+<font color="#990000">&gt; &gt; &gt;
+&gt; &gt; &gt; try one of the following superblock locations:
+&gt; &gt; &gt; 32768</font>
+<font color="#007777">&gt; &gt; 32768 worked
+&gt; &gt;</font>
+<font color="#660066">&gt;
+&gt; Stil run Findpart as svend-olaf mentioned, as there must be a reason why
+&gt; this
+&gt; has happened.
+&gt; (Or post `fdisk -l /dev/hd[a-z]` here)
+&gt;
+&gt; Eric
+&gt;
+&gt;
+&gt; </font>
+</pre>
+
+<a name=924964894>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 7 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-16 04:35:25 PST
+<br></font></td></tr></table><p>
+<pre><font color="#660066">&gt; Okay here's the fdisk output.  The partition with the problem was
+&gt; /dev/hdb1</font>
+<font>
+You'd better make hdb2 type 0x85.
+Windows will then no longer see that non-existing D:
+It may well be the reason that this corruption happened.
+
+PS. where is the rest of hda?
+You only use that disc partially (WHY)?
+It claims to have 1401 cylinders, and the last cyl. you use is 562.
+You cannot use the rest of that disc unless you repartition, because you ran
+out of
+primary partitions.
+
+Eric
+</font>
+<font color="#660066">&gt; ~# fdisk -l /dev/hd[a-z]
+&gt;
+&gt; Disk /dev/hda: 255 heads, 63 sectors, 1401 cylinders
+&gt; Units = cylinders of 16065 * 512 bytes
+&gt;
+&gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; /dev/hda1   *         1       255   2048256    b  Win95 FAT32
+&gt; /dev/hda2           256       510   2048287+  83  Linux
+&gt; /dev/hda3           511       523    104422+  82  Linux swap
+&gt; /dev/hda4           524       562    313267+  83  Linux
+&gt;
+&gt; Disk /dev/hdb: 255 heads, 63 sectors, 524 cylinders
+&gt; Units = cylinders of 16065 * 512 bytes
+&gt;
+&gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; /dev/hdb1             1       510   4096543+  83  Linux
+&gt; /dev/hdb2           511       524    112455    5  Extended
+&gt; /dev/hdb5           511       524    112423+  82  Linux swap
+&gt;
+&gt;</font>
+<font>
+
+
+</font></pre>
+
+<a name=924347475>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 8 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:drl7x%40cs.Virginia.EDU+>David Richard Larochelle</a> (<a href=mailto:drl7x%40cs.Virginia.EDU>drl7x@cs.Virginia.EDU</a>)<br>Subject: Re: File system/Superblock problems <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2001-02-17 22:30:35 PST
+<br></font></td></tr></table><p>
+<pre><font>On Fri, 16 Feb 2001, Eric wrote:
+</font>
+<font color="#660066">&gt;</font>
+<font color="#007777">&gt; &gt; Okay here's the fdisk output.  The partition with the problem was
+&gt; &gt; /dev/hdb1</font>
+<font color="#660066">&gt;
+&gt; You'd better make hdb2 type 0x85.
+&gt; Windows will then no longer see that non-existing D:
+&gt; It may well be the reason that this corruption happened.</font>
+<font>I made the change thanks for pointing that out.
+
+</font>
+<font color="#660066">&gt;
+&gt; PS. where is the rest of hda?
+&gt; You only use that disc partially (WHY)?
+&gt; It claims to have 1401 cylinders, and the last cyl. you use is 562.
+&gt; You cannot use the rest of that disc unless you repartition, because you ran
+&gt; out of
+&gt; primary partitions.</font>
+<font>Thanks for pointing that out.  Looks like I was careless when I
+partitioned the drive.  I'll have a back up a hda4  and then redo the table
+to use extened partitions.
+</font>
+<font color="#660066">&gt;
+&gt; Eric
+&gt;</font>
+<font color="#007777">&gt; &gt; ~# fdisk -l /dev/hd[a-z]
+&gt; &gt;
+&gt; &gt; Disk /dev/hda: 255 heads, 63 sectors, 1401 cylinders
+&gt; &gt; Units = cylinders of 16065 * 512 bytes
+&gt; &gt;
+&gt; &gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; &gt; /dev/hda1   *         1       255   2048256    b  Win95 FAT32
+&gt; &gt; /dev/hda2           256       510   2048287+  83  Linux
+&gt; &gt; /dev/hda3           511       523    104422+  82  Linux swap
+&gt; &gt; /dev/hda4           524       562    313267+  83  Linux
+&gt; &gt;
+&gt; &gt; Disk /dev/hdb: 255 heads, 63 sectors, 524 cylinders
+&gt; &gt; Units = cylinders of 16065 * 512 bytes
+&gt; &gt;
+&gt; &gt;    Device Boot    Start       End    Blocks   Id  System
+&gt; &gt; /dev/hdb1             1       510   4096543+  83  Linux
+&gt; &gt; /dev/hdb2           511       524    112455    5  Extended
+&gt; &gt; /dev/hdb5           511       524    112423+  82  Linux swap
+&gt; &gt;
+&gt; &gt;</font>
+<font color="#660066">&gt;
+&gt;
+&gt;
+&gt;</font>
+<font>
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

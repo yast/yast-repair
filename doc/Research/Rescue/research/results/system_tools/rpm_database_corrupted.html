@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><TITLE>http://sdb.suse.de/en/sdb/html/ke_rpm-db.html</TITLE>
+<BASE HREF="http://sdb.suse.de/en/sdb/html/">
+</HEAD><BODY BGCOLOR="#ffffff"><H2>RPM database corrupted</H2>
+
+<strong>
+<a href=../../../de/sdb/html/ke_rpm-db.html>Deutsch</a>
+</strong><p>
+</FORM>
+<H5>Support knowledgebase (ke_rpm-db)</H5>
+<strong>Applies to</strong><p>
+<strong>SuSE Linux</strong>: Versions since 5.0<br>
+<p><h3>Symptom:</h3>
+<p>
+It is not possible anymore to install software packages. A system update cannot be started
+or finished. A message like the following might appear :
+<pre>
+free list corrupt(1753864) - contact support@redhat.com.
+</pre>
+
+<h3>Cause:</h3>
+<p>
+The RPM database in the directory <code>/var/lib/rpm</code> might be damaged.
+
+<h3>Solution:</h3>
+<p>
+<code>rpm</code> can rebuild that database.
+
+<ol>
+<p>
+<li> Please make a backup of the directory <code>/var/lib/rpm</code> first.
+<p>
+<li> Execute the command
+<pre>
+rpm --rebuilddb
+</pre>
+<p>
+<li> Try to continue the update procedure or install packages with YaST, if desired.
+</ol>
+<HR>
+<strong>See also:</strong>
+<ul>
+<a href="ke_rpm.html">rpm - The package manager of S.u.S.E. Linux</a><br>
+</ul>
+<HR>
+<strong>Keywords:</strong> <a href=keylist.RPMDB.html>RPMDB</a>, <a href=keylist.UPDATE.html>UPDATE</a>, <a href=keylist.INSTALLATION.html>INSTALLATION</a>, <a href=keylist.INSTALLING.html>INSTALLING</a>, <a href=keylist.PACKAGE.html>PACKAGE</a><br>
+<HR>
+<strong>Categories:</strong>
+ <a href=katlist.PACK.html>Packages</a>
+,  <a href=katlist.FAQ.html>Frequently asked Questions</a>
+<br>
+<HR>
+Feedback welcome: <a href="mailto:ke@suse.de?subject=SDB-ke_rpm-db">Send Mail to ke@suse.de</a> (Please give the following subject: <code>SDB-ke_rpm-db</code>)
+<HR>
+<ADDRESS>
+SDB-ke_rpm-db, Copyright <a href="http://www.suse.de/">SuSE GmbH</a>, Nürnberg, Germany
+ - Version: 06. Jan 1999
+<br><A HREF="http://www.suse.de/en/suse/index.html">SuSE GmbH</A> - Last generated: 06. Jan 1999 by ke (sdb_gen 1.20.0)
+</ADDRESS>
+<!--#include virtual="/en/navigation/sdb-footer.html"-->
+</PRE>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+</BODY></HTML>

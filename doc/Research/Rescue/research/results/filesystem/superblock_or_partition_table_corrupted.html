@@ -1,0 +1,175 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=aeec388ea446b96>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>Superblock corrupt!</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 4</b> of <b>4</b>.  </font></td></tr></table><br clear=all>
+<a name=981765510>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: Superblock corrupt! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-03 00:14:14 PST
+<br></font></td></tr></table><p>
+<pre><font>NoMadis wrote:</font>
+<font color="#660066">&gt; 
+&gt; Hi,
+&gt; some stupid dos program ruined one of my Linux partitions.
+&gt; As a result I cannot mount it anymore, and I cannot repair it with the
+&gt; ext2fs utilities.
+&gt; 
+&gt; Does somebody know a program that will allow me to repair it?
+&gt; (there are some files on it that i need)  :(
+&gt; 
+&gt; --
+&gt; Greetz,
+&gt; Joop
+&gt; -----------------------------------------------------------------------
+&gt;  Joop Bollen.   Nuts &amp; Bolts Department,    Nomadis Systems, Holland
+&gt; We all live under the same sky, but we don't all have the same horizon.</font>
+<font>
+There are very likely more superblocks than just one on that partition.
+Have you tried any of the other superblocks?
+look at the following locations for duplicate superblocks:
+  32768
+  98304
+  163840
+(reported locations where superblock duplicates were stored from a RH6.2
+install on my system)
+
+If all else fails, perhaps you can use dd to get data off the partition,
+but then it obviously will take a lot of work to sort out what/where the
+actual  data is that you need.
+
+Ik hoop dat het lukt Joop,
+
+Eric
+</font></pre>
+
+<a name=981756914>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:svolaf%40inet.uni2.dk+>Svend Olaf Mikkelsen</a> (<a href=mailto:svolaf%40inet.uni2.dk>svolaf@inet.uni2.dk</a>)<br>Subject: Re: Superblock corrupt! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-03 01:03:37 PST
+<br></font></td></tr></table><p>
+<pre><font>nomadis@cistron.nl (NoMadis) wrote:
+</font>
+<font color="#660066">&gt;Hi,
+&gt;some stupid dos program ruined one of my Linux partitions.
+&gt;As a result I cannot mount it anymore, and I cannot repair it with the
+&gt;ext2fs utilities.
+&gt;
+&gt;Does somebody know a program that will allow me to repair it?
+&gt;(there are some files on it that i need)  :(</font>
+<font>
+In quite a few cases like this, it is the partition table and not the
+partition itself, that is damaged. If you want me to evaluate the
+situation, you can initially get Findpart at
+
+http://inet.uni2.dk/~svolaf/utilities.htm
+
+do from DOS or Windows:
+
+findpart all +fat fp.txt
+
+and post the content from fp.txt in a follow-up to this message.</font>
+<font color="#007777">-- 
+Svend Olaf</font>
+</pre>
+
+<a name=981348337>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:scare.crow%40oz.land+>Eric</a> (<a href=mailto:scare.crow%40oz.land>scare.crow@oz.land</a>)<br>Subject: Re: Superblock corrupt! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-04 00:33:40 PST
+<br></font></td></tr></table><p>
+<pre><font>NoMadis wrote:</font>
+<font color="#660066">&gt; 
+&gt; On Tue, 03 Oct 2000 Svend Olaf Mikkelsen &lt;svolaf@inet.uni2.dk&gt; wrote:
+&gt; </font>
+<font color="#007777">&gt; &gt;
+&gt; &gt;
+&gt; &gt;In quite a few cases like this, it is the partition table and not the
+&gt; &gt;partition itself, that is damaged. If you want me to evaluate the</font>
+<font color="#660066">&gt; 
+&gt; This is true, the partitiontable was completely destroyed.
+&gt; The partition was an extended partition with 9 logical partitions in it.
+&gt; Howver,I have successfully restored the partitiontable and am able to
+&gt; access the data in 8 of 9 partitions.
+&gt; 
+&gt; one partition however has a damaged superblock, and I have reason to
+&gt; believe it really *is* a damaged superblock.
+&gt; The partition cannot be mounted anymore, and e2fsck complains about a
+&gt; damaged superblock and missing magicnumbers.
+&gt; 
+&gt; I have tried to access the page you mentioned
+&gt; (inet.uni2.dk/~/svolaf/utilities.html)</font>
+<font>
+This is not the page svend-olaf mentioned!
+The page still exists and can be accessed.
+
+Eric
+</font>
+<font color="#660066">&gt; I regret to tell you that a user svolaf is unknown at that adress,
+&gt; and that the sysadmin has assigned your homedirectory and its
+&gt; utilities to /dev/null.
+&gt; 
+&gt; --
+&gt; Greetz,
+&gt; Joop
+&gt; -----------------------------------------------------------------------
+&gt;  Joop Bollen.   Nuts &amp; Bolts Department,    Nomadis Systems, Holland
+&gt; We all live under the same sky, but we don't all have the same horizon.</font>
+</pre>
+
+<a name=981262596>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:hs%40paradise.nirvananet+>Hartmann Schaffer</a> (<a href=mailto:hs%40paradise.nirvananet>hs@paradise.nirvananet</a>)<br>Subject: Re: Superblock corrupt! <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-04 06:55:45 PST
+<br></font></td></tr></table><p>
+<pre><font>In article &lt;39d99187.1011212@news.inet.tele.dk&gt;,
+Svend Olaf Mikkelsen &lt;svolaf@inet.uni2.dk&gt; wrote:</font>
+<font color="#660066">&gt;nomadis@cistron.nl (NoMadis) wrote:
+&gt;</font>
+<font color="#007777">&gt;&gt;Hi,
+&gt;&gt;some stupid dos program ruined one of my Linux partitions.
+&gt;&gt;As a result I cannot mount it anymore, and I cannot repair it with the
+&gt;&gt;ext2fs utilities.
+&gt;&gt;
+&gt;&gt;Does somebody know a program that will allow me to repair it?
+&gt;&gt;(there are some files on it that i need)  :(</font>
+<font>
+have a look at the mount man page.  the sb option lets you mount using
+one of the backup superblocks
+</font>
+<font color="#660066">&gt;In quite a few cases like this, it is the partition table and not the
+&gt;partition itself, that is damaged. If you want me to evaluate the
+&gt;situation, you can initially get Findpart at
+&gt;
+&gt;http://inet.uni2.dk/~svolaf/utilities.htm
+&gt;
+&gt;do from DOS or Windows:
+&gt;
+&gt;findpart all +fat fp.txt
+&gt;
+&gt;and post the content from fp.txt in a follow-up to this message.
+&gt;-- 
+&gt;Svend Olaf</font>
+<font>
+
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

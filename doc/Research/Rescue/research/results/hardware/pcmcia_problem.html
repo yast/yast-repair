@@ -1,0 +1,360 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google Search:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google Search">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=en&lr=&safe=off&th=fd192ac04e0b5c16,8>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Search the Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>PCMCIA problem</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 8</b> of <b>8</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:n9jdz%40xsite.net+>Dave Blondell</a> (<a href=mailto:n9jdz%40xsite.net>n9jdz@xsite.net</a>)<br>Subject: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/11/12
+<br></font></td></tr></table><p>
+<pre><font>
+
+I have a no-name MMX laptop that locks-up when it hits the PCMCIA
+section when booting. The boot display is as follows:
+
+Starting PCMCIA services: modulesLinux PCMCIA Card Services 2.9.6
+Intel PCMCIA probe:
+  TI 1131 CardBus at 0x3e0, 2 sockets
+    host opts:  [ring] [isa irq]
+    irq mask (
+
+At this point the machine is totaly unresponsive and must be rebooted
+with the power switch.
+
+I am running S.U.S.E 5.0. The kernel is 2.0.31. The
+/etc/sysconfig/pcmcia file is as follows:
+
+PCMCIAyes
+PCICi82365
+PCIC_OPTS
+CORE_OPTS
+
+The, heavly edited, /etc/pcmcia/config.opts file (without the comments)
+is as follows:
+
+include port 0x3e0-0x3e1, memory 0xcb000-0xccfff
+exclude irq 4
+exclude irq 3
+exclude irq 5
+exclude irq 7
+
+The information from the, vary thin, manual gives the following
+information:
+
+irq 10 PCMCIA CardBus Controler
+irq 11 PCMCIA CardBus Controler
+I/O Port 03E0h - 03E1h PCMCIA controler
+Memory Address 000CB000h - 000CBFFh PCMCIA controler
+Memory Address 000CC000h - 000CCFFh PCMCIA controler
+
+Anyone have an idea what's wrong?
+-- 
+Dave Blondell   n9jdz@xsite.net
+Running Linux 2.0.31
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:accipiter.d%40postoffice.worldnet.att.net+>accipiter.d@postoffice.worldnet.att.net</a> (<a href=mailto:accipiter.d%40postoffice.worldnet.att.net>accipiter.d@postoffice.worldnet.att.net</a>)<br>Subject: Re: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/11/12
+<br></font></td></tr></table><p>
+<pre><font>
+
+Dave Blondell wrote:</font>
+<font color="#660066">&gt; 
+&gt; I have a no-name MMX laptop that locks-up when it hits the PCMCIA
+&gt; section when booting. The boot display is as follows:
+&gt; 
+&gt; Starting PCMCIA services: modulesLinux PCMCIA Card Services 2.9.6
+&gt; Intel PCMCIA probe:
+&gt;   TI 1131 CardBus at 0x3e0, 2 sockets
+&gt;     host opts:  [ring] [isa irq]
+&gt;     irq mask (
+&gt; 
+&gt; At this point the machine is totaly unresponsive and must be rebooted
+&gt; with the power switch.
+&gt; 
+&gt; I am running S.U.S.E 5.0. The kernel is 2.0.31. The
+&gt; /etc/sysconfig/pcmcia file is as follows:
+&gt; 
+&gt; PCMCIA=yes
+&gt; PCIC=i82365
+&gt; PCIC_OPTS=
+&gt; CORE_OPTS=
+&gt; 
+&gt; The, heavly edited, /etc/pcmcia/config.opts file (without the comments)
+&gt; is as follows:
+&gt; 
+&gt; include port 0x3e0-0x3e1, memory 0xcb000-0xccfff
+&gt; exclude irq 4
+&gt; exclude irq 3
+&gt; exclude irq 5
+&gt; exclude irq 7
+&gt; 
+&gt; The information from the, vary thin, manual gives the following
+&gt; information:
+&gt; 
+&gt; irq 10 PCMCIA CardBus Controler
+&gt; irq 11 PCMCIA CardBus Controler
+&gt; I/O Port 03E0h - 03E1h PCMCIA controler
+&gt; Memory Address 000CB000h - 000CBFFh PCMCIA controler
+&gt; Memory Address 000CC000h - 000CCFFh PCMCIA controler
+&gt; 
+&gt; Anyone have an idea what's wrong?
+&gt; --
+&gt; Dave Blondell   n9jdz@xsite.net
+&gt; Running Linux 2.0.31</font>
+<font>
+I have a IBM Thinkpad 760XL and had the same problem. Upgrading to the
+2.9.10 revision of the pcmcia drivers solved the lockup and my cards now
+work properly.
+
+See David Hines site at:
+<a href="http://hyper.stanford.edu/HyperNews/get/pcmcia/home.html">http://hyper.stanford.edu/HyperNews/get/pcmcia/home.html</a>
+</font>
+</pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:deano%40areyes.NOSPAMMY.com+>Dean Carpenter</a> (<a href=mailto:deano%40areyes.NOSPAMMY.com>deano@areyes.NOSPAMMY.com</a>)<br>Subject: Re: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/11/14
+<br></font></td></tr></table><p>
+<pre><font>
+
+In article &lt;346A1ECF.4A5E@postoffice.worldnet.att.net&gt;, accipiter.d@postoffice.worldnet.att.net wrote:</font>
+<font color="#660066">&gt;Dave Blondell wrote:</font>
+<font color="#007777">&gt;&gt; 
+&gt;&gt; I have a no-name MMX laptop that locks-up when it hits the PCMCIA
+&gt;&gt; section when booting. The boot display is as follows:
+&gt;&gt; 
+&gt;&gt; Starting PCMCIA services: modulesLinux PCMCIA Card Services 2.9.6
+&gt;&gt; Intel PCMCIA probe:
+&gt;&gt;   TI 1131 CardBus at 0x3e0, 2 sockets
+&gt;&gt;     host opts:  [ring] [isa irq]
+&gt;&gt;     irq mask (</font>
+<font color="#660066">&gt;
+&gt;I have a IBM Thinkpad 760XL and had the same problem. Upgrading to the
+&gt;2.9.10 revision of the pcmcia drivers solved the lockup and my cards now
+&gt;work properly.</font>
+<font>
+Can I assume that CardBus is now fully supported ?  I have an IBM 760E which 
+uses the TI 1130 CardBus chipset.
+
+How about the 3Com Etherlink XL 3c575 10/100 Ethernet CardBus card ?
+
+Dean.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:dhinds%40zen.stanford.edu+>David Hinds</a> (<a href=mailto:dhinds%40zen.stanford.edu>dhinds@zen.stanford.edu</a>)<br>Subject: Re: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.hardware>comp.os.linux.hardware</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a>, <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Date: 1997/11/18
+<br></font></td></tr></table><p>
+<pre><font>
+
+Dean Carpenter (deano@areyes.NOSPAMMY.com) wrote:</font>
+<font color="#660066">: In article &lt;346A1ECF.4A5E@postoffice.worldnet.att.net&gt;, accipiter.d@postoffice.worldnet.att.net wrote:</font>
+<font color="#007777">: &gt;Dave Blondell wrote:
+: &gt;
+: &gt;I have a IBM Thinkpad 760XL and had the same problem. Upgrading to the
+: &gt;2.9.10 revision of the pcmcia drivers solved the lockup and my cards now
+: &gt;work properly.</font>
+<font color="#660066">: 
+: Can I assume that CardBus is now fully supported ?  I have an IBM 760E which 
+: uses the TI 1130 CardBus chipset.
+: 
+: How about the 3Com Etherlink XL 3c575 10/100 Ethernet CardBus card ?</font>
+<font>
+No, you can't assume that.  The current drivers should work OK with
+Cardbus controllers with 16-bit cards.  Supporting 32-bit cards is a
+whole different matter.
+
+-- Dave Hinds
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:mark.warnes%40limecs.com+>Mark Warnes</a> (<a href=mailto:mark.warnes%40limecs.com>mark.warnes@limecs.com</a>)<br>Subject: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/06/27
+<br></font></td></tr></table><p>
+<pre><font>
+Can anyone help me sort out my PCMCIA problem?
+
+I am running Linux Mandrake 6.5 (Kernel 2.2.13 I think) on a Dell Inspiron
+3000 laptop but my PCMCIA cards (a Psion Gold v90 56k modem and a Xircom
+10/100 Ethernet) are not available.
+
+I have reinstalled the kernel-pcmcia-cs RPM which appears to have made
+pcmcia services startup correctly at boot time but the cards are not
+recognised and don't appear in the PCMCIA control panel.
+
+Does anyone have any ideas or tips about getting these cards working? I have
+a lonely Linux machine that can't talk to anyone...
+
+Thanks,
+
+Mark
+
+
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 6 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:ekooijman%40my-deja.com+>ekooijman@my-deja.com</a> (<a href=mailto:ekooijman%40my-deja.com>ekooijman@my-deja.com</a>)<br>Subject: Re: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/06/27
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;nJ065.1798$tg2.35558@news2-win.server.ntlworld.com&gt;,
+  &quot;Mark Warnes&quot; &lt;mark.warnes@limecs.com&gt; wrote:</font>
+<font color="#660066">&gt; Can anyone help me sort out my PCMCIA problem?
+&gt;
+&gt; I am running Linux Mandrake 6.5 (Kernel 2.2.13 I think) on a Dell Inspiron
+&gt; 3000 laptop but my PCMCIA cards (a Psion Gold v90 56k modem and a Xircom
+&gt; 10/100 Ethernet) are not available.
+&gt;
+&gt; I have reinstalled the kernel-pcmcia-cs RPM which appears to have made
+&gt; pcmcia services startup correctly at boot time but the cards are not
+&gt; recognised and don't appear in the PCMCIA control panel.
+&gt;
+&gt; Does anyone have any ideas or tips about getting these cards working? I have
+&gt; a lonely Linux machine that can't talk to anyone...
+&gt;
+&gt; Thanks,
+&gt;
+&gt; Mark
+&gt;
+&gt;</font>
+<font>It might help if you download the latest pcmcia cardservices source. Go
+to <a href="http://pcmcia.sourceforge.org/">http://pcmcia.sourceforge.org/</a> for info and the source. Then follow
+the instruction to compile and install it. Restart pcmcia and see if it
+helps. I don't know what version mandrake uses, but it's a revised
+redhat, so it will probably be version 3.1.8. They are now currently at
+3.1.17.
+
+I had the same problem when I installed redhat 6.0 six months ago. It
+was simply the fact that that version of pcmcia had no support for my
+cards. Installed a new version and everything worked.
+
+greetings,
+erik
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 7 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:mark.warnes%40chewtoy.com+>mark.warnes@chewtoy.com</a> (<a href=mailto:mark.warnes%40chewtoy.com>mark.warnes@chewtoy.com</a>)<br>Subject: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/06/28
+<br></font></td></tr></table><p>
+<pre><font>
+From: &quot;Mark Warnes&quot; &lt;mark.warnes@limecs.com&gt;
+
+Can anyone help me sort out my PCMCIA problem?
+
+I am running Linux Mandrake 6.5 (Kernel 2.2.13 I think) on a Dell
+ Inspiron
+3000 laptop but my PCMCIA cards (a Psion Gold v90 56k modem and a
+ Xircom
+10/100 Ethernet) are not available.
+
+I have reinstalled the kernel-pcmcia-cs RPM which appears to have
+ made
+pcmcia services startup correctly at boot time but the cards are not
+recognised and don't appear in the PCMCIA control panel.
+
+Does anyone have any ideas or tips about getting these cards working?
+ I have
+a lonely Linux machine that can't talk to anyone...
+
+Thanks,
+
+Mark
+
+
+
+
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 8 in thread</font></td></tr></table>
+From: <a href=/groups?hl=en&lr=&safe=off&q=author:ekooijman%40my-deja.com+>ekooijman@my-deja.com</a> (<a href=mailto:ekooijman%40my-deja.com>ekooijman@my-deja.com</a>)<br>Subject: PCMCIA problem <br>Newsgroups: <a href=/groups?hl=en&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000/06/28
+<br></font></td></tr></table><p>
+<pre><font>
+From: ekooijman@my-deja.com
+
+In article &lt;nJ065.1798$tg2.35558@news2-win.server.ntlworld.com&gt;,
+  &quot;Mark Warnes&quot; &lt;mark.warnes@limecs.com&gt; wrote:</font>
+<font color="#660066">&gt; Can anyone help me sort out my PCMCIA problem?
+&gt;
+&gt; I am running Linux Mandrake 6.5 (Kernel 2.2.13 I think) on a Dell Inspiron
+&gt; 3000 laptop but my PCMCIA cards (a Psion Gold v90 56k modem and a Xircom
+&gt; 10/100 Ethernet) are not available.
+&gt;
+&gt; I have reinstalled the kernel-pcmcia-cs RPM which appears to have made
+&gt; pcmcia services startup correctly at boot time but the cards are not
+&gt; recognised and don't appear in the PCMCIA control panel.
+&gt;
+&gt; Does anyone have any ideas or tips about getting these cards</font>
+<font> working?
+I have</font>
+<font color="#660066">&gt; a lonely Linux machine that can't talk to anyone...
+&gt;
+&gt; Thanks,
+&gt;
+&gt; Mark
+&gt;
+&gt;</font>
+<font>It might help if you download the latest pcmcia cardservices source.
+ Go
+to <a href="http://pcmcia.sourceforge.org/">http://pcmcia.sourceforge.org/</a> for info and the source. Then
+ follow
+the instruction to compile and install it. Restart pcmcia and see if
+ it
+helps. I don't know what version mandrake uses, but it's a revised
+redhat, so it will probably be version 3.1.8. They are now currently
+ at
+3.1.17.
+
+I had the same problem when I installed redhat 6.0 six months ago. It
+was simply the fact that that version of pcmcia had no support for my
+cards. Installed a new version and everything worked.
+
+greetings,
+erik
+
+
+Sent via Deja.com <a href="http://www.deja.com/">http://www.deja.com/</a>
+Before you buy.
+
+
+
+</font></pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google Search"><INPUT TYPE=hidden name=hl value=en><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white><font size=-1><center><a href=http://directory.google.com><font color=white>Google&nbsp;Web&nbsp;Directory</font></a> - <a href="/jobs/"><font color=white>Cool&nbsp;Jobs</font></a> - <a href="/ads/"><font color=white>Advertise&nbsp;with&nbsp;Us</font></a> - <a href="/services/"><font color=white>Add&nbsp;Google&nbsp;to&nbsp;Your&nbsp;Site</font></a> - <a href="/language.html"><font color=white>Google&nbsp;in&nbsp;your&nbsp;Language</font></a> - <b><a href="/about.html"><font color=white>All&nbsp;About&nbsp;Google</font></a></b></center></font></font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

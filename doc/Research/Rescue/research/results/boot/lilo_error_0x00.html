@@ -1,0 +1,180 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif}
+div.nav {margin-top: 1ex}
+div.nav A {font-size: 10pt; font-family: arial,sans-serif}
+span.nav {font-size: 10pt; font-family: arial,sans-serif; font-weight: bold}
+div.nav A,span.big {font-size: 12pt; color: #0000cc}
+div.nav A {font-size: 10pt; color: black}
+A.l:link {color: #6f6f6f}
+A.u:link {color: green}
+//-->
+</style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=f00360b9a51c0cf7,3>Advanced Groups Search</a><br> &nbsp;<a href=/googlegroups/help.html>Groups Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>&nbsp;
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Messages</b> from the thread &quot;<b>weird LILO prob-</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 3</b> of <b>3</b>.  </font></td></tr></table><br clear=all>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:martin.rogers%40sympatico.ca+>martin rogers</a> (<a href=mailto:martin.rogers%40sympatico.ca>martin.rogers@sympatico.ca</a>)<br>Betrifft:weird LILO prob- <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:2001-04-28 15:46:41 PST
+<br></font></td></tr></table><p>
+<pre><font>
+All,
+
+got a weird problem with lilo- after rebuilding my kernel, and copying
+the resulting
+bzImage to /boot (as bzImage.19mine), I added this stanza:
+
+image=/boot/bzImage.19mine
+ label=19mine
+ read-only
+ root=/dev/hda7
+
+to my lilo.conf which previously worked great with:
+
+boot=/dev/hda
+map=/boot/map
+install=/boot/boot.b
+prompt
+timeout=60
+linear
+vga=ask
+default=19
+
+image=/boot/vmlinuz-2.2.19-6.2.1
+ label=19
+ read-only
+ root=/dev/hda7
+
+other=/dev/hda1
+ label=dos
+
+
+This all was ok, except, when I reboot and select &quot;19mine&quot;, lilo prints
+out:
+
+Error 0X00
+
+and sits there waiting for me to change my selection.
+
+Does anyone know what this means ?
+THANKS to all,
+
+metalucid@yahoo.com
+
+BTW, if I give the _vmlinux_ that my compile produced to lilo, it says
+that it's too big...
+anyone know why?   Why didn't my compile produce a _vmlinuz_ file ? (I
+did make mrproper/
+dep/xconfig   then make ; make modules ; make modules_install).  Thx.
+
+
+</font></pre> 
+
+<a name=p>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:ulty%40nnex.net+>ulty@nnex.net</a> (<a href=mailto:ulty%40nnex.net>ulty@nnex.net</a>)<br>Betrifft:Re: weird LILO prob- <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:2001-04-28 17:22:44 PST
+<br></font></td></tr></table><p>
+<pre><font>
+On Sat, 28 Apr 2001 22:43:28 GMT, martin rogers
+&lt;martin.rogers@sympatico.ca&gt; wrote:
+</font>
+<font color="#660066">&gt;All,
+&gt;
+&gt;got a weird problem with lilo- after rebuilding my kernel, and copying
+&gt;the resulting
+&gt;bzImage to /boot (as bzImage.19mine), I added this stanza:
+&gt;
+&gt;image=/boot/bzImage.19mine
+&gt; label=19mine
+&gt; read-only
+&gt; root=/dev/hda7
+&gt;
+&gt;to my lilo.conf which previously worked great with:
+&gt;
+&gt;boot=/dev/hda
+&gt;map=/boot/map
+&gt;install=/boot/boot.b
+&gt;prompt
+&gt;timeout=60
+&gt;linear
+&gt;vga=ask
+&gt;default=19
+&gt;
+&gt;image=/boot/vmlinuz-2.2.19-6.2.1
+&gt; label=19
+&gt; read-only
+&gt; root=/dev/hda7
+&gt;
+&gt;other=/dev/hda1
+&gt; label=dos
+&gt;
+&gt;
+&gt;This all was ok, except, when I reboot and select &quot;19mine&quot;, lilo prints
+&gt;out:
+&gt;
+&gt;Error 0X00
+&gt;
+&gt;and sits there waiting for me to change my selection.
+&gt;
+&gt;Does anyone know what this means ?
+&gt;THANKS to all,
+&gt;
+&gt;metalucid@yahoo.com
+&gt;
+&gt;BTW, if I give the _vmlinux_ that my compile produced to lilo, it says
+&gt;that it's too big...
+&gt;anyone know why?   Why didn't my compile produce a _vmlinuz_ file ? (I
+&gt;did make mrproper/
+&gt;dep/xconfig   then make ; make modules ; make modules_install).  Thx.
+&gt;
+&gt;</font>
+<font>
+After you rebuit your kernel and edited your lilo.conf file did you
+run the map installer, i.e. /sbin/lilo?  You need to do this every
+time you change your lilo.conf and/or your kernel.  This updates the
+boot sector you've selected with the new information.
+</font></pre> 
+
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+Von:<a href=/groups?hl=de&lr=&safe=off&q=author:brandon%40ovnet.com+>Glitch</a> (<a href=mailto:brandon%40ovnet.com>brandon@ovnet.com</a>)<br>Betrifft:Re: weird LILO prob- <br>Newsgroups:<a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.setup>comp.os.linux.setup</a><br>Datum:2001-04-28 19:57:44 PST
+<br></font></td></tr></table><p>
+<pre><font>
+In article &lt;3AEB4826.7609D3D1@sympatico.ca&gt;, &quot;martin rogers&quot;
+&lt;martin.rogers@sympatico.ca&gt; wrote:
+</font>
+<font color="#660066">&gt; All,
+&gt; 
+&gt; got a weird problem with lilo- after rebuilding my kernel, and copying
+&gt; the resulting
+&gt; bzImage to /boot (as bzImage.19mine), I added this stanza:
+&gt; 
+&gt; image=/boot/bzImage.19mine
+&gt;  label=19mine
+&gt;  read-only
+&gt;  root=/dev/hda7
+&gt; 
+&gt; 
+&gt; BTW, if I give the _vmlinux_ that my compile produced to lilo, it says
+&gt; that it's too big...
+&gt; anyone know why?   Why didn't my compile produce a _vmlinuz_ file ? (I
+&gt; did make mrproper/
+&gt; dep/xconfig   then make ; make modules ; make modules_install).  Thx.
+&gt; 
+&gt; </font>
+<font>
+vmlinux is the uncompressed kernel. U don't want that one for obvious
+reasons.  Use the bzImage that is created</font>
+</pre> 
+<br><center><table border=0 cellpadding=3 cellspacing=0><tr><td nowrap>
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form></td></tr></table></center><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>

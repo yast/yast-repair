@@ -1,0 +1,201 @@
+<html>
+<head><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+<title>Google-Suche:  </title>
+<style><!--
+body {font-family: arial,sans-serif;}
+div.nav {margin-top: 1ex;}
+div.nav A,span.nav {font-size: 10pt; font-family: arial,sans-serif;}
+div.nav A,span.big {font-size: 12pt; color: #0000cc;}
+div.nav A {font-size: 10pt; color: black;}
+A.l:link {color: #6f6f6f;}
+A.u:link {color: green;}
+//--></style>
+</head>
+<body bgcolor=#ffffff text=#000000 link=#0000cc vlink=#551A8B alink=#ff0000 onLoad="document.forms[0].reset()">
+<form method=GET action=/groups><table border=0 cellpadding=0 cellspacing=0><tr><td rowspan=2 valign=top><a href=/><img border=0 src=/intl/de/images/groups_logo.gif width=200 height=78 alt="Google "></a>&nbsp;&nbsp;&nbsp;&nbsp;</td><td align=left nowrap><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><INPUT type=text name=q size=25 maxlength=256 value=""> <INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off><INPUT type=submit name=btnG VALUE="Google-Suche">  </td><td><table cellpadding=0 cellspacing=0 border=0><tr><td nowrap><font face=arial,sans-serif size=-1> &nbsp;<a href=/advanced_group_search?hl=de&lr=&safe=off&th=49427b0d33bb14f1>Usenet Advanced Search</a><br> &nbsp;<a href=/googlegroups/help.html>Usenet Help</A></font></td></tr></table></td></tr></table></td></tr><tr>  <td align=left valign=top nowrap><font face=arial,sans-serif size=-1>
+<INPUT type=radio name=meta value="site=groups" checked> Search all groups&nbsp;
+<INPUT type=radio name=meta value="site=search"> Suche im ganzen Web</font></form>
+</td></tr></table>
+<font color=#6f6f6f face=arial,sans-serif size=-1><center><a href=/googlegroups/help.html>Click here</a> for information about upcoming improvements to this beta version of Google's Usenet search.</center></font><br><table width=100%% cellpadding=2 cellspacing=0 border=0><tr><td bgcolor=#009933 nowrap><font face=arial,sans-serif size=-1 color=white><b>Usenet Messages</b> from the thread &quot;<b>HACKED ? All logins fail</b>&quot; &nbsp; </font></td><td bgcolor=#009933 align=right nowrap><font face=arial,sans-serif size=-1 color=white>Messages <b>1 - 5</b> of <b>5</b>.  </font></td></tr></table><br clear=all>
+<a name=975737911>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 1 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:jdewitt%40broadcastzone.com+>jdewitt</a> (<a href=mailto:jdewitt%40broadcastzone.com>jdewitt@broadcastzone.com</a>)<br>Subject: HACKED ? All logins fail <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-18 10:10:29 PST
+<br></font></td></tr></table><p>
+<pre><font>login: root
+Password: *********
+Login incorrect
+
+Seems that after Friday the 13th nobody can login to the machine.  Every
+user on the system gets the same message (Login incorrect), even root at the
+secure tty.  I can get a bash# prompt in
+single user mode to make changes, but I don't know what to change, everthing
+I have checked seems fine.  Resetting the passwords using passwd or adding a
+new user in the root group doesn't work.  I have checked /etc/pam.d/login
+against a working machine with the same version and they are identical.
+/etc/passwd and /etc/shadow contain the proper entries, and the accounts do
+not appear to be expired.  How can I fix this?
+
+Can anyone help with suggestions.
+
+RH 6.2  kernel v2.2.24-50
+
+jdewitt@broadcastzone.com
+
+
+
+</font></pre>
+
+<a name=975572911>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 2 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:d9910739%40mail.connect.usq.edu.au+>Michael Westerman</a> (<a href=mailto:d9910739%40mail.connect.usq.edu.au>d9910739@mail.connect.usq.edu.au</a>)<br>Subject: Re: HACKED ? All logins fail <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-18 20:27:40 PST
+<br></font></td></tr></table><p>
+<pre><font>4 options i would try (in no particular order.)
+
+1. restore from backup LOL (I never hava one my self.)
+
+2. Write down crusial settings  run redhat install updating only core
+packages. (select nothing in custom settitng.)
+
+3. reinstall.
+
+4. check what accounts there are and if they should exist.
+    replace password programs and databases (they might have been replaced .
+corupted or buged.
+
+</font>
+<font color="#660066">&gt; user on the system gets the same message (Login incorrect), even root at the
+&gt; secure tty.  I can get a bash# prompt in
+&gt; single user mode to make changes, but I don't know what to change, everthing
+&gt; I have checked seems fine.  Resetting the passwords using passwd or adding a
+&gt; new user in the root group doesn't work.  I have checked /etc/pam.d/login
+&gt; against a working machine with the same version and they are identical.
+&gt; /etc/passwd and /etc/shadow contain the proper entries, and the accounts do
+&gt; not appear to be expired.  How can I fix this?
+&gt;
+&gt; Can anyone help with suggestions.
+&gt;
+&gt; RH 6.2  kernel v2.2.24-50
+&gt;
+&gt; jdewitt@broadcastzone.com
+&gt;
+&gt;
+&gt;</font>
+<font>
+</font>
+</pre>
+
+<a name=975546250>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 3 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:ynotssor%40my-deja.com+>ynotssor@my-deja.com</a> (<a href=mailto:ynotssor%40my-deja.com>ynotssor@my-deja.com</a>)<br>Subject: Re: HACKED ? All logins fail <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-18 23:00:09 PST
+<br></font></td></tr></table><p>
+<pre><font>In article &lt;2QkH5.38$wM1.39749@news.uswest.net&gt;,
+  &quot;jdewitt&quot; &lt;jdewitt@broadcastzone.com&gt; wrote:
+</font>
+<font color="#660066">&gt; login: root
+&gt; Password: *********
+&gt; Login incorrect
+&gt;
+&gt; Seems that after Friday the 13th nobody can login to the machine.
+&gt; Every user on the system gets the same message (Login incorrect), even
+&gt; root at the secure tty.  I can get a bash# prompt in single user mode
+&gt; to make changes, but I don't know what to change, everthing I have
+&gt; checked seems fine.  Resetting the passwords using passwd or adding a
+&gt; new user in the root group doesn't work.  I have checked
+&gt; /etc/pam.d/login against a working machine with the same version and
+&gt; they are identical. /etc/passwd and /etc/shadow contain the proper
+&gt; entries, and the accounts do not appear to be expired.  How can I fix
+&gt; this?
+&gt;
+&gt; Can anyone help with suggestions.</font>
+<font>...
+
+Possibly hacked; it sounds symptomatic of
+http://www.cert.org/incident_notes/IN-2000-10.html with /bin/login
+replaced by a (malfunctioning) trojan horse.
+
+
+-   tony
+
+
+-
+
+
+Sent via Deja.com http://www.deja.com/
+Before you buy.
+</font></pre>
+
+<a name=975285844>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 4 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:avflinsch%40att.net+>aflinsch</a> (<a href=mailto:avflinsch%40att.net>avflinsch@att.net</a>)<br>Subject: Re: HACKED ? All logins fail <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-19 11:39:58 PST
+<br></font></td></tr></table><p>
+<pre><font>jdewitt wrote:</font>
+<font color="#660066">&gt; 
+&gt; login: root
+&gt; Password: *********
+&gt; Login incorrect
+&gt; 
+&gt; Seems that after Friday the 13th nobody can login to the machine.  Every
+&gt; user on the system gets the same message (Login incorrect), even root at the
+&gt; secure tty.  I can get a bash# prompt in
+&gt; single user mode to make changes, but I don't know what to change, everthing
+&gt; I have checked seems fine.  Resetting the passwords using passwd or adding a
+&gt; new user in the root group doesn't work.  I have checked /etc/pam.d/login
+&gt; against a working machine with the same version and they are identical.
+&gt; /etc/passwd and /etc/shadow contain the proper entries, and the accounts do
+&gt; not appear to be expired.  How can I fix this?
+&gt; </font>
+<font>
+A similar thing happened to me, but root was able to login. Turned out
+that the /home file system was full. Check to see if any file systems
+are full</font>
+</pre>
+
+<a name=975248266>
+<table width=100% bgcolor=#e0e0e0 cellpadding=2 cellspacing=0 border=0><tr><td><font face=arial,sans-serif>
+
+<table bgcolor=#ffff66 cellpadding=0 cellspacing=0 border=0 align=right><tr><td><font face=arial,sans-serif>Message 5 in thread</font></td></tr></table>
+From: <a href=/groups?hl=de&lr=&safe=off&q=author:gregab%40NOS.PAM-gbsoft.org+>Grega Bremec</a> (<a href=mailto:gregab%40NOS.PAM-gbsoft.org>gregab@NOS.PAM-gbsoft.org</a>)<br>Subject: Re: HACKED ? All logins fail <br>Newsgroups: <a href=/groups?hl=de&lr=&safe=off&group=comp.os.linux.misc>comp.os.linux.misc</a><br>Date: 2000-10-19 13:43:03 PST
+<br></font></td></tr></table><p>
+<pre><font>...and jdewitt used the keyboard:</font>
+<font color="#660066">&gt;login: root
+&gt;Password: *********
+&gt;Login incorrect
+&gt;
+&gt;Seems that after Friday the 13th nobody can login to the machine.  Every
+&gt;user on the system gets the same message (Login incorrect), even root at the
+&gt;secure tty.  I can get a bash# prompt in
+&gt;single user mode to make changes, but I don't know what to change, everthing
+&gt;I have checked seems fine.  Resetting the passwords using passwd or adding a
+&gt;new user in the root group doesn't work.  I have checked /etc/pam.d/login
+&gt;against a working machine with the same version and they are identical.
+&gt;/etc/passwd and /etc/shadow contain the proper entries, and the accounts do
+&gt;not appear to be expired.  How can I fix this?</font>
+<font>
+Do a MD5 sum check against verifiably clean binaries of login, init,
+ps, vi, etc. and see if any of them had been tampered with. I suspect
+that's the case since you say you removed all passwords and login
+still doesn't work - I wouldn't be surprised if it turned out somebody
+now has all of the passwords you tried (check with &quot;netstat -atuwp&quot; or
+&quot;lsof -i&quot;, look for login). Quite commonly crackers replace login and
+friends with hacked versions that send all of the attempted passwords
+to some host they have control over and records them thus putting them
+at their disposal.
+
+Hopefully, this hasn't happened though.
+
+Cheers,</font>
+<font color="#007777">-- 
+    Grega Bremec
+    grega.bremec-at-gbsoft.org
+    http://www.gbsoft.org/
+</font></pre>
+
+<form method=GET action=/groups><center><font face=arial,sans-serif><small><INPUT type=text name=q size=31 maxlength=256 value=""> <INPUT type=submit name=btnG VALUE="Google-Suche"><INPUT TYPE=hidden name=hl value=de><INPUT TYPE=hidden name=lr value=><INPUT TYPE=hidden name=safe value=off></small></font></form><p><center><table width=100% cellpadding=2 cellspacing=0 border=0><tr><td width=100% bgcolor=#009933><font face=arial,sans-serif color=white>&nbsp;</font></td></tr></table><br><font size=-1 color=#6f6f6f>&copy;2001 Google</font></center></body></html>
