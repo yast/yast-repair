@@ -1,0 +1,187 @@
+/**
+ * File:
+ *   osr_module_partition.ycp
+ *
+ * Module:
+ *   Partition and filesystems checking module.
+ *
+ * Summary:
+ *   YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Author:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+
+{
+  textdomain "osr";
+  
+  // begin argument handling: in the initial phase the framework calls each module
+  // with the argument ".init", don't delete!
+  integer arg_c = size(Args());
+  integer arg_n = 0;
+
+  boolean init_mode = false;
+  
+  while ( arg_n < arg_c )
+  {
+      if ( Args(arg_n) == .init ) init_mode = true;
+      else
+      {
+	  y2error("ERROR: unknown option %1", Args(arg_n) );
+	  return `error;
+      }
+      arg_n = arg_n + 1;
+  }
+  // end argument handling
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+  
+  /**
+   *  Initialization of the module map that contains all important information
+   *  for this module.
+   *
+   *  @return map The map that contains all information about the module osr_module_partition.
+   */
+  define OSRPartitionInit() ``{
+      
+      map osr_module_partition = $[];
+
+      osr_module_partition = $[
+		   // has to be the name of the file
+		   "name"              :  "osr_module_partition",
+		   "headline"          :  UI(_("Partitions and filesystems")),
+		   "summary"           :  [],
+		   "test_mode_summary" :  [
+					   $["header" : "Partitions and filesystems", "description" : "O.k.", status : "detect_ok"],
+					   $["header" : "Partitions and filesystems", "description" : "O.k.", status : "detect_ok"]
+		   ],
+
+		   // the sequence of the detection methods of this module
+		   "detect_methods"    :  [
+				    	   ``(OSRPartitionCheck())
+		   ],
+
+		   // the values this module requires from other modules of the rescue system
+		   // use "yast2 osr .provides" to create the file "/tmp/osr_global_provides" to
+		   // show which values are already provided
+		   "requires"          :  [
+					   "disk_device_list"//,
+					   //"root_partition",
+					   //"kernel_path_list",
+					   //"initrd_path_list"
+		   ],
+
+		   // the values this module will provide
+		   "provides"          : $[
+					   //"lilo_package_is_installed" : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
+					   //"lilo_package_is_verified"  : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
+					   //"lilo_conf_path"            : $[ "type" : "string", "value" : "/etc/lilo.conf", "status" : "unknown" ]
+		   ],
+
+		   // informations for the module progress bar
+		   "progress_file"     : "/tmp/osr_module_partition_progress",
+		   "progress_expect"   : 1000
+      ];
+
+      return osr_module_partition;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  DETECTION METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+  
+  /**
+   *
+   *  @return map The result_map.
+   */
+  global define OSRPartitionCheck() ``{
+
+      boolean repair_question  = false;
+      boolean error_detected   = false;
+      integer progress_expect  = 40;
+      string  module_name      = "osr_module_partition";
+      string  help_text        = "";
+      string  error_message    = "";
+      string  progress_file    = "";
+      string  progress_label   = UI(_("Checking the partitions and filesystems"));
+      string  log_file         = "";
+      string  status           = "";
+      map     result_map       = $[];
+
+      module_map    = OSRGetModuleMap(module_name);
+      log_file      = OSRLogFileGet();
+      progress_file = lookup(module_map, "progress_file");
+
+      // set the parameters for the module-progress-bar
+      OSRModuleProgressSetParams(progress_label, progress_file, progress_expect);
+
+      status = OSRStatusDetectOK();
+
+      OSRSummaryDetectOK(
+			 module_name,
+			 UI(_("Checking partitions")),
+			 UI(_("Optimally"))
+			 );
+
+      result_map = $[
+		     "status" : status
+      ];
+
+      // set the value of the module-progress-bar to 100%
+      OSRModuleProgressFill();
+      
+      return result_map;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  REPAIR METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   * 
+   *  @return boolean True if the repair process was successful.
+   */
+  global define OSRProgressRepair() ``{
+
+      integer result          = 0;
+      integer progress_expect = 50;
+      string  log_file        = "";
+      string  command         = "";
+      string  progress_label  = "Repairing the partitions and filesystems";
+      string  module_name      = "osr_module_partition";
+      boolean error_detected  = false;
+
+      log_file = OSRLogFileGet();
+
+      // setting up the progress bar
+      OSRModuleProgressSetParams(progress_label, progress_file, progress_expect);
+
+      OSRModuleProgressFill();
+      
+      return (result == 0);
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  MAIN
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  // in init-mode only execute the init-function and return the module-map
+  // to the framework, don't delete
+  if (init_mode)
+  {
+      map module_map = OSRPartitionInit();
+
+      return module_map; 
+  }
+  // end MAIN
+}
