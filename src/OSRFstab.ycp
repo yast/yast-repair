@@ -581,8 +581,9 @@ press \"Yes\".
 	  if (ret == nil) {
 	      OSRExecute::CommandOutput(.local.bash, sformat ("/bin/ls -l %1", dev_name));
 	      list<string> std_dev_list = filter (string s,  splitstring (OSRExecute::stdout, " "), ``( s != " "));
-	      string link = select (std_dev_list, size (std_dev_list)-1, "");
-	      link = select (splitstring (link , "\n"), 0,"");
+	      string link	= std_dev_list[size (std_dev_list)-1]:"";
+	      list linkl	= splitstring (link , "\n");
+	      link		= linkl[0]:"";
 	      y2milestone("link is %1", link);
 	      if (! issubstring (link , "/dev"))
 	      {
@@ -609,10 +610,10 @@ press \"Yes\".
 
       if (ret == $[] || ret == nil)
       {
-	ret = (map) select (maplist (string n, map m,
-	    filter (string k, map<string,any> e, (map<string,map<string,any> >) StorageDevices::ZipDrives,
-		``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)), ``(m)),
-	    0, $[]);
+	list lret	= maplist (string n, map m,
+	    filter (string k, map e, (map<string,map>)StorageDevices::ZipDrives,
+		``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)), ``(m));
+	ret		= lret[0]:$[];
 	if (ret != $[] && ret != nil) ret["found"] = "zip";
       }
 
@@ -690,11 +691,12 @@ press \"Yes\".
   /**
    * Return the partition map for a special uuid.
    */
-  define map uuid2part(string uuidstring)``{
+  define map uuid2part(string uuidstring) {
       map ret = $[];
-      foreach (string dn, checked_partitions, ``{
+      foreach (string dn, checked_partitions, {
 	  if (ret == $[]) {
-	      if (lookup (devname2part(dn), "uuid", "") == uuidstring)
+	      map part = devname2part(dn);
+	      if (part ["uuid"]:"" == uuidstring)
 	      {
 		  ret = devname2part(dn);
 		  ret["wise"] = "uuid" ;
@@ -707,11 +709,12 @@ press \"Yes\".
   /**
    * Return the partition map for a special label.
    */
-  define map label2part(string labelstring)``{
+  define map label2part(string labelstring) {
       map ret = $[];
-      foreach (string dn, checked_partitions, ``{
+      foreach (string dn, checked_partitions, {
 	  if (ret == $[]) {
-	      if (lookup (devname2part(dn), "label", "!") == labelstring) {
+	      map part = devname2part(dn);
+	      if (part ["label"]:"!" == labelstring) {
 		  ret = devname2part( dn);
 		  ret["wise"] = "label";
 	      }
@@ -756,7 +759,8 @@ press \"Yes\".
    */
   define boolean check_fstab_line( integer lnr)``{
 
-    list<string> line = lookup (AsciiFile::GetLine(fstab, lnr), "fields", []);
+    map linemap		= AsciiFile::GetLine(fstab, lnr);
+    list<string> line	= linemap["fields"]:[];
 
     // empty line ?
     if (size (filter (string pos, line, ``( pos != "" && pos != " "))) == 0 ||
@@ -1435,9 +1439,10 @@ for the device %1:
 	else if (ret == `ok)
 	{
 	    cmp = $[];
-	    foreach (integer e, map lines , (map<integer,map<string,any> >)missing_create_mp, ``{
-		if (select ((term)UI::QueryWidget(`id(`table), `Item(e)), 1, "")
-		    == create_label)
+	    foreach (integer e, map lines, (map<integer,map>) missing_create_mp,
+	    {
+		term it	= (term) UI::QueryWidget(`id(`table), `Item(e));
+		if (it[1]:"" == create_label)
 		{
 		    cmp[e] = lines["fields", 1]:"";
 		}
@@ -1498,13 +1503,13 @@ for the device %1:
   /**
    * Build a item list for all fstab entries with not existing devices.
    */
-  define list<term> remove_spec_items(list<integer> rm_entries, string ignore_label)``{
+  define list<term> remove_spec_items(list<integer> rm_entries, string ignore_label)
+  {
 
     list<term> ret = [];
-    foreach (integer lnr, rm_entries, ``{
-	ret = add (ret, `item (`id(lnr), ignore_label,
-			    lookup (AsciiFile::GetLine(fstab, lnr), "line", ""))
-	);
+    foreach (integer lnr, rm_entries, {
+	map line	= AsciiFile::GetLine (fstab, lnr);
+	ret = add (ret, `item (`id(lnr), ignore_label, line["line"]:""));
     });
     return ret;
   }
@@ -1571,9 +1576,9 @@ change the status.
 	else if (ret == `ok)
 	{
 	    list<integer> rm_list = [];
-	    foreach (integer e, rm_entries, ``{
-		if (select ((term)UI::QueryWidget(`id(`table), `Item(e)), 1, "")
-		    == remove_label)
+	    foreach (integer e, rm_entries, {
+		term it	= (term) UI::QueryWidget(`id(`table), `Item(e));
+		if (it[1]:"" == remove_label)
 		{
 		    rm_list = add (rm_list, e);
 		}
@@ -1605,7 +1610,8 @@ change the status.
     map nlines  = $[];
     foreach (integer lnr, list opts,  (map<integer,list>) modify_entries,
     {
-	list<string> line = lookup(AsciiFile::GetLine (fstab, lnr),"fields",[]);
+	map linemap		= AsciiFile::GetLine (fstab, lnr);
+	list<string> line	= linemap ["fields"]:[];
 	list<string> nline	= [line[0]:""];
 	map part		= line2part(line);
 	string type		= opts[0]:"";
@@ -1704,12 +1710,17 @@ change the status.
   /**
    * Build a item list.
    */
-  define list<term> modify_items(map nlines, string ignore_label, boolean existing)``{
+  define list<term> modify_items (map nlines, string ignore_label, boolean existing)
+  {
 
     list<term> ret = [];
-    foreach (integer lnr, list<string> nline, (map<integer,list<string> >)nlines , ``{
+    foreach (integer lnr, list<string> nline,(map<integer,list<string> >)nlines,
+    {
 	if (existing)
-	    nline = lookup (AsciiFile::GetLine(fstab,lnr), "fields", []);
+	{
+	    map linemap	= AsciiFile::GetLine(fstab,lnr);
+	    nline	= linemap["fields"]:[];
+	}
 	ret = add (ret,`item(`id(lnr), ignore_label, mergestring(nline, ", ")));
     });
     return ret;
@@ -1801,10 +1812,10 @@ Compare the suggested entry with the existing one."),
 	else if (ret == `ok)
 	{
 	    integer changed_count = size (
-		filter (integer e, list<any> ld, (map<integer,list<any> >)nlines, ``(
-		    select ((term)UI::QueryWidget(`id(`table_s),`Item(e)), 1,"")
-		    == replace_label)
-		)
+		filter (integer e, any ld, (map<integer,any>) nlines, {
+		    term it	= (term)UI::QueryWidget(`id(`table_s),`Item(e));
+		    return (it[1]:"" == replace_label);
+		})
 	    );
 	    if (changed_count == 0)
 	    {
@@ -1835,9 +1846,9 @@ lines, press \"Yes\".
 		}
 	    }
 	    list<integer> rp_list = [];
-	    foreach (integer e, list<any> ld, (map<integer,list<any> >)nlines, ``{
-		if (select ((term)UI::QueryWidget (`id(`table_s),`Item(e)),1,"")
-		    == replace_label)
+	    foreach (integer e, any ld, (map<integer,any>) nlines, {
+		term it	= (term) UI::QueryWidget (`id(`table_s),`Item (e));
+		if (it[1]:"" == replace_label)
 		{
 		    rp_list = add (rp_list, e);
 		}
@@ -1938,18 +1949,18 @@ lines, press \"Yes\".
     root_l_no			= union (root_l_no,
 	AsciiFile::FindLineField (fstab, 0, "LABEL=" + root_part["label"]:""));
 
-    // root_lines:
+    // root_lines example:
     // $[ 1 : $["fields":["/dev/hda3", "/", "reiserfs", "defaults", "1", "2"],
     //		"line":"/dev/hda3\t/\treiserfs\tdefaults 1 2" ]
     // ]
-    map root_lines		= $[];
+    map<integer,map> root_lines		= $[];
 
-    foreach (integer n, (list<integer>)root_l_no, ``{
+    foreach (integer n, (list<integer>) root_l_no, {
 	root_lines[n] = AsciiFile::GetLine(fstab, n);
     });
 
-    root_lines			= filter (integer n, map<string,any> l, (map<integer,map<string,any> >)root_lines,
-	``(select (l["fields"]:[], 1, "")  == "/"));
+    root_lines	=
+	filter (integer n, map l, root_lines, ``(l["fields",1]:"" == "/"));
 
     if (size (root_lines) != 1)
     {
@@ -1960,11 +1971,10 @@ lines, press \"Yes\".
     }
     else
     {
-	integer root_line_key  = (integer) select (
-	    maplist (integer k, map<any,any> v, (map<integer,map<any,any> >)root_lines,``(k)), 0, 1);
-
-	list<string> root_line = root_lines [root_line_key, "fields"]:[];
-	string type = "root";
+	list keys		= maplist (integer k, map v, root_lines,``(k));
+	integer root_line_key	= keys[0]:1;
+	list<string> root_line	= root_lines [root_line_key, "fields"]:[];
+	string type		= "root";
 
 	boolean fs_vfstype	= check_fs_vfstype (root_line, root_part);
 	boolean fs_mntops	= check_fs_mntops (root_line);

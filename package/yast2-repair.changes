@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov  4 10:26:41 CET 2004 - jsuchome@suse.cz
+
+- lookup and select calls replaced by []
+- 2.11.2
+
+-------------------------------------------------------------------
 Wed Oct 27 17:55:34 CEST 2004 - jsuchome@suse.cz
 
 - adapted for new Mode:: interface

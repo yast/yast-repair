@@ -186,16 +186,15 @@ color
       }
   };
 
-  
   define boolean last_group_entry(string group ) ``{
 
-      list t = filter(any g, add(OSRCommon::detect_group_list, finish_key), ``( haskey(summary, g)));
-      
-      if (select(t, (size( t)-1),"" ) == group ) return true;
+      list t = filter (any g, add(OSRCommon::detect_group_list, finish_key),
+	``(haskey(summary, g)));
+
+      if (t [ size (t) - 1 ]:"" == group ) return true;
       else return false;
-  }   
-  
-  
+  }
+
   /**
    *  Updates the contents of the RichText widget.
    *
