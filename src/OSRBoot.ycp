@@ -504,7 +504,9 @@ Press Repair to install these packages.
 	y2milestone("current initrd_modules %1", current_initrd_modules);
 
 //	Boot::initrdModules = [];
-    Initrd::Reset();
+	//not reset initrd settings (lose modules from StorageControllers like aci7xxx .)
+	//AddModule don't add modules twice
+	//Initrd::Reset();
 
 	list storage_initrd = Storage::GetRootInitrdModules();
 	y2milestone(" found initrd modules %1",storage_initrd );
