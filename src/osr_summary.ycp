@@ -32,7 +32,7 @@
 
       if (size(items) == 0)
       {
-	  text = sformat("<ul><li>%1</li></ul>", UI(_("Not detected.")));
+	  text = sformat("<ul><li>%1</li></ul>", _("Not detected."));
       }
       else
       {
@@ -58,34 +58,35 @@
    */
   global define OSRSummaryItem(string name, string description, string status) ``{
 
-      string color       = "";
-      string status_text = "";
+      string  color       = "";
+      string  status_text = "";
+      integer text_width  = 470;
 
       // if an error is found the item has to be dislpayed red
       if (status == "detect_ok")
       {
 	  color = "blue";
-	  status_text = UI(_("o.k."));
+	  status_text = _("o.k.");
       }
       else if (status == "detect_error")
       {
 	  color = "red";
-	  status_text = UI(_("error"));
+	  status_text = _("error");
       }
       else if (status == "repair_ok")
       {
 	  color = "green";
-	  status_text = UI(_("repair succeeded"));
+	  status_text = _("repaired");
       }
       else if (status == "repair_error")
       {
 	  color = "red";
-  	  status_text = UI(_("repair failed"));
+  	  status_text = _("failed");
       }
       else if (status == "repair_omit")
       {
 	  color = "red";
-  	  status_text = UI(_("repair omitted"));
+  	  status_text = _("omitted");
       }
       else
       {
@@ -94,14 +95,15 @@
       }
 
       // Check if the UI is running with ncurses or qt
-      if (UI(`HasSpecialWidget(`Slider)))
+      if (UI::HasSpecialWidget(`Slider))
       {
 	  return sformat(
-			 "<center><table width=380><tr><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr><tr><td align=left>%3</td></tr></table></center>",
+			 "<center><table width=%5><tr><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr><tr><td align=left>%3</td></tr></table></center>",
 			 name,
 			 status_text,
 			 description,
-			 color
+			 color,
+			 text_width
 			 );
       }
       else
@@ -200,7 +202,7 @@
       {
 	  y2error("ERROR OSRSummaryUpdate: no modules in module_sequence!");
       }
-      return UI(`ChangeWidget(`id(`rich_text_info), `Value, text));
+      return UI::ChangeWidget(`id(`rich_text_info), `Value, text);
   };
 
   /**
