@@ -60,10 +60,8 @@
 
   global boolean show_details	= true;
 
-  /**
-   * Constructor
-   */
-  global define void OSRSummary()``{
+  // initialize UI-related stuff
+  global define void Init () {
 
       if (! UI::HasSpecialWidget(`DownloadProgress))
       {
@@ -203,7 +201,7 @@ color
    *
    *  @return boolean True if the RichText widget was changed successfully.
    */
-  global define boolean Update() ``{
+  global define boolean Update() {
 
       string  text	      = "";
       map     group_text_map  = $[];

@@ -52,7 +52,7 @@
      * Stage::cont ()     == true -> Continue installation
      * Stage::initial ()e == false) && (Stage::cont () == false) -> Running Linux-system
      */
-    global define boolean IsValid()``{
+    global define boolean IsValid() {
 
 	if (!Stage::initial () && !Stage::cont () )
 	{
@@ -87,9 +87,10 @@ YaST2 halts now.
     }
 
     //---------------------------------------------------------------
-    // constructor
-    global define void OSRMode () ``{
+    // init function, return value is true if some mode was set
+    global define boolean Init () {
 
+	boolean ret	= false;
 	integer arg_count = size(WFM::Args());
 	integer arg_no = 0;
 
@@ -106,28 +107,33 @@ YaST2 halts now.
 
 		if ( WFM::Args(arg_no) == "automatic" )
 		{
-		    automatic = true;
+		    automatic	= true;
+		    ret		= true;
 		    OSRLogFile::Add("Running in automatic mode.\n");
 		}
 		else if ( WFM::Args(arg_no) ==  "provides" )
 		{
-		    provides  = true;
+		    provides	= true;
+		    ret		= true;
 		    OSRLogFile::Add("Running in automatic mode.\n");
 		}
 		else if ( WFM::Args(arg_no) == "detection" ||  WFM::Args(arg_no) == "detect"  )
 		{
-		    detection = true;
+		    detection	= true;
+		    ret		= true;
 		    OSRLogFile::Add("Running in detection mode.\n");
 		}
 		else if ( WFM::Args(arg_no) == "script" )
 		{
-		    script   = true;
+		    script	= true;
+		    ret		= true;
 		    OSRLogFile::Add("Running in script mode.\n");
 		}
 		else if ( WFM::Args(arg_no) == "save" )
 		{
 		    y2milestone("Save mode");
-		    save     = true;
+		    save	= true;
+		    ret		= true;
 		}
 		else
 		{
@@ -136,5 +142,6 @@ YaST2 halts now.
 		arg_no = arg_no + 1;
 	    }
 	}
+	return ret;
     }
 }

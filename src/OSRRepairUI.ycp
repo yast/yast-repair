@@ -679,6 +679,7 @@ Then select one proposal or cancel the repair. </P>
 	return OSR::Detect();
 
     DetectDialogInit ();
+    OSRSummary::Init ();
 
     symbol input = `pause;
 
