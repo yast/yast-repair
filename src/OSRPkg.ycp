@@ -461,7 +461,7 @@ the package database.
 
 	//packages.rpm-20021105.gz
 	list<string> dates = maplist(string f, files, ``(substring(f, size(file_path)+1 , 8)));
-	dates 	   = sort(string f, string ff, dates, ``( f >= ff ));
+	dates 	   = sort(string f, string ff, dates, ``( f > ff ));
 	dates      = maplist(string f, dates, ``(sformat("%1.%2.%3", substring( f,0,4),
 							 substring(f,4,2),
 							 substring(f,6,2))));
