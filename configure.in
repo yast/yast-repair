@@ -19,6 +19,8 @@ AC_SUBST(MAINTAINER)
 AC_SUBST(DOCDIR)
 AC_SUBST(YAST2DIR)
 
+AC_PROG_CXX
+
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -35,4 +37,7 @@ AC_OUTPUT(Makefile
 	src/Makefile
 	doc/Makefile
 	doc/autodocs/Makefile
-	testsuite/Makefile)
+	testsuite/Makefile
+	rpm_check/Makefile
+	rpm_check/C_src/Makefile)
+	
