@@ -291,7 +291,7 @@ YaST verifies packages now."))),
 					 `VSpacing(1),
 					 progress_bar,
 					 `Left(switch_button) ),
-				   `ReplacePoint(`id(mode_replace_point_key ),  dialogs[0]:`Empty() ),
+				   `ReplacePoint(`id(mode_replace_point_key ),  dialogs[1]:`Empty() ),
 				   ok_cancel_button
 				   ),
 			     `HSpacing(3)
@@ -323,7 +323,7 @@ YaST verifies packages now."))),
 	boolean ret = UI::OpenDialog( dialogs[2]:`Empty() );
 
 	// set mode - expert mode or normal mode.
-	set_expert_mode( t_expert_mode );
+	// set_expert_mode( t_expert_mode );
 
 	return ret;
     }
