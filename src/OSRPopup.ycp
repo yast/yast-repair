@@ -508,9 +508,8 @@
       foreach ( list special_button, special_buttons_list, ``{
 	  special_buttons = add( special_buttons, special_button[0]:`Empty());
 	  special_symbol_to_action[special_button[1]:`empty] =
-	    special_button[2]:``(y2error("action not found"));
+	    special_button[2]:OSRCommon::EmptyList;
       });
-
       term multi_box_with_text =  `VBox(`Left(`Label(message_top )),
 					`VSpacing(1),
 					`ReplacePoint(`id(`rp), build_multi_box(box_headline, item_list)),
@@ -518,7 +517,6 @@
 					`VSpacing(1),
 					`Left(`Label(message_bottom )),
 					`VSpacing(1));
-       
       UI::OpenDialog(
 		     `opt(`decorated),
 		     repair_layout(headline, help_text, multi_box_with_text )
@@ -558,8 +556,9 @@ Really continue?
 	      // eval special button action define.
 	      if ( haskey( special_symbol_to_action, ret ))
 	      {
-		  item_list = eval(special_symbol_to_action[ret]:``(y2error("not possible")));
-		  UI::ReplaceWidget(`id(`rp), build_multi_box(box_headline, item_list));
+		  list () f =special_symbol_to_action[ret]:OSRCommon::EmptyList;
+		  UI::ReplaceWidget(`id(`rp),
+		    build_multi_box(box_headline, (list<list>) f()));
 	      }
 	  }
       }
