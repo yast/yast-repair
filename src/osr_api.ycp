@@ -16,7 +16,8 @@
  */
 {
   textdomain "osr";
-
+  import "Storage";
+  
   /**
    *  Executes the given commandline in a bash and writes all execution-information
    *  to the standard log file. This function returns all output from the commandline
@@ -696,7 +697,7 @@ and press Store.");
 		      if (mounted)
 		      {
 			  // save all partition-tables to floppy
-			  map target_map = lookup(user_settings, "targets", $[]);
+			  map target_map = Storage::GetTargetMap();
 
 			  //
 			  // TODO: only save the _valid_ primary partition tables

@@ -16,7 +16,8 @@
 
 {
   textdomain "osr";
-
+  import "Storage";
+  
   /**
    *  argument handling
    *  example: "y2bignfat osr_lilo.ycp '(.init)' qt" for init_mode
@@ -164,7 +165,7 @@
 
       OSRModuleProgress::SetParams(_("Converting data"), OSRGetTmpDir() + "/osr_module_init_progress", 50);
 
-      target_map    = lookup(user_settings, "targets", $[]);
+      target_map    = Storage::GetTargetMap();
       repair_target = lookup(user_settings, "updateTarget", "");
 
       status = OSRStatusDetectOK();
