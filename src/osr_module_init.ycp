@@ -10,6 +10,8 @@
  *
  * Author:
  *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 
 {
@@ -68,9 +70,8 @@
 					//,``(OSRInit1())
 		   ],
 		   "provides"       : $[
-					"update_target"      : $[ "type" : "string", "value" : "", "status" : "unknown" ],
+					"repair_target"      : $[ "type" : "string", "value" : "", "status" : "unknown" ],
 					"target_map"         : $[ "type" : "map", "value" : $[], "status" : "unknown" ],
-					"repair_target"      : $[ "type" : "string", "value" : "/", "status" : "unknown" ],
 					"disk_device_list"   : $[ "type" : "list", "value" : ["/dev/hda"], "status" : "unknown" ],
 					"root_partition"     : $[ "type" : "string", "value" : "/dev/hda1", "status" : "unknown" ],
 					"root_partition_map" : $[ "type" : "map", "value" : $[], "status" : "unknown" ],
@@ -337,26 +338,38 @@
       string  module_name     = "osr_module_init";
       string  status          = "";
       map     target_map      = $[];
-      string  update_target   = "";
+      string  repair_target   = "";
 
       status = OSRStatusDetectOK();
 
       y2debug("OSRInitConvertUserSettings");
 
       OSRModuleProgress::SetParams(_("Converting user-settings"), "/tmp/osr_module_init_progress", 10);
-      
+
+      //OSRPopupDisplayQuick(sformat("user_settings: %1", user_settings), 4000);
+
       //result_text = OSRSummaryItem(_("OSRInit1"), _("Is o.k."), false);
 
       target_map     = lookup (user_settings, "targets",      $[]);
-      update_target  = lookup (user_settings, "updateTarget", "/mnt");
+      repair_target  = lookup (user_settings, "updateTarget", "");
+
+      // if the rescue-system is launched from a running Linux-system the target-directory is empty, else "/mnt"
+      if (!Installation::initial_mode && !Installation::continue_mode)
+      {
+	  repair_target = "";
+      }
+      else
+      {
+	  repair_target = "/mnt";
+      }
 
       OSRModuleProgress::Add(5);
-      
+
       OSRProvideMap("target_map", target_map);
-      OSRProvideString("update_target", update_target);
+      OSRProvideString("repair_target", repair_target);
 
       OSRModuleProgress::Add(5);
-      
+
       OSRSummaryDetectOK(module_name, _("Converting user-settings"), _("O.k."));
 
       result_map = $[

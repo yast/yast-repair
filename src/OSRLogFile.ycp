@@ -10,6 +10,8 @@
  *
  *  Author:
  *    Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 {
   module "OSRLogFile";

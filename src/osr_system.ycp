@@ -12,6 +12,8 @@
  *
  *  Author:
  *    Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 
 {
@@ -24,6 +26,7 @@
    *  of entries in the lists is nonrelevant.
    *
    *  For internal use only.
+   *  See the testsuite.
    *
    *  @example OSRIsSubSet([], ["a", "b"]) -> true;
    *  @example OSRIsSubSet(["a"], ["a", "b"]) -> true;
@@ -86,6 +89,7 @@
    *  the correct sequence of detection modules.
    *
    *  For internal use only.
+   *  See the testsuite.
    *
    *  @return boolean True if the module sequence was successfully created.
    */
@@ -169,27 +173,17 @@
   };
 
   /**
-   *
+   *  If the rescue-system was launched from a running Linux-system a new main-dialog is opened.
    *
    *  For internal use only.
    *
-   *  @return boolean True if 
+   *  @return boolean True.
    */
   global define OSROpenMainWindow() ``{
 
       string  header        = "";
-/*
-      boolean initial_mode  = false;
-      boolean continue_mode = false;
 
-      initial_mode  = lookup(osr_map, "initial_mode", false);
-      continue_mode = lookup(osr_map, "continue_mode", false);
-*/
-      if (!Installation::initial_mode && !Installation::continue_mode)
-      {
-
-      }
-      else if (Installation::initial_mode && !Installation::continue_mode)
+      if (Installation::initial_mode && !Installation::continue_mode)
       {
 	  UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
       }
@@ -262,8 +256,51 @@
 	    }
 	  */
       }
-
       return true;
+  };
 
+  /**
+   *  Check the executing user-name. Return true if user id is 0 (user is root). This function
+   *  is only executed, if the rescue-system was launched from the running Linux-system.
+   *
+   *  For internal use only.
+   *
+   *  @see .runtime.username
+   *  @return boolean True if the osr module was launched by root.
+   */
+  global define OSRAmIRoot() ``{
+
+      string user_name = "";
+
+      user_name = SCR::Read(.runtime.username);
+
+      return (user_name == "root");
+      
+      /*
+      map     ret          = $[];
+      string  command      = "";
+      string  user_name    = "";
+      integer exit_code    = 0;
+
+      command   = "/usr/bin/whoami";
+      
+      // format of ret should be $["exit":0, "stderr":"", "stdout":"root\n"]
+      ret       = SCR (`Execute(.target.bash_output, command));
+
+      exit_code = lookup(ret, "exit",   1);
+      user_name = lookup(ret, "stdout", "");
+      
+      //y2debug("WHOAMI: %1", ret);
+	
+      if (exit_code == 0)
+      {
+	  return (user_name == "root\n");
+      }
+
+      // otherwise there was a trouble running whoami so we assume we are root
+      // so user can continue
+      // ???
+      return true;
+      */
   };
 }

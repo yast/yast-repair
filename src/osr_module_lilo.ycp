@@ -10,6 +10,8 @@
  *
  * Author:
  *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 
 {
@@ -79,7 +81,7 @@
 					   "root_partition",
 					   "kernel_path_list",
 					   "initrd_path_list",
-					   "update_target"
+					   "repair_target"
 		   ],
 
 		   // the values this module will provide
@@ -132,14 +134,14 @@
       map     result_map       = $[];
       map     return_map       = $[];
 
-      string  update_target    = "";
+      string  repair_target    = "";
 
       module_map      = OSRGetModuleMap(module_name);
       log_file        = OSRLogFile::GetFile();
       
       progress_file   = lookup(module_map, "progress_file", "");
 
-      update_target = OSRRequireString("update_target");
+      repair_target = OSRRequireString("repair_target");
 
       // set the parameters for the module-progress-bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
@@ -153,9 +155,9 @@
       {	  
 	  // set the command line and execute, only in non-demo-mode, the return-map would look like this:
 	  // $["exit" : 0, "stdout" : "lilo-21.6-56", "stderr" : ""]
-	  if (update_target != "")
+	  if (repair_target != "")
 	  {
-	      command = sformat("/bin/rpm -q -r %1 lilo", update_target);
+	      command = sformat("/bin/rpm -q -r %1 lilo", repair_target);
 	      return_map = OSRExecuteCommandOutput(command, log_file, .local);
 	  }
 	  else
@@ -183,9 +185,9 @@
 				   command,
 				   lookup(return_map, "stderr", ""));
 	  help_text      = help_text + _("<p>It seems that the LILO package is not installed on your system. ");
-	  help_text      = help_text +  _("This package is one of the basic packages for your system. ");
-	  help_text      = help_text +  _("Alternatively you can use another bootloader than LILO.</p>");
-	  help_text      = help_text +  _("<p>Press <b>Repair</b> to install this package.</p>");
+	  help_text      = help_text + _("This package is one of the basic packages for your system. ");
+	  help_text      = help_text + _("Alternatively you can use another bootloader than LILO.</p>");
+	  help_text      = help_text + _("<p>Press <b>Repair</b> to install this package.</p>");
 
 	  // display the result in the RichText-widget
 	  OSRSummaryDetectError(
@@ -208,12 +210,15 @@ Package is installed")
 		       );
 	  
 	  stdout_string = lookup(return_map, "stdout", "");
-	  lilo_version = select(splitstring(stdout_string, "-"), 1, "");
 
+	  // cut "lilo-" off the string
+	  //lilo_version = select(splitstring(stdout_string, "-"), 1, "");
+	  lilo_version = substring(stdout_string, size("lilo-"), (size(stdout_string)-1));
+	  
 	  // increase the value of the module-progress-bar
           OSRModuleProgress::Add(10);
 
-	  if (!OSRVersionIsNewerOrEqual(lilo_version, minimum_version))
+	  if (!OSRVersionIsHigherOrEqual(lilo_version, minimum_version))
 	  {
 	      status = OSRStatusDetectError();
 
@@ -271,9 +276,9 @@ Should be version number <code>%2</code> or later"),
 		  // result is the exit-code of the bash-command, only in non-demo-mode
 		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or 
 		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""] if /sbin/lilo was touched
-		  if (update_target != "")
+		  if (repair_target != "")
 		  {
-		      command = sformat("/bin/rpm -V -r %1 lilo", update_target);
+		      command = sformat("/bin/rpm -V -r %1 lilo", repair_target);
 		      return_map = OSRExecuteCommandOutput(command, log_file, .local);
 		  }
 		  else
@@ -352,9 +357,9 @@ Package is o.k.")
 		  status = OSRStatusRepairOK();
 
 		  // check if the file /etc/lilo.conf exists, if not create a new one
-		  if (update_target != "")
+		  if (repair_target != "")
 		  {
-		      command    = sformat("test -f %1%2", update_target, lilo_conf_path);
+		      command    = sformat("test -f %1%2", repair_target, lilo_conf_path);
 		      return_map = OSRExecuteCommandOutput(command, log_file, .local);
 		  }
 		  else
@@ -461,14 +466,14 @@ Package is o.k.")
       string  boot_device           = "";
       string  lilo_conf_path        = "/etc/lilo.conf";
       string  status                = "";
-      string  update_target         = "";
+      string  repair_target         = "";
 
       log_file = OSRLogFile::GetFile();
 
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
-      update_target = OSRRequireString("update_target");
-      
+      repair_target = OSRRequireString("repair_target");
+
       if (demo_mode)
       {
 	  // set demo-value
@@ -477,9 +482,9 @@ Package is o.k.")
       else
       {
 	  // check if the file /etc/lilo.conf exists
-	  if (update_target != "")
+	  if (repair_target != "")
 	  {
-	      command = sformat("test -f %1%2", update_target, lilo_conf_path);
+	      command = sformat("test -f %1%2", repair_target, lilo_conf_path);
 	      result  = OSRExecuteCommand(command, log_file, .local);
 	  }
 	  else

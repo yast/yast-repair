@@ -10,6 +10,8 @@
  *
  * Author:
  *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
  */
 
 {
@@ -130,7 +132,7 @@
       // "installMap" : $[..., "disks" : "/dev/hda /dev/sda", ...]
       disk_list = lookup(lookup(user_settings, "installMap", $[]), "disks", []);
       
-      target_map = GetDisks();
+      target_map = lookup(user_settings, "targets", $[]);
 
       if ((target_map == $[]) || (target_map == nil))
       {
@@ -216,7 +218,7 @@ could not be read correctly from this floppy."), target), 1000);
 
 			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446", ptbl_name, target);
 
-			      UI::OpenDialog(`opt(`decorated), `Label(sformat(_("Reverting old partition-table\n%1"), command)));
+			      UI::OpenDialog(`opt(`decorated), `Label(_("Reverting old partition-table...")));
 
 			      integer revert = WFM::Execute(.local.bash, command);
 
@@ -227,7 +229,7 @@ could not be read correctly from this floppy."), target), 1000);
 				  //string partition_path = ".disk." + disk_name + ".partitions";
 				  list partition_table = SCR::Read(topath(partition_path));
 
-				  OSRPopupDisplayQuick(sformat("path: %1\nptbl: %2", partition_path, partition_table), 3000);
+				  //OSRPopupDisplayQuick(sformat("path: %1\nptbl: %2", partition_path, partition_table), 3000);
 
 				  if ((partition_table != nil) && (partition_table != []))
 				  {
@@ -242,9 +244,10 @@ could not be read correctly from this floppy."), target), 1000);
 
 				      OSRProvideMap("target_partition_map", $[target : partition_table]);
 
+				      // construct an updated "targets"-map and store it in the map "user_settings"
 				      map partition_map = $["partitions" : partition_table];
-				      target_map = add(target_map, target, partiton_map);
-				      user_settings = add(user_settings, "targets", target_map);
+				      target_map        = add(target_map, target, partiton_map);
+				      user_settings     = add(user_settings, "targets", target_map);
 
 				      // umount the floppy after reading
 				      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
@@ -266,7 +269,6 @@ could not be read correctly from this floppy."), target), 1000);
 		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
   
 		      UI::CloseDialog();
-
 		  }
 
 
@@ -390,7 +392,7 @@ Partition-table not repaired")
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       root_partition = lookup (user_settings, "selectedRootPartition", "" );
-      partition_list = lookup (user_settings, "validRootPartitions",   [] );
+      partition_list = lookup (user_settings, "validRootPartitions", [] );
 
       target_map     = OSRRequireMap("target_map");
       update_target  = OSRRequireString("update_target");
