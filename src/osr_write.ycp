@@ -21,7 +21,6 @@
  * @param first a map of osr settings
  * @return boolean success of operation
  * @example map mm = $[ "FAIL_DELAY" : "77" ];
- * @example any ret = CallModule("osr_write",[mm]);
  */
 
 {
