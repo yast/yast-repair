@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <sys/types.h>
@@ -43,8 +44,7 @@ int main(int argc, char** argv)
 			exitcode = 1;
 			continue;	
 		}
-		// fieltype extract BEGIN
-		// cout << (statv.st_mode & S_IFMT) << "\t";
+		// cout << (statv.st_mode & S_IFMT) << "\t";// NESSESARY to known
 		switch(statv.st_mode&S_IFMT){
 			case S_IFREG: cout << '-'; break;
 			case S_IFDIR: cout << 'd'; break;
@@ -54,28 +54,35 @@ int main(int argc, char** argv)
 			case S_IFIFO: cout << 'p'; break;
 		}
 		cout << "\t\t";
-		// fileytpe extract END
 		// permissions extract BEGIN (octal)
-		cout << oct << (((1<<9) - 1) & statv.st_mode) << "\t\t";
+		cout << oct << (((1<<10) - 1) & statv.st_mode) << "\t\t";
 		// permissions extract END
 		// switching output to decimal
 		cout << dec << statv.st_dev  << "\t";
 		cout << statv.st_ino  << "\t";
+		
 		// here are the newer changes (rpm_stat.awk isn't corrected
 		cout << oct << statv.st_mode  << dec << "\t\t";
 		cout << statv.st_nlink  << "\t";
-		cout << statv.st_uid  << "\t";
-		cout << statv.st_gid << "\t";
+		
+		// try to get user- and groupnames, if failed -> prints uid & gid
+		struct group *gr_p;
+		struct passwd *pw_p;
+		gr_p = getgrgid (statv.st_uid);
+		pw_p = getpwuid (statv.st_gid);
+		if (gr_p == NULL) cout << statv.st_uid; else cout << gr_p->gr_name; cout << '\t';
+		if (pw_p == NULL) cout << statv.st_gid; else cout << pw_p->pw_name; cout << '\t';
+		
 		cout << statv.st_rdev  << "\t";
 //		if((statv.st_mode & S_IFMT) == S_IFCHR || (statv.st_mode & S_IFMT) == S_IFBLK) 
 		cout << MAJOR(statv.st_rdev) << "\t\t" << MINOR(statv.st_rdev) << "\t\t";
-		cout << statv.st_size  << "\t";
+		cout << statv.st_size  << "\t";// NESSESARY to known
 		cout << statv.st_blksize << "\t";
 		cout << statv.st_blocks  << "\t";
 		cout << statv.st_atime  << "\t";
-		cout << statv.st_mtime  << "\t";
+		cout << statv.st_mtime  << "\t";// NESSESARY to known
 		cout << statv.st_ctime << "\t";
-		cout << "\t " << argv[argc] ;
+		cout << "\t " << argv[argc] ; // NESSESARY to known
 		cout << endl;
 	}
 	return exitcode;
