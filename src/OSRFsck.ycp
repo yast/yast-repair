@@ -21,6 +21,7 @@
   import "Partitions";
   import "Mode";
   import "Popup";
+  import "Stage";
 
   import "OSRExecute";
   import "OSRLogFile";
@@ -155,7 +156,7 @@
    */
   global define boolean LoadAllFsModules()``{
 
-      if( Mode::test )  return true;
+      if( Mode::test () )  return true;
 
       not_installed_modules = [];
       fs_kernel_modules     = [];
@@ -188,7 +189,7 @@
    */
   global define list<map> PossiblePartitions()``{
 
-      if ( Mode::test )
+      if ( Mode::test () )
       {
 	return [
 	    $[ "maindev"	: "/dev/hda1" ],
@@ -476,7 +477,7 @@ global define boolean IsNonLinuxFileSystem (symbol fs) ``{
   * @param the partition map
   */
 global define boolean Check(map part ) ``{
-    if(Mode::test ) return true;
+    if(Mode::test () ) return true;
 
     symbol used_fs = part["detected_fs"]:`unknown;
     check_partition = Storage::GetDeviceName(part["maindev"]:"", part["nr"]:0);
@@ -599,7 +600,7 @@ xfs:           xfs_repair
 msdos (fat):   fsck.msdos</pre></p>");
 
     // do not write about "closing YaST" when Mode::init?
-    if (!Mode::initial)
+    if (!Stage::initial ())
 	help_text = help_text +
 _("<p>If you know what kind of file system
 you have and how to use the corresponding
@@ -624,7 +625,7 @@ close this help dialog and press
 	  }
 
 	  boolean ret = true;
-	  if( !Mode::test )
+	  if( !Mode::test () )
 	  {
 	      boolean () f_rep = fsck_map [used_fs, "repair"]:OSRCommon::False;
 	      ret = f_rep ();

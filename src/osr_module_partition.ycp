@@ -22,7 +22,7 @@
   import "Label";
   import "Popup";
   import "Report";
-  import "Mode";
+  import "Stage";
 
   import "OSR";
   import "OSRCommon";
@@ -549,7 +549,7 @@ installation.
         else
         {
             OSRStatus::ErrorSeverityBlocking();
-            if (Mode::initial)
+            if (Stage::initial ())
             {
                 OSR::SetReboot();
                 y2milestone ( "Make a hard reboot" );
@@ -619,7 +619,7 @@ the system and start a new installation.
         else
         {
             OSRStatus::ErrorSeverityBlocking();
-            if (Mode::initial)
+            if (Stage::initial ())
             {
                 OSR::SetReboot();
                 y2milestone ( "Make a hard reboot" );
@@ -674,14 +674,14 @@ the system and start a new installation.
             sformat(_("Several valid root partitions were found:<br>%1"),
                 mergestring(valid_root_partition_list, ", ")));
 
-      if( ! Mode::initial )
+      if( ! Stage::initial () )
       {
           // choose root partitions only if booted from cd.
           // problem with SCR agent. and /mnt (root_mountpoint)
           map root_map = Storage::GetEntryForMountpoint("/");
           root_partition = root_map["device"]:"";
       }
-      if( Mode::initial || root_partition == "" )
+      if( Stage::initial () || root_partition == "" )
       {
           // launch a popup with a RadioButtonGroup
           // - one button for each item in the list -
@@ -715,7 +715,7 @@ start a new installation.
         }
         else {
          OSRStatus::ErrorSeverityBlocking();
-         if (Mode::initial)
+         if (Stage::initial ())
          {
          OSR::SetReboot();
          y2milestone ( "Make a hard reboot" );

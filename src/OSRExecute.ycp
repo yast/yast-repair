@@ -105,7 +105,7 @@
   global define boolean CommandOutput(path environment, string commandline) ``{
 
       Reset();
-      if ( Mode::test )
+      if ( Mode::test () )
 	  commandline = "/bin/echo " +
 	    mergestring(splitstring(commandline, ";"), " ");
 
@@ -154,7 +154,7 @@
 
       // in test/demo-mode set "echo" in front of every commandline and delete
       // all ";" from the commandline
-      if (Mode::test )
+      if (Mode::test () )
 	  commandline = "/bin/echo " +
 	    mergestring (splitstring(commandline, ";"), " ");
 

@@ -16,9 +16,10 @@
 {
   module "OSR";
 
-  import "Report";
-  import "Mode";
   import "Linuxrc";
+  import "Mode";
+  import "Stage";
+  import "Report";
 
   import "OSRCommon";
   import "OSRMode";
@@ -273,7 +274,7 @@
   global define boolean Init() ``{
 
     // set repair mode (used e.g. from Bootloader)
-    Mode::repair = true;
+    Mode::SetMode ("repair");
 
     list<string> module_function_list	= [
 	"osr_module_init",
@@ -1040,7 +1041,7 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
    * Prepare for reboot system
    */
   global define void SetReboot()``{
-      if ( Mode::initial )
+      if ( Stage::initial () )
       {
 	  Linuxrc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
 	  y2milestone ( "Make a hard reboot" );

@@ -537,7 +537,7 @@ Press Repair to install these packages.
 	list<string> missing = (list<string>) filter(string s, (list<string>)listed_modules,
 	    ``( !contains(current_initrd_modules, s)));
 
-	if( Mode::test ) missing = add(missing, "reiserfs");
+	if( Mode::test () ) missing = add(missing, "reiserfs");
 
 	if (size( missing ) > 0)
 	{
@@ -576,7 +576,7 @@ modules to the initial RAM disk.
 	string  kernel_initrd = mergestring
 	    ((list<string>)Initrd::ListModules(), " ");
 
-	if ( ! Mode::test )
+	if ( ! Mode::test () )
 	{
 	    // write INITRD_MODULES - Initrd::Write() could be used?
 	    SCR::Write (.sysconfig.kernel.INITRD_MODULES, kernel_initrd);

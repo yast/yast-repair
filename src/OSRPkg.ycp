@@ -21,6 +21,7 @@
     import "Report";
     import "Wizard";
     import "Popup";
+    import "Stage";
 
     import "OSRCommon";
     import "OSRSystem";
@@ -219,7 +220,7 @@ is not possible.</P>
 	if (root != "" && root != nil ) root_mountpoint = root;
 
 	// open the package source
-	if (! Mode::initial )
+	if (! Stage::initial () )
 	{
 	    source_initialized = source_initialized ||
 		Pkg::SourceStartCache (true) != [];
@@ -433,7 +434,7 @@ the package database.
 	if (backup_created || size(not_found_files ) > 0 )
 	{
 	    // some package database files are missing
-	    if ((! Mode::test)  && size( not_found_files ) > 0 )
+	    if ((! Mode::test ())  && size( not_found_files ) > 0 )
 	    {
 		ret = WFM::Execute (.local.bash,
 		    sformat("/bin/rpm --root %1 --initdb",root_mountpoint))== 0;
@@ -537,7 +538,7 @@ to revert.
 	    selected = backup_path + "/"+selected;
 	    if (OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %2/%1", selected, root_mountpoint )))
 	    {
-		if (! Mode::test && WFM::Execute(.local.bash, sformat("/bin/gunzip < %2/%1  \
+		if (! Mode::test () && WFM::Execute(.local.bash, sformat("/bin/gunzip < %2/%1  \
 > %2/var/lib/rpm/packages.rpm", selected ,root_mountpoint )) == 0   )
 		{
 		    if (rebuild_package_db(false) ) 
@@ -904,22 +905,24 @@ the reinstallation process by pressing
 "),
 
 		// package verification summary, help text (%1 is button label)
-		sformat(_("
-<P>YaST has verified all installed packages. Some
+		sformat (_("
+<p>YaST has verified all installed packages. Some
 of these packages contain errors. For details,
 see the log of the verify process.
-To open the log, press <b>%1</b>.</P>
+To open the log, press <b>%1</b>.</p>"), protocol_label) +
 
-<p>There, see if files of the package are
+		// package verification summary 2/3
+_("<p>There, see if files of the package are
 missing or the data of the package in the package
 database differs from the installed files of the
-package.</P>
+package.</P>")	+
 
-<p>Sometimes, verification of the package could 
+		// package verification summary 3/3
+_("<p>Sometimes, verification of the package could 
 report errors even if the package is correctly
 installed and works fine. That is why you should
 reinstall only the packages that do not work properly.</p>
-"), protocol_label),
+"),
 		// table headline (package list follows)
 		_("Packages with Problems:"),
 		[ [
