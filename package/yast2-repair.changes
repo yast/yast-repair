@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 11 16:52:02 CEST 2004 - jsrain@suse.cz
+
+- adapted to new Arch:: interface
+
+-------------------------------------------------------------------
 Fri Sep 17 14:41:39 CEST 2004 - jsuchome@suse.cz
 
 - check if the repaired product is the same as the one on the CD (#45306)
