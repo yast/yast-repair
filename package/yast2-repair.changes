@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 25 08:42:44 CET 2005 - jsuchome@suse.cz
+
+- fixed testsuite (new yast2-bootloader)
+- 2.11.6 
+
+-------------------------------------------------------------------
 Thu Jan 13 15:16:08 CET 2005 - jsuchome@suse.cz
 
 - move cliens for viewing logs here (from yast2-support)

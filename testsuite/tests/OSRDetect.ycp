@@ -101,6 +101,9 @@
 	],
 	"xml"		: $[],
 	"grub"		: [],
+	"bootloader"	: $[
+	    "settings"	: $[],
+	],
     ];
     map WRITE	= $[];
     map EXEC	= $[
