@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 29 09:49:06 CEST 2004 - jsuchome@suse.cz
+
+- fox of build: Misc::WriteYaSTInf -> Linuxrc::WriteYaSTInf (nashif)
+- 2.10.2
+
+-------------------------------------------------------------------
 Mon Jul 12 10:39:24 CEST 2004 - jsuchome@suse.cz
 
 - removed usage of DownloadProgress widget, fixed types
