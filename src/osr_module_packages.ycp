@@ -116,8 +116,8 @@
 	OSRSummary::DetectError ("", _("Different versions of products."));
 	OSRStatus::ErrorSeverityModuleBlocking ();
 	// error popup, %1 is tool name
-	Popup::Error (sformat (_("You are using %1 from the different
-product than the installed one.
+	Popup::Error (sformat (_("You are using %1 from a product 
+different than the installed one.
 
 Because the package database of the installed product 
 can be broken, only the package database on the installation 

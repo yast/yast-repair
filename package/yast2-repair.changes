@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  7 16:55:17 CET 2005 - jsuchome@suse.cz
+
+- merged texts from proofreading
+- 2.11.7
+
+-------------------------------------------------------------------
 Tue Jan 25 08:42:44 CET 2005 - jsuchome@suse.cz
 
 - fixed testsuite (new yast2-bootloader)
