@@ -16,6 +16,7 @@
 {
   module "OSRPtbl";
 
+  import "OSR";
   import "OSRExecute";
   import "OSRFloppy";
   import "OSRPopup";
@@ -24,9 +25,11 @@
   import "Storage";
   import "StorageDevices";
   import "Mode";
+  import "Report";
   
 
-  include "ui/common_popups.ycp";
+  import "Label";
+  import "Popup";
 
   include "partitioning/partition_defines.ycp";
   
@@ -677,7 +680,7 @@ quite a while if this option is given. Be patient.</P>
 						  `VSpacing(4),
 						  `HBox(
 							`PushButton(`id(`ok), start_label ),
-							`PushButton(`id(`cancel), CancelButtonLabel())
+							`PushButton(`id(`cancel), Label::CancelButton())
 							)
 						  ),
 					    `HSpacing(2)
@@ -877,7 +880,7 @@ be deleted to recover another partition.</P>
 	      foreach( map overlap_part, overlap_parts, ``{
 		  if( UI::QueryWidget(`id(overlap_part["device"]:""), `Value))
 		  {
-		      if( UI::ContinueCancelPopup(sformat(_("
+		      if( Popup::ContinueCancel(sformat(_("
 Recovering the selected partition %1 is only
 possible by deleting the following partitions:
 %2
@@ -983,8 +986,8 @@ system performance and the hard disk size.
 		`DownloadProgress(_("Progress:"), gpart_file, 200):`VSpacing(0),
 	    `VSpacing(1),
             // button label
-	    `HBox(`PushButton(`id(`start) , _("Start")),
-	    `PushButton(`id(`cancel),CancelButtonLabel())
+	    `HBox(`PushButton(`id(`start) , _("&Start")),
+	    `PushButton(`id(`cancel),Label::CancelButton())
 	)),
 	`HSpacing(0.5)
       );
@@ -1193,14 +1196,14 @@ in fdisk or the partitioning tool.
   define symbol restore_original()``{
       
       string header   = sformat(_("Restore Original Partition Table %1"), target);
-      string ok_label = mergestring(splitstring(OKButtonLabel(), "&"),"");
+      string ok_label = mergestring(splitstring(Label::OKButton(), "&"),"");
 
       string message  = original_help_text() +  sformat(_("
 If you press %1, YaST will replace the
 partition table of %2 with the backup.
 "), ok_label, target );
       
-      if ( UI::YesNoHeadlinePopup(header, message ))
+      if ( Popup::YesNoHeadline(header, message ))
       {   
 	  if( ! Mode::test )
 	  {
@@ -1294,7 +1297,7 @@ skip the repair.
 	  symbol selected = UI::QueryWidget(`id(`rb), `CurrentButton);
 
 	  if( ret == `help ) {
-	      UI::LongTextPopup( OSRPopup::help_headline,
+	      Popup::LongText( OSRPopup::help_headline,
             `RichText( eval( repair_methods[selected,"help"]:"")), 50, 20);
 	  }
 	  else if ( ret == `ok ) {

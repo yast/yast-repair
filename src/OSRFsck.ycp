@@ -27,7 +27,7 @@
   import "OSRPopup";
 
 
-  include "ui/common_popups.ycp";
+  import "Popup";
 
   textdomain "repair";
   
@@ -598,7 +598,7 @@ Repairing %1 file system of partition
 	  // if file exist
 	  if( WFM::Execute(.local.bash, "/usr/bin/test -f " + file_name ) == 0 )
 	  {
-	      ShowFilePopup( headline, file_name);
+	      Popup::ShowFile( headline, file_name);
 	  }
 
 	  if ( ret ) return `ok;
@@ -655,7 +655,7 @@ Repairing %1 file system of partition
       }
       else if ( last_check_return == 2 ) {
 	  
-	  if ( UI::YesNoHeadlinePopup(_("Reiserfs Fatal Corruptions"), _("
+	  if ( Popup::YesNoHeadline(_("Reiserfs Fatal Corruptions"), _("
 Checking the file system (reiserfs) reports
 fatal corruptions. Only a rebuild of the reiserfs
 file system tree (reiserfsck --rebuild-tree)

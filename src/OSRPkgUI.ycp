@@ -22,7 +22,8 @@
     import "OSRPkgVerify";
     import "OSRPopup";
 
-    include "ui/common_popups.ycp";
+    import "Label";
+    import "Popup";
     
     textdomain "repair";
 
@@ -260,7 +261,7 @@ modified.
 	dialogs = [];
 
 	//components for both 
-	term ok_cancel_button =  `PushButton( `id(ok_or_cancel_key),  CancelButtonLabel());
+	term ok_cancel_button =  `PushButton( `id(ok_or_cancel_key),  Label::CancelButton());
 	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &details"), expert_mode );
 	term progress_bar     =  OSRProgress::CreateProgressBar(package_progress_bar,  check_string(),  package_count  );
 	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Also Show Successfully Verified &Packages"),  show_ok));
@@ -301,7 +302,7 @@ YaST verifies packages now."))),
 	dialogs = add( dialogs, `HBox(`HWeight(1, `HSpacing(3)),
 				      `HWeight(30,`VBox(`VWeight(10, show_ok_term ),
 							 `VWeight(80, protocol ),	
-							 `VWeight(10, `PushButton( `id(ok_or_cancel_key), OKButtonLabel())  ))),
+							 `VWeight(10, `PushButton( `id(ok_or_cancel_key), Label::OKButton())  ))),
 				      `HWeight(1, `HSpacing(1))));
     }
 
@@ -557,7 +558,7 @@ YaST verifies packages now."))),
 	{
 	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
 	    // TODO write more
-	    UI::AnyMessagePopup(sformat(_("The file %1 is missing."), pkg_data["file"]:""),
+	    Popup::AnyMessage(sformat(_("The file %1 is missing."), pkg_data["file"]:""),
 sformat(_("The file %1 is part of the
 package %2, but was not found.
 "), pkg_data["file"]:"", pkg_name ));
@@ -567,7 +568,7 @@ package %2, but was not found.
 	{
 	    //rpm output e.g.: unsatisfied dependencies for SDL_mixer-1.2.4-55: libvorbisfile.so.3
 	    // TODO write more
-	    UI::AnyMessagePopup(_("Unsatisfied Dependencies:"),
+	    Popup::AnyMessage(_("Unsatisfied Dependencies:"),
 sformat("
 %1
 
@@ -679,7 +680,7 @@ the unsatisfied dependencies.
 				      `VSpacing(0.5),
 				      `VWeight(60, `RichText( header + body  + end )),
 				      `VSpacing(0.5),
-				      `PushButton(`id(`ok), OKButtonLabel())
+				      `PushButton(`id(`ok), Label::OKButton())
 				      ),
 				 `HSpacing(3)
 				 ));
@@ -726,7 +727,7 @@ the unsatisfied dependencies.
 	    // want really cancel.
 	    if( package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
 	    {
-		if( ! UI::YesNoPopup(_("\nReally cancel package verification?
+		if( ! Popup::YesNo(_("\nReally cancel package verification?
 ")))
 		{
 		    return `again;
@@ -794,7 +795,7 @@ Verifying the packages %1 was successful.
      * Finish the dialog.
      */
     global define void Finish()``{
-	UI::ChangeWidget(`id(ok_or_cancel_key), `Label, OKButtonLabel());
+	UI::ChangeWidget(`id(ok_or_cancel_key), `Label, Label::OKButton());
 
 	if( UI::WidgetExists(`id(pause_key ) ))
 	{

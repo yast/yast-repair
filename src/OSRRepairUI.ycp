@@ -22,6 +22,7 @@
   import "StorageControllers";
   import "ModuleLoading";
   import "Arch";
+  import "Hotplug";
 
   import "OSRMode";
   import "OSR";
@@ -29,10 +30,13 @@
   import "OSRPtbl";
   import "OSRDirect";
   import "OSRExecute";
- 
+  import "OSRProgress";
+  import "OSRStatus";
+
 
   include "wizard/sequencer.ycp";
-  include "ui/common_popups.ycp";
+  import "Label";
+  import "Popup";
   
   textdomain "repair";
   
@@ -43,7 +47,7 @@
    */
   boolean detected 		= false;
   
-  string exit_label		= UI::FinishButtonLabel();
+  string exit_label		= Label::FinishButton();
   
   /**
    * Captions ...
@@ -87,7 +91,7 @@
   global define symbol InitDialog() ``{
       if ( initialized ) return `next;
 
-      if ( Mode::initial ) Wizard::ReplaceAbortButton(`PushButton(`id(`abort), AbortButtonLabel()));
+      if ( Mode::initial ) Wizard::ReplaceAbortButton(`PushButton(`id(`abort), Label::AbortButton()));
       
       	// Set help text
 	if ( ! OSRMode::script ) Wizard::RestoreHelp ( "" );
@@ -174,7 +178,7 @@
 	    {
 		// Oops, no storage controllers ?
 		// no storage controllers found, where are the hard disks attached ?
-		UI::MessagePopup(_("No hard disks were found.
+		Popup::Message(_("No hard disks were found.
 Check your hardware.
 "));
 
@@ -206,7 +210,7 @@ Check your hardware.
 	    map targetMap = StorageDevices::Probe (true);
 	    if (size (targetMap) == 0)
 	    {
-		UI::ErrorPopup(_("No hard disks were found.
+		Popup::Error(_("No hard disks were found.
 Check your hardware.
 "));
 		  
@@ -370,7 +374,7 @@ table or verify the package database.
 					  ))
 		       );
 
-      Wizard::SetContentsButtons(start_dialog_caption,contents,help_text,BackButtonLabel(), exit_label );
+      Wizard::SetContentsButtons(start_dialog_caption,contents,help_text,Label::BackButton(), exit_label );
       UI::SetFocus(`id(`scan_repair));
 
       if( ! Mode::initial )
@@ -378,7 +382,7 @@ table or verify the package database.
 	  UI::ChangeWidget(`id(`back), `Enabled, false);
       }
       else {
-	  Wizard::ReplaceAbortButton(`PushButton(`id(`abort), AbortButtonLabel()));
+	  Wizard::ReplaceAbortButton(`PushButton(`id(`abort), Label::AbortButton()));
       }
      
       
@@ -442,7 +446,7 @@ for you.
 						    `PushButton(`id(`no_optins)  , unselect_all_label )
 						    )
 					      ),
-					`Right(`PushButton(`id(`help)  ,     HelpButtonLabel()))
+					`Right(`PushButton(`id(`help)  ,     Label::HelpButton()))
 
 					),
 				 `VSpacing(1)
@@ -451,7 +455,7 @@ for you.
 			   );
 
 
-    Wizard::SetContentsButtons( customize_dialog_caption ,contents,help_text,BackButtonLabel(), NextButtonLabel());
+    Wizard::SetContentsButtons( customize_dialog_caption ,contents,help_text,Label::BackButton(), Label::NextButton());
 
     
     // Select first Item
@@ -481,7 +485,7 @@ for you.
 	    string selected = UI::QueryWidget(`id(`options),  `CurrentItem );  
 	    map item_info   = OSR::GetGroupMap(selected);
 	    
-	    UI::LongTextPopup(item_info["text"]:"",`RichText(item_info["help"]:""), 60, 15 );
+	    Popup::LongText(item_info["text"]:"",`RichText(item_info["help"]:""), 60, 15 );
 	    UI::SetFocus(`id(`options));
 	}
 	else if ( ret == `next || ret == `abort || ret == `cancel ) {
@@ -535,7 +539,7 @@ go back and start the automatic analysis.</P>
     term contents = OSRDirect::OptionMenu();
 
     Wizard::SetContentsButtons(tool_dialog_caption, contents, help_text,
-	BackButtonLabel(), NextButtonLabel() );
+	Label::BackButton(), Label::NextButton() );
 
     any ret = `next;
     repeat {
@@ -595,7 +599,7 @@ go back and start the automatic analysis.</P>
 					      );
 
       // Help text (HTML-like)
-      string help_text = sformat(_("\n<p><I>%1</I> is now checking your Linux system.</p>
+      string help_text = sformat(_("<p><I>%1</I> is now checking your Linux system.</p>
 "), tool_name) +
 _("<p>Depending on the CPU and the amount of memory, this can
 take some time.</p>
@@ -615,7 +619,7 @@ Then select one proposal or cancel the repair. </P>
       Wizard::SetContentsButtons(
 			  scan_dialog_caption,
 			  contents,
-			  help_text, BackButtonLabel(), OKButtonLabel());
+			  help_text, Label::BackButton(), Label::OKButton());
 
       set_buttons_enable( false, true ,true);
   };
@@ -770,7 +774,7 @@ Then select one proposal or cancel the repair. </P>
   define symbol AbortDialog() ``{
 
       // popup label, %1 is "YaST System Repair" (translated)
-      if( UI::YesNoPopup(sformat(_("
+      if( Popup::YesNo(sformat(_("
 Really abort %1?
 "),tool_name )) )
 	  return `yes;
@@ -784,7 +788,7 @@ Really abort %1?
   define symbol FinishDialog() ``{
 
       // popup label, %1 is "YaST System Repair" (translated)
-      if( UI::YesNoPopup(sformat(_("
+      if( Popup::YesNo(sformat(_("
 Really finish %1?
 "),tool_name )) )
 	  return `yes;

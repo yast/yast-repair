@@ -21,13 +21,14 @@
  */
 {
   module "OSRFloppy";
-   
+
   textdomain "repair";
 
   import "StorageDevices";
   import "Report";
   import "OSRModuleLoading";
   import "Partitions";
+  import "Label";
 
 
   /**
@@ -231,7 +232,7 @@ does not exist and cannot be created.
 		 `VBox(
 		       `ProgressBar(`id(`progress), label, steps, 0),
 		       `VSpacing(0.4),
-		       `PushButton(`id(`cancel ) , UI::CancelButtonLabel() )
+		       `PushButton(`id(`cancel ) , Label::CancelButton() )
                      )
 		 ) )
       {

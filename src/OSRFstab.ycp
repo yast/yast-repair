@@ -31,19 +31,23 @@
 
   import "FileSystems";
   import "Storage";
+  import "StorageDevices";
   import "Hotplug";
   import "Partitions";
   import "Mode";
   import "Installation";
   import "AsciiFile";
   import "Initrd";
+  import "Report";
 
   import "OSRLogFile";
   import "OSRSystem";
   import "OSRExecute";
   import "OSRPopup";
-  
-  include "ui/common_messages.ycp";
+  import "OSRRepairUI";
+
+  import "Label";
+  import "Popup";
 
 
   textdomain "repair";
@@ -392,7 +396,7 @@
 	  y2error("No fstab found !!");
 	  if ( strict ) return false;
 	  
-	  if( UI::YesNoHeadlinePopup(_("fstab cannot be read."), _("
+	  if( Popup::YesNoHeadline(_("fstab cannot be read."), _("
 YaST cannot find an existing fstab
 file. To create a new one,
 press \"Yes\".
@@ -1123,7 +1127,7 @@ for the listed devices.
 		continue;
 	    }
 	    else if ( changed_size < size( new_entries )) {
-		if(! UI::YesNoHeadlinePopup(_("Some mount point fields are empty."),_("
+		if(! Popup::YesNoHeadline(_("Some mount point fields are empty."),_("
 YaST needs valid mount points to
 create fstab entries for devices.
 You did not enter a mount point
@@ -1663,7 +1667,7 @@ table entry to replace.
 		continue;
 	    }
 	    else if ( changed_count < size( nlines )) {
-		if(! UI::YesNoHeadlinePopup(_("Some table entries do have not have the status \"replace\"."),_("
+		if(! Popup::YesNoHeadline(_("Some table entries do have not have the status \"replace\"."),_("
 YaST only replaces the fstab lines marked with
 \"replace\". To accept the entire YaST
 suggestion, press \"No\" to return to
@@ -1775,10 +1779,10 @@ lines, press \"Yes\".
 					)
 				  ),
 			`VSpacing( 0.3 ),
-			`HSquash(`HBox(`PushButton( `id(`save), SaveButtonLabel() ),
-			      `PushButton( `id(`cancel), CancelButtonLabel()),
+			`HSquash(`HBox(`PushButton( `id(`save), Label::SaveButton() ),
+			      `PushButton( `id(`cancel), Label::CancelButton()),
 			      `HSpacing(2),
-			      `Right(`PushButton( `id(`help), HelpButtonLabel() ))
+			      `Right(`PushButton( `id(`help), Label::HelpButton() ))
 			     )),
 			`VSpacing( 0.3 )
 			)
@@ -1802,7 +1806,7 @@ if you press \"Save\".</P>
 	  ret = UI::UserInput();
 	  if ( ret == `help )
 	  {
-	      UI::LongTextPopup(OSRPopup::help_headline , `RichText(help_text), 50, 20);
+	      Popup::LongText(OSRPopup::help_headline , `RichText(help_text), 50, 20);
 	  }
       } until ( ret == `save || ret == `cancel );
 
