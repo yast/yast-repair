@@ -958,6 +958,7 @@ reinstall only the packages that do not work properly.</p>
 	    foreach(string item, missing_packages, ``{
 		item_list = add( item_list, [item, false]);
 	    });
+	    item_list = OSRPkgUI::update_missing_packages (item_list, true);
 
 	    if (use_dialog )
 	    {
