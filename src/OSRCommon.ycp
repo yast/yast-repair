@@ -246,8 +246,8 @@ global map global_entries		= $[];
   global define string RequireString(string name) ``{
 
       if ( ! haskey( global_provides, name ) )
-      {	
-	  y2error("The required value \"%1\" is not yet set.", name);
+      {
+	  y2warning ("The required value \"%1\" is not yet set.", name);
       }
 
       return global_provides[ name ]:"";
@@ -266,7 +266,7 @@ global map global_entries		= $[];
 
       if (! haskey (global_provides, name))
       {
-	  y2error("The required value \"%1\" is not yet set.", name);
+	  y2warning ("The required value \"%1\" is not yet set.", name);
       }
 
       return global_provides[name]:[];
@@ -285,7 +285,7 @@ global map global_entries		= $[];
 
       if ( ! haskey ( global_provides, name ))
       {
-	  y2error("The required value \"%1\" is not yet set.", name);
+	  y2warning ("The required value \"%1\" is not yet set.", name);
       }
 
       return global_provides[ name]:$[];
@@ -304,7 +304,7 @@ global map global_entries		= $[];
 
       if ( ! haskey( global_provides , name ))
       {
-	  y2error("The required value \"%1\" is not yet set.", name);
+	  y2warning ("The required value \"%1\" is not yet set.", name);
       }
 
       return global_provides[name]:.;
