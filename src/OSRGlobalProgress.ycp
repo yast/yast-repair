@@ -61,7 +61,9 @@
   };
 
   /**
-   *  Set the length of the global-progress-bar to the specified one.
+   *  Set the length of the global-progress-bar to the specified one. This function
+   *  can only be used for one time because the length of a progress bar cannot be
+   *  changed at runtime.
    *
    *  For internal use only.
    *
@@ -70,7 +72,7 @@
    */ 
   global define SetLength(integer new_length) ``{
 
-      // TODO: not possible to change length at runtime!
+      // it is not possible to change the length at runtime
       length = new_length;
 
       //return (UI::ChangeWidget(`id(OSRGlobalProgress::global_progress_id), `Length, OSRGlobalProgress::length);
