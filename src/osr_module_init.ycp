@@ -20,6 +20,7 @@
   import "Mode";
 
   import "OSR";
+  import "OSRCommon";
   import "OSRSummary";
   import "OSRFloppy";
   import "OSRPopup";
@@ -48,7 +49,7 @@
         OSRSummary::DetectOK("",sformat(_("Floppy device found on %1"),
              OSRFloppy::floppy_device ));
 
-        OSR::ProvideBoolean("has_floppy", true);
+        OSRCommon::ProvideBoolean("has_floppy", true);
       }
       else if ( size( StorageDevices::FloppyDrives)  > 1 )
       {
@@ -78,13 +79,13 @@ devices for later use."),
             // summary text, %1 is floppy device
             sformat(_("Selected floppy device %1"), OSRFloppy::floppy_device));
 
-        OSR::ProvideBoolean("has_floppy", true);
+        OSRCommon::ProvideBoolean("has_floppy", true);
       }
       else
       {
         // summary text
         OSRSummary::NotFound("",  _("No floppy device found"));
-        OSR::ProvideBoolean("has_floppy", false );
+        OSRCommon::ProvideBoolean("has_floppy", false );
         return false;
       }
       return true;
@@ -100,11 +101,11 @@ devices for later use."),
       // the target-directory is empty, else "/mnt"
       if (!Mode::initial && !Mode::cont)
       {
-        OSR::ProvideString("repair_target", "") ;
+        OSRCommon::ProvideString("repair_target", "") ;
       }
       else
       {
-        OSR::ProvideString("repair_target", "/mnt") ;
+        OSRCommon::ProvideString("repair_target", "/mnt") ;
       }
 
       return true;

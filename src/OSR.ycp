@@ -32,15 +32,8 @@
   textdomain "repair";
 
   // function prototypes (needed by includes)
-  global define boolean ProvideList(string name, list value);
-  global define boolean ProvideString(string name, string value);
-  global define boolean ProvideBoolean(string name, boolean value);
-  global define list RequireList(string name);
-  global define string RequireString(string name);
-  global define boolean RequireBoolean(string name);
   global define void SetReboot();
 
-  // ---------------------- FIXME
   // we have to include this files, because using them as clients is not
   // possible (because of passing function references)
   include "repair/osr_module_init.ycp";
@@ -69,37 +62,13 @@
    * ..
    */
   integer index_detect  = 0;
- 
+
   /**
-   * The global_provides map contains entries created during the system scan.
-   * The different detection methods access to the global_provides map to get
-   * informations from former detection methods.
-   * $["fs_module_loaded":true,
-       "has_floppy":true,
-       "just_mounted":[$["mountpoint":"/mnt", "partition":"/dev/hda3"]],
-       "linux_partition_list":["/dev/hda1", "/dev/hda3", "/dev/hda6"],
-       "mount_possible_list":["/dev/hda1", "/dev/hda3", "/dev/hda6"],
-       "mounted_partitions":[$["file":"/mnt", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/hda3", "vfstype":"reiserfs"],..,],
-       "repair_target":"",
-       "root_mounted":true,
-       "root_mountpoint":"/mnt",
-       "root_partition":"/dev/hda3",
-       "root_partition_type":"reiserfs",
-       "swap_partition_list":["/dev/hda2", "/dev/hda5"],
-       "swapable_partitions":["/dev/hda2", "/dev/hda5"],
-       "valid_fstab":true,
-       "valid_root_partitions":["/dev/hda3"],
-       "valid_swap_partitions":["/dev/hda2", "/dev/hda5"],
-       "valid_target":true, "valid_target_list":["/dev/hda"]]
-   */
-  map global_provides			= $[];
-  
-  /**
-   * Static global_provides entries for all detection methods. 
+   * Static global_provides entries for all detection methods.
    * $["root_mountpoint":"/mnt"]
    */
   map static_provides			= $[];
-  
+
   /**
    * A map with all lists of detect-methods-entries. The function-names have to be enclosed in
    * double-quoted braces!
@@ -183,36 +152,29 @@
       index_detect		= 0;
       index_modules		= 0;
 
-      global_provides		= $[];
+      module_detection_methods		= $[];
+      module_sequence			= [];
 
-      module_detection_methods	= $[];
-      module_sequence		= [];
+      module_maps			= $[];
 
-      OSRCommon::current_module_name	= "";
-      OSRCommon::current_detect_map	= $[];
-
-      module_maps		= $[];
-
-      OSRCommon::global_entries		= $[];
-      OSRCommon::detect_group_list	= [];
+      OSRCommon::Reset ();
   }
 
   /**
    * Reset detect settings.
    */
   global define void ResetDetect() ``{
-      index_detect 		= 0;
+      index_detect		= 0;
       index_modules		= 0;
-      
+
       global_provides_list      = [];
-      global_provides           = $[];
-      global_provides           = static_provides;
+
+      OSRCommon::SetGlobalProvides (static_provides);
 
       OSRCommon::current_detect_map	= $[];
       OSRCommon::current_module_name	= "";
   }
 
-  
   /**
    * Computes the sequence of the detection methods of a module. 
    */
@@ -493,7 +455,7 @@ modules were successfully solved.
    */
   define boolean requires_not_provided(list<string> requires )``{
     return !OSRSystem::IsSubSet (
-	    requires, maplist (string k, any v, (map<string,any>)global_provides,``(k)));
+    requires, maplist (string k, any v, OSRCommon::GlobalProvides () ,``(k)));
   }
 
   /**
@@ -949,179 +911,6 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
       }
       return ret;
   }
-
-  /**
-   *  Stores the given list with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param list value The provided value.
-   *  @return boolean True.
-   */
-  global define boolean ProvideList(string name, list value) ``{
-      global_provides = add (global_provides, name, value );
-      return true;
-  };
-
-  /**
-   *  Stores the given map with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param map value The provided value.
-   *  @return boolean True.
-   */
-  global define boolean ProvideMap(string name, map value) ``{
-      global_provides	= add(global_provides, name, value );
-      return true;
-  };
-
-  /**
-   *  Stores the given string with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param string value The provided value.
-   *  @return boolean True.
-   */
-  global define boolean ProvideString(string name, string value) ``{
-      global_provides	= add(global_provides, name,value ); // provides_map  );
-      return true;
-  };
-
-  /**
-   *  Stores the given path with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param path value The provided value.
-   *  @return boolean True.
-   */
-  global define boolean ProvidePath(string name, path value) ``{
-      global_provides	= add(global_provides, name, value ); //provides_map  );
-      return true;
-  };
-
-  /**
-   *  Stores the given boolean value with the specified name into the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the provided value.
-   *  @param boolean value The provided value.
-   *  @return boolean True.
-   */
-  global define boolean ProvideBoolean(string name, boolean value) ``{
-      global_provides	= add(global_provides, name,value); // provides_map  );
-      return true;
-  };
-
-  /**
-   *  Returns the required string from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return string value The required string, "" as default.
-   */
-  global define string RequireString(string name) ``{
-
-      if ( ! haskey( global_provides, name ) )
-      {		
-	  y2error("The required value \"%1\" is not yet set.", name);
-      }
-
-      return global_provides[ name ]:"";
-  };
-
-  /**
-   *  Returns the required list from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return string The required list, [] as default.
-   */
-  global define list RequireList(string name) ``{
-
-      if (! haskey (global_provides, name))
-      {
-	  y2error("The required value \"%1\" is not yet set.", name);
-      }
-
-      return global_provides[name]:[];
-  };
-
-  /**
-   *  Returns the required map from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return map The required map, $[] as default.
-   */
-  global define map RequireMap(string name) ``{
-
-      if ( ! haskey ( global_provides, name ))
-      {
-	  y2error("The required value \"%1\" is not yet set.", name);
-      }
-
-      return global_provides[ name]:$[];
-  };
-
-  /**
-   *  Returns the required path from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return path value The required path, . as default.
-   */
-  global define path RequirePath(string name) ``{
-
-      if ( ! haskey( global_provides , name ))
-      {
-	  y2error("The required value \"%1\" is not yet set.", name);
-      }
-
-      return global_provides[name]:.;
-  };
-
-  /**
-   *  Returns the required boolean value from the global_provides map
-   *  in the osr_map.
-   *
-   *  API function,
-   *
-   *  @param string name The name of the required value.
-   *  @return boolean value The required boolean value, false as default.
-   */
-  global define boolean RequireBoolean(string name) ``{
-
-      if (! haskey ( global_provides, name ))
-      {
-	  y2warning ("The required value \"%1\" is not yet set.", name);
-      }
-
-      return global_provides[ name]:false;
-  };
-
-
-
 
   /**
    * Count of detection methods of the specified group

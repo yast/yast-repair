@@ -25,8 +25,8 @@
   import "Mode";
 
   import "OSR";
-  import "OSRProgress";
   import "OSRCommon";
+  import "OSRProgress";
   import "OSRSummary";
   import "OSRSystem";
   import "OSRStatus";
@@ -95,7 +95,7 @@ YaST halts now.
             // summary text: %1 is string like "/dev/hda, /dev/hdb, /dev/sda"
             sformat(_("Several hard disks detected: %1"), mergestring(disk_list, ", ")));
       }
-      OSR::ProvideBoolean("valid_target",true);
+      OSRCommon::ProvideBoolean("valid_target",true);
       return true;
   }
 
@@ -191,7 +191,7 @@ YaST halts now.
             sformat(_("Partition tables found for the disks %1"),
                 mergestring(valid_target_list, ", ")));
       }
-      OSR::ProvideList("valid_target_list", valid_target_list);
+      OSRCommon::ProvideList("valid_target_list", valid_target_list);
       return true;
   };
 
@@ -217,7 +217,7 @@ YaST halts now.
             // summary text (%1 are partitions)
             sformat(_("Valid swap partitions were found:<br>%1"),
                 mergestring(swap_partition_list, ", ")));
-        OSR::ProvideList("swap_partition_list", swap_partition_list );
+        OSRCommon::ProvideList("swap_partition_list", swap_partition_list );
       }
       return true;
   }
@@ -231,7 +231,7 @@ YaST halts now.
       //
       /////////////////////////////////////////////////////////////////
       list<string> swap_partition_list     = (list<string>)
-	OSR::RequireList("swap_partition_list"); // ["/dev/hda1", "/dev/hdb2"]
+	OSRCommon::RequireList("swap_partition_list"); // ["/dev/hda1", "/dev/hdb2"]
       list<string> swapable_partition_list = OSRSwap::ValidPartitions(swap_partition_list); // ["/dev/hdb2"]
       list<string> swapon_notpossible_list = filter(string p, swap_partition_list, ``( ! contains( swapable_partition_list, p )));
 
@@ -248,7 +248,7 @@ YaST halts now.
                 mergestring(swapable_partition_list, ", ")));
       }
 
-      OSR::ProvideList("swapable_partitions", swapable_partition_list);
+      OSRCommon::ProvideList("swapable_partitions", swapable_partition_list);
 
       /////////////////////////////////////////////////////////////////
       //
@@ -291,8 +291,8 @@ partition.
                 _("Swap activation was successful."));
 
             // add spap partition to list swap_aktivated for swapoff
-            OSR::ProvideList("swap_aktivated", add (
-                OSR::RequireList("swap_aktivated"), swap ));
+            OSRCommon::ProvideList("swap_aktivated", add (
+                OSRCommon::RequireList("swap_aktivated"), swap ));
           }
           else
           {
@@ -352,7 +352,7 @@ partition %1"), part)
             // summary text (%1 are kernel modules)
             sformat(_("Kernel modules successfully installed:<br> %1"),
                 mergestring(OSRFsck::fs_kernel_modules, "<br>")));
-        OSR::ProvideBoolean("fs_module_loaded", true);
+        OSRCommon::ProvideBoolean("fs_module_loaded", true);
         return true;
       }
   }
@@ -369,9 +369,9 @@ partition %1"), part)
       // before mounting anything to "/mnt".
       //
       /////////////////////////////////////////////////////////
-      //string  root_mountpoint    = OSR::RequireString("root_mountpoint");
+      //string  root_mountpoint    = OSRCommon::RequireString("root_mountpoint");
       OSRSystem::SetOrgRoot();
-      OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
+      OSRCommon::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
       list<map> mounted_partitions = Partitions::CurMounted();
       // filter swap partitions
@@ -403,7 +403,7 @@ partition %1"), part)
             sformat(_("Mounted partitions were found:<br>%1"),
                 mergestring(mounted_output, "<br>")));
       }
-      OSR::ProvideList("mounted_partitions", mounted_partitions);
+      OSRCommon::ProvideList("mounted_partitions", mounted_partitions);
       return true;
   }
 
@@ -429,7 +429,7 @@ partition %1"), part)
             ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:0)));
         OSRSummary::DetectOK("", sformat(_("%1"), mergestring(key_list, " " )));
       }
-      OSR::ProvideList("fsck_partitions", fs_check_parts );
+      OSRCommon::ProvideList("fsck_partitions", fs_check_parts );
   }
 
 
@@ -444,9 +444,9 @@ partition %1"), part)
       //
       /////////////////////////////////////////////////////////
       list<map> fsck_partitions		= (list<map>)
-	OSR::RequireList("fsck_partitions");
+	OSRCommon::RequireList("fsck_partitions");
       list<map> mounted_partitions	= (list<map>)
-	OSR::RequireList("mounted_partitions");
+	OSRCommon::RequireList("mounted_partitions");
       list<string> checked_partitions = [];
 
       foreach(map p, fsck_partitions, ``{
@@ -506,7 +506,7 @@ partition %1"), part)
           }
       }
       });
-      OSR::ProvideList( "checked_partitions", checked_partitions );
+      OSRCommon::ProvideList( "checked_partitions", checked_partitions );
       return true;
   }
 
@@ -519,7 +519,7 @@ partition %1"), part)
 
       // Raid and LVM not supported at the moment!!
       list<string> checked_partitions	= (list<string>)
-	OSR::RequireList("checked_partitions");
+	OSRCommon::RequireList("checked_partitions");
       list<string> linux_partition_list =
 	OSRFstab::LinuxPartitions(checked_partitions);
 
@@ -564,7 +564,7 @@ installation.
             sformat(_("Valid Linux partitions were found:<br>%1"),
                 mergestring(linux_partition_list, ", ")));
       }
-      OSR::ProvideList("linux_partition_list", linux_partition_list);
+      OSRCommon::ProvideList("linux_partition_list", linux_partition_list);
       return true;
   }
 
@@ -580,7 +580,7 @@ installation.
       //
       /////////////////////////////////////////////////////////
       list<string> linux_partition_list	= (list<string>)
-	OSR::RequireList("linux_partition_list");
+	OSRCommon::RequireList("linux_partition_list");
       list<string> mount_possible_list  = OSRFstab::MountablePartitions(linux_partition_list, OSRSystem::TargetRoot());
 
       if ( size(mount_possible_list) > 0 )
@@ -590,7 +590,7 @@ installation.
             sformat(_("Mountable partitions were found:<br>%1"),
                 mergestring(mount_possible_list, ", ")));
 
-        OSR::ProvideList("mount_possible_list", mount_possible_list);
+        OSRCommon::ProvideList("mount_possible_list", mount_possible_list);
         return true;
       }
       else
@@ -655,7 +655,7 @@ the system and start a new installation.
       /////////////////////////////////////////////////////////////////
 
       list<string> valid_root_partition_list = OSRFstab::ValidRootPartitions (
-        (list<string>) OSR::RequireList("mount_possible_list"),
+        (list<string>) OSRCommon::RequireList("mount_possible_list"),
 	OSRSystem::TargetRoot());
       string  root_partition         = "";
 
@@ -724,8 +724,8 @@ start a new installation.
      }
       }
 
-      OSR::ProvideString("root_partition", root_partition);
-      OSR::ProvideList("valid_root_partitions", valid_root_partition_list );
+      OSRCommon::ProvideString("root_partition", root_partition);
+      OSRCommon::ProvideList("valid_root_partitions", valid_root_partition_list );
       return true;
   };
 
@@ -738,7 +738,7 @@ start a new installation.
       //  mount the root partition to /mnt
       //
       /////////////////////////////////////////////////////////////////////////
-      string root_partition         = OSR::RequireString("root_partition");
+      string root_partition         = OSRCommon::RequireString("root_partition");
 
       list<map>    just_mounted         = [];
       // summary header, %1 is root partition, %2 target
@@ -765,7 +765,7 @@ start a new installation.
             // summary text
             sformat(_("Root partition was not successfully mounted to %1"),
                 OSRSystem::TargetRoot() ));
-        if( size( OSR::RequireList("valid_root_partitions")) > 1 ){
+        if( size( OSRCommon::RequireList("valid_root_partitions")) > 1 ){
 
         if( Popup::AnyQuestion(
             // popup label
@@ -801,8 +801,8 @@ root partition or cancel scanning the system.
                 OSRSystem::TargetRoot()  ));
       }
 
-      OSR::ProvideList("just_mounted", just_mounted );
-      OSR::ProvideBoolean("root_mounted", true );
+      OSRCommon::ProvideList("just_mounted", just_mounted );
+      OSRCommon::ProvideBoolean("root_mounted", true );
       return true;
   }
 
@@ -826,14 +826,14 @@ root partition or cancel scanning the system.
       /////////////////////////////////////////////////////////////////////////
 
       // summary header
-      string summary_header   = sformat(_("Reading fstab of root partition %1..."),  OSR::RequireString("root_partition"));
+      string summary_header   = sformat(_("Reading fstab of root partition %1..."),  OSRCommon::RequireString("root_partition"));
 
       if ( ! OSRFstab::ReadFstab(OSRSystem::TargetRoot(), false))
       {
         // summary text
         OSRSummary::DetectError( summary_header, _("fstab could not be read."));
 
-        if( size( OSR::RequireList("valid_root_partitions")) > 1 ) {
+        if( size( OSRCommon::RequireList("valid_root_partitions")) > 1 ) {
             // popup label
             if( Popup::AnyQuestion(_("fstab was not successfully read."),
                 // popup text
@@ -860,7 +860,7 @@ root partition or cancel scanning the system.
         OSRSummary::DetectOK( summary_header, _("fstab read."));
       }
 
-      OSR::ProvideBoolean("fstab_readed", true);
+      OSRCommon::ProvideBoolean("fstab_readed", true);
       return true;
   }
 
@@ -870,9 +870,9 @@ root partition or cancel scanning the system.
    */
   define boolean OSRPartitionCheckFstabRoot()``{
 
-      if ( OSRFstab::CheckRootEntry(OSR::RequireString("root_partition"),
-                    (list<string>) OSR::RequireList("swapable_partitions"),
-                    (list<string>) OSR::RequireList("checked_partitions")) )
+      if ( OSRFstab::CheckRootEntry(OSRCommon::RequireString("root_partition"),
+                    (list<string>) OSRCommon::RequireList("swapable_partitions"),
+                    (list<string>) OSRCommon::RequireList("checked_partitions")) )
       {
         // summary text
         OSRSummary::DetectOK("", _("The root entry of fstab is valid."));
@@ -890,7 +890,7 @@ root partition or cancel scanning the system.
                        // summary text
                        _("Repair was not successful."));
       }
-      OSR::ProvideBoolean("fstab_root_checked",true);
+      OSRCommon::ProvideBoolean("fstab_root_checked",true);
       return true;
   }
 
@@ -898,11 +898,11 @@ root partition or cancel scanning the system.
    * Check all entris (without root) in the fstab.
    */
   define boolean OSRPartitionCheckFstab()``{
-       string root_partition    = OSR::RequireString("root_partition");
+       string root_partition    = OSRCommon::RequireString("root_partition");
 
       if ( OSRFstab::Check (
-		(list<string>)OSR::RequireList("swapable_partitions"),
-		(list<string>)OSR::RequireList("checked_partitions")))
+		(list<string>)OSRCommon::RequireList("swapable_partitions"),
+		(list<string>)OSRCommon::RequireList("checked_partitions")))
       {
         // summary text
         OSRSummary::DetectOK("", _("fstab entries valid."));
@@ -921,7 +921,7 @@ root partition or cancel scanning the system.
                        // summary text
                        _("Repair was not successful."));
       }
-      OSR::ProvideBoolean( "fstab_checked", true);
+      OSRCommon::ProvideBoolean( "fstab_checked", true);
       return true;
   };
 
@@ -932,14 +932,14 @@ root partition or cancel scanning the system.
   define boolean OSRPartitionReset()``{
 
       // umount just_mount!!
-      list<map> just_mounted    = (list<map>) OSR::RequireList("just_mounted");
+      list<map> just_mounted    = (list<map>) OSRCommon::RequireList("just_mounted");
       just_mounted      = sort(map x, map y, just_mounted,
         ``(size(splitstring(x["mountpoint"]:"", "/")) >
            size(splitstring( y["mountpoint"]:"" ,"/"))));
       y2milestone(" just_mounted %1", just_mounted );
 
       // mount just_umounted!!
-      list<map> just_umounted   = (list<map>) OSR::RequireList("just_umounted");
+      list<map> just_umounted   = (list<map>) OSRCommon::RequireList("just_umounted");
       just_umounted		= sort(map x, map y, just_umounted,
         ``(size(splitstring(x["mountpoint"]:"", "/")) <
            size(splitstring(y["mountpoint"]:"" ,"/"))));

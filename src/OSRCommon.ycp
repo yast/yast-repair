@@ -56,6 +56,14 @@ global define map EmptyMap () ``{
     return $[];
 }
 
+/**
+ * @return []
+ */
+global define list EmptyList () ``{
+    return [];
+}
+
+
 // ---------------------------------------------------------------------
 // from OSRDirect.ycp:
 
@@ -126,6 +134,232 @@ global map current_detect_map	        = $[];
  */
 global map global_entries		= $[];
 
+  /**
+   * The global_provides map contains entries created during the system scan.
+   * The different detection methods access to the global_provides map to get
+   * informations from former detection methods.
+   * $["fs_module_loaded":true,
+       "has_floppy":true,
+       "just_mounted":[$["mountpoint":"/mnt", "partition":"/dev/hda3"]],
+       "linux_partition_list":["/dev/hda1", "/dev/hda3", "/dev/hda6"],
+       "mount_possible_list":["/dev/hda1", "/dev/hda3", "/dev/hda6"],
+       "mounted_partitions":[$["file":"/mnt", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/hda3", "vfstype":"reiserfs"],..,],
+       "repair_target":"",
+       "root_mounted":true,
+       "root_mountpoint":"/mnt",
+       "root_partition":"/dev/hda3",
+       "root_partition_type":"reiserfs",
+       "swap_partition_list":["/dev/hda2", "/dev/hda5"],
+       "swapable_partitions":["/dev/hda2", "/dev/hda5"],
+       "valid_fstab":true,
+       "valid_root_partitions":["/dev/hda3"],
+       "valid_swap_partitions":["/dev/hda2", "/dev/hda5"],
+       "valid_target":true, "valid_target_list":["/dev/hda"]]
+   */
+  map<string,any> global_provides			= $[];
+
+
+  /**
+   *  Stores the given list with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param list value The provided value.
+   *  @return boolean True.
+   */
+  global define boolean ProvideList(string name, list value) ``{
+      global_provides = add (global_provides, name, value );
+      return true;
+  };
+
+  /**
+   *  Stores the given map with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param map value The provided value.
+   *  @return boolean True.
+   */
+  global define boolean ProvideMap(string name, map value) ``{
+      global_provides	= add(global_provides, name, value );
+      return true;
+  };
+
+  /**
+   *  Stores the given string with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param string value The provided value.
+   *  @return boolean True.
+   */
+  global define boolean ProvideString(string name, string value) ``{
+      global_provides	= add(global_provides, name,value ); // provides_map  );
+      return true;
+  };
+
+  /**
+   *  Stores the given path with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param path value The provided value.
+   *  @return boolean True.
+   */
+  global define boolean ProvidePath(string name, path value) ``{
+      global_provides	= add(global_provides, name, value ); //provides_map  );
+      return true;
+  };
+
+  /**
+   *  Stores the given boolean value with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param boolean value The provided value.
+   *  @return boolean True.
+   */
+  global define boolean ProvideBoolean(string name, boolean value) ``{
+      global_provides	= add(global_provides, name,value); // provides_map  );
+      return true;
+  };
+
+  /**
+   *  Returns the required string from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string value The required string, "" as default.
+   */
+  global define string RequireString(string name) ``{
+
+      if ( ! haskey( global_provides, name ) )
+      {	
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return global_provides[ name ]:"";
+  };
+
+  /**
+   *  Returns the required list from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string The required list, [] as default.
+   */
+  global define list RequireList(string name) ``{
+
+      if (! haskey (global_provides, name))
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return global_provides[name]:[];
+  };
+
+  /**
+   *  Returns the required map from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return map The required map, $[] as default.
+   */
+  global define map RequireMap(string name) ``{
+
+      if ( ! haskey ( global_provides, name ))
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return global_provides[ name]:$[];
+  };
+
+  /**
+   *  Returns the required path from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return path value The required path, . as default.
+   */
+  global define path RequirePath(string name) ``{
+
+      if ( ! haskey( global_provides , name ))
+      {
+	  y2error("The required value \"%1\" is not yet set.", name);
+      }
+
+      return global_provides[name]:.;
+  };
+
+  /**
+   *  Returns the required boolean value from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return boolean value The required boolean value, false as default.
+   */
+  global define boolean RequireBoolean(string name) ``{
+
+      if (! haskey ( global_provides, name ))
+      {
+	  y2warning ("The required value \"%1\" is not yet set.", name);
+      }
+
+      return global_provides[ name]:false;
+  };
+
+
+
+  /**
+   * Reset variables moved from OSR.ycp
+   */
+  global define void Reset () ``{
+
+      global_provides	= $[];
+
+      current_module_name	= "";
+      current_detect_map	= $[];
+
+      global_entries		= $[];
+      detect_group_list	= [];
+  }
+
+  /**
+   * Set the new value of global_provides map
+   */
+  global define void SetGlobalProvides (map new) ``{
+
+      global_provides	= eval ((map<string,any>) new);
+  }
+
+  /**
+   * Set the new value of global_provides map
+   */
+  global define map<string,any> GlobalProvides () ``{
+
+      return global_provides;
+  }
 
 /**
  * Get group data.

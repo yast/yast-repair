@@ -16,7 +16,6 @@
 {
   module "OSRPtbl";
 
-//  import "OSR";
   import "OSRExecute";
   import "OSRFloppy";
   import "OSRPopup";
@@ -532,7 +531,7 @@ and how to restore it.
    
       // this can't be repaired without a floppy drive, so the user must not be asked again
       // to repair via floppy
-      if (! true )// FIXME OSR::RequireBoolean("has_floppy"))
+      if (! OSRCommon::RequireBoolean("has_floppy"))
       {
 	  // display that no floppy drive was detected
 	  Report::Message(_("

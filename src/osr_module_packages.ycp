@@ -20,6 +20,7 @@
   import "Mode";
   import "Report";
 
+  import "OSRCommon";
   import "OSRPkg";
   import "OSRPkgVerify";
   import "OSRSummary";
@@ -49,7 +50,7 @@
 
 
       if( ! OSRFstab::ReadedSuccessfully())
-      OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
+      OSRCommon::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
       list<map> mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());
       list<map> success      = filter(map mpe , mounted, ``(mpe["status"]:false == true));
@@ -78,8 +79,8 @@
         OSRSummary::DetectOK("", _("Target system initialized."));
       }
 
-      OSR::ProvideBoolean("mounted_all", true );
-      OSR::ProvideList("just_mounted", union( OSR::RequireList("just_mounted"), success));
+      OSRCommon::ProvideBoolean("mounted_all", true );
+      OSRCommon::ProvideList("just_mounted", union( OSRCommon::RequireList("just_mounted"), success));
 
       return true;
   }
@@ -97,7 +98,7 @@
       {
         // summary text
         OSRSummary::DetectOK("",_("Package database was found."));
-        OSR::ProvideBoolean("package_db_found", true);
+        OSRCommon::ProvideBoolean("package_db_found", true);
       }
       else {
         // summary text
@@ -129,7 +130,7 @@
       {
         // summary text
         OSRSummary::DetectOK("",_("All minimal required packages were found."));
-        OSR::ProvideBoolean("package_minimal_selection", true);
+        OSRCommon::ProvideBoolean("package_minimal_selection", true);
       }
       else {
         OSRSummary::DetectError("",
@@ -188,7 +189,7 @@
 
       //Not a second verify process!!
       OSRStatus::DetectOK();
-      OSR::ProvideBoolean("package_verified", true);
+      OSRCommon::ProvideBoolean("package_verified", true);
       return true;
   }
 
