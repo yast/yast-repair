@@ -617,7 +617,7 @@ YaST halts now.
             sformat(_("
 The partition %1 has the file system ID 130 and
 contains a valid swap area. Activating this swap
-partition increases the performance of your system.
+partition increases the performance of the repair tool.
 Press \"Yes\" to activate the swap
 partition.
 "),swap ) ))
