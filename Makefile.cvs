@@ -5,9 +5,7 @@ configure: all
 	./configure
 
 all:
-	aclocal
-	autoconf
-	automake -a
+	autoreconf --force --install
 
 install: configure
 	make
