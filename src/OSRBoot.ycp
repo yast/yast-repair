@@ -584,7 +584,8 @@ modules to the initial ramdisk.
         {
 	    // question in a popup box
             if ( Popup::YesNo( _("Calling mk_initrd failed.
-Would you like to see the log file?")))
+Display the log file?
+")))
             {
                 Popup::ShowFile( _("The Output of the Script mk_initrd:"), "/var/log/YaST2/y2logmkinitrd" );
             }
