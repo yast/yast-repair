@@ -527,7 +527,7 @@ Press \"Skip\" to avoid repairing.
       string help_text         = _("
 <p>An inconsistent file system occurs when
 a partition is not correctly unmounted.
-This could happen during the system crash.</p>
+This could happen during a system crash.</p>
 ") +
 
       // error message
@@ -552,8 +552,8 @@ _("<p>If you know what kind of file system
 you have and how to use the corresponding
 tool, close YaST and repair the
 damaged file system on your own. Otherwise,
-close this help dialog and press the
-\"Repair\" button for automatic repair.</p>
+close this help dialog and press 
+\"Repair\" for automatic repair.</p>
 ");
 
       while( true )

@@ -1428,10 +1428,9 @@ corresponding line is %2.
 	// dialog caption
 	_("Remove fstab Entries:"),
 	// dialog text
-	_("
-Could not find existing devices for the following fstab lines.
-Select the lines in the table and change the status
-if you want to remove the lines from fstab.
+	_("Could not find existing devices for the following fstab lines.
+To remove the lines from fstab, select them in the table and 
+change the status.
 "),
 	help_text,
 	`VBox(

@@ -384,25 +384,27 @@ y2warning ("type from sysconfig: %1", SCR::Read (.sysconfig.bootloader.LOADER_TY
         string header = _("No valid root partition was found");
         // popup text
         string text =  _("
-YaST could not detect any valid root partition
-in your system.  Probably, there is no valid
+YaST could not detect any valid root partitions
+in your system. Probably, there is no valid
 Linux system on this computer. If you are
 sure you installed a Linux system, press
 \"Retry Scanning\". Otherwise, skip scanning
-the system and start a new installation.");
+the system and start a new installation.
+");
 
         if (not_found[0]:"" == "boot")
         {
             // popup header
-            header =  _("No valid boot partition was found");
+            header =  _("No Valid Boot Partition Found");
             // popup text
             text =  _("
-YaST could not detect any valid boot partition
-in your system.  Probably, there is no valid
+YaST could not detect any valid boot partitions
+in your system. Probably, there is no valid
 Linux system on this computer. If you are
 sure you installed a Linux system, press
 \"Retry Scanning\". Otherwise, skip scanning
-the system and start a new installation.");
+the system and start a new installation.
+");
         }
         if( Popup::AnyQuestion(header, text,
             // button label
