@@ -133,14 +133,16 @@
    *
    *  API function.
    *
-   *  @param string The headline of the popup window.
-   *  @param string The message text to display in the window.
-   *  @param list The list of items. This has to be a list of strings.
-   *  @param string The default value to mark as selected.
+   *  @param string headline The headline of the popup window.
+   *  @param string message The message text to display in the window.
+   *  @param list item_list The list of items. This has to be a list of strings.
+   *  @param string default The default value to mark as selected.
+   *  @param boolean strict If strict is true, only an OK-pushbutton is displayed,
+   *         if strict is false both OK- and Cancel-button are displayed.
    *  @return string The selected item, the default if cancel is pressed.
    *  @example string result = OSRPopupSelectItem("Test", "This is just a test.", ["a", "b", "c"], "b"); 
    */
-  global define OSRPopupSelectItem(string headline, string message, list item_list, string default) ``{
+  global define OSRPopupSelectItem(string headline, string message, list item_list, string default, boolean strict) ``{
 
       string result = "";
 
@@ -166,15 +168,27 @@
 	  term rb            = `Empty();
 	  term rbs           = `Empty();
 	  
-	  ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
-	  cancel_button = `PushButton(`id(`osr_popup_cancel), _("&Cancel"));
 
-	  button_box    = `HBox(
-				`HWeight(1, ok_button),
-				`HSpacing(2),
-				`HWeight(1, cancel_button)
-				);
+	  if (WFM::strict)
+	  {
+	      ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
 
+	      button_box    = `HBox(
+				    `HWeight(1, ok_button)
+				    );
+	  }
+	  else
+	  {
+	      ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
+	      cancel_button = `PushButton(`id(`osr_popup_cancel), _("&Cancel"));
+	      
+	      button_box    = `HBox(
+				    `HWeight(1, ok_button),
+				    `HSpacing(2),
+				    `HWeight(1, cancel_button)
+				    );
+	  }
+	  
 	  rbs = `VBox(`Left(`Label(WFM::message)));
 	  
 	  // create the radio buttons dynamically referring to the item_list
@@ -234,7 +248,6 @@
 
       return result;
   }
-
 
   /**
    *  Displays a popup window for the specified amount of time. The window
