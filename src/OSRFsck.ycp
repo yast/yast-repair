@@ -544,7 +544,7 @@ crashes.</p>
 _("<p>There is a repair method for each file
 system. For example, if the file system
 of the damaged partition is ext2 or
-ext3 use fsck.ext2 (e2fsck) with the
+ext3, use fsck.ext2 (e2fsck) with the
 corresponding options to repair the
 file system. The following lines list
 the repair tools of the different Linux

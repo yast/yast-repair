@@ -14,6 +14,7 @@
     textdomain "repair";
 
 
+    import "Storage";
     import "HTML";
 
     import "OSR";
@@ -129,7 +130,7 @@
 		direct_items = add( direct_items, `RichText(`id(`options), text));
 	    }
 
-	    direct_items = add(direct_items , `MenuButton( _("Re&pair tools ..."), menu_button_items ));
+	    direct_items = add(direct_items , `MenuButton( _("Re&pair Tools..."), menu_button_items ));
 	    direct_items = add(direct_items , `VSpacing(0.2));
 	}
 
@@ -151,6 +152,7 @@
 	OSR::current_module_name = "";
 	map method_data 	 = direct_methods[method]:$[];
 	symbol ret               = `error;
+    y2debug ("--------- method_data: %1", method_data);
 
 	// eval current direct repair method
 	if ( method_data != $[] && method_data != nil )

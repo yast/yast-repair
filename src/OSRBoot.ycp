@@ -972,7 +972,7 @@ contains no errors, press Cancel.
 	    menu_dev  = substring(menu, 0, findfirstof(menu, ")") +1 );
 	    menu_path = substring(menu, findfirstof(menu, ")") +1 );
 	}
-	y2milestone("menu_path %1 menu_dev %1   menu:",menu_path, menu_dev, menu);
+	y2milestone("menu_path %1, menu_dev %2, menu: %3",menu_path,menu_devmenu);
 	
 	if( menu_dev != "" && ! exists_grub_device(menu_dev ) )
 	{

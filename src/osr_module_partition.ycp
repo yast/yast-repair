@@ -20,11 +20,9 @@
 
   include "ui/common_popups.ycp";
 
-  import "Storage";
   import "Report";
   import "Misc";
   import "Mode";
-  import "FileSystems";
 
   import "OSR";
   import "OSRSummary";
@@ -135,7 +133,7 @@ _("<P><B>Check File System</B><BR>
 An inconsistent file system occurs when
 a partition is not correctly unmounted.
 For example, this happens when the system
-corrupts.</p>
+crashes.</p>
 ") +
 
 _("<p>There is a repair method for each file

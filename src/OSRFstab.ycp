@@ -1052,7 +1052,7 @@ entry was found.
 ")) +
 
 	  OSRRepairUI::build_label_description( mount_label, _("The mount point for the found device. YaST creates this
-mount point in the file system. If you leave the mount point field empty, no fstab entry will created.
+mount point in the file system. If you leave the mount point field empty, no fstab entry will be created.
 ")) +
 
 	  OSRRepairUI::build_label_description( create_mp_label, _("Add a mount point for a device."));
