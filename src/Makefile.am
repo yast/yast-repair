@@ -16,7 +16,8 @@ clients_DATA =				\
 	osr_module_list.ycp		\
 	osr_module_init.ycp		\
 	osr_module_partition.ycp	\
-	osr_module_lilo.ycp
+	osr_module_lilo.ycp		\
+	osr_confirm_abort.ycp
 
 include_DATA =				\
 	osr_system.ycp			\
@@ -37,7 +38,8 @@ menu_DATA = 				\
 	menuentry_osr.ycp
 
 scr_DATA =				\
-	etc_liloconf1.scr
+	etc_liloconf1.scr		\
+	etc_fstab1.scr
 
 ##yast2_DATA =				\
 #	osr_module_list.ycp
