@@ -340,6 +340,7 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 	      while (repair_question && !repair_succeeded)
 	      {
 		  // e.g. if target = "/dev/hda": disk_name = "hda"
+		  // TODO: use another function: get_device_name()     partition_defines.ycp
 		  string  disk_name     = select(splitstring(target, "/"), (size(splitstring(target, "/"))-1));
 
 		  // the name of the primary partition table saved to floppy, e.g. "hda.ptbl"
@@ -539,7 +540,8 @@ press Repair.
 Press Skip to avoid repairing the
 partition table with gpart."), target);
 
-		  help_text = _("Blabla");
+		  // TODO
+		  help_text = _("");
 	      
 		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
@@ -647,7 +649,7 @@ partition table with gpart."), target);
 
 			      selection_display = add(selection_display, item_list);
 			      
-			      // TODO: which partitions should not be activated??
+			      // TODO: which partitions should not be activated?? 0x05 0x0f
 			      // add all partitions to the list of activatable partitions that are not swap (0x82), unused (0x00),...
 			      if (!issubstring(p, "(0x82)") && !issubstring(p, "(0x00)"))
 			      {
@@ -875,6 +877,9 @@ YaST2 OS Repair halts now.");
       OSRModuleProgress::Fill();
       
       return $["status" : status];
+
+
+      // TODO: blockdev --rereadpt /dev/sda nachdem eine ptbl neu angelegt wurde!
   };
 
   /**
@@ -1144,6 +1149,9 @@ YaST2 OS Repair halts now.");
 	  // eventually: if no fstab found search for the /etc/ directory
 	  // -> this has to be the root partition but the fstab is missing,
 	  // probably it is possible to autocreate a new one
+
+	  // /dev, /etc, /proc, /sbin, /bin, /lib: wenn mind. 4 der 6 dirs auf der partition vorhanden, dann
+	  // sollte weiterdetected werden.
 	  
 	  return $[
 		   "status" : status,
@@ -1395,6 +1403,8 @@ You have to select one item in the list."),
 		  OSRModuleProgress::Add(10);
 	      }
 
+	      // TODO: check ext3, jfs, xfs
+
 	      if (check_fs == 0)
 	      {
 		  status = OSRStatusDetectOK();
@@ -1417,6 +1427,8 @@ You have to select one item in the list."),
 
 		  // TODO: fsck reports an error but the partition is mountable, as we know???
 		  // go on and try to mount the root partition
+
+		  // TODO: not only --fix-fixable, also critical repairs, user interaction
 	      }
 	  }
       }
@@ -1489,7 +1501,6 @@ You have to select one item in the list."),
       
       if (mount_successful)
       {
-	  // TODO: is this true? what if booting from cdrom?
 	  integer fstab_size = SCR::Read(.target.size, "" + root_mountpoint + fstab_standard_path);
 
 	  OSRModuleProgress::Add(10);
@@ -1527,7 +1538,7 @@ You have to select one item in the list."),
 				    sformat(_("Searching filesystem table %1"), root_mountpoint + fstab_standard_path),
 				    _("The fstab agent reported an error")
 				    );
-
+	      // TODO: fstab repair, not-fstab
 	  }
 	  else if (size(fstab) == 0)
 	  {
@@ -1541,6 +1552,7 @@ You have to select one item in the list."),
 				    _("No filesystem table found")
 				    );
 
+	      // TODO: fstab repair, not-fstab
 	  }
 	  else
 	  {
@@ -1588,6 +1600,10 @@ You have to select one item in the list."),
 	      //  detect the filesystem type
 	      //
 	      ///////////////////////////////////////////////////////////////////////////////
+
+              // TODO: problem with mounting an entry
+
+	      // TODO: wenn es nicht /var, (/opt), /usr, ist, dann von "default" auf "noauto" setzen, falls es hier Probleme gibt
 	      
 	      // mounting the "normal" filesystems
 	      // attention: "nfs"-filesystems are not mounted here!
@@ -1656,6 +1672,8 @@ You have to select one item in the list."),
 			  check_fs = CheckReiserfs(spec, "");
 		      }
 
+		      // TODO: check also ext3, xfs, jfs
+
 		      OSRModuleProgress::Add(progress_increment);
 
 		      if (check_fs == 0)
@@ -1689,6 +1707,10 @@ You have to select one item in the list."),
 		  // if the mount-options contain "ro", it is not possible to mount the specified partition to /mnt/...
 		  if (issubstring(mntops,"ro,") || issubstring(mntops,",ro") || mntops == "ro")
 		  {
+
+		      // TODO: mount it readonly, this is not an error, (if it is /var, change entry in fstab to rw)
+
+		      /*
 		      status = OSRStatusDetectError();
 
 		      OSRSummaryDetectError(
@@ -1696,11 +1718,12 @@ You have to select one item in the list."),
 					    sformat(_("Mounting %1 to %2"), spec, root_mountpoint + file),
 					    sformat(_("Partition %1 is read-only<br>Mounting not proceeded"), spec)
 					    );
-
+		      */
+		      
                       // TODO: ask the user to change the fstab-entry
 		      
-		      y2error("Mounting %1 on %2 is only possible for permissions \"ro\" after reboot.", spec, root_mountpoint + file);
-		      y2error("Please change /etc/fstab");
+		      //y2error("Mounting %1 on %2 is only possible for permissions \"ro\" after reboot.", spec, root_mountpoint + file);
+		      //y2error("Please change /etc/fstab");
 //		      success = false;
 		  }
 		  else
