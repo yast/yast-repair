@@ -1,0 +1,98 @@
+#!/bin/bash
+# need files: awk,sed
+PREFIX=/usr/local/yast2/modules/y2m_os_repair/rpm_check/
+export PREFIX  # $PREFIX is used by $RPM_STAT as environment variable
+LANG=C
+RPM_STAT=$PREFIX/scripts/rpm_stat.awk
+READ_DB=$PREFIX/scripts/rpm_dDB2list.awk
+
+SCRPATH1="Read (.rpm_stat, " # an _installed_ rpm: the failure status of a rpm (dependencies; missed, fail files)
+SCRPATH2="Write (.create_rpm_dDB, "
+SCRPATH3="Read (.get_rpm_dDB, "
+SCRPATH4="Write (.add_rpm_dDB, " # add from rpm-name generated rpm_stat-entry to an existing rpm_dDB
+SCRPATH5="Read (.rpm_install_stat, " # rpm status: installed/not_installed
+SCRPATH6="Write (.del_rpm_dDB, " # delete all key:value matching pairs
+
+while true ; do
+    read COMMAND || exit
+	#echo "########     COMMAND ==" "$COMMAND"  > /dev/stderr
+    
+    case "$COMMAND" in
+	"result ("*)
+	    exit
+	    ;;
+		
+	# one argument: the rpm-name (short or long)
+	# if short name passed -> rpm-version not available
+	$SCRPATH1*)
+		RPM_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH1"'"\(.*\)")/\1/p'`
+		if test "x$RPM_NAME" != "x"; then
+			echo "$RPM_NAME" | awk -f "$RPM_STAT"
+		else
+			echo "nil"
+		fi
+	;;
+	
+	# create a rpm_dDB (rpm diff Data Base) from a rpm_namelist-file(second arg) 
+	# and save it to a file (first arg)
+	$SCRPATH2*)
+		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'"\(.*\)", ".*")/\1/p'`
+		RPM_LIST=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'".*", "\(.*\)")/\1/p'`
+		# if ( test "x$DB_NAME" = "x") || ( test "x$RPM_LIST" = "x") || (! test -r "$RPM_LIST") || (! test -s "$RPM_LIST"); then
+		if test \( "x$DB_NAME" = "x" \) -o \( "x$RPM_LIST" = "x" \) -o \( ! -r "$RPM_LIST" \) -o \( ! -s "$RPM_LIST" \) ; then
+			echo "false"
+		else
+			cat "$RPM_LIST" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
+			if test $? -eq 0; then 
+				echo "true"
+			else
+				echo "false"
+			fi
+		fi
+	;;
+	
+	# returns a rpm_dDB as a list, if the rpm_dDB-file exists and is consistent
+	# otherwise returns "nil"
+	$SCRPATH3*)
+		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH3"'"\(.*\)")/\1/p'`
+		#if  ( test "x$DB_NAME" = "x") || ( ! test -r "$DB_NAME" ) || ( ! test -s "$DB_NAME" ); then 
+		if  test \( "x$DB_NAME" = "x" \) -o \( ! -r "$DB_NAME" \) -o \( ! -s "$DB_NAME" \); then 
+			echo "nil"
+		else 
+			cat "$DB_NAME" | awk -f "$READ_DB"
+		fi
+	;;
+
+	# adds a new rpm_stat-map to the rpm_dDB database.
+	# 1.arg is the DB_NAME, 2.arg is the rpm-name
+	# !!!ATTENTION!!! it adds a new entry without to check if this entry already exists!
+	$SCRPATH4*)
+		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH4"'"\(.*\)" *, *"\(.*\)" *)/\1/p'`
+		RPM_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH4"'"\(.*\)" *, *"\(.*\)" *)/\2/p'`
+		if test "x$DB_NAME" != "x"; then 
+			if ! test -w "$DB_NAME"; then
+				touch "$DB_NAME"
+			fi
+			#echo -n ">>>>" "$RPM_NAME"  > /dev/stderr
+			echo "$RPM_NAME" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' >> "$DB_NAME"
+			echo "true"
+			#echo "....DONE" > /dev/stderr
+		else
+			#echo "ag_rpm: ERROR: $DB_NAME couldn't resolved" > /dev/stderr
+			echo "false"
+		fi
+	;;
+	# 1 argument: is a short or full rpm_package_name 
+	# returns "nil" if the package isn't installed or a list with maps 
+	# (a map contains information about a rpm_package -- if more that 1 
+	# package matched (in case of short name rpm can indicate more that 1 package).
+	# a map has keys: "RPM_NAME", "RPM_SHORT_NAME", "RPM_VERSION" (all this values will be extracted from RPM_NAME only!)
+	$SCRPATH5*)
+		RPM_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH5"'"\(.*\)")/\1/p'`
+		echo "nil" # $RPM_NAME | awk  '
+	;;
+	
+	*)
+	    echo "nil"
+    esac
+done

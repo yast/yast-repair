@@ -1,0 +1,52 @@
+FUNCTION REINSTALL (RPM_NAME):
+	REINSTALLATION: markiere RPM_NAME-package fuer Neuinstallation 
+	# an dieser Stelle waere YaST2-package-installation-module-Anbindung schon gut, da dieser
+	# auch Abhaendigkeiten uebrprueft und viele packages auch nach sich konfiguriert.
+
+IF eine bestimmte package-Menge (z.B. Minimal-Installation) kontroliert werden muss :
+	IF ein package (z.B. aus Minimal-Installation) nicht installiert ist:
+		INSTALLATION: markiere diesen package als "X" (in YaST2: package installieren)
+		# so koennten unerfuellte Abhaengigkeiten schon am Anfang vorbeugen. ABER Confliktprobleme koennen entstehen!
+		# ich, als SuSE-Benutzer auf einer 600MB-Festplatte ("df -h /" == 17MB) waere strikt dagegen
+		# an dieser Stelle waere YaST2-package-installation-module-Anbindung schon gut, da dieser
+		# auch Abhaengigkeiten uebrprueft und viele packages auch konfiguriert.
+	
+WHILE (es noch zu ueberpruefenden Packges gibt):
+	suche Eigenschafts-Vector(sprich map) von einem package in der rpm_dDB (rpm difference DataBase)
+	IF Eigenschafts-Vector vom rpm-package in rpm_dDB FOUND:
+		errechne Differenzen zwischen dem aktuellen Vektor(.rpm.rpm_stat) und dem aus der rpm_dDB
+		IF (es keine neuen/anderen Dateien, Datei-Fehlerstatus, Abhaengigkeiten aus dem rpm-package im Vergleich zu rpm_dDB betroffen/gefunden sind) OR\
+			(rpm-package OHNE neuinstallation auf den Backup-Stand gebracht werden kann) OR \
+			(neuen betroffenen Dateien aus doc-section [oder conf-section, falls conf-files-Backup gemacht wurde] stammen):
+				DO IT ( recover permissions, uid, gid etc., in case of conf-failes-backup: recover the conf-files)
+		ELSE beschadigte Dateien gefunden, ueber die keine recover-Information gibt :
+			# hier wird auch der Fall der neuen unerfuellten Abhaendigkeiten behandelt:
+			# der package wird als "R"einstall markiert  werden, damit beim Reinstall wieder alle 
+			# Abhaendigkeiten automatisch beruecksichtigt werden.
+			files from main-section damaged/modified -> sequirity-alert
+			[ oder files aus conf-section, falls KEIN Backup gemacht wurde]
+			CALL REINSTALLATION
+	ELSE:
+		IF die .rpm.rpm_stat eines packages einen map mit "DAMAGED":false (key:value) zurueckgibt:
+			 # d.h. vorher hatte dieser Package keine Abweichungen vom rpm-Status!
+			 # hier koennte "reine" rpm-reinstallation durchgefuehrt werden (nicht durch YaST2)
+			 CALL REINSTALLATION
+			 
+CALL YaST2-Installation-Module: dort wird endgueltige Abhaendigkeitsueberpruefung durchgefuehrt und
+dem Benutzer die moeglichkeit gegeben, die zur Installation/Neuinstallation markierte Packages zu editieren
+
+
+=============================================================================================
+Diese Strategie koennte vieles korrekt wiederhergestellen;
+
+KONZEPT:	allgemein Generalloesung, die optimiert weden koennte, wenn package-Hierarchie und 
+			Datei-rpmZugehoerigkeit strenger aufgebaut waere. Besondere Betrachtung/Behandlung 
+			eines rpm-packages (sowie z.B. xf86) kam noch nicht in Frage, sollte aber so "spaet" 
+			wie moeglich audgefuehrt werden: das bindet an die Distribution bzw. rpmVersion (!!!UNERWUENSCHT!!!)
+
+NACHTEILE:	viele Pruefungen, z.B. .rpm.rpm_stat braucht min 3 rpm-Aufrufe pro package 
+			und jeweils 1 rls, 1 mk5sum und evtl. 1 readlink-Aufrufe pro eine beschaegte Datei.
+
+RESEARCH:	ich habe mehrere Recher nach packages nach minimal-instalation getested:
+			ich bekam voellig unterschiedliche Ergebnisse: von 5-6  bis 30-40 DAMAGED rpms!
+			Daraus laesst sich schliesen, dass es sehr vieles von der Konfiguration abhaengt.

@@ -1,0 +1,535 @@
+missing    /root/.gnupg
+missing    /root/bin
+.M......   /var/lib/YaST
+S.5....T c /etc/hosts
+.M....G.   /usr/bin/gpasswd
+SM5....T c /etc/syslog.conf
+..?..... c /etc/at.deny
+.M....G.   /usr/bin/at
+missing    /var/spool/atjobs/.SEQ
+missing    /var/adm/backup/rpmdb
+..?.....   /etc/skel/.bash_history
+..?.....   /etc/skel/.dayplan.priv
+.M......   /bin/eject
+..?.....   /sbin/blogd
+..?.....   /sbin/blogger
+..?.....   /sbin/showconsole
+......G.   /usr/bin/wall
+......G.   /usr/bin/write
+S.5....T c /etc/rc.config.d/idedma.rc.config
+.M......   /usr/bin/screen
+..?.....   /usr/sbin/sitar.pl
+..?..... c /etc/sudoers
+..?.....   /usr/sbin/visudo
+.M....G.   /usr/bin/ziptool
+.M.....T   /usr/lib/jdk1.1.8/bin/.java_wrapper
+.......T c /etc/httpd/susehelp.conf
+S.5....T c /etc/susehelp.d/doc2_de.conf
+S.5....T c /etc/susehelp.d/doc2_en.conf
+S.5....T c /etc/susehelp.d/gimphelp.conf
+S.5....T c /etc/susehelp.d/howto_de.conf
+S.5....T c /etc/susehelp.d/kde_de.conf
+S.5....T c /etc/susehelp.d/kde_en.conf
+S.5....T c /etc/susehelp.d/kdeappl_de.conf
+S.5....T c /etc/susehelp.d/kdeappl_en.conf
+S.5....T c /etc/susehelp.d/pac_de.conf
+S.5....T c /etc/susehelp.d/pac_en.conf
+S.5....T c /etc/susehelp.d/pam.conf
+S.5....T c /etc/susehelp.d/sdb_de.conf
+S.5....T c /etc/susehelp.d/sdb_en.conf
+S.5....T   /var/adm/SuSEconfig/susehilf/dochost
+S.5....T   /var/adm/SuSEconfig/susehilf/packs
+S.5....T c /etc/susehelp.d/doc2_en.conf
+S.5....T c /etc/susehelp.d/kde_en.conf
+S.5....T c /etc/susehelp.d/kdeappl_en.conf
+S.5....T c /etc/susehelp.d/pac_en.conf
+S.5....T c /etc/susehelp.d/sdb_en.conf
+.......T c /etc/susehelp.d/applbook_de.conf
+.......T c /etc/susehelp.d/confbook_de.conf
+.......T c /etc/susehelp.d/doc2_de.conf
+S.5....T c /etc/susehelp.d/howto_de.conf
+S.5....T c /etc/susehelp.d/kde_de.conf
+S.5....T c /etc/susehelp.d/kdeappl_de.conf
+S.5....T c /etc/susehelp.d/man_de.conf
+.......T c /etc/susehelp.d/netbook_de.conf
+.......T c /etc/susehelp.d/pac_de.conf
+S.5....T c /etc/susehelp.d/refbook_de.conf
+.......T c /etc/susehelp.d/sdb_de.conf
+missing    /var/spool/cups/tmp
+..?.....   /usr/lib/isdn/b1-1tr6.t4
+..?.....   /usr/lib/isdn/b1.t4
+..?.....   /usr/lib/isdn/c4.bin
+missing    /etc/ppp/peers/kppp
+.M......   /usr/sbin/traceroute6
+S.5....T c /etc/printcap
+..?.....   /usr/X11R6/bin/calctool
+missing    /etc/pine.conf
+missing    /etc/pine.conf.fixed
+..?..... c /etc/pppoed.conf
+..?..... c /etc/rc.dialout
+..?..... c /etc/smpppd-c.conf
+..?..... c /etc/smpppd.conf
+S.5....T c /etc/wgetrc
+missing    /etc/ppp/callbycall.secrets
+missing    /etc/ppp/peers/wvdial
+missing    /etc/ppp/peers/wvdial-pipe
+S.?....T c /etc/wvdial.conf
+..?.....   /usr/bin/cfconv.wvdial
+..?.....   /usr/bin/wvdial-write-section
+..?.....   /usr/bin/wvdial.tcl
+missing    /usr/share/wvdial/config.in
+missing    /usr/share/wvdial/lang
+missing    /usr/share/wvdial/lang/de
+missing    /usr/share/wvdial/lang/de/susewvdial
+missing    /usr/share/wvdial/lang/de/susewvdial.README.SuSE
+missing    /usr/share/wvdial/lang/de/susewvdial.Troubleshooting
+missing    /usr/share/wvdial/lang/de/susewvdial.lxconfig
+missing    /usr/share/wvdial/lang/en
+missing    /usr/share/wvdial/lang/en/susewvdial
+missing    /usr/share/wvdial/lang/en/susewvdial.README.SuSE
+missing    /usr/share/wvdial/lang/en/susewvdial.Troubleshooting
+missing    /usr/share/wvdial/lang/en/susewvdial.lxconfig
+missing    /usr/share/wvdial/lang/es
+missing    /usr/share/wvdial/lang/es/susewvdial
+missing    /usr/share/wvdial/lang/es/susewvdial.README.SuSE
+missing    /usr/share/wvdial/lang/es/susewvdial.Troubleshooting
+missing    /usr/share/wvdial/lang/es/susewvdial.lxconfig
+missing    /usr/share/wvdial/lang/fr
+missing    /usr/share/wvdial/lang/fr/susewvdial
+missing    /usr/share/wvdial/lang/fr/susewvdial.README.SuSE
+missing    /usr/share/wvdial/lang/fr/susewvdial.Troubleshooting
+missing    /usr/share/wvdial/lang/fr/susewvdial.lxconfig
+missing    /usr/share/wvdial/lang/hu
+missing    /usr/share/wvdial/lang/hu/susewvdial
+missing    /usr/share/wvdial/lang/hu/susewvdial.README.SuSE
+missing    /usr/share/wvdial/lang/hu/susewvdial.Troubleshooting
+missing    /usr/share/wvdial/lang/hu/susewvdial.lxconfig
+missing    /usr/share/wvdial/lang/languages.cfg
+missing    /var/lib/wvdial/defconfig
+missing    /var/lib/wvdial/profiles
+missing    /var/lib/wvdial/tmp
+.M...... c /etc/init.d/sendmail
+S.5....T c /etc/sendmail.cf
+.M?.....   /usr/lib/sendmail.d/bin/mail.local
+.M?.....   /usr/lib/sendmail.d/bin/smrsh
+S.5....T c /var/log/sendmail.st
+missing    /var/spool/mqueue/.hoststat
+missing    /etc/ntp.drift
+missing    /var/log/ntp
+..?..... c /etc/init.d/SuSEfirewall_final
+..?..... c /etc/init.d/SuSEfirewall_init
+..?..... c /etc/init.d/SuSEfirewall_setup
+..?..... c /etc/rc.config.d/firewall-custom.rc.config
+S.5....T c /etc/rc.config.d/firewall.rc.config
+..?.....   /sbin/SuSEfirewall
+..?.....   /var/adm/fillup-templates/firewall.rc.config
+..?.....   /var/adm/fillup-templates/rc.config.firewall
+.M......   /var/log/firewall
+..?..... c /etc/ssh/primes
+.M...... c /etc/ssh/sshd_config
+.M......   /usr/bin/ssh
+..?.....   /usr/X11R6/bin/XFree86
+SM5....T   /usr/X11R6/lib/X11/fonts/Speedo/encodings.dir
+.M.....T   /usr/X11R6/lib/X11/fonts/Speedo/fonts.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/Type1/encodings.dir
+.M.....T   /usr/X11R6/lib/X11/fonts/Type1/fonts.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/cyrillic/encodings.dir
+.M.....T   /usr/X11R6/lib/X11/fonts/cyrillic/fonts.dir
+S.5....T   /etc/suseservers
+missing    /var/lib/support/boot.include
+missing    /var/lib/support/cdr.include
+missing    /var/lib/support/dsl.include
+missing    /var/lib/support/eo.pl
+missing    /var/lib/support/install.include
+missing    /var/lib/support/isdn.include
+missing    /var/lib/support/laptop.include
+missing    /var/lib/support/modem.include
+missing    /var/lib/support/printer.include
+missing    /var/lib/support/rc.registration
+missing    /var/lib/support/scanner.include
+missing    /var/lib/support/send_support_request.pl
+missing    /var/lib/support/sound.include
+missing    /var/lib/support/support_modules.pl
+missing    /var/lib/support/wrapper
+missing    /var/lib/support/x11.include
+.......T   /usr/X11R6/lib/X11/fonts/uni/fonts.dir
+S.5....T   /lib/modules/2.4.9-4GB/modules.dep
+.......T   /lib/modules/2.4.9-4GB/modules.generic_string
+.......T   /lib/modules/2.4.9-4GB/modules.isapnpmap
+.......T   /lib/modules/2.4.9-4GB/modules.parportmap
+S.5....T   /lib/modules/2.4.9-4GB/modules.pcimap
+.......T   /lib/modules/2.4.9-4GB/modules.usbmap
+S.5....T   /var/games/nethack/logfile
+S.5....T   /var/games/nethack/record
+..?.....   /var/games/thrust.highscore
+.M......   /usr/bin/dumpreg
+.M......   /usr/bin/fix132x43
+.M......   /usr/bin/restorefont
+.M......   /usr/bin/restorepalette
+.M......   /usr/bin/restoretextmode
+.M......   /usr/lib/vga/demos/accel
+.M......   /usr/lib/vga/demos/addmodetest
+.M......   /usr/lib/vga/demos/bankspeed
+.M......   /usr/lib/vga/demos/bg_test
+.M......   /usr/lib/vga/demos/eventtest
+.M......   /usr/lib/vga/demos/forktest
+.M......   /usr/lib/vga/demos/fun
+.M......   /usr/lib/vga/demos/joytest
+.M......   /usr/lib/vga/demos/keytest
+.M......   /usr/lib/vga/demos/linearfork
+.M......   /usr/lib/vga/demos/linearspeed
+.M......   /usr/lib/vga/demos/lineart
+.M......   /usr/lib/vga/demos/mjoytest
+.M......   /usr/lib/vga/demos/mousetest
+.M......   /usr/lib/vga/demos/plane
+.M......   /usr/lib/vga/demos/printftest
+.M......   /usr/lib/vga/demos/scrolltest
+.M......   /usr/lib/vga/demos/speedtest
+.M......   /usr/lib/vga/demos/spin
+.M......   /usr/lib/vga/demos/svidtune
+.M......   /usr/lib/vga/demos/testaccel
+.M......   /usr/lib/vga/demos/testgl
+.M......   /usr/lib/vga/demos/testlinear
+.M......   /usr/lib/vga/demos/vgatest
+.M......   /usr/lib/vga/demos/wrapdemo
+..?.....   /usr/games/vga_klondike
+..?.....   /usr/games/vga_ohhell
+..?.....   /usr/games/vga_solitaire
+..?.....   /usr/games/vga_spider
+..?.....   /etc/cron.daily/aaa_base
+..?.....   /etc/cron.daily/aaa_base_backup_rc.config
+..?.....   /etc/cron.daily/aaa_base_backup_rpmdb
+..?.....   /etc/cron.daily/aaa_base_clean_catman
+..?.....   /etc/cron.daily/aaa_base_clean_core
+..?.....   /etc/cron.daily/aaa_base_clean_instlog
+..?.....   /etc/cron.daily/aaa_base_clean_tmp
+..?.....   /etc/cron.daily/aaa_base_do_mandb
+..?.....   /etc/cron.daily/aaa_base_rotate_logs
+..?.....   /etc/cron.daily/aaa_base_updatedb
+S.5....T c /etc/init.d/boot
+S.5....T c /etc/inittab
+S.5....T c /etc/modules.conf
+missing    /etc/ppp/ip-down
+missing    /etc/ppp/ip-up
+missing    /etc/ppp/poll.tcpip
+missing    /root/.exrc
+missing    /root/.gnupg/suse_build_key
+missing    /root/.xinitrc
+..?.....   /sbin/insserv
+..?.....   /usr/lib/lsb/install_initd
+..?.....   /usr/lib/lsb/remove_initd
+..?.....   /var/adm/fillup-templates/shadow.aaa_base
+..?.....   /usr/sbin/klogconsole
+.M.....T c /etc/crontab
+.M....G.   /usr/bin/crontab
+..?.....   /usr/sbin/cron
+missing    /var/spool/cron/deny
+missing    /var/spool/cron/lastrun
+missing    /var/spool/cron/tabs
+.M...UG.   /dev/admmidi0
+.M...UG.   /dev/admmidi1
+.M...UG.   /dev/admmidi2
+.M...UG.   /dev/admmidi3
+.M...UG.   /dev/adsp0
+.M...UG.   /dev/adsp1
+.M...UG.   /dev/adsp2
+.M...UG.   /dev/adsp3
+.M...UG.   /dev/amidi0
+.M...UG.   /dev/amidi1
+.M...UG.   /dev/amidi2
+.M...UG.   /dev/amidi3
+.M...UG.   /dev/audio
+.M...UG.   /dev/audio0
+.M...UG.   /dev/audio1
+.M...UG.   /dev/audio2
+.M...UG.   /dev/audio3
+.M...UG.   /dev/audioctl
+missing    /dev/dsp
+.M...UG.   /dev/dsp0
+.M...UG.   /dev/dsp1
+.M...UG.   /dev/dsp2
+.M...UG.   /dev/dsp3
+.M...UG.   /dev/fd0
+.M...UG.   /dev/fd0h1440
+.M...UG.   /dev/fd0h720
+.M...UG.   /dev/fd0u1440
+.M...UG.   /dev/fd0u720
+.M...UG.   /dev/fd1
+.M...UG.   /dev/fd1h1440
+.M...UG.   /dev/fd1h720
+.M...UG.   /dev/fd1u1440
+.M...UG.   /dev/fd1u720
+.M...UG.   /dev/hdb
+.M...UG.   /dev/midi0
+.M...UG.   /dev/midi1
+.M...UG.   /dev/midi2
+.M...UG.   /dev/midi3
+.M...UG.   /dev/mixer0
+.M...UG.   /dev/mixer1
+.M...UG.   /dev/mixer2
+.M...UG.   /dev/mixer3
+.M...UG.   /dev/music
+.M...UG.   /dev/rmidi0
+.M...UG.   /dev/rmidi1
+.M...UG.   /dev/rmidi2
+.M...UG.   /dev/rmidi3
+.M...UG.   /dev/sequencer
+.M...UG.   /dev/sequencer2
+.M......   /dev/shm
+.M...U..   /dev/tty0
+.M......   /dev/tty1
+.M......   /dev/tty2
+.....U..   /dev/tty3
+.M......   /dev/tty4
+.M......   /dev/tty5
+.....U..   /dev/tty6
+......G.   /dev/tty7
+......G.   /dev/tty8
+.M...UG.   /dev/vbi0
+.M...UG.   /dev/vbi1
+.M...UG.   /dev/vbi2
+.M...UG.   /dev/vbi3
+.M......   /dev/vcs1
+.M......   /dev/vcs2
+.M......   /dev/vcs3
+.M......   /dev/vcs4
+.M......   /dev/vcs5
+.M......   /dev/vcs6
+.M......   /dev/vcsa1
+.M......   /dev/vcsa2
+.M......   /dev/vcsa3
+.M......   /dev/vcsa4
+.M......   /dev/vcsa5
+.M......   /dev/vcsa6
+.M...UG.   /dev/video0
+.M...UG.   /dev/video1
+.M...UG.   /dev/video2
+.M...UG.   /dev/video3
+.M...UG.   /dev/vtx
+.M...UG.   /dev/vtx0
+.M...UG.   /dev/vtx1
+.M...UG.   /dev/vtx2
+.M...UG.   /dev/vtx3
+.M...UG.   /dev/xconsole
+..?.....   /usr/bin/mandb
+..?.....   /usr/lib/man-db/man
+..?.....   /usr/lib/man-db/mandb
+......G.   /var/cache/man
+..?.....   /sbin/pam_filter/upperLOWER
+.M......   /usr/lib/mc/bin/cons.saver
+SM?....T c /etc/opt/kde2/share/config/kdm/kdmrc
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/archive.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/delete.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/idea.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/info.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/openfile.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/save.png
+.......T   /opt/kde2/share/apps/kfind/icons/locolor/22x22/actions/search.png
+..?..... c /etc/isdn/callerid.conf
+..?..... c /etc/isdn/isdn.conf
+..?..... c /etc/isdn/isdnlog.isdnctrl0.options
+missing    /etc/ppp/auth-down
+missing    /etc/ppp/auth-up
+missing    /etc/ppp/ioptions
+missing    /etc/ppp/ioptions.YaST
+missing    /etc/ppp/peers/isdn
+missing    /etc/ppp/peers/isdn/arcor
+missing    /etc/ppp/peers/isdn/avm
+missing    /etc/ppp/peers/isdn/avm-ml
+missing    /etc/ppp/peers/isdn/leased
+missing    /etc/ppp/peers/isdn/otelo
+missing    /etc/ppp/peers/isdn/talkline
+..?..... c /etc/vbox/vboxd.conf
+..?..... c /etc/vbox/vboxgetty.conf
+.M....G.   /usr/bin/vboxbeep
+..?.....   /usr/sbin/actctrl
+..?.....   /usr/sbin/avmcapictrl
+..?.....   /usr/sbin/divertctrl
+..?.....   /usr/sbin/eiconctrl
+..?.....   /usr/sbin/hisaxctrl
+..?.....   /usr/sbin/icnctrl
+..?.....   /usr/sbin/imon
+..?.....   /usr/sbin/ipppd
+..?.....   /usr/sbin/iprofd
+..?.....   /usr/sbin/isdnctrl
+..?.....   /usr/sbin/killipppd
+..?.....   /usr/sbin/loopctrl
+..?.....   /usr/sbin/mkzonedb
+..?.....   /usr/sbin/pcbitctl
+..?.....   /usr/sbin/vboxd
+..?.....   /usr/sbin/vboxgetty
+missing    /etc/ppp/chap-secrets
+missing    /etc/ppp/options
+missing    /etc/ppp/pap-secrets
+missing    /etc/ppp/peers
+missing    /etc/ppp/peers/demand
+missing    /etc/ppp/peers/pppoe
+.M......   /usr/sbin/pppd
+.M......   /usr/X11R6/bin/dga
+SM5....T   /usr/X11R6/lib/X11/fonts/75dpi/encodings.dir
+.M.....T   /usr/X11R6/lib/X11/fonts/75dpi/fonts.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/encodings/encodings.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/encodings/large/encodings.dir
+.......T   /usr/X11R6/lib/X11/fonts/local/fonts.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/misc/encodings.dir
+SM5....T   /usr/X11R6/lib/X11/fonts/misc/fonts.dir
+..?.....   /usr/bin/keygen
+missing    /var/lib/xdm/authdir/authfiles
+.M......   /usr/X11R6/bin/xlock-mesa
+S.5....T c /etc/X11/fvwm2/system.fvwm2rc
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/Xfm.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_blue_cursive.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_bracket.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_cat_thing.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_red_3D.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_red_cursive.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_tiger.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/banner.fvwm_tiger_tail.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/bckgnd1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/bckgnd3.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/documents.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/find1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/folder.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/gv.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/help.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/lemacs.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.arch.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.audiovol2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.ball.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.bball.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.bomb2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.book1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.book2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.books.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.briefcase.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.bug1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.bug2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.bx2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.calc.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.camera.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.cat.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.cave.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.cd.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.cdlabel.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.chinese.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.clipboard.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.clock.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.colors.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.connect.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.crosbone.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.cross.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.desktop.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.diff.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.diskette.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.display.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.doc.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.doc1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.dog.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.edit.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.espada.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.exclam.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.exp.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.eye2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.eyes.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.fax.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.fdisk.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.filemgr.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.folder.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.font.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.fractal.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.frame.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.ftp.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.gball.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.go.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.gopher.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.graph.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.gv.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.hammer.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.happy.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.hdisk.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.heart.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.hex.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.hextris.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.icons.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.keyboard.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.lock.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.lower2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.mail.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.manual.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.max1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.maze.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.modules.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.monitor.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.move1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.move2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.mwm.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.news.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.nscape.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.ofolder.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.olwm.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.pager.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.paint.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.palette.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.pdf.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.pencil.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.penguin.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.perf.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.question.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.raise2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.ray.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.rball.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.resize3.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.roach.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.run.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.sh.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.sh1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.slon.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.sound.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.start.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.stop.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.telnet.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.term.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.tetris.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.trebol.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.turn.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.twm.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.window.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.windows.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.x.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.x2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xfig.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xjewel.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xkeycaps.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xlander.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xmahjongg.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xsnow.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.xv.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/mini.zoom.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/nscape.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/programs.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/rbomb2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/rcalc2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/rterm2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/run.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/settings.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/shutdown.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/side.fvwm2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/side.fvwm2_1.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/side.fvwm2_2.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/side.utilities.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/textedit.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/wterm.xpm
+..?.....   /usr/X11R6/lib/X11/fvwm2/pixmaps/xview.xpm
+.......T c /etc/opt/gnome/sound/events/gnome.soundlist
+.......T c /etc/opt/gnome/sound/events/gtk-events.soundlist
+.M......   /opt/gnome/sbin/gnome-pty-helper
+missing    /var/lib/rpm/xrpm-use.log
+.......T   /etc/opt/gnome/sound/events/mailcheck.soundlist
+.......T   /etc/opt/gnome/sound/events/panel.soundlist
+..?.....   /opt/gnome/share/SuSEPreConf/.gnome/.gnome-smproxy-WMMRJa
+.......T   /etc/opt/gnome/gconf/schemas/desktop.schemas
+.......T   /etc/opt/gnome/gconf/schemas/desktop.schemas
+S.5....T   /opt/mozilla/chrome/installed-chrome.txt
+......G.   /usr/X11R6/bin/xscreensaver
+Unsatisfied dependencies for Netscape6-6.1-29: libodbc.so, libodbcinst.so
+.......T   /usr/share/afterstep/base.32bpp

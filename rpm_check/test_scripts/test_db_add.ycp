@@ -1,0 +1,8 @@
+{
+	string db_name = "/tmp/RPM_dDB_add";
+	list rpms = ["netcfg","vim","xf86-4.1.0-45"];
+	foreach(`v, rpms, ``{ 
+		SCR(`Write(.rpm.add_rpm_dDB, db_name, v));
+	});
+	//SCR(`Write(.dumpto.tmp.test, a));
+}

@@ -1,0 +1,21 @@
+# RPM-DB-Einheit
+$[
+	"RPM_NAME"		:	"rpm_name",
+	"RPM_VERSION"	:	"rpm_version",
+	"DEPS_FAILS"	:	[<requirm_list>],
+	"MISSED_FILES"	:	[<missed_file_list>],
+	"FILE_FAILS"	:	$[	# excl. missed files
+							"FILE_TYPE(cdl)"	:	$[
+										"file_name"	:	$[
+													"fail_type(MDUG)"	:	$[
+																		"NORM_DATA"		:	"norm_data",
+																		"AUTO_REPAIR"	:	"<Y/N>"
+																				],
+																...
+														]
+													],
+							...
+]
+
+
+
