@@ -5,7 +5,7 @@
 ; $Id$
 ;
 
-[Y2Module osr]
+[Y2Module repair]
 
 ; name of the entry, shown in y2cc
 Name = _("YaST2 OS Repair")
@@ -33,6 +33,6 @@ Geometry =
 SortKey = 
 
 ; which textdomain to use for translations (important!)
-Textdomain = osr
+Textdomain = repair
 
 ; vim:syntax=dosini
