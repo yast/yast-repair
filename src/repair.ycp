@@ -38,8 +38,8 @@
   if( (! Mode::cont) && (! Mode::initial))
   {
       Wizard::CreateDialog();
-      Wizard::SetDesktopIcon("repair");
   }
+  Wizard::SetDesktopIcon("repair");
 
   // ===== Init the Rescue System =================================
   symbol ret = OSRRepairUI::InitDialog();
