@@ -36,17 +36,3 @@ CALL YaST2-Installation-Module: dort wird endgueltige Abhaendigkeitsueberpruefun
 dem Benutzer die moeglichkeit gegeben, die zur Installation/Neuinstallation markierte Packages zu editieren
 
 
-=============================================================================================
-Diese Strategie koennte vieles korrekt wiederhergestellen;
-
-KONZEPT:	allgemein Generalloesung, die optimiert weden koennte, wenn package-Hierarchie und 
-			Datei-rpmZugehoerigkeit strenger aufgebaut waere. Besondere Betrachtung/Behandlung 
-			eines rpm-packages (sowie z.B. xf86) kam noch nicht in Frage, sollte aber so "spaet" 
-			wie moeglich audgefuehrt werden: das bindet an die Distribution bzw. rpmVersion (!!!UNERWUENSCHT!!!)
-
-NACHTEILE:	viele Pruefungen, z.B. .rpm.rpm_stat braucht min 3 rpm-Aufrufe pro package 
-			und jeweils 1 rls, 1 mk5sum und evtl. 1 readlink-Aufrufe pro eine beschaegte Datei.
-
-RESEARCH:	ich habe mehrere Recher nach packages nach minimal-instalation getested:
-			ich bekam voellig unterschiedliche Ergebnisse: von 5-6  bis 30-40 DAMAGED rpms!
-			Daraus laesst sich schliesen, dass es sehr vieles von der Konfiguration abhaengt.
