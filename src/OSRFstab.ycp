@@ -486,9 +486,11 @@ press \"Yes\".
       list unsupported = filter( string o, opts, ``{
             if (contains(mn_opts, o))
                  return false;
-            // hack for other values (gid and umask used for windows part.)
+            // hack for other values
+            // see Storage::AddMountPointsForWinParts()
             else if (issubstring (o, "iocharset=") || issubstring (o, "gid=") ||
-                     issubstring (o, "umask="))
+                     issubstring (o, "umask=") || issubstring (o, "nls=") ||
+                     issubstring (o, "code="))
                 return false;
             else
                 return true;
