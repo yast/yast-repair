@@ -15,8 +15,6 @@
 {
   textdomain "osr";
 
-  //string module_name = "osr_module_lilo";
-  
   // begin argument handling: in the initial phase the framework calls each module
   // with the argument ".init", don't delete!
   integer arg_c = size(Args());
@@ -168,10 +166,6 @@
 	      command = "/bin/rpm -q lilo";
 	      return_map = OSRExecuteCommandOutput(command, log_file, .target);
 	  }
-	  
-	  //return_map = OSRExecuteCommandOutput(command, log_file);
-	  //return_map = WFM::Execute(.local.bash_output, command);
-	  //result = WFM::Execute(.local.bash, command);
       }
 
       // increase the value of the module-progress-bar
@@ -201,7 +195,8 @@
 	  OSRSummaryDetectError(
 			  module_name,
 			  _("Checking LILO package"),
-			  _("<code>/bin/rpm -q lilo</code> reports an error<br>Package is not installed")
+			  _("<code>/bin/rpm -q lilo</code> reports an error<br>
+Package is not installed")
 			  );
       }
       else
@@ -212,7 +207,8 @@
 	  OSRSummaryDetectOK(
 		       module_name,
 		       _("Checking LILO package"),
-		       _("<code>/bin/rpm -q lilo</code> reports no errors<br>Package is installed")
+		       _("<code>/bin/rpm -q lilo</code> reports no errors<br>
+Package is installed")
 		       );
 	  
 	  stdout_string = lookup(return_map, "stdout", "");
@@ -246,7 +242,8 @@
 			      module_name,
 			      _("Checking LILO version"),
 			      sformat(
-				      _("Current version is obsolete: <code>%1</code><br>Should be version number <code>%2</code> or later"),
+				      _("Current version is obsolete: <code>%1</code><br>
+Should be version number <code>%2</code> or later"),
 				      stdout_string,
 				      minimum_version
 				      )
@@ -276,9 +273,8 @@
 	      else
 	      {
 		  // result is the exit-code of the bash-command, only in non-demo-mode
-		  //command = "/bin/rpm -V lilo";
-		  //result  = OSRExecuteCommand(command, log_file);
-
+		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or 
+		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""] if /sbin/lilo was touched
 		  if (update_target != "")
 		  {
 		      command = sformat("/bin/rpm -V -r %1 lilo", update_target);
@@ -289,11 +285,6 @@
 		      command = "/bin/rpm -V lilo";
 		      return_map = OSRExecuteCommandOutput(command, log_file, .target);
 		  }
-		  
-		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or 
-		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""] if /sbin/lilo was touched
-                  //return_map = OSRExecuteCommandOutput(command, log_file);
-		  //return_map = SCR(`Execute(.target.bash_output, command));
 	      }
 
 	      // increase the value of the module-progress-bar
@@ -326,7 +317,8 @@
 				  module_name,
 				  _("Verifying the LILO package"),
 				  sformat(_("<code>rpm -V lilo</code> reports an error:<br>
-<code>%1</code><br>Some files differ to the original"), stdout)
+<code>%1</code><br>
+Some files differ to the original"), stdout)
 				  );
 	      }
 	      else
@@ -340,7 +332,8 @@
 		  OSRSummaryDetectOK(
 			       module_name,
 			       _("Verifying the LILO package"),
-			       _("<code>rpm -V lilo</code> reports no errors<br>Package is o.k.")
+			       _("<code>rpm -V lilo</code> reports no errors<br>
+Package is o.k.")
 			       );
 	      }
 	  }
@@ -363,9 +356,6 @@
 		  status = OSRStatusRepairOK();
 
 		  // check if the file /etc/lilo.conf exists, if not create a new one
-		  //command = sformat("test -f %1", lilo_conf_path);
-		  //result  = OSRExecuteCommand(command, log_file);
-
 		  if (update_target != "")
 		  {
 		      command    = sformat("test -f %1%2", update_target, lilo_conf_path);
@@ -377,14 +367,12 @@
 		      return_map = OSRExecuteCommandOutput(command, log_file, .target);
 		  }
 
-		  //result = SCR(`Execute(.target.bash, command));
 		  if ( result != 0 )
 		  {
 		      // TODO: make a copy of /etc/lilo.conf
 		      //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
 		      //OSRExecuteCommand(command, log_file);
-		      //SCR(`Execute(.target.bash, command));
-			 
+		      //SCR(`Execute(.target.bash, command));			 
 		      
 		      // create a new LILO-configuration-file
 		      if (!OSRLiloConfCreate())
@@ -493,10 +481,6 @@
       else
       {
 	  // check if the file /etc/lilo.conf exists
-	  //command = sformat("test -f %1", lilo_conf_path);
-	  //result  = OSRExecuteCommand(command, log_file);
-	  //result = SCR(`Execute(.target.bash, command));
-
 	  if (update_target != "")
 	  {
 	      command = sformat("test -f %1%2", update_target, lilo_conf_path);
@@ -631,11 +615,6 @@
 	      // execute a test-run of /sbin/lilo, if it succeeds, most of the config-file would be o.k.
 	      command = "lilo -t -v";
 	      result = OSRExecuteCommandProgress(command, log_file, .target, progress_file);
-	      
-	      //result = SCR(`Execute(.target.bash, command));
-	      
-	      // TODO
-	      //result_map = OSRExecuteCommandOutput(command, log_file);
 	  }
 
 	  // increase the value of the module-progress-bar
@@ -912,8 +891,7 @@
       string tmpdir   = SCR::Read(.target.tmpdir);
       string filename = tmpdir + "/sw_single_input";
       SCR::Write(.target.ycp, filename, $["install":["lilo"], "userInput" : false ]);
-//      symbol res_symbol = CallFunction (`sw_single (filename));
-      symbol res_symbol = CallFunction (`inst_sw_single( `single, `not_only_checked ));
+      symbol res_symbol = CallFunction (`inst_sw_single(`single, `not_only_checked));
 
       y2error("result: %1", res_symbol);
 
@@ -968,7 +946,6 @@
       
       command = "rm -f /tmp/dolilo.log";
       OSRExecuteCommand(command, log_file, .target);
-//SCR(`Execute(.target.bash, command));
 
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
@@ -1016,7 +993,8 @@
 						   _("LILO boot device"),
 						   _("You have to select one of the devices"),
 						   disk_device_list,
-						   ""
+						   "",
+						   true
 						   );
 	      }
 	      else
@@ -1043,11 +1021,9 @@
       // execute the command and get the exit code
       command  = sformat("/usr/lib/YaST2/bin/dolilo / -m %1 -v", boot_device);
       result   = OSRExecuteCommand(command, progress_file, .target);
-      //result = SCR(`Execute(.target.bash, command));
       
       command  = "cat /tmp/dolilo.log";
       OSRExecuteCommand(command, log_file, .target);
-      //SCR(`Execute(.target.bash, command));
 
       if (result == 0)
       {
@@ -1096,7 +1072,6 @@
       
       command = "rm -f /tmp/dolilo.log";
       OSRExecuteCommand(command, log_file, .target);
-//SCR(`Execute(.target.bash, command));
 
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
@@ -1104,11 +1079,9 @@
       // execute the command and get the exit code
       command  = sformat("/usr/lib/YaST2/bin/dolilo / -m %1 -v", boot_device);
       result   = OSRExecuteCommand(command, progress_file, .target);
-//result = SCR(`Execute(.target.bash, command));
 
       command  = "cat /tmp/dolilo.log";
       OSRExecuteCommand(command, log_file, .target);
-//SCR(`Execute(.target.bash, command));
 
       if (result == 0)
       {
@@ -1117,7 +1090,8 @@
 	  OSRSummaryDetectOK(
 		       module_name,
 		       _("Creating new LILO configuration file"),
-		       _("Creation succeeded<br>New configuration file is <code>/etc/lilo.conf</code>")
+		       _("Creation succeeded<br>
+New configuration file is <code>/etc/lilo.conf</code>")
 		       );
       }
       else
@@ -1127,7 +1101,8 @@
 	  OSRSummaryDetectError(
 			  module_name,
 			  _("Creating new LILO configuration file"),
-			  _("Creation was not successfull<br>Resetting old configuration")
+			  _("Creation was not successfull<br>
+Resetting old configuration")
 			  );
       }
 
@@ -1158,7 +1133,6 @@
       // execute the lilo-command and display the progress
       command = "/sbin/lilo -v";
       result  = OSRExecuteCommandProgress(command, log_file, .target, progress_file);
-//result = SCR(`Execute(.target.bash, command));
       
       if (result == 0)
       {
@@ -1167,7 +1141,8 @@
 	  OSRSummaryRepairOK(
 			   module_name,
 			   _("Executing LILO"),
-			   _("Execution of LILO succeeded<br>New bootloader installed")
+			   _("Execution of LILO succeeded<br>
+New bootloader installed")
 			   );
       }
       else
@@ -1177,7 +1152,8 @@
 	  OSRSummaryRepairError(
 			  module_name,
 			  _("Executing LILO"),
-			  _("Execution of LILO was not successfull<br>You have to run <code>/sbin/lilo</code> manually")
+			  _("Execution of LILO was not successfull<br>
+You have to run <code>/sbin/lilo</code> manually")
 			  );
       }
 
