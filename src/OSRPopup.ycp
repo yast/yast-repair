@@ -540,19 +540,9 @@
 	  {
 	      ret_list = (list<string>)
 		UI::QueryWidget(`id(`selection_box), `SelectedItems );
-
-	      if( size (ret_list) < size (item_list) )
-	      {
-		  // popup question (after selection from the list
-		  if (! Popup::YesNo(_("Some suggested items are not selected.
-Really continue?
-")))
-		  {
-		      ret = `again;
-		  }
-	      }
 	  }
-	  else {
+	  else
+	  {
 	      // eval special button action define.
 	      if ( haskey( special_symbol_to_action, ret ))
 	      {
