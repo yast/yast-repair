@@ -809,20 +809,23 @@ partition %1"), part)
 
           if ( fs_ok == true )
           {
-	    // FIXME: unknown, not 'unkonw'! And translate it!
             OSRSummary::DetectOK(summary_header,
                 // summary text, %1 is device, %2 file system type
                 sformat(_("%1 contains valid %2 file system"),
-                    dev_name, FileSystems::GetName( used_fs, "unkonwn") ));
+                    dev_name, FileSystems::GetName( used_fs, "unknown") ));
             checked_partitions = add(checked_partitions, dev_name );
           }
           else
           {
-            OSRSummary::DetectError(summary_header,
-                // summary text, %1 is device, %2 file system type
-                sformat(_("%1 contains no valid %2 file system"),
-                    dev_name, FileSystems::GetName( used_fs, "unkonwn" )));
+	    string fsname = FileSystems::GetName( used_fs, "unknown");
+            // summary text, %1 is device, %2 file system type
+	    string summary = sformat (_("%1 contains no valid %2 file system"),
+                dev_name, fsname );
+	    if (fsname == "unknown")
+		// summary text, %1 is device
+		summary = sformat(_("%1 contains uknown file system"),dev_name);
 
+            OSRSummary::DetectError (summary_header, summary);
             if( fs_ok != nil )
             {
               symbol ret = OSRFsck::Repair(dev_name, used_fs );
@@ -847,19 +850,15 @@ partition %1"), part)
       return true;
   }
 
-  /**
-   *
-   */
-  global define boolean OSRPartitionLinuxPartitions()``{
-
-      //////////////////////////////////////////////////
-      //
-      // search for valid Linux partitions
-      //
-      //////////////////////////////////////////////////
+    /**
+     * //////////////////////////////////////////////////
+     * // search for valid Linux partitions
+     * //////////////////////////////////////////////////
+     */
+    global define boolean OSRPartitionLinuxPartitions()``{
 
       // Raid and LVM not supported at the moment!!
-      list(string) checked_partitions   = OSR::RequireList("checked_partitions");
+      list(string) checked_partitions = OSR::RequireList("checked_partitions");
       list(string) linux_partition_list = OSRFstab::LinuxPartitions(checked_partitions);
 
       if (size(linux_partition_list) <= 0 )
@@ -1571,13 +1570,13 @@ system check is not possible.
 The partition %1 contains
 the non-Linux file system \"%2\".
 No partitions checks were done.
-"),scan_dev, FileSystems::GetName( used_fs, "unkonwn") ));
+"),scan_dev, FileSystems::GetName( used_fs, "unknown") ));
 	    else
 		// message popup %1 is partition, %2 filesystem type name
 		Report::Message(sformat(_("
 The partition %1 contains
 a valid %2 file system.
-"),scan_dev, FileSystems::GetName( used_fs, "unkonwn") ));
+"),scan_dev, FileSystems::GetName( used_fs, "unknown") ));
           }
           else
 	  {
