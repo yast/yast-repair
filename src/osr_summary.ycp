@@ -1,0 +1,220 @@
+/**
+ *  File:
+ *   osr_summary.ycp
+ *
+ *  Module:
+ *   YaST2 OS Repair
+ *
+ *  Summary:
+ *  
+ *
+ *  Authors:
+ *   Michael Koehrmann <curry@suse.de>, 2001
+ *
+ *  Create a unified-looking RichText description of the not configured/configured devices.
+ *  This is used in <module_name>_summary.ycp modules.
+ */
+{
+  textdomain "osr";
+
+  /**
+   *  Function that creates the shown text in the RichText widget. "Not detected"
+   *  will be returned if the list is empty.
+   *
+   *  API function.
+   *
+   *  @param list A list of output of the summaryDevice() calls
+   *  @return string The formatted text.
+   */
+  global define OSRSummaryItemList(list items) ``{
+	
+      string text = "";
+
+      if (size(items) == 0)
+      {
+	  text = sformat("<ul><li>%1</li></ul>", UI(_("Not detected.")));
+      }
+      else
+      {
+	  foreach(`entry, items, ``{
+	      text = text+entry;
+	  });
+	  text = sformat("<ul>%1</ul>", text);
+      }
+      return text;
+  };
+    
+  /**
+   *  Function that creates the description for one item.
+   *
+   *  API function.
+   *
+   *  @param string The name of the item.
+   *  @param string Additional description.
+   *  @return string The formatted text.
+   */
+  global define OSRSummaryItem(string name, string description, boolean error_detected) ``{
+
+      string color = "";
+
+      // if an error is found the item has to be dislpayed red
+      if (error_detected)
+      {
+	  color = "red";
+      }
+      else
+      {
+	  color = "blue";
+      }
+	
+      return sformat(
+		     "<li><font color=%1>%2</font><br>%3</li>",
+		     color,
+		     name,
+		     description
+		     );
+  };
+
+  /**
+   *  Updates the contents of the RichText widget.
+   *
+   *  API function.
+   *
+   *  @return boolean True if the RichText widget was changed successfully.
+   */
+  global define OSRSummaryUpdate() ``{
+
+      integer index           = 0;
+      string  text            = "";
+      string  module_name     = "";	
+      list    module_sequence = lookup(osr_map, "module_sequence", []);
+      list    summary         = [];
+      list    summary_list    = [];
+      string  summary_text    = "";
+      string  header          = "";
+      string  description     = "";
+      boolean error           = false;
+      map     module_map      = $[];
+
+      if (size(module_sequence) > 0)
+      {
+	  while ( (index >= 0) && (index < size(module_sequence)) )
+	  {
+	      module_name = select(module_sequence, index);
+	      module_map  = lookup(osr_map, module_name, $[]);
+
+	      // get the list of module-summaries, it looks like:
+	      // [ $["description":"Package is o.k.", "error":false, "header":"LILO package"],
+              //   $["description":"File exists at <code> /etc/lilo.conf </code>", ... ]
+	      summary = lookup(module_map, "summary", []);
+
+	      if (summary != [])
+	      {
+		  summary_text = "";
+		  summary_list = [];
+		  integer i = 0;
+		  while ((i >= 0) && (i < size(summary)))
+		  {
+		      header      = lookup(select(summary, i), "header", "");
+		      description = lookup(select(summary, i), "description", "");
+		      error       = lookup(select(summary, i), "error", false);
+
+		      // get the formatted summaries as list:
+		      // [ "<li><font color=blue>LILO package</font><br>Package is o.k.</li>",
+		      //   "<li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li>", ... ]
+		      summary_list = add(summary_list, OSRSummaryItem(header, description, error));
+
+		      i = i + 1;
+		  }
+		  // get the summaries as formatted text:
+		  // <ul><li><font color=blue>LILO package</font><br>Package is o.k.</li>
+		  //     <li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li> ... </ul>
+		  summary_text = OSRSummaryItemList(summary_list);
+
+		  // set the final text:
+		  // <p><b>LILO:</b></p>
+		  // <p><ul><li><font color=blue>LILO package</font><br>Package is o.k.</li>
+		  //        <li><font color=blue>LILO configuration file</font><br>File exists at <code> /etc/lilo.conf </code></li> ...
+		  // </ul></p>
+		  text = text + sformat(
+					"<p><b>%1:</b></p><p>%2</p>",
+					lookup(lookup(osr_map, module_name), "headline", ""),
+					summary_text
+					);
+	      }
+	      index = index + 1;
+	  }
+      }
+      else
+      {
+	  y2error("ERROR OSRSummaryUpdate: no modules in module_sequence!");
+      }
+      return UI(`ChangeWidget(`id(`rich_text_info), `Value, text));
+  };
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @param boolean True if an error was detected. This results in a red font color.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryChangeModuleSummary(string module_name, string header, string description, boolean error_detected) ``{
+
+      //y2debug("SSSSSSSSSSSummary1:\n%1\n%2\n%3\n%4", module_name, header, description, error_detected);
+      
+      map     module_map      = $[];
+      list    summary         = [];
+      map     entry           = $[];
+
+      module_map = lookup(osr_map, module_name, $[]);
+
+      if (module_map == $[])
+      {
+	  y2error("OSRSummaryChangeModuleSummary ERROR: no module map");
+	  return false;
+      }
+      
+      entry      = $["header" : header, "description" : description, "error" : error_detected];
+      summary    = lookup(module_map, "summary", $[]);
+
+      //if (summary == []) y2debug("HHHHHHHHHHHier:\n%1\n%2", summary, module_map);
+      
+      //y2debug("SSSSSSSSSSSummary2:\n%1\n%2\n%3\n%4", summary, module_name, entry, module_map);
+
+      summary    = add(summary, entry);
+      module_map = add(module_map, "summary", summary);
+      osr_map    = add(osr_map, module_name, module_map);
+
+      y2debug("SSSSSSSSSSSummary3:\n%1\n%2\n%3\n%4", summary, module_name, entry, module_map);
+      
+      return OSRSummaryUpdate();
+      
+      
+      
+      /*
+      //list    module_sequence = [];
+      //map     module_map      = $[];
+      //string  text            = "";
+      //string  summary         = "";
+
+      //text = OSRSummaryItem(name, description, error_detected);
+      
+      //module_map = lookup(osr_map, module_name);
+
+      //summary = lookup(module_map, "summary", "");
+
+      //summary = sformat("%1 %2"summary, text);
+      
+      //module_map = add(module_map, "summary", text);
+      //osr_map    = add(osr_map, module_name, module_map);
+
+      //return OSRSummaryUpdate();
+      */
+  };
+    
+}

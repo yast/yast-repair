@@ -1,0 +1,358 @@
+/**
+ * File:
+ *   osr_module_init.ycp
+ *
+ * Module:
+ *   YaST2 OS Repair init module.
+ *
+ * Summary:
+ *   YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Author:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+
+{
+  textdomain "osr";
+
+  /**
+   *  argument handling
+   *  example: "y2bignfat osr_lilo.ycp '(.init)' qt" for init_mode
+   *  or:      "CallFunction(`osr_lilo(.init));
+   */
+  integer arg_c = size(Args());
+  integer arg_n = 0;
+
+  boolean init_mode = false;
+  
+  while ( arg_n < arg_c )
+  {
+      if ( Args(arg_n) == .init ) init_mode = true;
+      else
+      {
+	  y2error("ERROR: unknown option %1", Args(arg_n) );
+	  return `error;
+      }
+      arg_n = arg_n + 1;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   *  Initialization of the module map that contains all important information
+   *  for this module.
+   *
+   *  @return map The map that contains all information about the module osr_module_init.
+   */
+  define OSRInitInit() ``{
+
+      y2debug("OSRInitInit");
+
+      map  osr_module_init = $[];
+
+      osr_module_init = $[
+		   "name"              :  "osr_module_init",
+		   "headline"          :  UI(_("Init")),
+		   "summary"           :  [],
+		   "test_mode_summary" :  [
+					   $["header" : "Init1", "description" : "o.k.", "error" : false],
+					   $["header" : "Init2", "description" : "o.k.", "error" : false]
+		   ],
+		   "detect_methods"    :  [
+					   ``(OSRInitHWProbe()),
+					   ``(OSRInitCheckFstab()),
+					   ``(OSRInit1()),
+					   ``(OSRInit2())
+		   ],
+		   "provides"          : $[
+					   "disk_device_list"   : $[ "type" : "list",   "value" : ["/dev/hda"],  "status" : "unknown" ],
+					   "root_partition"     : $[ "type" : "string", "value" : "/dev/hda1",   "status" : "unknown" ],
+					   "root_partition_map" : $[ "type" : "map",    "value" : $[],           "status" : "unknown" ],
+					   "kernel_path_list"   : $[ "type" : "list",   "value" : ["/boot/vmlinuz", "/boot/vmlinuz.suse"], "status" : "unknown"],
+					   "initrd_path_list"   : $[ "type" : "list",   "value" : ["/boot/initrd",  "/boot/initrd.suse"],  "status" : "unknown"],
+					   "fstab_list"         : $[ "type" : "list",   "value" : [],            "status" : "unknown" ]
+		   ],
+		   "requires"          :  [],
+		   "progress_file"     : "/tmp/osr_module_init_progress",
+		   "progress_expect"   : 1000
+      ];
+      
+      return osr_module_init;
+  }
+
+  /**
+   *  @return 
+   */
+  global define OSRInitRepair() ``{
+
+      y2debug("OSRInitRepair");
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  DETECTION METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   *  @return 
+   */
+  global define OSRInitHWProbe() ``{
+
+      boolean repair_question  = false;
+      boolean error_detected   = false;
+      integer progress_expect  = 0;
+      string  error_message    = "";
+      string  help_text        = "";
+      string  progress_file    = "";
+      string  progress_label   = "";
+      string  module_name      = "osr_module_init";
+
+      // setup the module-progress-bar, it is the upper one of the two progress bars in the
+      // main window, it displays the progress of the current method
+      // get the file-name of the progress file that is observed by the module-progress-bar
+      progress_file   = "/tmp/osr_module_init_progress";
+
+      // set the expected file-size of the progress bar, this value is equivalent to 100%
+      // of the progress-bar
+      progress_expect = 100;
+
+      // the string to be displayed above the upper progress bar
+      progress_label  = UI(_("Probing hardware"));
+
+      // setup the module-progress-bar
+      OSRModuleProgressSetParams(progress_label, progress_file, progress_expect);
+
+      // begin section: error detection
+
+      list disk_list = SCR(`Read(.probe.disk));
+
+      SCR(`Write(.dumpto.tmp.disk_list, disk_list));
+
+      error_detected = false;
+      
+      // end section
+      
+      if (!error_detected)
+      {
+	  //result_text = OSRSummaryItem(UI(_("Probing hardware")), UI(_("O.k.")), false);
+	  OSRSummaryChangeModuleSummary(module_name, UI(_("Probing hardware")), UI(_("O.k.")), error_detected);
+      }
+      else
+      {
+	  // set the error message that is displayed in the popup OSRRepairPopup
+	  error_message   = UI( _("An error was detected.\nPress Repair to fix the error.") );
+
+	  // set the help-text to be displayed in the left RichText-widget of the main window
+	  help_text       = UI( _("<p>The TEMPLATE package is not installed on your system.</p>"));
+	  help_text       = help_text + UI( _("<p>This package is one of the basic packages for your system.</p>") );
+
+	  // display the help-text
+	  //OSRDisplayHelpText(help_text);
+	  
+	  // launch the repair-popup
+          repair_question = OSRPopupRepair(UI(_("Error detected")), error_message, help_text);
+
+	  // set the text that is displayed in the right RichText-widget of the main window
+	  //result_text = OSRSummaryItem(UI(_("TEMPLATE check 1")), UI(_("Error detected")), true);
+	  OSRSummaryChangeModuleSummary(module_name, UI(_("Probing hardware")), UI(_("Error detected")), error_detected);
+			      
+	  // if the user selected Repair set the sequence of repair methods
+  	  if (repair_question)
+	  {
+	      if (OSRTemplateRepair1() &&
+		  OSRTemplateRepair2())
+	      {
+		  y2debug("All repair methods were successfully executed.");
+	      }
+	      else
+	      {
+		  y2debug("NOT all repair methods were successfully executed.");
+	      }
+	  }
+      }
+      
+      // set the map that is returned by this method, it contains a boolean flag that
+      // signifies if this detection method has found an error or not and the result
+      // text to be displayed in the RichText-widget
+      result_map = $[
+		     "error_detected"  : error_detected
+      ];
+      
+      return result_map;
+  }
+
+  
+  /**
+   *  Checks the file /etc/fstab and provides some data to the global osr_map.
+   *
+   *  @example "fstab_list" : $[ "status" : "known", "type" : "list",
+   *      "value" : [
+   *        $[ "file" : "/", "freq" : 1, "mntops" : "defaults", "passno" : 1, "spec" : "/dev/hda1",
+   *          "vfstype" : "reiserfs" ],
+   *        $[ "file" : "/proc", "freq" : 0, "mntops" : "defaults", "passno" : 0, "spec" : "proc",
+   *          "vfstype" : "proc" ],
+   *        $[ "file" : "swap", "freq" : 0, "mntops" : "pri=42", "passno" : 0, "spec" : "/dev/hda2",
+   *          "vfstype" : "swap" ]
+   *      ]
+   *    ],
+   *    "root_partition" : $[ "status" : "known", "type" : "string", "value" : "/dev/hda1" ],
+   *    "root_partition_map" : $[ "status" : "known", "type" : "map",
+   *      "value" :
+   *        $[ "file" : "/", "freq" : 1, "mntops" : "defaults", "passno" : 1, "spec" : "/dev/hda1",
+   *          "vfstype" : "reiserfs" ]
+   *    ]
+   *  ]
+   *
+   *  @see .etc.fstab
+   *  @see .target.root
+   *  @see .probe.disk
+   *  @return The result map.
+   */
+  global define OSRInitCheckFstab() ``{
+
+      integer result                = 1;
+      string  command               = "";
+      string  root_path             = "";
+      string  root_partition        = "";
+      string  module_name           = "osr_module_init";
+      list    fstab_list            = [];
+      list    all_disks             = [];
+      list    disk_device_list      = [];
+      map     root_partition_map    = $[];
+      map     result_map            = $[];
+      
+      OSRModuleProgressSetParams(UI(_("Checking /etc/fstab")), "/tmp/osr_module_init_progress", 10);
+
+      OSRModuleProgressAdd(1);
+      
+      // get the disk-devices maps as a list
+      all_disks  = SCR(`Read(.probe.disk));
+
+      OSRModuleProgressAdd(1);
+      
+      // extract the device names from the disk-devices maps and add it to
+      // the provides map
+      integer i = 0;
+      while (i >= 0 && i < size(all_disks))
+      {
+	  disk_device_list = add(disk_device_list, lookup(select(all_disks, i),"dev_name", ""));
+	  i = i + 1;
+      }
+      OSRProvideList("disk_device_list", disk_device_list);
+
+      OSRModuleProgressAdd(1);
+      
+      // get the fstab-entries as list of maps and add it to the provides map
+      fstab_list = SCR(`Read(.etc.fstab));
+      OSRProvideList("fstab_list", fstab_list);
+
+      OSRModuleProgressAdd(1);
+      
+      // get the mountpoint of the root partition as string
+      root_path  = SCR(`Read(.target.root));
+
+      OSRModuleProgressAdd(1);
+      
+      // extract the map of the root partition and its device name and provide it
+      root_partition_map = find(`m, fstab_list, ``(lookup(m, "file", "") == root_path));
+      root_partition     = lookup(root_partition_map, "spec", "");
+
+      OSRModuleProgressAdd(1);
+
+      OSRProvideMap("root_partition_map", root_partition_map);
+      OSRProvideString("root_partition", root_partition);
+
+      OSRModuleProgressAdd(1);
+      
+      //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
+      
+      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInitCheckFstab")), UI(_("Is o.k.")), error_detected);
+
+      result_map = $[
+		     "error_detected"  : error_detected
+      ];
+
+      OSRModuleProgressFill();
+
+      return result_map;
+  }
+
+  /**
+   *  @return 
+   */
+  global define OSRInit1() ``{
+
+      boolean error_detected  = false;
+      integer result          = 1;
+      string  command         = "";
+      map     result_map      = $[];
+      string  module_name      = "osr_module_init";
+      
+      y2debug("OSRInit1");
+
+      OSRModuleProgressSetParams(UI(_("Checking OSRInit1")), "/tmp/osr_module_init_progress", 10);
+      
+      //result_text = OSRSummaryItem(UI(_("OSRInit1")), UI(_("Is o.k.")), false);
+
+      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")), error_detected);
+			     
+      result_map = $[
+		     "error_detected"   : error_detected
+      ];
+
+      OSRModuleProgressFill();
+      
+      return result_map;
+  }
+
+  /**
+   *  @return 
+   */
+  global define OSRInit2() ``{
+
+      boolean error_detected  = false;
+      integer result          = 1;
+      string  command         = "";
+      map     result_map      = $[];
+      string  module_name      = "osr_module_init";
+      
+      y2debug("OSRInit2");
+
+      OSRModuleProgressSetParams(UI(_("Checking OSRInit2")), "/tmp/osr_module_init_progress", 10);
+
+      OSRSummaryChangeModuleSummary(module_name, UI(_("OSRInit2")), UI(_("Is o.k.")), error_detected);
+      
+      result_map = $[
+		     "error_detected"  : error_detected
+      ];
+
+      OSRModuleProgressFill();
+
+      return result_map;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  REPAIR METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  MAIN
+  //
+  //////////////////////////////////////////////////////////////////////
+  
+  if (init_mode)
+  {
+      map test_map = OSRInitInit();
+      //SCR(`Write(.dumpto.tmp.osr_module_init, test_map));
+
+      return test_map; 
+  }
+}

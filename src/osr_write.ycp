@@ -1,0 +1,51 @@
+/**
+ * File:
+ *   osr_write.ycp
+ *
+ * Module:
+ *   YaST2 OS Repair
+ *
+ * Summary:
+ *   Writing only client
+ *
+ * Authors:
+ *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
+ *
+ * This is a write-only client. It takes its arguments and just
+ * write the settings.
+ */ 
+
+/** 
+ * @param first a map of osr settings
+ * @return boolean success of operation
+ * @example map mm = $[ "FAIL_DELAY" : "77" ];
+ * @example any ret = CallModule("osr_write",[mm]);
+ */
+
+{
+
+textdomain "osr";
+include "osr/io.ycp";
+
+list args = Args();
+
+if(size(args)<=0) {
+    y2error("NOT writing, probably some mistake...");
+    return false;
+}
+
+if(!is(Args(0),map)) {
+    y2error("Bad argument for osr write: %1", Args(0));
+    return false;
+}
+
+map settings = select(args,0);
+y2debug("Only writing... (%1)",settings);
+
+list ret1 = OsrWrite(settings);
+list ret2 = OsrFinish();
+return flatten([ret1,ret2]);
+
+} /* EOF */

@@ -1,0 +1,120 @@
+/**
+ * File:
+ *   ui.ycp
+ *
+ * Module:
+ *   YaST2 OS Repair
+ *
+ * Summary:
+ *   User interface functions.
+ *
+ * Authors:
+ *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
+ *
+ * All user interface functions.
+ * 
+ */
+
+{
+
+textdomain "osr";
+
+include "wizard/sequencer.ycp";
+include "ui/wizard_dialog.ycp";
+include "ui/common_popups.ycp";
+include "ui/common_messages.ycp";
+
+/**
+ * Main dialog
+ */
+global define OsrMainDialog(map settings) ``{
+    map aliases = $[
+        "abort"  : ``(AbortDialog()),
+        "begin"  : ``(BeginDialog()),
+        "config" : ``(ConfigDialog()), 
+        "end"    : ``(EndDialog()) 
+    ];
+
+    map sequence = $[
+        "ws_start" : "begin",
+        "abort" : $[
+            `yes: `back
+        ],
+        "begin" : $[
+            `abort: "abort",
+            `next: "config"
+        ],
+        "config" : $[
+            `abort: "abort",
+            `next: "end"
+        ],
+        "end" : $[
+            `abort: "abort",
+            `next: `ok
+        ]
+    ];
+
+    UI(`CreateWizardDialog());
+    return WizardSequencer(aliases, sequence);
+}
+
+/**
+ * Abort dialog
+ */
+global define AbortDialog() ``{
+    any ret = UI(`ReallyAbortPopup(true));
+    if(ret==true) return `yes;
+    return `back;
+}
+
+/**
+ * Begin dialog
+ */
+global define BeginDialog() ``{
+    string help = UI(_("Begin help..."));
+    string caption = UI(_("Begin..."));
+    term contents = `Label(_("Begin contents..."));
+
+    UI(`SetWizardContentsButtons(caption,contents,help,BackButtonLabel(),NextButtonLabel()));
+    any ret = UI(`UserInput());
+
+    /* your code ... */
+
+    return ret;
+}
+
+/**
+ * Config dialog
+ */
+global define ConfigDialog() ``{
+    string help = UI(_("Config help..."));
+    string caption = UI(_("Config..."));
+    term contents = `Label(_("Config contents..."));
+
+    UI(`SetWizardContentsButtons(caption,contents,help,BackButtonLabel(),NextButtonLabel()));
+    any ret = UI(`UserInput());
+
+    /* your code ... */
+
+    return ret;
+}
+
+/**
+ * End dialog
+ */
+global define EndDialog() ``{
+    string help = UI(_("End help..."));
+    string caption = UI(_("End..."));
+    term contents = `Label(_("End contents..."));
+
+    UI(`SetWizardContentsButtons(caption,contents,help,BackButtonLabel(),FinishButtonLabel()));
+    any ret = UI(`UserInput());
+
+    /* your code ... */
+
+    return ret;
+}
+
+}

@@ -1,0 +1,226 @@
+/**
+ * File:
+ *   osr_popup.ycp
+ *
+ * Module:
+ *   Popups for the YaST2 OS Repair tool.
+ *
+ * Summary:
+ *   YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Author:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+
+{
+  textdomain "osr";
+
+  include "ui/common_popups.ycp";
+  
+  /**
+   *  This method opens a new popup window that displays the error message.
+   *  It provides a repair button, a skip button and a help button. Important:
+   *  This is not an UI function.
+   *
+   *  API function.
+   *
+   *  @param string The headline of the popup window.
+   *  @param string The message text to display in the window.
+   *  @param string The help-text to display when the user presses the help-button.
+   *                If the help-text is empty, no help-button will be displayed.
+   *  @return boolean True if the repair button was pressed by the user.
+   *  @example boolean repair_question = OSRPopupRepair(UI_("Error detected"), error_message, help_text); 
+   */
+  global define OSRPopupRepair(string headline, string message, string help_text) ``{
+
+      if (automatic_mode)
+      {
+	  return true;
+      }
+
+      if (detection_mode)
+      {
+	  return false;
+      }
+      
+      UI(``{
+	  term repair_button = `Empty();
+	  term skip_button   = `Empty();
+	  term help_button   = `Empty();
+	  term button_box    = `Empty();
+	  term contents      = `Empty();
+	  //term help_button_box = `Empty();
+	  
+	  repair_button = `PushButton(`id(`osr_popup_repair), `opt(`default), _("&Repair"));
+	  skip_button   = `PushButton(`id(`osr_popup_skip), _("&Skip"));
+	  if (help_text != "")
+	  {
+	      help_button   = `PushButton(`id(`osr_popup_help), _("&Help"));
+	  }
+	  
+	  button_box    = `HBox(
+				`HWeight(1, skip_button),
+				`HSpacing(2),
+				`HWeight(1, help_button),
+			        `HSpacing(2),
+				`HWeight(1, repair_button)
+				);
+
+	  contents      = `HBox(
+				`HSpacing(1),
+				`HCenter(
+					 `HSquash(
+						  `VBox(
+							`HCenter(
+								 `HSquash(
+									  `VBox(
+										`Left(`Heading(headline)),
+										`VSpacing(0.2),
+										`Left(`Label(message))
+										)
+									  )
+								 ),
+							`HSquash(button_box),
+							`VSpacing(0.2)
+							)
+						  )
+					 ),
+				`HSpacing(1)
+				);
+	  
+	  OpenDialog(
+		     `opt(`decorated),
+		     contents
+		     );
+      });
+
+      any ret = UI(`UserInput());
+
+      while ((ret != `osr_popup_skip) && (ret != `osr_popup_repair))
+      {
+	  if (ret == `osr_popup_help)
+	  {
+	      // TODO: launch text-popup to display help-text
+	      //UI(`LongTextPopup(UI(_("Help")), `RichText(help_text), 50, 20));
+	  }
+	  ret = UI(`UserInput());
+      }
+
+      UI(`CloseDialog());
+
+      return (ret == `osr_popup_repair);
+  }
+
+
+  /**
+   *  This method opens a popup window that offers the specified items to the
+   *  user. The items can be selected in a RadioButtonGroup. A default item has to
+   *  be specified. It is marked as selected from start. If the default is "", the
+   *  first item in the list is marked as selected.
+   *  It provides an OK button and a Cancel button. If OK is pressed the selected
+   *  item is returned as a string, if cancel is pressed, the specified default is
+   *  returned. Important: This is not an UI function.
+   *
+   *  API function.
+   *
+   *  @param string The headline of the popup window.
+   *  @param string The message text to display in the window.
+   *  @param list The list of items. This has to be a list of strings.
+   *  @param string The default value to mark as selected.
+   *  @return string The selected item, the default if cancel is pressed.
+   *  @example string result = OSRPopupSelectItem("Test", "This is just a test.", ["a", "b", "c"], "b"); 
+   */
+  global define OSRPopupSelectItem(string headline, string message, list item_list, string default) ``{
+
+      string result = "";
+
+      result = default;
+      
+      if (automatic_mode)
+      {
+	  return "";
+      }
+
+      if (size(item_list) == 0)
+      {
+	  y2error("ERROR OSRPopupSelectItem: empty list as parameter: %1", item_list);
+	  return "";
+      }
+      
+      UI(``{
+	  term ok_button     = `Empty();
+	  term cancel_button = `Empty();
+	  term button_box    = `Empty();
+	  term contents      = `Empty();
+
+	  term rb_group      = `Empty();
+	  term rb            = `Empty();
+	  term rbs           = `Empty();
+	  
+	  ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
+	  cancel_button = `PushButton(`id(`osr_popup_cancel), _("&Cancel"));
+
+	  button_box    = `HBox(
+				`HWeight(1, cancel_button),
+				`HSpacing(2),
+				`HWeight(1, ok_button)
+				);
+
+	  rbs = `VBox(`Left(`Label(message)));
+	  
+	  // create the radio buttons dynamically referring to the item_list
+	  integer i = 0;
+	  while (i >= 0 && i < size(item_list))
+	  {
+	      string item = select(item_list, i, "");
+	      rb  = `Left(`RadioButton(`id(i), item, ((item == default) || ((default == "") && (i == 0)))));
+	      rbs = add(rbs, rb);
+	      i   = i + 1;
+	  }
+
+	  rb_group      = `RadioButtonGroup(
+					    `id(`rb_group),
+					    rbs
+					    );
+
+	  contents      = `HBox(
+				`HSpacing(1),
+				`HCenter(
+					 `HSquash(
+						  `VBox(
+							`HCenter(
+								 `HSquash(
+									  `VBox(
+										`Left(`Heading(headline)),
+										`VSpacing(0.2),
+										`HSquash(rb_group)
+										)
+									  )
+								 ),
+							`HSquash(button_box),
+							`VSpacing(0.2)
+							)
+						  )
+					 ),
+				`HSpacing(1)
+				);
+	  
+	  OpenDialog(
+		     `opt(`decorated),
+		     contents
+		     );
+      });
+
+      any ret = UI(`UserInput());
+      if (ret == `osr_popup_ok)
+      {
+	  integer current = UI(`QueryWidget(`id(`rb_group), `CurrentButton));
+	  result = select(item_list, current);
+      }
+
+      UI(`CloseDialog());
+
+      return result;
+  }
+
+}

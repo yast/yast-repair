@@ -1,0 +1,76 @@
+/**
+ *  File:
+ *    osr_log_file.ycp
+ *
+ *  Module:
+ *    YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Summary:
+ *    YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ *  Author:
+ *    Michael Koehrmann <curry@suse.de>
+ */
+{
+  textdomain "osr";
+  
+  /**
+   *  Tests if the specified logfile exists, is readable, writable, ...
+   *  If the specified file not exists, it will be created with the correct
+   *  file-permissions.
+   *
+   *  For internal use only.
+   *
+   *  @param string Name of the logfile
+   *  @return boolean True if the specified logfile was created/set up successfully.
+   */
+  global define OSRLogFileSetup(string log_file) ``{
+
+      integer result   = 0;
+      string  command  = "";
+
+      // remove the old logfile
+      command = sformat("rm -f %1", log_file);
+	  
+      if( OSRExecuteCommand(command, "/dev/null") != 0)
+      {
+	  UI(`AnyMessagePopup(_("YaST2 OS Repair: Error"),
+			      _("Something is wrong with the specified logfile.\n\nYaST2 OS Repair halts now.")
+			      ));
+
+	  // TODO: a real halt of the system
+	  return false;
+      }
+      command = "date";
+      OSRExecuteCommand(command, log_file);
+
+      return true;
+  }
+  
+  /**
+   *  This function returns the name of the global log-file.
+   *
+   *  API function.
+   *
+   *  @return string The name of the global log-file.
+   */
+  global define OSRLogFileGet() ``{
+
+      return lookup(osr_map, "log_file", "");
+  }
+
+  /**
+   *  Sets the name of the global log-file to the specified
+   *  file name.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the addition function succeeded.
+   */
+  global define OSRLogFileSet(string log_file) ``{
+
+      osr_map = add(osr_map, "log_file", log_file);
+      
+      return true;
+  }
+}

@@ -1,0 +1,134 @@
+/**
+ * File:
+ *   osr_global_progress.ycp
+ *
+ * Module:
+ *   YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Summary:
+ *   YaST2 OS Repair. Automatic error detection & repair tool for Linux.
+ *
+ * Author:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+
+{
+  textdomain "osr";
+
+  /**
+   *  Fills the global-progress-bar with 100%.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the progress value was increased successfully.
+   */
+  global define OSRGlobalProgressFill() ``{
+
+      integer global_progress_length = 0;
+
+      global_progress_length = lookup(osr_map, "global_progress_length", 1000);
+
+      return UI(``{
+	  ChangeWidget(`id(`global_progress_bar), `Value, global_progress_length);
+      });
+  }
+
+  /**
+   *  This method is called after one detection function is successfully executed.
+   *  It shows the continuous progress to the user with the global progress bar.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the progress value was increased successfully.
+   */
+  global define OSRGlobalProgressIncrease() ``{
+
+      integer increment     = 0;
+      integer current_value = 0;
+
+      increment = lookup(osr_map, "global_progress_increment", 500);
+
+      return UI(``{
+	  current_value = QueryWidget(`id(`global_progress_bar), `Value);
+	  y2debug("CURRENTVAL: %1", current_value);
+	  ChangeWidget(`id(`global_progress_bar), `Value, current_value + increment);
+      });
+  }
+
+  /**
+   *  This method is called after an error is found. It sets the global progress
+   *  bar back to the value where the error was detected.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the progress value was decreased successfully.
+   */
+  global define OSRGlobalProgressDecrease() ``{
+
+      integer increment     = 0;
+      integer current_value = 0;
+
+      increment = lookup(osr_map, "global_progress_increment", 500);
+
+      return UI(``{
+	  current_value = QueryWidget(`id(`global_progress_bar), `Value);
+	  if (current_value >= increment) ChangeWidget(`id(`global_progress_bar), `Value, current_value - increment);
+      });
+  }
+  
+  /**
+   *  Comutes the increment value of the global progress bar. This increment
+   *  is added to the current progress value after one detection method was
+   *  executed. It is dependent on the total number of detection methods the
+   *  rescue system provides. The length of the global progress bar is stored
+   *  in the osr_map at key "global_progress_length".
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the increment value was successfully computed.
+   */
+  global define OSRGlobalProgressSetIncrement() ``{
+      
+      integer osr_global_progress_expect = 0;
+      integer number_detection_methods   = 0;
+      integer global_progress_length     = 0;
+      integer index                      = 0;
+      integer increment                  = 0;
+      list    module_sequence            = [];
+
+      module_sequence        = lookup(osr_map, "module_sequence",        []);
+      global_progress_length = lookup(osr_map, "global_progress_length", 1000);
+
+      if ( size(module_sequence) > 0 )
+      {
+	  // execute the init-functions of all modules in the module-list
+	  while((index >= 0) && (index < size(module_sequence)))
+	  {
+	      // count the total number of detection methods
+	      number_detection_methods = number_detection_methods + size(
+									 lookup(
+										lookup(
+										       osr_map,
+										       select(module_sequence, index)
+										       ),
+										"detect_methods"
+										)
+									 );
+	      index = index + 1;
+	  }
+	  increment = global_progress_length / tointeger(number_detection_methods);
+
+	  y2debug("INCREMENT: %1, %2, %3", increment, global_progress_length, tointeger(number_detection_methods) );
+	  
+	  osr_map = add(osr_map, "global_progress_increment", increment);
+
+	  return true;
+      }
+      else
+      {
+	  y2error("OSRGlobalProgressSetIncrement ERROR: list module_sequence is empty: %1", module_sequence);
+
+	  return false;
+      }
+  }
+}

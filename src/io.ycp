@@ -1,0 +1,53 @@
+/**
+ * File:
+ *   io.ycp
+ *
+ * Module:
+ *   YaST2 OS Repair
+ *
+ * Summary:
+ *   Input and output functions.
+ *
+ * Authors:
+ *   Michael Koehrmann <curry@suse.de>
+ *
+ * $Id$
+ *
+ * Input and output routines.
+ * 
+ */
+
+{
+
+textdomain "osr";
+
+/**
+ * Fill the map of all osr settings from the SCR
+ * @return map all osr settings
+ */
+global define OsrRead() ``{
+    /* TODO: your code here ... */
+    return $[];
+}
+
+/**
+ * Update the SCR from the map of all osr settings
+ * @param m a map of all osr settings
+ * @return boolean success of operation
+ */
+global define OsrWrite(map settings) ``{
+    /* TODO your code here ... */
+    return true;
+}
+
+/**
+ * Write the osr data from SCR to the disk
+ * @return list success of operation
+ */
+global define OsrFinish() ``{
+    /* TODO your code here ... */
+    sleep(1500);
+    return true;
+}
+
+}

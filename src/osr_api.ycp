@@ -1,0 +1,356 @@
+/**
+ *  File:
+ *    osr_api.ycp
+ *
+ *  Module:
+ *    YaST2 OS Repair - automatic error detection & repair tool for Linux.
+ *
+ *  Summary:
+ *    This file provides the api functions of the YaST2 OS Repair tool that can be used
+ *    by the error detection and repair modules.
+ *
+ *  Author:
+ *    Michael Koehrmann <curry@suse.de>
+ */
+{
+  textdomain "osr";
+
+  /**
+   *  Executes the given commandline in a bash and writes all execution-information
+   *  to the specified logfile. This function returns all output from the commandline
+   *  in a result map.
+   *
+   *  API function.
+   *
+   *  @param string commandline The commandline.
+   *  @param string log_file The path of the logfile.
+   *  @return map The result map with all output from the command.
+   *  @example map result_map = OSRExecuteCommandOutput("rpm -qi lilo", "/tmp/osr.log");
+   */
+  global define OSRExecuteCommandOutput(string commandline, string log_file) ``{
+
+      map     result_map  = $[];
+      integer result      = 0;
+      string  command     = "";
+      string  demo_string = "";
+      string  stdout      = "";
+      string  stderr      = "";
+
+      if (log_file == "")
+      {
+	  log_file = OSRLogFileGet();
+	  y2error("OSRExecuteCommand ERROR: no logfile specified, using standard.");
+      }
+      
+      // in demo-mode set "echo" in front of every commandline
+      if (demo_mode) demo_string = "echo";
+
+      // execute the given commandline and write the commandline and output information to logfile
+      commandline = sformat("%1 %2", demo_string, commandline);
+      //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
+      result_map  = SCR(`Execute(.target.bash_output, commandline));
+      result      = lookup(result_map, "exit", 0);
+      stdout      = lookup(result_map, "stdout", "");
+      stderr      = lookup(result_map, "stderr", "");
+      
+      command = sformat("echo \"*** %1 ***\" >> %5; echo \"%3\" >> %5; echo \"%4\" >> %5; echo \"*** exit code: %2 ***\n\n\" >> %5",
+			commandline, result, stdout, stderr, log_file);
+      SCR(`Execute(.target.bash, command));
+	
+      if ( result == 0 )
+      {
+	  y2debug("OSRExecuteCommandOutput: command succeeded: %1", result);
+      }
+      else if ( result == 126 )
+      {
+	  y2debug("OSRExecuteCommandOutput: command found but not executable: %1", result);
+      }
+      else if ( result == 127 )
+      {
+	  y2debug("OSRExecuteCommandOutput: command not found: %1", result);
+      }
+      else if ( result >= 128 )
+      {
+	  y2debug("OSRExecuteCommandOutput: command terminates with fatal sign N (N=%1-128): %1", result);
+      }
+      else
+      {
+	  y2debug("OSRExecuteCommandOutput: command terminates with error code %1", result);
+      }
+      return result_map;
+  }
+
+  /**
+   *  Executes the given commandline in a bash and writes all execution-information
+   *  to the specified logfile.
+   *
+   *  API function.
+   *
+   *  @param string commandline The commandline.
+   *  @param string log_file The logfile path.
+   *  @return integer The exit code of the execution.
+   *  @example OSRExecuteCommand("rpm -qi lilo", "/tmp/osr.log");
+   *
+   *   $ cat /tmp/osr.log
+   *   *** /bin/rpm -qi lilo ***
+   *   Name      : lilo         Relocations: (not relocateable)
+   *   Version   : 21.6              Vendor: SuSE GmbH, Nuernberg, Germany
+   *   [...]
+   *   SuSE series: a
+   *   *** exit code: 0 ***
+   */
+  global define OSRExecuteCommand( string commandline, string log_file ) ``{
+
+      return OSRExecuteCommandProgress(commandline, log_file, "");
+  }
+  
+  /**
+   *  Executes the given commandline in a bash and writes all execution-information
+   *  to the specified logfile.
+   *
+   *  API function.
+   *
+   *  @param string commandline The commandline.
+   *  @param string log_file The logfile path.
+   *  @param string progress_file The path of the progress file.   
+   *  @return integer The exit code of the execution.
+   *  @example OSRExecuteCommand("rpm -qi lilo", "/tmp/osr.log", "");
+   *
+   *   $ cat /tmp/osr.log
+   *   *** /bin/rpm -qi lilo ***
+   *   Name      : lilo         Relocations: (not relocateable)
+   *   Version   : 21.6              Vendor: SuSE GmbH, Nuernberg, Germany
+   *   [...]
+   *   SuSE series: a
+   *   *** exit code: 0 ***
+   */
+  global define OSRExecuteCommandProgress(string commandline, string log_file, string progress_file) ``{
+
+      integer result      = 0;
+      string  command     = "";
+      string  demo_string = "";
+      list    string_list = [];
+
+      if (log_file == "")
+      {
+	  log_file = OSRLogFileGet();
+	  y2error("OSRExecuteCommand ERROR: no logfile specified, using standard.");
+      }
+      
+      // in demo-mode set "echo" in front of every commandline and delete all ";" from
+      // the commandline
+      if (demo_mode)
+      {
+	  commandline = sformat("%1", "echo ", mergestring(splitstring(commandline, ";"), " "));
+      }
+      
+      if (progress_file != "")
+      {
+	  command     = sformat("rm -f %2; %1 >> %2 2>> %2", commandline, progress_file);
+          result      = SCR(`Execute(.target.bash, command));
+
+	  command     = sformat("echo \"*** %1 ***\" >> %2; cat %3 >> %2; echo \"*** exit code: %4 ***\n\n\" >> %2",
+				commandline, log_file, progress_file, result);
+	  SCR(`Execute(.target.bash, command));
+      }
+      else
+      {  
+	  // execute the given commandline and write the commandline and output information to logfile
+	  //commandline = sformat("%1 %2", demo_string, commandline);
+	  command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
+	  result      = SCR(`Execute(.target.bash, command));
+
+	  command = sformat("echo \"*** exit code: %1 ***\n\n\" >> %2", result, log_file);
+	  SCR(`Execute(.target.bash, command));
+      }
+	
+      if ( result == 0 )
+      {
+	  y2debug("OSRExecuteCommand: command succeeded: %1", result);
+      }
+      else if ( result == 126 )
+      {
+	  y2debug("OSRExecuteCommand: command found but not executable: %1", result);
+      }
+      else if ( result == 127 )
+      {
+	  y2debug("OSRExecuteCommand: command not found: %1", result);
+      }
+      else if ( result >= 128 )
+      {
+	  y2debug("OSRExecuteCommand: command terminates with fatal sign N (N=%1-128): %1", result);
+      }
+      else
+      {
+	  y2debug("OSRExecuteCommand: command terminates with error code %1", result);
+      }
+      return result;
+  }
+
+
+  /**
+   *  This funnction returns the map that contains all informations about
+   *  the specified module.
+   *
+   *  API function.
+   *
+   *  @param string module_name Name of the module.
+   *  @return map The map that contains all informations about the module.
+   */
+  global define OSRGetModuleMap(string module_name) ``{
+
+      return lookup(osr_map, module_name, $[]);
+  }
+
+  /**
+   *  Displays the specified text in the help-RichText widget on
+   *  the left of the main window.
+   *
+   *  API function.
+   *
+   *  @param string help_text The text to be displayed.
+   *  @return boolean True if the widget contents were changed successfully.
+   */
+  global define OSRDisplayHelpText(string help_text) ``{
+
+      return UI(`ChangeWidget(`id(`help), `Value, help_text));
+  }
+
+    /**
+   *  Stores the given list with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param list value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideList(string name, list value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "list", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  }
+
+  /**
+   *  Stores the given map with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param map value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideMap(string name, map value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "map", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  }
+
+  /**
+   *  Stores the given string with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param string value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvideString(string name, string value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "string", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  }
+
+  /**
+   *  Returns the required string from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string value The required string, "" as default.
+   */
+  global define OSRRequireString(string name) ``{
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", "");
+  }
+
+  /**
+   *  Returns the required list from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return string The required list, [] as default.
+   */
+  global define OSRRequireList(string name) ``{
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", []);
+  }
+
+  /**
+   *  Returns the required map from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return map The required map, $[] as default.
+   */
+  global define OSRRequireMap(string name) ``{
+
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", $[]);
+  }
+
+  /**
+   *  Compares the two specified version numbers. Each version number has to be a string
+   *  of the form "21.6"!
+   *
+   *  API function,
+   *
+   *  @return boolean True if the first version number is newer than the second one.
+   *  @example if (!OSRVersionIsNewerOrEqual("21.6", "22.3")) y2error("Something's wrong here.")
+   */
+  global define OSRVersionIsNewerOrEqual(string version_1, string version_2) ``{
+
+      integer main_version_1 = 0;
+      integer sub_version_1  = 0;
+      integer main_version_2 = 0;
+      integer sub_version_2  = 0;
+      
+      main_version_1 = tointeger(select(splitstring(version_1, "."), 0, "0"));
+      sub_version_1  = tointeger(select(splitstring(version_1, "."), 1, "0"));
+      main_version_2 = tointeger(select(splitstring(version_2, "."), 0, "0"));
+      sub_version_2  = tointeger(select(splitstring(version_2, "."), 1, "0"));
+
+      return ((main_version_1 > main_version_2) ||
+	      ((main_version_1 == main_version_2) &&
+	       (sub_version_1 >= sub_version_2)));
+  }
+
+}
