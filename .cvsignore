@@ -21,3 +21,4 @@ missing
 mkinstalldirs
 stamp-h*
 repair.pot
+Makefile.am.common
