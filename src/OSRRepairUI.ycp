@@ -853,6 +853,7 @@ global define symbol OsrMainDialog() ``{
     ];
 
 
+    /* now it is run from 1st yast menu...
     if( Mode::initial )
     {
 	aliases["language"]  =  ``(LanguageDialog());
@@ -862,6 +863,7 @@ global define symbol OsrMainDialog() ``{
 	];
 	sequence["ws_start"] = "language";
     }
+    */
 
     return WizardSequencer(aliases, sequence);
 }
