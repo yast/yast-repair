@@ -79,7 +79,6 @@
 						    "increment": tointeger( length / steps ),
 						    "label"    : label ]);
 	  }
-	  
 	  return `ProgressBar(
 			      `id( id ),
 			      progresses[id, "label"]:"",
@@ -161,7 +160,7 @@
    *  @return boolean True if the progress value was increased successfully.
    */
   global define boolean Fill(symbol id) ``{
-          
+
       map progress		= progresses[id]:$[];
 
       if ( progress["type"]:"" == "ProgressBar" ) {
@@ -174,7 +173,7 @@
 	  integer current  = WFM::Read(.local.size, file);
 	  integer diff     = 0;
 	  integer result   = 0;
-	
+
 	  if (current < 0)
 	  {
 	      current = 0;
@@ -187,10 +186,13 @@
 	      while ( UI::QueryWidget(`id(id), `ExpectedSize) > current )
 	      {
 		  string fill    = "##########";
+		  while (size (fill) < diff/3)
+		  {
+		      fill = fill + fill;
+		  }
 		  string command = sformat("/bin/echo \"%1\" >> %2", fill, file);
 		  result  = WFM::Execute(.local.bash, command);
 		  current = WFM::Read(.local.size, file);
-		 
 	      }
 	      return (result == 0);
 	  }
