@@ -36,6 +36,7 @@
   import "Mode";
   import "Installation";
   import "AsciiFile";
+  import "Initrd";
 
   import "OSRLogFile";
   import "OSRSystem";
@@ -62,7 +63,7 @@
   string b_create_label    	= _("&Create");
   string b_remove_label     	= _("&Remove");
   string b_change_mp_label  	= _("Change &mount point");
-  string b_replace_label    	= _("Replace");
+  string b_replace_label    	= _("R&eplace");
 
   global list(string) system_mount_points =  [ "/dev", "/lib", "/bin", "/etc", "/sbin" ];
   
@@ -337,6 +338,7 @@
 	      boolean not_fount = false;
 	      foreach(string mp,  system_mount_points, ``{
 		  if( mp != "/" ) {
+              y2debug ("command: /usr/bin/test -d " +  mount_p + mp);
 		      if ( ! OSRExecute::Command(.local.bash, "/usr/bin/test -d "+ mount_p + mp )) {
 			  not_fount = true;
 		      }
@@ -1879,7 +1881,8 @@ written to the fstab.</P>");
 
       //inst_prepdisk for OSRBoot!
       foreach( `modname, FileSystems::GetNeededModules( root_part["detected_fs"]:(root_part["used_fs"]:`ext2 )), ``{
-	  Boot::AddInitrdModule (modname, "");
+//	  Boot::AddInitrdModule (modname, "");
+	  Initrd::AddModule (modname, "");
       });
 
       return ret;
@@ -1955,7 +1958,7 @@ You have to select one item in the list."),
 						 size(splitstring( y["file"]:y["mountpoint"]:"" ,"/"))));
 	 
       
-      y2error("partitions which should be umounted %1", mnt_list);
+      y2milestone("partitions which should be umounted %1", mnt_list);
 	  
       // umount all partitions from "/mnt" or deeper, as long as there are no more mounted partitions with
       // mountpoint "/mnt..."

@@ -129,7 +129,7 @@
 		direct_items = add( direct_items, `RichText(`id(`options), text));
 	    }
 
-	    direct_items = add(direct_items , `MenuButton( _("&Repair tools ..."), menu_button_items ));
+	    direct_items = add(direct_items , `MenuButton( _("Re&pair tools ..."), menu_button_items ));
 	    direct_items = add(direct_items , `VSpacing(0.2));
 	}
 
