@@ -1,5 +1,0 @@
-Return	true
-Return	$["global_provides_list":["a", "b", "c", "d", "e"], "module_1":$["provides":$["a":$[], "b":$[]], "requires":[]], "module_2":$["provides":$["c":$[], "d":$[]], "requires":["a"]], "module_3":$["provides":$["e":$[]], "requires":["b", "c"]], "module_list":[], "module_sequence":["module_1", "module_2", "module_3"]]
-Log	ERROR OSRComputeModuleSequence: module(s) not added to the sequence list: ["module_2", "module_3"]
-Return	false
-Return	$["global_provides_list":["a", "b"], "module_1":$["provides":$["a":$[], "b":$[]], "requires":[]], "module_2":$["provides":$["c":$[], "d":$[]], "requires":["a", "e"]], "module_3":$["provides":$["e":$[]], "requires":["b", "c"]], "module_list":["module_2", "module_3"], "module_sequence":["module_1"]]
