@@ -388,7 +388,7 @@ YaST2 OS Repair halts now."));
 
 	      // only use a DownloadProgress-widget if it is supported by the UI-interpreter
 	      // (e.g. QT: supported, ncurses: NOT supported)
-	      if (UI::HasSpecialWidget(`DownloadProgress))
+	      if (HasSpecialWidget(`DownloadProgress))
 	      {
 		  download_progress = `DownloadProgress(
 							`id(`module_progress_bar),
@@ -400,7 +400,7 @@ YaST2 OS Repair halts now."));
 
 	      progress_bar = `ProgressBar(
 					  `id(`global_progress_bar),
-					  "System check",
+					  _("System check"),
 					  WFM::osr_global_progress_length
 					  );
 
@@ -683,23 +683,44 @@ YaST2 OS Repair halts now."));
       return UI::CloseDialog();
   }
 
-  // ask the user for reading an old osr_map from a previos
-  // YaST2 OS Repair-session. The map has to be stored in a
-  // file "osr_map.ycp" on a floppy-disk.
-  old_osr_map = OSRMapReadFloppy();
-        
-  if (!OSRInit())
-  {
-      return UI::CloseDialog();
-  }
+  any user_input = nil;
 
-  if (!OSRDetect())
-  {
-      return UI::CloseDialog();
-  }
+  repeat
+      {
+	  // Ask the user for reading an old osr_map from a previos YaST2 OS Repair-session.
+	  // The map has to be stored in a file "osr_map.ycp" on a floppy-disk.
+	  any returned_user_input = OSRMapReadFloppy();
 
-  // ask the user to store the whole osr_map to floppy-disk for later
-  // YaST2 OS Repair-sessions
+	  if (returned_user_input == `back)
+	  {
+	      return UI::CloseDialog();
+	  }
+	  else if (returned_user_input == `abort)
+	  {
+	      return UI::CloseDialog();
+	  }
+	  
+	  // start the init-function OSRInit() and all initial module-functions
+	  if (!OSRInit())
+	  {
+	      return UI::CloseDialog();
+	  }
+
+	  UI::ChangeWidget(`id(`next), `Enabled, true);
+	  UI::ChangeWidget(`id(`abort), `Enabled, true);
+	  UI::ChangeWidget(`id(`back), `Enabled, true);
+	  UI::SetFocus(`id(`next));
+
+	  // start the detection-methods from the modules
+	  if (!OSRDetect())
+	  {
+	      return UI::CloseDialog();
+	  }
+	  user_input = UI::UserInput();
+      }
+  until (user_input != `back);
+
+  // Ask the user to store the whole osr_map to floppy-disk for later YaST2 OS Repair-sessions.
   OSRMapWriteFloppy();
   
   if (!script_mode)
@@ -711,7 +732,7 @@ YaST2 OS Repair halts now."));
       UI::SetFocus(`id(`next));
   
       // wait for user input
-      any user_input = nil;
+      //any user_input = nil;
 
       if (automatic_mode)
       {

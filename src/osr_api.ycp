@@ -343,6 +343,44 @@
   }
 
   /**
+   *  Stores the given path with the specified name into the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the provided value.
+   *  @param path value The provided value.
+   *  @return boolean True.
+   */
+  global define OSRProvidePath(string name, path value) ``{
+
+      map global_provides_map  = $[];
+      map provides_map         = $[];
+
+      provides_map        = $[ "type" : "path", "value" : value, "status" : "known" ];
+      global_provides_map = lookup(osr_map, "global_provides", $[]);
+      global_provides_map = add(global_provides_map, name, provides_map);
+      osr_map             = add(osr_map, "global_provides", global_provides_map);
+
+      return true;
+  }
+
+  /**
+   *  Returns the required path from the global_provides map
+   *  in the osr_map.
+   *
+   *  API function,
+   *
+   *  @param string name The name of the required value.
+   *  @return path value The required path, . as default.
+   */
+  global define OSRRequirePath(string name) ``{
+
+      // TODO: only return the value if it's status is "known"
+      return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", .);
+  }
+
+  /**
    *  Returns the required string from the global_provides map
    *  in the osr_map.
    *
@@ -489,12 +527,61 @@
   global define OSRMapReadFloppy() ``{
 
       boolean file_read        = false;
-      boolean user_read_floppy = true;
+      //boolean user_read_floppy = true;
       map     return_map       = $[];
       boolean read_old_osr_map = false;
       boolean repeated         = false;
+      any     user_input       = `empty;
+      string  help_text         = "";
+
+      help_text = _("<p>If you want to load system-information from a previous session
+insert the <b>YaST2 OS Repair-floppy-disk</b> and press <b>Load</b>.</p>");
+
+      help_text = help_text + _("<p>Press <b>Next</b> to start the <b>YaST2 OS Repair</b>
+without loading system information.</p>");
 
       read_old_osr_map = lookup(osr_map, "read_old_osr_map", false);
+
+      UI(``{
+	  term contents    = `Empty();
+	  term load_button = `Empty();
+	  term label       = `Empty();
+
+	  load_button = `PushButton(`id(`osr_floppy_button), `opt(`default), _("&Load system-information"));
+	  label       = `Label(`id(`osr_floppy_label), `opt(`default), _("You can revert the system-information detected
+in a previous run of YaST2 OS Repair.
+
+Insert the YaST2 OS Repair-disk in your
+floppy-drive and press Load."));
+
+	  contents    = `VBox(
+			      `HBox(
+				    `HSquash(
+					     `Frame(
+						    _("Load system-information from floppy-disk"),
+						    `HBox(
+							  `HSpacing(1),
+							  `VBox(
+								`VSpacing(1),
+								label,
+								`VSpacing(1),
+								`HCenter(
+									 load_button
+									 ),
+								`VSpacing(1)
+								),
+							  `HSpacing(1)
+							  )
+						    )
+					     )
+				    )
+			      );
+
+	  ReplaceWidget(`id(`contents), contents);
+	  ChangeWidget(`id(`help), `Value, WFM::help_text);
+	  SetFocus(`id(`next));
+      });
+
 
       // if the old osr_map is already in memory, do not load it again from floppy
       if (read_old_osr_map)
@@ -504,32 +591,25 @@
 
       repeat
 	  {
-	      string popup_text = "";
-	      
-	      if (!repeated)
-	      {
-		  popup_text = _("You can revert the system-information detected
-in a previous run of YaST2 OS Repair.
+	      string text = "";
 
-Insert the YaST2 OS Repair-disk in your
-floppy-drive and press continue.");
-	      }
-	      else
+	      if (repeated)
 	      {
-		  popup_text = _("An error occurred. The system-information was
+		  text = _("An error occurred. The system-information was
 not loaded correctly from floppy.
 
 Insert the YaST2 OS Repair-disk in your
-floppy-drive and press continue.");
-	      }
-	      
-	      user_read_floppy = UI::ContinueCancelHeadlinePopup(
-								 _("Load system-information from floppy-disk"),
-								 popup_text
-								 );
+floppy-drive and press Load.");
 
-	      if (user_read_floppy)
+		  UI::ChangeWidget(`id(`osr_floppy_label), `Value, WFM::text);
+	      }
+
+	      user_input = UI::UserInput();
+
+	      if (user_input == `osr_floppy_button)
 	      {
+		  //if (user_read_floppy)
+		  //{
 		  boolean has_floppy    = true;
 		  string  floppy_device = "";
 
@@ -567,6 +647,12 @@ floppy-drive and press continue.");
 
 			  // store that the old osr_map was already loaded from floppy
 			  osr_map = add(osr_map, "read_old_osr_map", true);
+
+			  if (lookup(osr_map, "read_old_osr_map", false) == false)
+			  {
+			      // TODO
+			      OSRPopupDisplayQuick("osr_api.ycp:Da is wohl was daneben gegangen.\nread_old_osr_map = false??", 2000);
+			  }
 		      }
 		  }
 		  else
@@ -576,9 +662,15 @@ floppy-drive and press continue.");
 	      }
 	      repeated = true;
 	      
-	  } until (file_read || !user_read_floppy);
-      
-      return return_map;
+	  } until (file_read || (user_input != `osr_floppy_button));
+
+      if (user_input == `osr_floppy_button)
+      {
+	  old_osr_map = return_map;
+	  user_input  = `next;
+      }
+
+      return user_input;
   }
 
   /**
@@ -594,34 +686,71 @@ floppy-drive and press continue.");
       boolean file_written      = false;
       boolean user_write_floppy = true;
       boolean repeated          = false;
+      any     user_input        = `empty;
+      string  help_text         = "";
 
-      repeat
-	  {
-      	      string popup_text = "";
-	      
-	      if (!repeated)
-	      {
-		  popup_text = _("You can store the whole system-information
+      help_text = _("<p>If you want to store the system-information from this session of
+ <b>YaST2 OS Repair</b> insert a formatted floppy-disk and
+ press <b>Store system-information</b>.</p>");
+
+      help_text = help_text + _("<p>Press <b>Next</b> to halt the <b>YaST2 OS Repair</b>.</p>");
+
+      UI(``{
+	  term contents    = `Empty();
+	  term load_button = `Empty();
+	  term label       = `Empty();
+
+	  load_button = `PushButton(`id(`osr_floppy_button), `opt(`default), _("&Store system-information"));
+	  label       = `Label(`id(`osr_floppy_label), `opt(`default), _("You can store the whole system-information
 to a floppy-disk. This can be helpful for
 later system-checks.
 
 Insert a formatted disk in your floppy-drive
-and press continue.");
-	      }
-	      else
+and press Store."));
+
+	  contents    = `VBox(
+			      `HBox(
+				    `HSquash(
+					     `Frame(
+						    _("Store system-information on floppy-disk"),
+						    `HBox(
+							  `HSpacing(1),
+							  `VBox(
+								`VSpacing(1),
+								label,
+								`VSpacing(1),
+								`HCenter(
+									 load_button
+									 ),
+								`VSpacing(1)
+								),
+							  `HSpacing(1)
+							  )
+						    )
+					     )
+				    )
+			      );
+
+	  ReplaceWidget(`id(`contents), contents);
+	  ChangeWidget(`id(`help), `Value, WFM::help_text);
+      });
+
+      repeat
+	  {
+	      if (repeated)
 	      {
-		  popup_text = _("An error occurred. The system-information
+		  string text = _("An error occurred. The system-information
 was not correctly stored to the floppy-disk.
 
 Insert a formatted disk in your floppy-drive
-and press continue.");
+and press Store.");
+
+		  UI::ChangeWidget(`id(`osr_floppy_label), `Value, WFM::text);
 	      }
 
-	      user_write_floppy = UI::ContinueCancelHeadlinePopup(_("Store system-information on floppy"),
-								  popup_text
-								  );
+	      user_input = UI::UserInput();
 
-	      if (user_write_floppy)
+	      if (user_input == `osr_floppy_button)
 	      {
 		  boolean has_floppy    = true;
 		  string  floppy_device = "";
@@ -669,9 +798,15 @@ and press continue.");
 	      }
 	      repeated = true;
 	      
-	  } until (file_written || !user_write_floppy);
+	  } until (file_written || (user_input != `osr_floppy_button));
 
-      return file_written;
+      if (user_input == `osr_floppy_button)
+      {
+	  old_osr_map = return_map;
+	  user_input  = `next;
+      }
+
+      return user_input;
   };
 
   /**
