@@ -425,7 +425,7 @@ partition %1"), part)
       }
       else {
         list<string> key_list = maplist(map p, fs_check_parts,
-            ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:0)));
+            ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:nil)));
         OSRSummary::DetectOK("", sformat(_("%1"), mergestring(key_list, " " )));
       }
       OSRCommon::ProvideList("fsck_partitions", fs_check_parts );
@@ -450,7 +450,7 @@ partition %1"), part)
 
       foreach(map p, fsck_partitions, ``{
 
-      string  dev_name   = Storage::GetDeviceName(p["maindev"]:"", p["nr"]:0);
+      string  dev_name   = Storage::GetDeviceName(p["maindev"]:"", p["nr"]:nil);
       // summary header
       string summary_header  = sformat(_("Executing file system check for partition %1..."),  dev_name  );
 
@@ -464,7 +464,7 @@ partition %1"), part)
       {
           boolean fs_ok    = OSRFsck::Check( p );
           symbol used_fs  = (symbol) Storage::GetSubDevParam (
-	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:0 ), "detected_fs");
+	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:nil),"detected_fs");
 
           if ( fs_ok == true )
           {
@@ -1237,7 +1237,7 @@ system check is not possible.
       else
       {
           symbol used_fs = (symbol) Storage::GetSubDevParam (
-	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:0 ), "detected_fs");
+	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:nil),"detected_fs");
 
           if (fs_ok)
 	  {

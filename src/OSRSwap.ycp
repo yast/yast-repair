@@ -93,7 +93,7 @@ repair.</p>
 	    );
 
 	    ret = (list<string>) union (ret, maplist (map p, (list<map<string,any> >)l,
-		``(Storage::GetDeviceName (dev,p["nr"]:0))));
+		``(Storage::GetDeviceName (dev,p["nr"]:nil))));
 	}
     });
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec  7 15:15:18 CET 2004 - jsuchome@suse.cz
+
+- do not report errors on LVM partitions (#48940)
+- 2.11.4
+
+-------------------------------------------------------------------
 Mon Dec  6 15:32:12 CET 2004 - jsuchome@suse.cz
 
 - by default, show only limited number of files from failing package
