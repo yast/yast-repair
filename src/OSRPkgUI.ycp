@@ -60,29 +60,6 @@
 	["T",	_("The Last Modification Time")		]
     ];
 
-    /** TODO write the help
-     */
-    list<list> modes_help = [
-	[_("File Group") ,
-	 _("The file is owned by a different group.")],
-	[_("File Mode") ,
-	 _("TODO")],
-	[_("MD5 Checksum") ,
-	 _("TODO")],
-	[_("File Size") ,
-	 _("TODO") ],
-	[_("Major and Minor Number") ,
-	 _("TODO")],
-	[_("Symbolic Link") ,
-	 _("TODO") ],
-	[_("Modification Time") ,
-	// help text for 'Modification Time' help text
-	_("Linux keeps track of the date and time when a file was last modified.
-YaST2 compares the date of the file with the saved one in the package database. If the two dates differ, the file was modified.
-")
-	]
-    ];
-
     ////////////////////////////////////////////////////////
     // Not static
     ////////////////////////////////////////////////////////
@@ -269,7 +246,7 @@ YaST2 compares the date of the file with the saved one in the package database. 
 
 	if (UI::WidgetExists(`id( package_progress_bar )))
 	{
-	    UI::ChangeWidget(`id( package_progress_bar), `Value, size( OSRPkgVerify::verified_packages));
+	    UI::ChangeWidget(`id( package_progress_bar), `Value, OSRPkgVerify::VerifiedSize ());
 	}
     }
 
@@ -279,7 +256,7 @@ YaST2 compares the date of the file with the saved one in the package database. 
      */
     define string check_string()``{
 	// current action label; %1 is current package number, %2 all packages
-	return sformat(_("Checking package: (%1/%2)"), size(OSRPkgVerify::verified_packages), package_count);
+	return sformat(_("Checking package: (%1/%2)"), OSRPkgVerify::VerifiedSize (), package_count);
     }
 
     /**
@@ -370,7 +347,7 @@ YaST verifies packages now."))),
 	if (substring(input, 0, size("status")) == "status" )
 	{
 	    string pkg_name = substring(input, size("status") );
-	    if (haskey(OSRPkgVerify::verified_packages, pkg_name))
+	    if (OSRPkgVerify::PackageVerified (pkg_name))
 		return pkg_name;
 	}
 	return "";
@@ -391,59 +368,56 @@ YaST verifies packages now."))),
      * Update the process bar too.
      * Afterwards call repaint define.
      */
-    define boolean update(string pkg_name, map pkg_data , boolean repaint_mode )``{
+    define boolean update (string pkg_name) {
 
-	//update show_ok
-	if (repaint_mode && UI::WidgetExists(`id("show_ok")))
+	if (UI::WidgetExists(`id("show_ok")))
 	    show_ok = (boolean) UI::QueryWidget(`id("show_ok"), `Value );
 
 	string tab_body			= "";
 	string tab_pkg_status		= "";
 	string fill_c			= "";
-	string line_sf			= "";
 	string tab_pkg_name_color	= contains (
 	    OSRPkgVerify::not_successful_verified, pkg_name) ? "red" : "blue" ;
 	string tab_pkg_name		= HTML::Link (HTML::Bold (
 	    HTML::Colorize (pkg_name, tab_pkg_name_color)), pkg_name);
-	string align =
-	    UI::HasSpecialWidget(`DownloadProgress) ? "align=right" : "";
+	string line_sf			= "<li>%1 %2 %3</li>%4";
+	string align			= "";
+	if (UI::HasSpecialWidget (`DownloadProgress))
+	{
+	    align	= "align=right";
+	    line_sf	= "<tr><td  colspan=2 align=right> %1</td>
+				<td>%2</td>
+                                <td %4>%3</td>
+			   </tr>";
+	}
 
-	if (pkg_data == $[]  )
+
+	boolean ok	= size (OSRPkgVerify::verify_data) == 0;
+	if (ok)
 	{
 	    tab_pkg_status = HTML::Link (HTML::Bold (
 		HTML::Colorize ("ok", "blue")), pkg_name2ok_key(pkg_name));
 	}
-	else if (pkg_data != $[]  )
+	else
 	{
 	    if (tab_pkg_status == "" ) tab_pkg_status = HTML::Bold("...");
 
-	    foreach (string key,  map line, (map<string,map<string,any> >)pkg_data, ``{
+	    foreach (string key, map line, OSRPkgVerify::verify_data, {
 
-		string color       = ( OSRPkgVerify::GreenPackageProblems(pkg_name, line ) == "" ) ? "red" : "green" ;
-		string file_status = HTML::Link(HTML::Bold(HTML::Colorize( line["status"]:"",  color)),  key );
+		string color	= line["green_status"]:"" == ""? "red": "green";
+		string file_status =
+		    HTML::Bold (HTML::Colorize (line["status"]:"", color));
 		string file        = line["file"]:"";
 		string config_file = boolean2string (line["config_file"]:false);
 
-		if (UI::HasSpecialWidget(`DownloadProgress))
+		if (!UI::HasSpecialWidget (`DownloadProgress))
 		{
-		    line_sf = "<tr> 
-                                 <td  colspan=2 align=right> %1</td>
-                                 <td>%2</td>
-                                 <td %4>%3</td>
-                           </tr>";
-		}
-		else {
-		    line_sf	= "<li>%1 %2 %3</li>%4";
-		    file	= fill (sformat("%1",line["file"]:""), 60, ".") + "..";
+		    file	= fill (line["file"]:"", 60, ".") + "..";
 		    config_file = fill (config_file, 8, ".");
 		}
-		tab_body = tab_body + sformat(line_sf,
-					      file,
-					      config_file,
-					      file_status,
-					      align);
+		tab_body = tab_body + sformat (line_sf,
+		    file, config_file, file_status, align);
 	    });
-
 	}
 
 	if (UI::HasSpecialWidget(`DownloadProgress))
@@ -455,35 +429,26 @@ YaST verifies packages now."))),
                                 </tr>";
 	}
 	else {
-	    string n1    = HTML::Bold(_("Package:"));
-	    string n2    = HTML::Bold( (pkg_data == $[])? "": _("Files:")) + "<br>";
-	    line_sf	 = "<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
+	    string n1    = HTML::Bold (_("Package:"));
+	    string n2    = HTML::Bold (ok ? "": _("Files:")) + "<br>";
+	    line_sf	 =
+		"<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
 	    fill_c       = ".";
-	    tab_pkg_name = tab_pkg_name + fill("", 70 - size(pkg_name), fill_c );
+	    tab_pkg_name = tab_pkg_name + fill("", 60 - size(pkg_name), fill_c);
 	}
 
-	string table = sformat(line_sf, tab_pkg_name, tab_pkg_status, tab_body,align);
+	string table	=
+	    sformat (line_sf, tab_pkg_name, tab_pkg_status, tab_body, align);
+
 	verified_text_ok = verified_text_ok + table;
 
-	if (pkg_data != $[] )
+	if (!ok)
 	{
 	    verified_text = verified_text + table;
 	}
-	return ( (repaint_mode ) ? repaint() : true );
-    }
-
-
-    define boolean rebuild_protocol_text()``{
-	verified_text_ok	 = "";
-	verified_text		 = "";
-	set_verify_text_header();
-
-	foreach (string pkg_name, map pkg_data, (map<string,map>) OSRPkgVerify::verified_packages,
-	``{
-	    update (pkg_name, pkg_data, false);
-	});
 	return repaint();
     }
+
 
     /**
      * popup with the summary of the package
@@ -510,7 +475,8 @@ YaST verifies packages now."))),
 		    (list<string>) packages_to_reinstall, ``( name != pkg ));
 	    }
 	});
-	rebuild_protocol_text();
+
+// FIXME FIXME packages_to_reinstall are not added to OSRPkgVerify::not_successful_verified
 	return `next;
     }
 
@@ -538,19 +504,13 @@ YaST verifies packages now."))),
     /**
      * Show the details of a package in a new dialog.
      * @param pkg_name The name of the package e.g.: filesystem
-     * @param pkg_data e.g.: $["filesystem____KEY____1":
-     *                                      $["config_file":false,
-     *					      "file":"/etc/cups",
-     *					      "status":".....UG."
-     *					      ],
-     *                  "filesystem____KEY____2"   :$["config_file":false, "
-     *		                               file":"/proc",
-     *					       "status":".M......"]]
-     */
-    define symbol show_verify_details (string pkg_name, map pkg_data)``{
+     * @param file	The file (of this package) which user clicked on
+     *
+    define symbol show_verify_details (string pkg_name, string file) {
+
+	map pkg_data = OSRPkgVerify::GetVerifiedFile (pkg_name, file);
 
 	string status		= pkg_data["status"]:"";
-
 	if (status == OSRPkgVerify::missing )
 	{
 	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
@@ -596,8 +556,6 @@ the unsatisfied dependencies.
 	    }
 	    string  body		= "";
 	    list    not_passed		= [];
-// FIXME: this (and also helptext) is never shown!!! should be?
-	    term    config_term		= `Label(_("YaST suggests reinstalling this package."));
 	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
 
 	    if (pkg_data["green_status"]:"" != "" )
@@ -606,7 +564,6 @@ the unsatisfied dependencies.
 		y2milestone("green status of the package %1", green_status );
 		string message = OSRPkgVerify::unimportant2help [green_status]:"";
 		y2milestone("message : %1" ,message );
-		config_term = `Label( message );
 	    }
 
 	    //build table with test information.
@@ -637,10 +594,6 @@ the unsatisfied dependencies.
 		}
 	    });
 
-	    string help_text = "";
-	    foreach(list d, modes_help, ``{
-		help_text = help_text  + "<P><B><BIG>" + d[0]:"" + "</BIG></B></P>" + "<P>" +d[1]:"" +"</P>";
-	    });
 	    // headline (package details popup) %1 is package name
 	    string headline = sformat(_("Overview of the Executed Tests for the Package %1"),pkg_name);
 
@@ -659,9 +612,6 @@ the unsatisfied dependencies.
 	    }
 
 	    UI::OpenDialog (`HBox (
-		//`HWeight(30, `RichText(`id(`help_text), help_text)),
-		//	 `HSpacing(1),
-		//	 `HWeight(70,
 		    `HSpacing(3),
 		    `VSpacing(20),
 		    `VBox(
@@ -674,8 +624,6 @@ the unsatisfied dependencies.
 			    `Label(`opt(`outputField),pkg_data["file"]:""))
 			    )
 			),
-			//`VSpacing(0.2),
-			//`VWeight(10,`Left(config_term)),
 			`VSpacing(0.5),
 			`VWeight(60, `RichText( header + body  + end )),
 			`VSpacing(0.5),
@@ -690,6 +638,7 @@ the unsatisfied dependencies.
 	}
 	return `again;
     }
+    */
 
 
     /**
@@ -702,7 +651,7 @@ the unsatisfied dependencies.
 	{
 	    // if not all packages are verified ask the user if he
 	    // want really cancel.
-	    if (package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
+	    if (package_count > OSRPkgVerify::VerifiedSize () && !protocol_mode)
 	    {
 		// popup question
 		if (!Popup::YesNo(_("Really cancel package verification?")))
@@ -727,7 +676,7 @@ the unsatisfied dependencies.
 	    show_ok = (boolean) UI::QueryWidget(`id("show_ok"), `Value );
 	    repaint();
 	}
-	else if (haskey(OSRPkgVerify::verified_packages, input))
+	else if (OSRPkgVerify::PackageVerified (input))
 	{
 	    // if the dialog in the expert mode and the
 	    // user clicked a package name open a dialog
@@ -762,15 +711,14 @@ Verifying the packages %1 was successful.
 		sformat("(.*%1).*", OSRPkgVerify::separator),  "\\1");
 	    pkg_name        = substring (pkg_name, 0,
 		size(pkg_name) - size (OSRPkgVerify::separator));
-	    map pkg_data    = OSRPkgVerify::verified_packages [pkg_name]:$[];
+//	    return show_verify_details (pkg_name, input);
 
-	    return show_verify_details (pkg_name, pkg_data[input]:$[]);
 	}
 	return `again;
     }
 
 
-    global define list<list> ProtocolDialog()``{
+    global define list ProtocolDialog()``{
 
 	protocol_mode = true;
 
@@ -802,13 +750,13 @@ Verifying the packages %1 was successful.
 	return item_list;
     }
 
-    global define boolean AddPackageSummary(string  pkg_name,map pkg_data )``{
+    global define boolean AddPackageSummary (string pkg_name) {
 
-	boolean ret = update(pkg_name, pkg_data , true );
+	boolean ret = update (pkg_name);
 
 	if (UI::WidgetExists(`id( package_progress_bar )))
 	{
-	    OSRProgress::SetLabel(package_progress_bar, check_string());
+	    OSRProgress::SetLabel (package_progress_bar, check_string());
 	}
 	return ret;
     }

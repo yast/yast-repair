@@ -342,14 +342,13 @@ of module: %1. YaST system repair halts now!",
 	  string module_name = result_map["name"]:"";
 
 	  // add the detect-methods of the current module to the global detect-methods-map
-	  module_detection_methods[ module_name ] =  result_map["detect_methods"]:[];
-
-	  module_reset_methods[ module_name ]	  =  result_map["reset_methods"]:[];
+	  module_detection_methods[module_name]=result_map["detect_methods"]:[];
+	  module_reset_methods [module_name] =  result_map["reset_methods"]:[];
 
 	  list module_provides = [];
 	  list module_requires = [];
 
-	  foreach (map mb, result_map["detect_methods"]:[], ``{
+	  foreach (map mb, result_map["detect_methods"]:[], {
 	      module_provides = union (module_provides, mb["provides"]:[]);
 	      module_requires = union (module_requires, mb["requires"]:[]);
 	  });

@@ -14,8 +14,8 @@
 
     textdomain "repair";
 
+    import "HTML";
     import "Kernel";
-
     import "OSRExecute";
     import "OSRLogFile";
     import "OSRMode";
@@ -90,9 +90,15 @@ _("The test failure seems to be caused by an incorrectly built package.")
     ];
 
     /**
-     * Data of all verified packages.
+     * index of all currently verified packages
      */
-    global map  verified_packages		= $[];
+    map verified_packages			= $[];
+
+    // number of packages verified so far
+    integer verified_counter			= 0;
+
+    // data of package currently verified
+    global map<string,map> verify_data		= $[];
 
     global list<string> not_successful_verified	= [];
 
@@ -102,7 +108,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
      */
     global map initial_verified_packages	= $[];
 
-    global map update_problems_map		= $[];
+    map update_problems_map		= $[];
 
 
     /**
@@ -110,6 +116,8 @@ _("The test failure seems to be caused by an incorrectly built package.")
      */
     global define void Reset()``{
 	verified_packages	= $[];
+	verify_data		= $[];
+	verified_counter	= 0;
 	not_successful_verified = [];
     }
 
@@ -123,6 +131,17 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	Reset();
     }
 
+    // has the package been verified?
+    global define boolean PackageVerified (string pkg_name) {
+
+	return verified_packages[pkg_name]:false;
+    }
+
+    // return number of packages verified so far
+    global define integer VerifiedSize () {
+
+	return verified_counter;
+    }
 
     define void	build_update_problems_map()``{
 
@@ -333,21 +352,24 @@ _("The test failure seems to be caused by an incorrectly built package.")
      *
      *
      */
-    define boolean convert_verify_output(string pkg_name, string verify_output_string )``{
+    define boolean convert_verify_output (
+	string pkg_name, string verify_output_string)
+    {
 
+	verify_data			= $[];
 	integer	 key                    = 0;
-	map verify_data			= $[];
-	list<string> verify_output_list = splitstring(verify_output_string , "\n");
 	integer build_problem_counter   = 0;
 	integer verify_output_counter   = 0;
+	list<string> verify_output_list =
+	    splitstring (verify_output_string , "\n");
 
-	foreach (string verify_output, verify_output_list, ``{
+	foreach (string verify_output, verify_output_list, {
 
-	    if (size (verify_output) > 1 )
+	    if (size (verify_output) > 1)
 	    {
 		verify_output_counter = verify_output_counter  +1 ;
 		key = key +1 ;
-		string pkg_key = sformat("%1%2%3", pkg_name,separator, key );
+		string pkg_key = sformat("%1%2%3", pkg_name, separator, key);
 		if (substring (verify_output, 0, size(missing) )  == missing )
 		{
 		    verify_data [ pkg_key ]  = $[
@@ -387,17 +409,19 @@ _("The test failure seems to be caused by an incorrectly built package.")
 		    y2error(" not known output");
 		    verify_data[pkg_key] =  $[ "status" : "unknown" ];
 		}
+
 		verify_data [pkg_key, "green_status"] =
 		    GreenPackageProblems (pkg_name, verify_data[pkg_key]:$[]);
 
-		if( verify_data[pkg_key, "green_status"]:"" != "" )
+		if (verify_data[pkg_key, "green_status"]:"" != "")
 		{
 		    build_problem_counter = build_problem_counter +1;
 		}
 	    }
 	});
 
-	verified_packages[ pkg_name ] = verify_data;
+	verified_packages [pkg_name]	= true;
+	verified_counter		= verified_counter + 1;
 
 	// return false if the package was not verified successfully.
 	return (build_problem_counter == verify_output_counter ||

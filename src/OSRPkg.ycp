@@ -839,12 +839,11 @@ install the missing packages.</P>
 			}
 		    }
 
-		    if (!haskey(OSRPkgVerify::verified_packages, p ) &&
+		    if (! OSRPkgVerify::PackageVerified (p) &&
 			ret != `abort && ret != `cancel)
 		    {
 			boolean ver = OSRPkgVerify::Verify (p, root_mountpoint);
-			OSRPkgUI::AddPackageSummary (
-			    p, OSRPkgVerify::verified_packages [p]:$[] );
+			OSRPkgUI::AddPackageSummary (p);
 			if (!ver )
 			{
 			    missing_packages = add (missing_packages, p );

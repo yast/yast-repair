@@ -767,7 +767,7 @@ press \"Yes\". Otherwise press
     {
 	return true;
     }
-    y2milestone("not ext2 filesystem repaired successful.");
+    y2milestone("jfs filesystem repair was not successful");
     return false;
   }
 

@@ -91,8 +91,7 @@ devices for later use."),
       return true;
   }
 
-  define boolean OSRInitTarget()``{
-//FIXME: value of "repair_target" is not used anywhere!!
+  define boolean OSRInitTarget() {
 
       // summary text
       OSRSummary::DetectOK("", _("Target system initialized."));
@@ -123,7 +122,7 @@ devices for later use."),
    *  @return map The map that contains all information about
    *  the module osr_module_init.
    */
-  define map OSRInitInit() ``{
+  define map OSRInitInit () {
 
       y2debug("OSRInitInit");
 
@@ -164,30 +163,4 @@ devices for later use."),
       ];
   }
 
-
-
-  /*
-  integer arg_n = 0;
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  MAIN
-  //
-  //////////////////////////////////////////////////////////////////////
-
-  while ( arg_n <  size(WFM::Args()) )
-  {
-      if ( WFM::Args(arg_n) == .init )
-      {
-	y2milestone("Argument: %1", WFM::Args(arg_n));
-	return OSRInitInit();
-      }
-      else
-      {
-	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
-	return $[];
-      }
-      arg_n = arg_n + 1;
-  }
-  */
 }//EOF
