@@ -145,7 +145,11 @@
 	      summary_text = summary_text + sformat("<br><code>%1</code>: o.k.", lookup(m, "dev_name", ""));
 	  });
 
-	  OSRSummaryDetectOK(module_name, UI(_("Probing hardware")), sformat(UI(_("Getting information for all disk-devices%1")), summary_text));
+	  OSRSummaryDetectOK(
+			     module_name,
+			     UI(_("Probing hardware")),
+			     sformat(UI(_("Getting information for all disk-devices%1")), summary_text)
+			     );
       }
       else
       {
@@ -266,7 +270,7 @@
       integer i = 0;
       while (i >= 0 && i < size(all_disks))
       {
-	  disk_device_list = add(disk_device_list, lookup(select(all_disks, i),"dev_name", ""));
+	  disk_device_list = add(disk_device_list, lookup(select(all_disks, i), "dev_name", ""));
 	  i = i + 1;
       }
       OSRProvideList("disk_device_list", disk_device_list);
@@ -315,6 +319,8 @@
   }
 
   /**
+   *  
+   *
    *  @return 
    */
   global define OSRInit1() ``{
