@@ -862,10 +862,11 @@ packages.
 		// package verification summary, last part
 		_("
 These packages probably differ from their
-originaly installed versions. You can check
-the packages you want to reinstall and start
+originally installed versions. Check
+the packages to reinstall and start
 the reinstallation process by pressing
-the \"Repair\" button."),
+\"Repair\".
+"),
 
 		// package verification summary, help text (%1 is button label)
 		sformat(_("
@@ -874,15 +875,15 @@ of these packages contain errors. For details,
 see the log of the verify process.
 To open the log, press <b>%1</b>.</P>
 
-<p>There, you can see if files of the package are
+<p>There, see if files of the package are
 missing or the data of the package in the package
 database differs from the installed files of the
 package.</P>
 
 <p>Sometimes, verification of the package could 
 report errors even if the package is correctly
-installed and works fine. That's why you should
-reinstall only the packages which you find not working.</p>
+installed and works fine. That is why you should
+reinstall only the packages that do not work properly.</p>
 "), protocol_label),
 		// table headline (package list follows)
 		_("Packages with Problems:"),
