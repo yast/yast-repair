@@ -44,7 +44,8 @@ function get_rpm_name(f_rpm_name){
 	close(rpm_q_command); 
 	if (length(rpm_stderr_match(tmp)) < 1){
 		f_rpm_name = tmp;
-		if (length(f_rpm_name) > 0) return get_rpm_name(f_rpm_name);   
+		if (length(f_rpm_name) > 0)
+			return get_rpm_name(f_rpm_name);   
 	}
 	#FORCE_RPMVERSION_END
 	return f_rpm_name;
@@ -71,7 +72,7 @@ function get_file_info( f_filename, f_rpmfail_str){
 		close(md5sum_command);
 	}
 	if(f_rpmfail_str ~ /L/){
-		readlink_command = READLINK "\"" f_filename "\"";
+		readlink_command = READLINK " \"" f_filename "\"";
 		readlink_command | getline tmp_linkstr;
 		close(readlink_command);
 		ret_str = ret_str "\"L\":\""tmp_linkstr"\",";
@@ -95,7 +96,7 @@ function create_rpm_filelist(f_rpmname, f_conf_rpmfiles, f_doc_rpmfiles){
 			if($(NF-3)=="1") {
 				f_conf_rpmfiles[count_conf] = $1;
 				count_conf++;
-				print $(NF-3);
+				#print $(NF-3);
 			}else{
 				if($(NF-2)=="1"){
 					f_doc_rpmfiles[count_doc] = $1;
@@ -184,7 +185,7 @@ function add_filefails(f_filename, f_failstr, f_data_str){
 					}
 				}else{
 					# ... handle rpm-stderr-outputs here ...
-					system("echo '<DEBUG>rpm_stat.awk: while rpm -V   a rpm-stderr-output found : "rpm_stderr "' > /dev/stderr");
+					print "<DEBUG>rpm_stat.awk: while rpm -V   a rpm-stderr-output found : "rpm_stderr " > /dev/stderr";
 				}
 			}
 		}

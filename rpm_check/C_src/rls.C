@@ -12,7 +12,7 @@
 #define MAJOR(dev) (((dev) >> MINOR_BITS) & 0xff)
 #define MINOR(dev) ((dev) & 0xff)
 #endif
-#define INFO_STR "FileType\tFileMode(octal)\tdev\tino\tnlink\tuid\tgid\trdev\tmajor_num\tminor_num\tsize\tblksize\tblocks\tatime\tmtime\tctime\tFILE_NAME\n"
+#define INFO_STR "FileType\tFileMode(octal)\tdev\tino\tmode(full,oct)\tnlink\tuid\tgid\trdev\tmajor_num\tminor_num\tsize\tblksize\tblocks\tatime\tmtime\tctime\tFILE_NAME\n"
 
 using namespace std;
 
@@ -61,13 +61,13 @@ int main(int argc, char** argv)
 		// switching output to decimal
 		cout << dec << statv.st_dev  << "\t";
 		cout << statv.st_ino  << "\t";
-//		cout << statv.st_mode  << "\t";
+		// here are the newer changes (rpm_stat.awk isn't corrected
+		cout << oct << statv.st_mode  << dec << "\t\t";
 		cout << statv.st_nlink  << "\t";
 		cout << statv.st_uid  << "\t";
 		cout << statv.st_gid << "\t";
 		cout << statv.st_rdev  << "\t";
 //		if((statv.st_mode & S_IFMT) == S_IFCHR || (statv.st_mode & S_IFMT) == S_IFBLK) 
-		// if a device -> MINOR & MAJOR numbers
 		cout << MAJOR(statv.st_rdev) << "\t\t" << MINOR(statv.st_rdev) << "\t\t";
 		cout << statv.st_size  << "\t";
 		cout << statv.st_blksize << "\t";

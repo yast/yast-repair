@@ -4,7 +4,10 @@ PREFIX=/usr/local/yast2/modules/y2m_os_repair/rpm_check/
 export PREFIX  # $PREFIX is used by $RPM_STAT as environment variable
 LANG=C
 RPM_STAT=$PREFIX/scripts/rpm_stat.awk
+GET_PACKAGENAMES=$PREFIX/scripts/get_packagenames.awk
 READ_DB=$PREFIX/scripts/rpm_dDB2list.awk
+RPM_LIST=/var/adm/current_package_descr/suse/setup/descr/Minimal+X11.sel # typical location
+COMMON_LIST=/var/adm/current_package_descr/suse/setup/descr/common.pkd # typical location
 
 SCRPATH1="Read (.rpm_stat, " # an _installed_ rpm: the failure status of a rpm (dependencies; missed, fail files)
 SCRPATH2="Write (.create_rpm_dDB, "
@@ -19,7 +22,7 @@ while true ; do
     
     case "$COMMAND" in
 	"result ("*)
-		unset $PREFIX
+		unset PREFIX
 	    exit
 	    ;;
 		
@@ -34,16 +37,41 @@ while true ; do
 		fi
 	;;
 	
-	# create a rpm_dDB (rpm diff Data Base) from a rpm_namelist-file(second arg) 
-	# and save it to a file (first arg)
+#	# create a rpm_dDB (rpm diff Data Base, first argument) from a 
+#	# rpm_namelist-file(Minimal+X11.sel contains sets for minimal instalation,second argument) and 
+#	# common_list-file (common.pkd contains platform specific packages, third argument)
+#	$SCRPATH2*)
+#		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'"\(.*\)", ".*", ".*")/\1/p'`
+#		RPM_LIST=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'".*", "\(.*\)", ".*")/\1/p'`
+#		COMMON_LIST=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'".*", ".*", "\(.*\)")/\1/p'`
+#		#echo "DB_NAME="$DB_NAME " RPM_LIST="$RPM_LIST" COMMON_LIST="$COMMON_LIST | cat > /dev/stderr
+#		if test \( "x$DB_NAME" = "x" \) -o \( "x$RPM_LIST" = "x" \) -o \( "x$COMMON_LIST" = "x" \) -o \( ! -r "$RPM_LIST" \) -o \( ! -s "$RPM_LIST" \) -o \( ! -r "$COMMON_LIST" \) -o \( ! -s "$COMMON_LIST" \); then
+#			echo "false"
+#			#echo "UUUUUUUUPS" | cat > /dev/stderr
+#		else
+#			#echo "DEPEBO" | cat > /dev/stderr
+#			awk -v min_file_name="$RPM_LIST" -f "$GET_PACKAGENAMES" < $COMMON_LIST | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
+#			if test $? -eq 0; then 
+#				echo "true"
+#			else
+#				echo "false"
+#			fi
+#		fi
+#	;;
+	
+	# create a rpm_dDB (rpm diff Data Base, first argument) from a 
+	# rpm_namelist-file(Minimal+X11.sel contains sets for minimal instalation) and 
+	# common_list-file (common.pkd contains platform specific packages)
 	$SCRPATH2*)
-		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'"\(.*\)", ".*")/\1/p'`
-		RPM_LIST=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'".*", "\(.*\)")/\1/p'`
-		# if ( test "x$DB_NAME" = "x") || ( test "x$RPM_LIST" = "x") || (! test -r "$RPM_LIST") || (! test -s "$RPM_LIST"); then
-		if test \( "x$DB_NAME" = "x" \) -o \( "x$RPM_LIST" = "x" \) -o \( ! -r "$RPM_LIST" \) -o \( ! -s "$RPM_LIST" \) ; then
+		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'"\(.*\)")/\1/p'`
+		#echo "DB_NAME="$DB_NAME " RPM_LIST="$RPM_LIST" COMMON_LIST="$COMMON_LIST | cat > /dev/stderr
+		if test \( "x$DB_NAME" = "x" \) -o \( "x$RPM_LIST" = "x" \) -o \( "x$COMMON_LIST" = "x" \) -o \( ! -r "$RPM_LIST" \) -o \( ! -s "$RPM_LIST" \) -o \( ! -r "$COMMON_LIST" \) -o \( ! -s "$COMMON_LIST" \); then
 			echo "false"
+			#echo "UUUUUUUUPS" | cat > /dev/stderr
 		else
-			cat "$RPM_LIST" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
+			#echo "DEPEBO" | cat > /dev/stderr
+			#cat "$COMMON_LIST" | awk -v min_file_name="$RPM_LIST" -f "$GET_PACKAGENAMES" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
+			awk -v min_file_name="$RPM_LIST" -f "$GET_PACKAGENAMES" < "$COMMON_LIST" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
 			if test $? -eq 0; then 
 				echo "true"
 			else
@@ -60,7 +88,7 @@ while true ; do
 		if  test \( "x$DB_NAME" = "x" \) -o \( ! -r "$DB_NAME" \) -o \( ! -s "$DB_NAME" \); then 
 			echo "nil"
 		else 
-			cat "$DB_NAME" | awk -f "$READ_DB"
+			awk -f "$READ_DB" < "$DB_NAME" 
 		fi
 	;;
 
