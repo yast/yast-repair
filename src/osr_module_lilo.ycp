@@ -36,11 +36,6 @@
   }
   // end argument handling
 
-  //map     mode_map  = lookup(osr_map, "mode_map", $[]);
-  //boolean demo_mode = lookup(mode_map, "demo_mode", false);
-
-  //y2error("DEMO: %1 %2", demo_mode, mode_map);
-  
   //////////////////////////////////////////////////////////////////////
   //
   //  METHODS
@@ -58,42 +53,43 @@
       map osr_module_lilo = $[];
 
       osr_module_lilo = $[
-		   // has to be the name of the file
-		   "name"              :  "osr_module_lilo",
-		   "headline"          :  _("LILO"),
-		   "summary"           :  [],
-		   "test_mode_summary" :  [
-					   $["header" : "LILO package", "description" : "Package is installed", "error" : false],
-					   $["header" : "LILO package", "description" : "Package is verified", "error" : false]
-		   ],
+			  // has to be the name of the file
+			  "name"              :  "osr_module_lilo",
+			  "headline"          :  _("LILO"),
+			  "summary"           :  [],
+			  "test_mode_summary" :  [
+						  $["header" : "LILO package", "description" : "Package is installed", "error" : false],
+						  $["header" : "LILO package", "description" : "Package is verified", "error" : false]
+			  ],
 
-		   // the sequence of the detection methods of this module
-		   "detect_methods"    :  [
-				    	   ``(OSRLiloCheckPackage()),
-					   ``(OSRLiloConfTest())
-		   ],
+			  // the sequence of the detection methods of this module
+			  "detect_methods"    :  [
+						  ``(OSRLiloCheckPackage()),
+						  ``(OSRLiloConfTest())
+			  ],
 
-		   // the values this module requires from other modules of the rescue system
-		   // use "yast2 osr .provides" to create the file "/tmp/osr_global_provides" to
-		   // show which values are already provided
-		   "requires"          :  [
-					   "disk_device_list",
-					   "root_partition",
-					   "kernel_path_list",
-					   "initrd_path_list",
-					   "repair_target"
-		   ],
+			  // the values this module requires from other modules of the rescue system
+			  // use "yast2 osr .provides" to create the file "/tmp/osr_global_provides" to
+			  // show which values are already provided
+			  "requires"          :  [
+						  "disk_device_list",
+						  "root_partition",
+						  "root_mountpoint",
+						  "kernel_path_list",
+						  "initrd_path_list",
+						  "repair_target"
+			  ],
 
-		   // the values this module will provide
-		   "provides"          : $[
-					   "lilo_package_is_installed" : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
-					   "lilo_package_is_verified"  : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
-					   "lilo_conf_path"            : $[ "type" : "string", "value" : "/etc/lilo.conf", "status" : "unknown" ]
-		   ],
+			  // the values this module will provide
+			  "provides"          : $[
+						  "lilo_package_is_installed" : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
+						  "lilo_package_is_verified"  : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
+						  "lilo_conf_path"            : $[ "type" : "string", "value" : "/etc/lilo.conf", "status" : "unknown" ]
+			  ],
 
-		   // informations for the module progress bar
-		   "progress_file"     : "/tmp/osr_module_lilo_progress",
-		   "progress_expect"   : 1000
+			  // informations for the module progress bar
+			  "progress_file"     : OSRGetTmpDir() + "/osr_module_lilo_progress",
+			  "progress_expect"   : 1000
       ];
       return osr_module_lilo;
   }
@@ -107,6 +103,8 @@
   /**
    *  This detection method checks the lilo RPM-package. It looks if the
    *  package is installed, is verified and some other things.
+   *
+   *  Requires: string repair_target
    *
    *  @return map The result_map.
    */
@@ -122,13 +120,10 @@
       string  error_message    = "";
       string  progress_file    = "";
       string  progress_label   = _("Checking LILO package");
-      string  log_file         = "";
       string  lilo_version     = "";
       string  lilo_conf_path   = "/etc/lilo.conf";
       string  stdout_string    = "";
-
-      //TODO: update the documentation
-      string  status           = ""; // "detect_ok", "detect_error", "repair_ok", "repair_error", "repair_omit"
+      string  status           = "";
       list    error_keys       = [];
       map     module_map       = $[];
       map     result_map       = $[];
@@ -137,13 +132,12 @@
       string  repair_target    = "";
 
       module_map      = OSRGetModuleMap(module_name);
-      log_file        = OSRLogFile::GetFile();
-      
+
       progress_file   = lookup(module_map, "progress_file", "");
 
       repair_target = OSRRequireString("repair_target");
 
-      // set the parameters for the module-progress-bar
+      // set the parameters for the module progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       if (demo_mode)
@@ -153,17 +147,20 @@
       }
       else
       {	  
-	  // set the command line and execute, only in non-demo-mode, the return-map would look like this:
+	  // set the command line and execute, only in non-demo mode, the return map would look like this:
 	  // $["exit" : 0, "stdout" : "lilo-21.6-56", "stderr" : ""]
 	  if (repair_target != "")
 	  {
+	      // if the rescue system is executed from CD-Rom or NFS, the root directory has to
+	      // be specified, see man 8 lilo for details
 	      command = sformat("/bin/rpm -q -r %1 lilo", repair_target);
-	      return_map = OSRExecuteCommandOutput(command, log_file, .local);
+	      return_map = OSRExecuteCommandOutput(command, .local);
 	  }
 	  else
 	  {
+	      // if the rescue system is executed from the ruinning Linux system
 	      command = "/bin/rpm -q lilo";
-	      return_map = OSRExecuteCommandOutput(command, log_file, .target);
+	      return_map = OSRExecuteCommandOutput(command, .target);
 	  }
       }
 
@@ -175,80 +172,84 @@
 	  // rpm -q lilo reported an error -> lilo.rpm is not installed
 	  status = OSRStatusDetectError();
 
-	  // error-text for the error-window
+	  // text for the error window
 	  error_detected = true;
- 	  error_message  = _("The LILO package is not installed on your system.\nRepair will install this package.");
+ 	  error_message  = _("The LILO package is not installed on your system.
 
-	  // help-text for the help-window
+Repair will install this package.");
+
+	  // text for the help window
 	  help_text      = sformat(
-				   _("<p>The command <code>%1</code> reported the following error: <code>%2</code></p>"),
-				   command,
-				   lookup(return_map, "stderr", ""));
-	  help_text      = help_text + _("<p>It seems that the LILO package is not installed on your system. ");
-	  help_text      = help_text + _("This package is one of the basic packages for your system. ");
-	  help_text      = help_text + _("Alternatively you can use another bootloader than LILO.</p>");
-	  help_text      = help_text + _("<p>Press <b>Repair</b> to install this package.</p>");
+				   _("<p>The command %1 reported the following error: %2</p>
+<p>It seems that the LILO package is not installed
+on your system. This package is one of the basic
+packages for your system. Alternatively you can use
+another bootloader than LILO.</p>
+<p>Press <b>Repair</b> to install this package.</p>"), command, lookup(return_map, "stderr", ""));
 
-	  // display the result in the RichText-widget
+	  // display the result in the RichText widget
 	  OSRSummaryDetectError(
-			  module_name,
-			  _("Checking LILO package"),
-			  _("<code>/bin/rpm -q lilo</code> reports an error<br>
+				module_name,
+				_("Checking LILO package"),
+				_("/bin/rpm -q lilo reports an error<br>
 Package is not installed")
-			  );
+				);
       }
       else
       {
 	  status = OSRStatusDetectOK();
 
-	  // display the result in the RichText-widget
+	  // display the result in the RichText widget
 	  OSRSummaryDetectOK(
-		       module_name,
-		       _("Checking LILO package"),
-		       _("<code>/bin/rpm -q lilo</code> reports no errors<br>
+			     module_name,
+			     _("Checking LILO package"),
+			     _("/bin/rpm -q lilo reports no errors<br>
 Package is installed")
-		       );
+			     );
 	  
 	  stdout_string = lookup(return_map, "stdout", "");
 
-	  // cut "lilo-" off the string
-	  //lilo_version = select(splitstring(stdout_string, "-"), 1, "");
+	  // cut the substring "lilo-" off the output string
 	  lilo_version = substring(stdout_string, size("lilo-"), (size(stdout_string)-1));
 	  
-	  // increase the value of the module-progress-bar
+	  // increase the value of the module progress bar
           OSRModuleProgress::Add(10);
-
+	  
+          // check if the current version of lilo is higher than a specific minimum version number
 	  if (!OSRVersionIsHigherOrEqual(lilo_version, minimum_version))
 	  {
 	      status = OSRStatusDetectError();
 
-	      // the current lilo-version is older than the minimum_version
+	      // the current lilo version is older than the minimum_version
 	      error_detected = true;
 	      
-              // error-text for the error-window
-	      error_message = _("The version of the LILO package installed on your system is obsolete.\n");
-	      error_message = error_message + _("Repair will install a newer version of this package.");
+              // error text for the error window
+	      error_message = _("
+The version of the LILO package installed on your
+system is obsolete.
 
-	      // help-text for the help-window
-	      help_text = sformat(
-				   _("<p>The command <code>%1</code> reported an error: <code>%2</code></p>"),
-				   command,
-				   lookup(return_map, "stderr", ""));
-	      help_text = help_text + _("<p>The version of the LILO package installed on your system is obsolete.</p>");
-	      help_text = help_text + _("<p>This package is one of the basic packages for your system.</p>");
-   	      help_text = help_text + _("<p>Press <b>Repair</b> to install a later version of this package.</p>");
+Repair will install a later version of this package.");
 
-	      // display the result in the RichText-widget
+	      // help text for the help window
+	      help_text = sformat(_("<p>The command %1 reported an error: %2</p>
+<p>The version of the LILO package installed
+on your system is obsolete.</p>
+<p>This package is one of the basic packages
+for your system.</p>
+<p>Press <b>Repair</b> to install a later version
+of this package.</p>"), command, lookup(return_map, "stderr", ""));
+	      
+	      // display the result in the RichText widget
 	      OSRSummaryDetectError(
-			      module_name,
-			      _("Checking LILO version"),
-			      sformat(
-				      _("Current version is obsolete: <code>%1</code><br>
-Should be version number <code>%2</code> or later"),
-				      stdout_string,
-				      minimum_version
-				      )
-			      );
+				    module_name,
+				    _("Checking LILO version"),
+				    sformat(
+					    _("Current version is obsolete: %1<br>
+Should be version number %2 or later"),
+					    stdout_string,
+					    minimum_version
+					    )
+				    );
 	  }
 	  else
 	  {
@@ -256,39 +257,40 @@ Should be version number <code>%2</code> or later"),
 
 	      error_detected = false;
 
-	      // display the result in the RichText-widget
+	      // display the result in the RichText widget
 	      OSRSummaryDetectOK(
-			   module_name,
-			   _("Checking LILO version"),
-			   sformat(
-				   _("Version number is up to date: <code>%1</code>"),
-				   stdout_string
-				   )
-			   );
+				 module_name,
+				 _("Checking LILO version"),
+				 sformat(_("Version number is up to date: %1"), stdout_string)
+				 );
 	      
 	      if (demo_mode)
 	      {
-		  // demo-value
+		  // demo value
 		  return_map = $["exit" : 0, "stdout" : "", "stderr" : ""];
 	      }
 	      else
 	      {
-		  // result is the exit-code of the bash-command, only in non-demo-mode
-		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or 
-		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""] if /sbin/lilo was touched
+		  // result is the exit code of the bash command, only in non demo mode
+		  // should look like: $["exit" : 0, "stdout" : "", "stderr" : ""] or something like
+		  // $["exit" : 1, "stdout" : ".......T   /sbin/lilo", "stderr" : ""]
+		  // if any file of the lilo package differs to the original
 		  if (repair_target != "")
 		  {
+		      // if the rescue system is executed from CD-Rom or NFS, the root directory has to
+		      // be specified, see man 8 lilo for details
 		      command = sformat("/bin/rpm -V -r %1 lilo", repair_target);
-		      return_map = OSRExecuteCommandOutput(command, log_file, .local);
+		      return_map = OSRExecuteCommandOutput(command, .local);
 		  }
 		  else
 		  {
+		      // if the rescue system is executed from the running Linux system
 		      command = "/bin/rpm -V lilo";
-		      return_map = OSRExecuteCommandOutput(command, log_file, .target);
+		      return_map = OSRExecuteCommandOutput(command, .target);
 		  }
 	      }
 
-	      // increase the value of the module-progress-bar
+	      // increase the value of the module progress bar
 	      OSRModuleProgress::Add(10);
 
 	      if (lookup(return_map, "exit", 1) != 0)
@@ -300,27 +302,29 @@ Should be version number <code>%2</code> or later"),
 
 		  string stdout  = lookup(return_map, "stdout", "");
 
-		  error_message  = _("Some files of the LILO package differ to the original package files.\n");
-		  error_message  = error_message + _("Repair will reinstall a new version of this package.");
+		  error_message  = _("
+Some files of the LILO package differ to the original
+package files.
 
-		  // help-text for the help-window
-		  help_text = sformat(
-					   _("<p>The command <code>%1</code> reported the following error: <code>%2</code></p>"),
-					   command,
-					   stdout
-					   );
-		  help_text = help_text +  _("<p>Some files of the LILO package differ to the original package files.</p>");
-		  help_text = help_text +  _("<p>This package is one of the basic packages for your system.</p>");
-     	          help_text = help_text +  _("<p>Press <b>Repair</b> to reinstall this package.</p>");
+Repair will reinstall a new version of this package.");
 
-		  // display the result in the RichText-widget
+		  // help text for the help window
+		  help_text = sformat(_("<p>The command %1 reported the following error: %2</p>
+<p>Some files of the LILO package differ to the original
+package files.</p>
+<p>This package is one of the basic packages for your
+system. If you use another bootloader than LILO skip the
+following repair step.</p>
+<p>Press <b>Repair</b> to install this package on your
+system.</p>"), command, stdout);
+
+		  // display the result in the RichText widget
 		  OSRSummaryDetectError(
-				  module_name,
-				  _("Verifying the LILO package"),
-				  sformat(_("<code>rpm -V lilo</code> reports an error:<br>
-<code>%1</code><br>
-Some files differ to the original"), stdout)
-				  );
+					module_name,
+					_("Verifying the LILO package"),
+					sformat(_("rpm -V lilo reports an error:<br>
+%1<br>Some files differ to the original"), stdout)
+					);
 	      }
 	      else
 	      {
@@ -329,23 +333,22 @@ Some files differ to the original"), stdout)
 		  // everything is o.k.
 		  error_detected = false;
 		  
-		  // display the result in the RichText-widget
+		  // display the result in the RichText widget
 		  OSRSummaryDetectOK(
-			       module_name,
-			       _("Verifying the LILO package"),
-			       _("<code>rpm -V lilo</code> reports no errors<br>
-Package is o.k.")
-			       );
+				     module_name,
+				     _("Verifying the LILO package"),
+				     _("rpm -V lilo reports no errors<br>Package is o.k.")
+				     );
 	      }
 	  }
       }
 
       if ((error_detected) || (status == OSRStatusDetectError()))
       {
-	  // set the value of the module-progress-bar to 100%
+	  // set the value of the module progress bar to 100%
 	  OSRModuleProgress::Fill();
 
-	  // launch the repair-popup, in automatic-mode no popup is displayed and "true" is returned
+	  // launch the repair popup, in automatic mode no popup is displayed and "true" is returned
 	  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
 	  // REPAIR
@@ -356,41 +359,51 @@ Package is o.k.")
 	      {
 		  status = OSRStatusRepairOK();
 
-		  // check if the file /etc/lilo.conf exists, if not create a new one
-		  if (repair_target != "")
+		  boolean lilo_conf_exists = OSRLiloConfExists();
+		  boolean backup_created   = false;
+
+		  // if an old lilo.conf exists create a backup
+		  if (lilo_conf_exists)
 		  {
-		      command    = sformat("test -f %1%2", repair_target, lilo_conf_path);
-		      return_map = OSRExecuteCommandOutput(command, log_file, .local);
+		      backup_created = OSRLiloConfCreateBackup();
+		  }
+
+
+		  /*
+		  UI::OpenDialog(`opt(`decorated));
+		  
+		  CallFunction(`lilo());
+
+		  UI::CloseDialog();
+
+		  status = OSRStatusRepairOK();
+
+		  OSRSummaryRepairOK(
+			     module_name,
+			     _("Creating new LILO configuration file"),
+			     _("Creation succeeded")
+			     );
+		  */
+		  
+		  // create a new LILO configuration file
+		  if (!OSRLiloConfCreate())
+		  {
+                      // TODO: launch the lilo configuration module!
+		      //CallFunction(`lilo());
+		      
+		      status = OSRStatusRepairError();
+
+		      y2error("Creation of new lilo.conf failed.");
+
+		      // revert the old lilo configuration file if a backup was made
+		      if (backup_created)
+		      {
+			  OSRLiloConfRevertBackup();
+		      }
 		  }
 		  else
 		  {
-		      command    = sformat("test -f %1", lilo_conf_path);
-		      return_map = OSRExecuteCommandOutput(command, log_file, .target);
-		  }
-
-		  if (lookup(return_map, "exit", 1) != 0)
-		  {
-		      // TODO: make a copy of /etc/lilo.conf
-		      //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
-		      //OSRExecuteCommand(command, log_file);
-		      //SCR(`Execute(.target.bash, command));			 
-		      
-		      // create a new LILO-configuration-file
-		      if (!OSRLiloConfCreate())
-		      {
-			  status = OSRStatusRepairError();
-
-			  y2debug("Creation of new lilo.conf failed.");
-
-			  // TODO: copy the original lilo.conf to /etc/lilo.conf
-			  //command = sformat("cp /tmp/lilo.conf.orig %1", lilo_conf_path);
-			  //OSRExecuteCommand(command, log_file);
-			  //SCR(`Execute(.target.bash, command));
-		      }
-		      else
-		      {
-			  status = OSRStatusRepairOK();
-		      }
+		      status = OSRStatusRepairOK();
 		  }
 
 		  // /sbin/lilo has to be executed after a new installation of lilo.rpm,
@@ -405,6 +418,7 @@ Package is o.k.")
 		  {
 		      status = OSRStatusRepairOK();
 		  }
+		  
 	      }
 	      else
 	      {
@@ -418,12 +432,12 @@ Package is o.k.")
 	      // !repair_question
 	      status = OSRStatusRepairOmit();
 
-	      // display the result in the RichText-widget
+	      // display the result in the RichText widget
 	      OSRSummaryRepairOmit(
-			   module_name,
-			   _("Installing the LILO package"),
-			   _("Package not installed")
-			   );
+				   module_name,
+				   _("Installing the LILO package"),
+				   _("Package not installed")
+				   );
 	  }
       }
       result_map = $[
@@ -433,7 +447,7 @@ Package is o.k.")
 		     "error_keys"     : error_keys
       ];
 
-      // set the value of the module-progress-bar to 100%
+      // set the value of the module progress bar to 100%
       OSRModuleProgress::Fill();
       
       return result_map;
@@ -442,119 +456,130 @@ Package is o.k.")
   /**
    *  Checks the configuration file lilo.conf for consistency.
    *
+   *  Requires: string repair_target,
+   *            //list disk_device_list,
+   *            string root_partition
+   *
    *  @return map The result_map of this detection method.
    */
   global define OSRLiloConfTest() ``{
 
       boolean error_detected        = false;
       boolean repair_question       = false;
+      boolean lilo_conf_exists      = false;
       integer result                = 1;
       integer progress_expect       = 600;
       string  module_name           = "osr_module_lilo";
       string  command               = "";
       string  help_text             = "";
       string  error_message         = "";
-      string  progress_file         = "/tmp/osr_module_lilo_progress";
+      string  progress_file         = "";
       string  progress_label        = "Checking LILO configuration file";
-      string  log_file              = "";
       list    error_keys            = [];
       map     result_map            = $[];
       list    lilo_conf_list        = [];
-      list    disk_device_list      = [];
       string  root_partition        = "";
       string  root_device           = "";
       string  boot_device           = "";
       string  lilo_conf_path        = "/etc/lilo.conf";
       string  status                = "";
-      string  repair_target         = "";
 
-      log_file = OSRLogFile::GetFile();
-
+      progress_file   = lookup(module_map, "progress_file", "");
+      
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
-
-      repair_target = OSRRequireString("repair_target");
 
       if (demo_mode)
       {
-	  // set demo-value
-	  result = 0;
+	  // set demo value
+	  lilo_conf_exists = true;
       }
       else
       {
-	  // check if the file /etc/lilo.conf exists
-	  if (repair_target != "")
-	  {
-	      command = sformat("test -f %1%2", repair_target, lilo_conf_path);
-	      result  = OSRExecuteCommand(command, log_file, .local);
-	  }
-	  else
-	  {
-	      command = sformat("test -f %1", lilo_conf_path);
-	      result  = OSRExecuteCommand(command, log_file, .target);
-	  }
+	  lilo_conf_exists = OSRLiloConfExists();
       }
 
-      // increase the value of the module-progress-bar
+      // increase the value of the module progress bar
       OSRModuleProgress::Add(10);
-
-
-      // TODO: launch the lilo-module if the user wants to create a new config-file!!!!
-
       
-      if ( result != 0 )
+      if (!lilo_conf_exists)
       {
 	  status = OSRStatusDetectError();
 
 	  // error: the file /etc/lilo.conf doesn't exist
 	  error_detected = true;
 
-	  // display the results to the RichText-widget
+	  /*
+	  // display the results to the RichText widget
 	  OSRSummaryDetectError(
-			  module_name,
-			  _("Checking LILO configuration file"),
-			  _("File does not exist at <code>/etc/lilo.conf</code>")
-			  );
-
-	  // set the value of the module-progress-bar to 100%
+				module_name,
+				_("Checking LILO configuration file"),
+				_("File does not exist at /etc/lilo.conf")
+				);
+	  */
+				
+	  // set the value of the module progress bar to 100%
 	  OSRModuleProgress::Fill();
 	  
-	  help_text = sformat(
-				  _("The LILO configuration file does not exist at <code>%1</code>"),
-				  lilo_conf_path
-				  );
-	  help_text = help_text + _("<p>If you use another file instead copy this to the standard location ");
-	  help_text = help_text + _("and skip the following repair step. ");
-	  help_text = help_text + _("Don't forget to run <code>/sbin/lilo</code>!</p>");
-          help_text = help_text + _("<p>Press <b>Repair</b> to create a new configuration file.</p>");
+	  help_text = sformat(_("<p>The LILO configuration file does not exist at %1.</p>
 
-	  error_message = sformat(
-				  _("The LILO configuration file does not exist at %1.\n"),
-				  lilo_conf_path
-				  );
-	  error_message = error_message + _("Repair creates a new configuration file.");
+<p>It is highly recommended to place the LILO configuration
+file at its standard location /etc/lilo.conf.</p>
 
-	  // launch the repair-popup, in automatic-mode no popup is launched and "true" is returned
+<p>If you use another file instead copy this to
+the standard location /etc/lilo.conf and skip the
+following repair step. Don't forget to run /sbin/lilo!</p>
+
+<p>Press <b>Repair</b> to create a new configuration
+file.</p>"), lilo_conf_path);
+
+	  error_message = sformat(_("The LILO configuration file does not exist at %1.
+
+Press Repair to create a new configuration file."), lilo_conf_path);
+
+	  // launch the repair popup, in automatic mode no popup is launched and "true" is returned
           repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
           // REPAIR
 	  if (repair_question)
 	  {
-	      // TODO: make a copy of /etc/lilo.conf
-	      //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
-	      //OSRExecuteCommand(command, log_file);
-	      // SCR(`Execute(.target.bash, command));
-		   
-	      // create a new LILO-configuration-file
+//	      boolean lilo_conf_exists = OSRLiloConfExists();
+	      boolean backup_created = false;
+
+	      // if an old lilo.conf exists create a backup
+	      if (lilo_conf_exists)
+	      {
+		  backup_created = OSRLiloConfCreateBackup();
+	      }
+
+              /*
+	      UI::OpenDialog(`opt(`decorated));
+	      CallFunction(`lilo());
+	      UI::CloseDialog();
+
+	      status = OSRStatusRepairOK();
+
+	      OSRSummaryRepairOK(
+				 module_name,
+				 _("Creating new LILO configuration file"),
+				 _("Creation succeeded")
+				 );
+	      */
+	      
+	      // create a new LILO configuration file
 	      if (!OSRLiloConfCreate())
 	      {
+		  // TODO: launch the lilo configuration module!
+		  //CallFunction(`lilo());
+		      
 		  status = OSRStatusRepairError();
 
-		  y2debug("Creation of new lilo.conf failed.");
+		  y2error("Creation of new lilo.conf failed.");
 
-		  // copy the original lilo.conf to /etc/lilo.conf
-		  //command = sformat("cp /tmp/lilo.conf.orig %1", lilo_conf_path);
-		  //OSRExecuteCommand(command, log_file);
-		  //SCR(`Execute(.target.bash, command));
+		  // revert the old lilo configuration file if a backup was made
+		  if (backup_created)
+		  {
+		      OSRLiloConfRevertBackup();
+		  }
 	      }
 	      else
 	      {
@@ -577,13 +602,12 @@ Package is o.k.")
 	      // !repair_question
 	      status = OSRStatusRepairOmit();
 	      
-	      // display the result in the RichText-widget
+	      // display the result in the RichText widget
 	      OSRSummaryRepairOmit(
-			   module_name,
-			   _("Creating LILO configuration file"),
-			   _("Configuration file not repaired")
-			   );
-
+				   module_name,
+				   _("Creating LILO configuration file"),
+				   _("Configuration file not repaired")
+				   );
 	  }
       }
       else
@@ -593,32 +617,34 @@ Package is o.k.")
 	  // the file /etc/lilo.conf exists
 	  error_detected = false;
 
-	  // display the results to the RichText-widget
+	  /*
+	  // display the results to the RichText widget
 	  OSRSummaryDetectOK(
-		       module_name,
-		       _("Checking LILO configuration file"),
-		       sformat(
-			       _("File exists at <code>%1</code>"),
-			       lilo_conf_path
-			       )
-		       );
-
-	  // increase the value of the module-progress-bar
+			     module_name,
+			     _("Checking LILO configuration file"),
+			     sformat(
+				     _("File exists at %1"),
+				     lilo_conf_path
+				     )
+			     );
+	  */
+	  
+	  // increase the value of the module progress bar
 	  OSRModuleProgress::Add(10);
 
 	  if (demo_mode)
 	  {
-	      // demo-value
+	      // demo value
 	      result = 0;
 	  }
 	  else
 	  {
-	      // execute a test-run of /sbin/lilo, if it succeeds, most of the config-file would be o.k.
+	      // execute a test run of /sbin/lilo, if it succeeds, most parts of the config file will be o.k.
 	      command = "lilo -t -v";
-	      result = OSRExecuteCommandProgress(command, log_file, .target, progress_file);
+	      result = OSRExecuteCommandProgress(command, .target, progress_file);
 	  }
 
-	  // increase the value of the module-progress-bar
+	  // increase the value of the module progress bar
 	  OSRModuleProgress::Add(10);
 
 	  if (result != 0)
@@ -627,43 +653,70 @@ Package is o.k.")
 
 	      error_detected = true;
 
-	      // display the results in the RichText-widget
+	      // display the results in the RichText widget
 	      OSRSummaryDetectError(
-			      module_name,
-			      _("Checking LILO configuration file"),
-			      _("<code>/sbin/lilo -t</code> reports an error")
-			      );
+				    module_name,
+				    _("Checking LILO configuration file"),
+				    _("/sbin/lilo -t reports an error")
+				    );
 
-	      // set the value of the module-progress-bar to 100%
+	      // set the value of the module progress bar to 100%
 	      OSRModuleProgress::Fill();
 	  
-	      help_text = _("<p>The command <code>/sbin/lilo -t</code> reported an error.</p>");
-	      help_text = help_text + _("<p>Press <b>Repair</b> to create a new LILO configuration file.</p>");
+	      help_text = _("
+<p>The command /sbin/lilo -t reported an error.</p>
+<p>Press <b>Repair</b> to create a new LILO configuration
+file.</p>");
 	      
-	      error_message = _("The command /sbin/lilo -t reported an error.\nRepair creates a new LILO configuration file.");
+	      error_message = _("The command /sbin/lilo -t reported an error.
 
-	      // launch the repair-popup
+Press Repair to create a new LILO configuration
+file.");
+
+	      // launch the repair popup
 	      repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
               // REPAIR
 	      if (repair_question)
 	      {
-		  // TODO: make a copy of /etc/lilo.conf
-		  //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
-		  //OSRExecuteCommand(command, log_file);
-		  // SCR(`Execute(.target.bash, command));
-		      
-		  // create a new LILO-configuration-file
+//		  boolean lilo_conf_exists = OSRLiloConfExists();
+		  boolean backup_created = false;
+
+		  // if an old lilo.conf exists create a backup
+		  if (lilo_conf_exists)
+		  {
+		      backup_created = OSRLiloConfCreateBackup();
+		  }
+
+		  /*
+		  UI::OpenDialog(`opt(`decorated));
+		  CallFunction(`lilo());
+		  UI::CloseDialog();
+
+		  status = OSRStatusRepairOK();
+
+		  OSRSummaryRepairOK(
+				     module_name,
+				     _("Creating new LILO configuration file"),
+				     _("Creation succeeded")
+				     );
+		  */
+
+		  // create a new LILO configuration file
 		  if (!OSRLiloConfCreate())
 		  {
+		      // TODO: launch the lilo configuration module!
+		      //CallFunction(`lilo());
+		      
 		      status = OSRStatusRepairError();
 
-		      y2debug("Creation of new lilo.conf failed.");
+		      y2error("Creation of new lilo.conf failed.");
 
-		      // TODO: copy the original lilo.conf to /etc/lilo.conf
-		      //command = sformat("cp /tmp/lilo.conf.orig %1", lilo_conf_path);
-		      //OSRExecuteCommand(command, log_file);
-		      //SCR(`Execute(.target.bash, command));
+		      // revert the old lilo configuration file if a backup was made
+		      if (backup_created)
+		      {
+			  OSRLiloConfRevertBackup();
+		      }
 		  }
 		  else
 		  {
@@ -680,14 +733,13 @@ Package is o.k.")
 		  {
 		      status = OSRStatusRepairOK();
 		  }
-
 	      }
 	      else
 	      {
 		  // !repair_question
 		  status = OSRStatusRepairOmit();
 		  
-		  // display the result in the RichText-widget
+		  // display the result in the RichText widget
 		  OSRSummaryRepairOmit(
 				       module_name,
 				       _("Creating LILO configuration file"),
@@ -698,7 +750,7 @@ Package is o.k.")
 	  // TODO
 	  //else if (result == 127)
 	  //{
-	      // command not found: /sbin/lilo, maybe package not installed
+	  // command not found: /sbin/lilo, maybe package not installed
 
 	  //}
 	  else
@@ -707,21 +759,21 @@ Package is o.k.")
 
 	      error_detected = false;
 
-	      // display the results in the RichText-widget
+	      // display the results in the RichText widget
 	      OSRSummaryDetectOK(
-			   module_name,
-			   _("Checking LILO configuration file"),
-			   _("<code>/sbin/lilo -t</code> reports no errors")
-			   );
+				 module_name,
+				 _("Checking LILO configuration file"),
+				 _("/sbin/lilo -t reports no errors")
+				 );
 
 	      if (demo_mode)
 	      {
-		  // demo-value
+		  // demo value
 		  boot_device = "/dev/hda";
 	      }
 	      else
 	      {
-		  // TODO: use a better agent
+		  // TODO: use a better agent for parsing the lilo configuration file
 		  lilo_conf_list = SCR::Read(.etc.liloconf1, ["/mnt" + lilo_conf_path]);
 		  boot_device    = lookup(find(`n, lilo_conf_list, ``(lookup(n, "key", "") == "boot")), "value", "");
 	      }
@@ -739,71 +791,102 @@ Package is o.k.")
 		  //    possibly written to) the device that is currently mounted as root.
 		  error_detected = true;
 
-		  // display the results in the RichText-widget
+		  // display the results in the RichText widget
 		  OSRSummaryDetectError(
-				  module_name,
-				  _("Checking LILO configuration file"),
-				  _("No boot-device specified")
-				  );
+					module_name,
+					_("Checking LILO configuration file"),
+					_("No boot device specified")
+					);
 
-		  // increase the value of the module-progress-bar
+		  // increase the value of the module progress bar
 		  OSRModuleProgress::Add(10);
 
-		  help_text = _("<p>In the LILO configuration file no boot device is specified.</p>");
-		  help_text = help_text + _("<p>Press <b>Repair</b> to create a new LILO configuration file.</p>");
+		  help_text = _("<p>In the LILO configuration file no boot device is
+specified.</p>
+<p>Press <b>Repair</b> to create a new LILO configuration
+file.</p>
+");
+		  help_text = help_text + _("");
 
-		  error_message = _("In the LILO configuration file no boot device is specified.\n");
-		  error_message = _("This may not be an error.\n");
-		  error_message = error_message + _("Press Repair to create a new LILO configuration file.");
 
-		  // launch the repair-popup
+		  error_message = _("In the LILO configuration file no boot device is
+specified. For some system configurations this
+may cause several errors.
+
+Press Repair to create a new LILO configuration
+file.");
+
+		  // launch the repair popup
 		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
 		  // REPAIR
 		  if (repair_question)
 		  {
-		      // get the list of disk-devices
-		      disk_device_list = OSRRequireList("disk_device_list");
-
-		      // increase the value of the module-progress-bar
+		      // increase the value of the module progress bar
 		      OSRModuleProgress::Add(10);
 
-		      // get the device of the root-partition and cut the partition number
+		      // get the device of the root partition and cut the partition number
 		      root_partition = OSRRequireString("root_partition");
-		      root_device    = select(splitstring(root_partition, "1234567890"), 0);
+ 		      root_device    = select(splitstring(root_partition, "1234567890"), 0);
 
-		      // set the value of the module-progress-bar to 100%
+		      // set the value of the module progress bar to 100%
 		      OSRModuleProgress::Fill();
 
-		      // TODO: make a copy of /etc/lilo.conf
-		      //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
-		      //OSRExecuteCommand(command, log_file);
-		      //SCR(`Execute(.target.bash, command));
-		      // create a new LILO-configuration-file with the current root-device as value for
-		      // the boot-device
-		      if (!OSRLiloConfCreateBootDevice(root_device))
+//		      boolean lilo_conf_exists = OSRLiloConfExists();
+		      boolean backup_created   = false;
+
+		      // if an old lilo.conf exists create a backup
+		      if (lilo_conf_exists)
 		      {
+			  backup_created = OSRLiloConfCreateBackup();
+		      }
+
+
+		      /*
+		      UI::OpenDialog(`opt(`decorated));
+		      CallFunction(`lilo());
+		      UI::CloseDialog();
+
+		      status = OSRStatusRepairOK();
+
+		      OSRSummaryRepairOK(
+					 module_name,
+					 _("Creating new LILO configuration file"),
+					 _("Creation succeeded")
+					 );
+		      */
+
+		      // create a new LILO configuration file
+		      //if (!OSRLiloConfCreateBootDevice(root_device))
+
+		      if (!OSRLiloConfCreate())
+		      {
+			  // TODO: launch the lilo configuration module!
+			  //CallFunction(`lilo());
+		      
 			  status = OSRStatusRepairError();
 
-			  y2debug("Creation of new lilo.conf failed.");
+			  y2error("Creation of new lilo.conf failed.");
 
-			  // TODO: copy the original lilo.conf to /etc/lilo.conf
-			  //command = sformat("cp /tmp/lilo.conf.orig %1", lilo_conf_path);
-			  //OSRExecuteCommand(command, log_file);
-			  //SCR(`Execute(.target.bash, command));
+			  // revert the old lilo configuration file if a backup was made
+			  if (backup_created)
+			  {
+			      OSRLiloConfRevertBackup();
+			  }
 		      }
 		      else
 		      {
 			  status = OSRStatusRepairOK();
 		      }
 		      
-		      if (!OSRLiloExecuteLilo())
+     		      if (!OSRLiloExecuteLilo())
 		      {
 			  status = OSRStatusRepairError();
 		      }
 		      else
 		      {
 			  status = OSRStatusRepairOK();
+
 		      }
 		  }
 		  else
@@ -811,13 +894,12 @@ Package is o.k.")
 		      // !repair_question
 		      status = OSRStatusRepairOmit();
 
-		      // display the result in the RichText-widget
+		      // display the result in the RichText widget
 		      OSRSummaryRepairOmit(
 					   module_name,
 					   _("Creating LILO configuration file"),
 					   _("Configuration file not repaired")
-					   );
-		      
+					   );		      
 		  }
 	      }
 	      else
@@ -826,23 +908,23 @@ Package is o.k.")
 
 		  error_detected = false;
 
-		  // display the results in the RichText-widget
+		  // display the results in the RichText widget
 		  OSRSummaryDetectOK(
-			       module_name,
-			       _("Checking LILO configuration file"),
-			       sformat(
-				       _("Boot-device: <code>%1</code>"),
-				       boot_device
-				       )
-			       );
+				     module_name,
+				     _("Checking LILO configuration file"),
+				     sformat(
+					     _("Boot device: %1"),
+					     boot_device
+					     )
+				     );
 
-		  // increase the value of the module-progress-bar
+		  // increase the value of the module progress bar
 		  OSRModuleProgress::Add(10);
 	      }
 	  }
       }
 
-      // set the value of the module-progress-bar to 100%
+      // set the value of the module progress bar to 100%
       OSRModuleProgress::Fill();
       
       result_map = $[
@@ -852,7 +934,63 @@ Package is o.k.")
 		     "error_keys"     : error_keys
       ];
       return result_map;
-  }
+  };
+
+  /**
+   *  Checks if the lilo configuration file exists at the standard location
+   *  /etc/lilo.conf.
+   *
+   *  Requires: string root_mountpoint
+   * 
+   *  @return boolean True if the file /etc/lilo.conf exists.
+   */
+  global define OSRLiloConfExists() ``{
+
+      string  lilo_conf_path  = "/etc/lilo.conf";
+      string  root_mountpoint = "";
+      integer lilo_conf_size  = 0;
+      string  module_name     = "osr_module_lilo";
+
+      root_mountpoint = OSRRequireString("root_mountpoint");
+
+      // look if the file lilo.conf exists an has a positive size
+      lilo_conf_size  = SCR::Read(.target.size, "" + root_mountpoint + lilo_conf_path);
+
+      if (lilo_conf_size > 0)
+      {
+	  y2milestone("LILO configuration file exists at %1", root_mountpoint + lilo_conf_path);
+
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Checking LILO configuration file"),
+			     sformat(_("File exists at %1"), root_mountpoint + lilo_conf_path)
+			     );
+	  
+      }
+      else if (lilo_conf_size == 0)
+      {
+	  y2error("LILO configuration file exists at %1 but is empty", root_mountpoint + lilo_conf_path);
+
+	  OSRSummaryDetectError(
+				module_name,
+				_("Checking LILO configuration file"),
+				sformat(_("File %1 is empty"), root_mountpoint + lilo_conf_path)
+				);
+
+      }
+      else
+      {
+	  y2error("LILO configuration file does not exist at %1", root_mountpoint + lilo_conf_path);
+
+	  OSRSummaryDetectError(
+				module_name,
+				_("Checking LILO configuration file"),
+				sformat(_("File does not exist at %1"), root_mountpoint + lilo_conf_path)
+				);
+      }
+      
+      return (lilo_conf_size > 0);
+  };
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -860,6 +998,74 @@ Package is o.k.")
   //
   //////////////////////////////////////////////////////////////////////
 
+  /**
+   *  Creates a backup of the current LILO configuration file, if it exists.
+   *  The location of the backup file is OSRGetTmpDir() + "/lilo.conf".
+   * 
+   *  @return boolean True if the backup succeeded.
+   */
+  global define OSRLiloConfCreateBackup() ``{
+
+      string command         = "";
+      string lilo_conf_path  = "/etc/lilo.conf";
+      string root_mountpoint = "";
+
+      root_mountpoint = OSRRequireString("root_mountpoint");
+      
+      command = sformat("cp %1 %2", root_mountpoint + lilo_conf_path, OSRGetTmpDir() + "/lilo.conf");
+      integer copy_result = OSRExecuteCommand(command, .target);
+
+      if (copy_result == 0)
+      {
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Creating backup of lilo configuration file"),
+			     _("Backup succeeded")
+			     );
+      }
+      else
+      {
+	  OSRSummaryDetectError(
+				module_name,
+				_("Creating backup of lilo configuration file"),
+				_("Backup failed")
+				);
+      }
+      return (copy_result == 0);
+  };
+
+  /**
+   *  Reverts the backup of the LILO configuration file, if a backup was made.
+   * 
+   *  @return boolean True if reverting succeeded.
+   */
+  global define OSRLiloConfRevertBackup() ``{
+
+      string command        = "";
+      string lilo_conf_path = "/etc/lilo.conf";
+
+      command = sformat("cp %1 %2", OSRGetTmpDir() + "/lilo.conf", lilo_conf_path);
+      integer copy_result = OSRExecuteCommand(command, .target);
+
+      if (copy_result == 0)
+      {
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Reverting backup of lilo configuration file"),
+			     _("Copy succeeded")
+			     );
+      }
+      else
+      {
+	  OSRSummaryDetectError(
+				module_name,
+				_("Reverting backup of lilo configuration file"),
+				_("Copy failed")
+				);
+      }
+      return (copy_result == 0);
+  };
+  
   /**
    *  Installs the lilo package lilo.rpm.
    * 
@@ -869,25 +1075,25 @@ Package is o.k.")
 
       integer result          = 1;
       integer progress_expect = 50;
-      string  log_file        = "";
       string  command         = "";
       string  progress_label  = "Installing LILO package";
-      string  progress_file   = "/tmp/osr_module_lilo_install.log";
-      string  module_name      = "osr_module_lilo";
+      string  progress_file   = "";
+      string  module_name     = "osr_module_lilo";
       boolean mount_ok        = false;
       boolean error_detected  = false;
+      
+      progress_file   = lookup(module_map, "progress_file", "");
 
       // TODO: check for old installation source media: cdrom, ftp, www, /work4, ...
       //       check mount, check for installation dir, ...
       //mount_ok = ChangeCD( 1, true );
-      log_file = OSRLogFile::GetFile();
 
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       // install the lilo package
       //command = "/bin/rpm -hU --force /tmp/lilo.rpm";
-      //result  = OSRExecuteCommandProgress(command, log_file, progress_file);
+      //result  = OSRExecuteCommandProgress(command, progress_file);
 
       string tmpdir   = SCR::Read(.target.tmpdir);
       string filename = tmpdir + "/sw_single_input";
@@ -904,20 +1110,20 @@ Package is o.k.")
 	  error_detected = false;
 	  
 	  OSRSummaryRepairOK(
-			   module_name,
-			   _("Installing the LILO package"),
-			   _("Installation succeeded")
-			   );
+			     module_name,
+			     _("Installing the LILO package"),
+			     _("Installation succeeded")
+			     );
       }
       else
       {
 	  error_detected = true;
 
 	  OSRSummaryRepairError(
-			  module_name,
-			  _("Installing the LILO package"),
-			  _("Installation was not successfull")
-			  );
+				module_name,
+				_("Installing the LILO package"),
+				_("Installation was not successfull")
+				);
       }
 
       return (result == 0);
@@ -926,16 +1132,18 @@ Package is o.k.")
   /**
    *  Creates a new lilo configuration file at /etc/lilo.conf.
    *
+   *  Requires: list disk_device_list,
+   *            string root_partition
+   *
    *  @return boolean True if the repair process was successful.
    */
   global define OSRLiloConfCreate() ``{
 
       integer result           = 1;
       integer progress_expect  = 1200;
-      string  log_file         = "";
       string  command          = "";
       string  progress_label   = "Creating LILO configuration file";
-      string  progress_file    = "/tmp/dolilo.log";
+      string  progress_file    = OSRGetTmpDir() + "/dolilo.log";
       string  boot_device      = "";
       string  root_partition   = "";
       string  root_device      = "";
@@ -943,15 +1151,15 @@ Package is o.k.")
       list    disk_device_list = [];
       boolean error_detected   = false;
 
-      log_file = OSRLogFile::GetFile();
-      
+      /*
       command = "rm -f /tmp/dolilo.log";
-      OSRExecuteCommand(command, log_file, .target);
-
+      OSRExecuteCommand(command, .target);
+      */
+      
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
-      // TODO: get the boot-device, eventually from user
+      // TODO: get the boot device, eventually from user
       disk_device_list = OSRRequireList("disk_device_list");
       root_partition   = OSRRequireString("root_partition");
 
@@ -988,7 +1196,7 @@ Package is o.k.")
 	  }
 	  if (!is_element)
 	  {
-	      if (automatic_mode)
+	      if (!automatic_mode)
 	      {
 		  boot_device = OSRPopupSelectItem(
 						   _("LILO boot device"),
@@ -1019,32 +1227,34 @@ Package is o.k.")
 	      */
 	  }
       }
-      // execute the command and get the exit code
+      // execute the command
       command  = sformat("/usr/lib/YaST2/bin/dolilo / -m %1 -v", boot_device);
-      result   = OSRExecuteCommand(command, progress_file, .target);
-      
-      command  = "cat /tmp/dolilo.log";
-      OSRExecuteCommand(command, log_file, .target);
+      result   = OSRExecuteCommand(command, .target);
 
+      /*
+      command  = "cat /tmp/dolilo.log";
+      OSRExecuteCommand(command, .target);
+      */
+      
       if (result == 0)
       {
 	  error_detected = false;
 	  
 	  OSRSummaryRepairOK(
-			   module_name,
-			   _("Creating new LILO configuration file"),
-			   _("Creation succeeded")
-			   );
+			     module_name,
+			     _("Creating new LILO configuration file"),
+			     _("Creation succeeded")
+			     );
       }
       else
       {
 	  error_detected = true;
 
 	  OSRSummaryRepairError(
-			  module_name,
-			  _("Creating new LILO configuration file"),
-			  _("Creation was not successfull")
-			  );
+				module_name,
+				_("Creating new LILO configuration file"),
+				_("Creation was not successfull")
+				);
       }
       
       return (result == 0);
@@ -1052,59 +1262,54 @@ Package is o.k.")
 
   /**
    *  Creates a new lilo configuration file at /etc/lilo.conf with the specified
-   *  boot-device.
+   *  boot device.
    *
-   *  @param string The new boot-device.
+   *  @param string The new boot device.
    *  @return boolean True if the repair process was successful.
    */
   global define OSRLiloConfCreateBootDevice(string boot_device) ``{
 
       integer result           = 1;
       integer progress_expect  = 1200;
-      string  log_file         = "";
       string  command          = "";
       string  progress_label   = "Creating LILO configuration file";
-      string  progress_file    = "/tmp/dolilo.log";
+      string  progress_file    = OSRGetTmpDir() + "/dolilo.log";
       string  root_partition   = "";
       string  module_name      = "osr_module_lilo";
-      list    disk_device_list = [];
 
-      log_file = OSRLogFile::GetFile();
-      
-      command = "rm -f /tmp/dolilo.log";
-      OSRExecuteCommand(command, log_file, .target);
+      OSRExecuteCommand(command, .target);
 
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
       
       // execute the command and get the exit code
       command  = sformat("/usr/lib/YaST2/bin/dolilo / -m %1 -v", boot_device);
-      result   = OSRExecuteCommand(command, progress_file, .target);
+      result   = OSRExecuteCommand(command, .target);
 
       command  = "cat /tmp/dolilo.log";
-      OSRExecuteCommand(command, log_file, .target);
+      OSRExecuteCommand(command, .target);
 
       if (result == 0)
       {
 	  error_detected = false;
 	  
 	  OSRSummaryDetectOK(
-		       module_name,
-		       _("Creating new LILO configuration file"),
-		       _("Creation succeeded<br>
-New configuration file is <code>/etc/lilo.conf</code>")
-		       );
+			     module_name,
+			     _("Creating new LILO configuration file"),
+			     _("Creation succeeded<br>
+New configuration file is /etc/lilo.conf")
+			     );
       }
       else
       {
 	  error_detected = true;
 
 	  OSRSummaryDetectError(
-			  module_name,
-			  _("Creating new LILO configuration file"),
-			  _("Creation was not successfull<br>
+				module_name,
+				_("Creating new LILO configuration file"),
+				_("Creation was not successfull<br>
 Resetting old configuration")
-			  );
+				);
       }
 
       return (result == 0);
@@ -1121,45 +1326,44 @@ Resetting old configuration")
       integer result          = 1;
       integer progress_expect = 600;
       string  command         = "";
-      string  log_file        = "";
       string  progress_label  = _("Installing LILO bootloader");
-      string  progress_file   = "/tmp/osr_module_lilo_progress";
-      string  module_name      = "osr_module_lilo";
+      string  progress_file   = "";
+      string  module_name     = "osr_module_lilo";
 
-      log_file = OSRLogFile::GetFile();
-
+      progress_file   = lookup(module_map, "progress_file", "");
+      
       // setting up the progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
-      // execute the lilo-command and display the progress
+      // execute the lilo command and display the progress
       command = "/sbin/lilo -v";
-      result  = OSRExecuteCommandProgress(command, log_file, .target, progress_file);
+      result  = OSRExecuteCommandProgress(command, .target, progress_file);
       
       if (result == 0)
       {
 	  error_detected = false;
 	  
 	  OSRSummaryRepairOK(
-			   module_name,
-			   _("Executing LILO"),
-			   _("Execution of LILO succeeded<br>
+			     module_name,
+			     _("Executing LILO"),
+			     _("Execution of LILO succeeded<br>
 New bootloader installed")
-			   );
+			     );
       }
       else
       {
 	  error_detected = true;
 
 	  OSRSummaryRepairError(
-			  module_name,
-			  _("Executing LILO"),
-			  _("Execution of LILO was not successfull<br>
-You have to run <code>/sbin/lilo</code> manually")
-			  );
+				module_name,
+				_("Executing LILO"),
+				_("Execution of LILO was not successfull<br>
+You have to run /sbin/lilo manually")
+				);
       }
 
       
-      // set the value of the module-progress-bar to 100%
+      // set the value of the module progress bar to 100%
       OSRModuleProgress::Fill();
       
       return (result == 0);
@@ -1171,7 +1375,7 @@ You have to run <code>/sbin/lilo</code> manually")
   //
   //////////////////////////////////////////////////////////////////////
 
-  // in init-mode only execute the init-function and return the module-map
+  // in init mode only execute the init function and return the module map
   // to the framework, don't delete
   if (init_mode)
   {
