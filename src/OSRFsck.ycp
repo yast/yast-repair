@@ -528,25 +528,28 @@
       // TODO check english 
       string error_message = sformat(_("
 The %1 file system of the partition %2 is corrupt.
-If you want to repair the file system please
-press the \"Repair\" button.
+To repair the file system,
+press \"Repair\".
 
-Please press \"Skip\" to avoid repairing."), FileSystems::GetName( used_fs, "unkonwn"), check_partition ); 
+Press \"Skip\" to avoid repairing.
+"), FileSystems::GetName( used_fs, "unkonwn"), check_partition ); 
 
       string help_text         = _("
-<p>A inconsistent file system occurs when
+<p>An inconsistent file system occurs when
 a partition is not correctly unmounted.
-For example this happens when the system
-corrupts.</p>") +
+For example, this happens when the system
+crashes.</p>
+") +
 
 _("<p>There is a repair method for each file
-system. For example if the file system
-of the damaged partition is a ext2 or
+system. For example, if the file system
+of the damaged partition is ext2 or
 ext3 use fsck.ext2 (e2fsck) with the
 corresponding options to repair the
 file system. The following lines list
-the repair tools of the different linux
-file systems.</p>") +
+the repair tools of the different Linux
+file systems.</p>
+") +
 
 _("<p><pre>
 ext2 and ext2: fsck.ext2 or e2fsck
@@ -557,19 +560,19 @@ msdos (fat):   fsck.msdos</pre></p>") +
 
 _("<p>If you know what kind of file system
 you have and how to use the corresponding
-tool please close YaST and repair the
-damaged file system by your own else
+tool, close YaST and repair the
+damaged file system on your own. Otherwise,
 close this help dialog and press the
-\"Repair\" button for automatical
+\"Repair\" button for automatic
 repair.</p>
 ");
       
       while( true )
       {     
-	  if (! OSRPopup::Repair(_("Error detected"), error_message, help_text) ) return `cancel;
+	  if (! OSRPopup::Repair(_("Error detected."), error_message, help_text) ) return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
-			       `Label(_("Repairing file system. Please wait ...")),
+			       `Label(_("Repairing file system. Please wait...")),
 			       `VSpacing(1)));
 
 	  // if file exist
@@ -663,15 +666,15 @@ Repairing %1 file system of partition
       }
       else if ( last_check_return == 2 ) {
 	  
-	  if ( UI::YesNoHeadlinePopup(_("Reiserfs fatal corruptions"), _("
+	  if ( UI::YesNoHeadlinePopup(_("Reiserfs Fatal Corruptions"), _("
 Checking the file system (reiserfs) reports
 fatal corruptions. Only a rebuild of the reiserfs
 file system tree (reiserfsck --rebuild-tree)
 could solve the problem.
 
-If you want to rebuild your reiserfs tree
-please  press the \"Yes\" button else press
-\"No\" and repair the filesystem by your own.
+To rebuild your reiserfs tree,
+press \"Yes\". Otherwise press
+\"No\" and repair the file system manually.
 ")))
 	  {
 	      command 	        = sformat("/bin/echo Yes | /sbin/reiserfsck --rebuild-tree %1", check_partition);

@@ -76,7 +76,7 @@
 	  //TODO check english
 	  string message = _("
 No floppy device was detected. Loading a
-file of a removable device is not possible.
+file from a removable device is not possible.
 ");
 
 	  if ( use_ui ) {
@@ -104,9 +104,9 @@ file of a removable device is not possible.
 	      if ( ! OSRModuleLoading::Load( module_name,"","","",false, true ) )	{
 		  //TODO check english
 		  string message = sformat(_("
-An error occurred during loading the %1 kernel
+An error occurred while loading the %1 kernel
 module. Mounting the floppy device is not possible.
-System information can't be readed.
+System information cannot be read.
 
 "), "");
 		  if ( use_ui )
@@ -136,7 +136,7 @@ System information can't be readed.
 	  //TODO check english
 	  string message = _("
 The default floppy mount point \"/media/floppy\"
-does not exist and can't be created.
+does not exist and cannot be created.
 ");
 	  
 	  if ( WFM::Execute(.local.bash, sformat("if /usr/bin/test -d %1; then /bin/mkdir %1; fi", "/media" ) ))
@@ -176,8 +176,7 @@ does not exist and can't be created.
       if ( WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " "+mount_point+ " -t auto" ) != 0 )
       {
 	    //TODO check english
-	  string message = _("
-An error occurred during mounting floppy.
+	  string message = _("\nAn error occurred while mounting the floppy.
 ");
 
 	  if ( use_ui )
@@ -206,7 +205,7 @@ An error occurred during mounting floppy.
       if (  WFM::Execute(.local.bash, "/bin/umount " +mount_point ) != 0 )
       {
 	    //TODO check english
-	  string message = _("An error occurred during unmounting floppy.");
+	  string message = _("An error occurred while unmounting the floppy.");
 
 	  if ( use_ui )
 	  {
@@ -291,16 +290,16 @@ CloseFloppy(...) to close floppy device.");
 
       Reset( use_ui );
 
-      if  ( use_ui ) OpenFloppyDialog( _("Checking floppy device ..."), count_io_files + 4 );
+      if  ( use_ui ) OpenFloppyDialog( _("Checking floppy device..."), count_io_files + 4 );
       if ( ! CheckPresent()) return false;
      
-      NextStep(_("Loading file system modules ...") );
+      NextStep(_("Loading file system modules...") );
       if ( ! LoadFsModules()) return false;
 
-      NextStep(_("Checking mount point ..."));
+      NextStep(_("Checking mount point..."));
       if ( ! CheckMountPoint()) return false;
 
-      NextStep(_("Mounting floppy ...")); 
+      NextStep(_("Mounting floppy...")); 
       if ( ! Mount()) return false;
 
     
@@ -319,7 +318,7 @@ CloseFloppy(...) to close floppy device.");
       }
       
       boolean error = false;
-      NextStep(_("Unmounting floppy ...")); 
+      NextStep(_("Unmounting floppy...")); 
       if ( ! Umount())  error = true;
 
       if ( use_ui ) CloseFloppyDialog();
@@ -348,8 +347,7 @@ Please use OpenFloppy(...) to open floppy device.");
       if ( return_map == nil  ||  size(return_map) == 0  )
       {  
 	  //TODO check english
-	  string message = sformat(_("
-The file %1 can not be readed from %2.
+	  string message = sformat(_("\nThe file %1 cannot be read from %2.
 "),filename, floppy_device  );
 
 	  if ( use_ui )
@@ -383,7 +381,7 @@ Please use OpenFloppy(...) to open floppy device.");
       if ( ! file_write  )
       {  
 	  //TODO check english
-	  string message = sformat(_("The file %1 can not be saved to %2."),filename, floppy_device  );
+	  string message = sformat(_("The file %1 cannot be saved to %2."),filename, floppy_device  );
 	  if ( use_ui )
 	  {
 	      Report::Error(message);

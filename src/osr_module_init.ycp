@@ -53,20 +53,20 @@
 		"headline"       :  _("OSRInit"),
 		"global_entries" : $[
 				     "init" : $[
-						"text"	: _("Init repair system"),
+						"text"	: _("Init Repair System"),
 						"help"  : _("TODO"),
 						"mode"  : "forall"
 						]
 		],
 		
-		"detect_methods" :  [ $[ "summary"  : _("Probing floppy"),
+		"detect_methods" :  [ $[ "summary"  : _("Probing floppy..."),
 					 "method"   : ``(OSRInitSelectFloppy()) ,
 				         "requires" : [],
 				         "provides" : [ "has_floppy"],
 					 "group"    : "init",
 					 "progress" : 10
 				      ],
-    				      $[ "summary"  : _("Init target system"),
+    				      $[ "summary"  : _("Initialize Target System"),
 					 "method"   : ``(OSRInitTarget()),
 					 "requires" : [],
                                          "provides" : ["repair_target"],
@@ -111,8 +111,9 @@
 	  // let the user select the floppy device to use
 	  OSRFloppy::floppy_device = OSRPopup::RadioButtonGroup(
 					     _("Select one of the floppy devices"),
-					     _("You have to select one of the floppy
-devices for later use."),
+					     _("Select one of the floppy
+devices for later use.
+"),
 					     StorageDevices::FloppyDrives,
 					     "",
 					     true
@@ -136,7 +137,7 @@ devices for later use."),
   
   global define boolean OSRInitTarget()``{
 
-      OSRSummary::DetectOK("", _("Target system initialised"));
+      OSRSummary::DetectOK("", _("Target system initialized."));
       
       // if the rescue-system is launched from a running Linux-system the target-directory is empty, else "/mnt"
       if (!Mode::initial && !Mode::cont)

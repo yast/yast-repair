@@ -29,7 +29,7 @@
   
 
   // YaST system repair - Help
-  global string help_headline  = OSRRepairUI::tool_name + _(" - Help");
+  global string help_headline  = OSRRepairUI::tool_name + _(" Help");
 
   /**
    * Sublayout for other layouts.
@@ -552,7 +552,7 @@
 	      {
 		  if (! UI::YesNoPopup(_("
 Some suggested items are not selected.
-Do you really want to continue?
+Really continue?
 ")))
 		  {
 		      ret = `again;

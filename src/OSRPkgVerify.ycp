@@ -73,11 +73,11 @@
     ];
 
     global map unimportant2help = $[
-				    "file_type" 	: _("The type of the file is uncritical."),
-				    "directory"		: _("The location of the file is a uncritical directory."),
+				    "file_type" 	: _("The file is a noncritical type."),
+				    "directory"		: _("The file is located in a noncritical directory."),
 				    "config_file"	: _("The file is a configuration file."),
-				    "you_installed"	: _("The package has been updated with the online updated."),
-				    "build_problems"    : _("The not passed test seems to come form building the package.")
+				    "you_installed"	: _("The package has been updated with the online update."),
+				    "build_problems"    : _("The test failure seems to be caused by an incorrectly built package.")
     ];
     
     

@@ -48,21 +48,21 @@
 
   textdomain "repair";
 
-  string remove_label   	= _("remove");
-  string ignore_label   	= _("ignore");
-  string replace_label 		= _("replace");
-  string create_label   	= _("create");
+  string remove_label   	= _("Remove");
+  string ignore_label   	= _("Ignore");
+  string replace_label 		= _("Replace");
+  string create_label   	= _("Create");
 
   string device_label    	= _("Device");
   string mount_label     	= _("Mount point");
-  string create_mp_label 	= _("Create mount point");
+  string create_mp_label 	= _("Create Mount Point");
   string state_label     	= _("State");
-  string fstab_line_label 	= _("Fstab line");  
+  string fstab_line_label 	= _("Fstab Line");  
   
   string b_ignore_label	    	= _("&Ignore");
   string b_create_label    	= _("&Create");
   string b_remove_label     	= _("&Remove");
-  string b_change_mp_label  	= _("Change &mount point");
+  string b_change_mp_label  	= _("Change &Mount Point");
   string b_replace_label    	= _("R&eplace");
 
   global list(string) system_mount_points =  [ "/dev", "/lib", "/bin", "/etc", "/sbin" ];
@@ -383,10 +383,10 @@
 	  y2error("No fstab found !!");
 	  if ( strict ) return false;
 	  
-	  if( UI::YesNoHeadlinePopup(_("The fstab can not be readed"), _("
-YaST can not find an existing fstab
-file. If you want to create a new one,
-please press the button \"Yes\".
+	  if( UI::YesNoHeadlinePopup(_("fstab cannot be read."), _("
+YaST cannot find an existing fstab
+file. To create a new one,
+press \"Yes\".
 ")))
 	  {
 	      OSRExecute::Command(.local.bash, sformat("/bin/mv %1%2 %1%2.YaSTsave",root_mountpoint,tabpath ));
@@ -1021,35 +1021,39 @@ please press the button \"Yes\".
       if( size( new_entries) == 0 ) return `error;
 
       string help_text = _("
-<P><I>YaST</I> didn't find a valid fstab
+<P><I>YaST</I> did not find a valid fstab
 entry for the devices listed in the table.
 </P>
 <P>
-Please select the devices for which 
-you want to create a new fstab entry
+Select the devices for which 
+to create a new fstab entry
 and enter a mount point.
 </P>
-<P>When you created  mount points for all
-devices please press the \"Repair\" button
-to go one.
-</P>");
+<P>After creating mount points for all
+devices, press \"Repair\" 
+to continue.
+</P>
+");
 
       help_text = help_text +
 
-	  OSRRepairUI::build_label_description( device_label, _("The name of the device for which was no valid fstab
-entry found.")) +
+	  OSRRepairUI::build_label_description( device_label, _("The name of the device for which no valid fstab
+entry was found.
+")) +
 
-	  OSRRepairUI::build_label_description( mount_label, _("The mount point for the found device. YaST create this
-mount point in the file system. If you leave the mount point field empty no fstab entry will created")) +
+	  OSRRepairUI::build_label_description( mount_label, _("The mount point for the found device. YaST creates this
+mount point in the file system. If you leave the mount point field empty, no fstab entry will created.
+")) +
 
 	  OSRRepairUI::build_label_description( create_mp_label, _("Add a mount point for a device."));
       
       
       
-      OSRPopup::OpenSuggestDialog(_("Add fstab entries:"),
+      OSRPopup::OpenSuggestDialog(_("Add fstab Entries:"),
 				  _("
-Please select the devices for which you want to
-create a new fstab entry and enter a mount point."),
+Select the devices for which to
+create a new fstab entry and enter a mount point.
+"),
 				  help_text,
 				  `VBox(`Left(`Label(_("Found devices without valid fstab entry:"))),
 					`Table(`id(`table), `header(device_label, mount_label ), missing_devs_items(new_entries)),
@@ -1066,7 +1070,7 @@ create a new fstab entry and enter a mount point."),
 
 		string ret = OSRPopup::ChangeFieldDialog(new_entries[current,"mount"]:"", 
 					       sformat(_("
-Please enter a mount point
+Enter a mount point
 for the device %1:
 "), new_entries[current,"spec"]:""));
 
@@ -1083,21 +1087,21 @@ for the device %1:
 	    integer changed_size = size( filter(string k,map e, new_entries, ``( e["spec"]:"" != "" && e["mount"]:"" != "" )));
 	    if( changed_size == 0 ) {
 		Report::Warning(_("
-Please first create mount points
+First create mount points
 for the listed devices.
 "));
 		continue;
 	    }
 	    else if ( changed_size < size( new_entries )) {
-		if(! UI::YesNoHeadlinePopup(_("Some mount point fields are empty"),_("
+		if(! UI::YesNoHeadlinePopup(_("Some mount point fields are empty."),_("
 YaST needs valid mount points to
 create fstab entries for devices.
 You did not enter a mount point
 for all devices. If you continue
-now YaST only creates fstab
-entries for devices with entered
+now, YaST will only create fstab
+entries for devices with
 mount points. 
-Do you really want to continue?
+Really continue?
 ")))
 		    continue;
 	    }
@@ -1199,7 +1203,7 @@ created successfully.
 	    Report::Error(sformat(_("
 Creating the mount points:
 %1
-were not successful.
+was not successful.
 "),mergestring(maplist(integer lnr, string dir, failed, ``(dir)), "\n")));
 	}
 	else if ( size(failed) == 1 )
@@ -1224,31 +1228,33 @@ valid mount points for the listed devices.
 </P>") + 
 	  OSRRepairUI::build_label_description( state_label, sformat(_("
 The status of a listed line can be switched between
-%1 and %2. YaST only create a mount points for a partition
-if the the status is %2."), ignore_label, create_label )) +
+%1 and %2. YaST only creates a mount point for a partition
+if the the status is %2.
+"), ignore_label, create_label )) +
 
 
 	  OSRRepairUI::build_label_description( mount_label, _("
 This field contains the present entry
-of the mount point position in the fstab.
-Please change this field to a valid mount point.
+of the mount point in fstab.
+Change this field to a valid mount point.
  
-If you don't want to create a missing mount point
+If you do not want to create the mount point,
 select the corresponding line in the table and change
-the state to ignore.
+the status to ignore.
 ")) +	
-	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
-Change the state of the line to %1."),ignore_label)) +
+	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("\nChange the status of the line to %1.
+"),ignore_label)) +
 
-	  OSRRepairUI::build_label_description( b_create_label, sformat(_("
-Change the state of the line to %1."), create_label));
+	  OSRRepairUI::build_label_description( b_create_label, sformat(_("\nChange the status of the line to %1.
+"), create_label));
 
       
-      OSRPopup::OpenSuggestDialog( _("Create missing mount points:"),
+      OSRPopup::OpenSuggestDialog( _("Create mount points:"),
 				   _("
 Some mount points for fstab entries are missing in
-the file system. Please change the state of the
-lines for that YaST should create a mount point."),
+the file system. Change the status of the
+lines for which YaST should create a mount point.
+"),
 				   help_text,
 				   `VBox(`Left(`Label(_("Found missing or invalid mount points:"))),
 					 `Table(`id(`table), `header( state_label, mount_label, device_label  ),
@@ -1278,7 +1284,7 @@ lines for that YaST should create a mount point."),
 
 		string ret = OSRPopup::ChangeFieldDialog(missing_create_mp[current,"fields",1]:"", 
 					       sformat(_("
-Please enter a mount point
+Enter a mount point
 for the device %1:
 "), missing_create_mp[current,"fields",0]:""));
 
@@ -1373,25 +1379,27 @@ for the device %1:
       
       string help_text =  OSRRepairUI::build_label_description( state_label,  sformat(_("
 The status of a listed line can be switched between
-%1 and %2. YaST only remove fstab entries if the the status of the
-corresponding line is %2."), ignore_label, remove_label )) +
+%1 and %2. YaST only removes fstab entries if the the status of the
+corresponding line is %2.
+"), ignore_label, remove_label )) +
 						
-	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
-Change the state of the line to %1"), ignore_label)) +
+	  OSRRepairUI::build_label_description( b_ignore_label, sformat(_("\nChange the status of the line to %1
+"), ignore_label)) +
 
-	  OSRRepairUI::build_label_description( b_remove_label, sformat(_("
-Change the state of the line to %1"), remove_label));
+	  OSRRepairUI::build_label_description( b_remove_label, sformat(_("\nChange the status of the line to %1
+"), remove_label));
 
       
 	  
       
-      OSRPopup::OpenSuggestDialog( _("Remove fstab entries:"),
+      OSRPopup::OpenSuggestDialog( _("Remove fstab Entries:"),
 				   _("
 Could not find existing devices for the following fstab lines.
-Please select the lines in the table and  change the state in
-order to remove the lines of the fstab."),
+Select the lines in the table and  change the status
+to remove the lines from fstab.
+"),
 				   help_text,
-				   `VBox(`Left(`Label(_("Invalid or obsolete lines in the fstab:"))),
+				   `VBox(`Left(`Label(_("Invalid or Obsolete Lines in fstab:"))),
 					 `Table(`id(`table), `header(state_label, fstab_line_label ), remove_spec_items(rm_entries, ignore_label)),
 					 `Left(`HBox(`PushButton(`id(`ignore), b_ignore_label ),
 						     `PushButton(`id(`remove), b_remove_label )))
@@ -1544,38 +1552,40 @@ order to remove the lines of the fstab."),
   define symbol SuggestModifyDialog()``{
       map nlines = suggest_modify();
 
-      string existing_label 	= _("Existing fstab lines:");
-      string suggested_label    = _("Suggested fstab lines:");
+      string existing_label 	= _("Existing fstab Lines:");
+      string suggested_label    = _("Suggested fstab Lines:");
       
       if ( size( nlines) == 0 ) return `ok;
       
       string help_text = sformat(_("
-One or more existing fstab entry seems to
-be invalid. Please compare the suggested entry
+One or more existing fstab entries seem to
+be invalid. Compare the suggested entry
 with the existing one.
-If you want to replace an existng line with a suggested
-line please select the corresponding line
+To replace an existing line with a suggested
+line, select the corresponding line
 in the \"%1\" table and
-press the button \"%2\".
+press \"%2\".
 "), suggested_label, b_replace_label) +
 
       OSRRepairUI::build_label_description( state_label, sformat(_("
 The status of a listed line can be switched between
-%1 and %2. YaST only replace lines with the status is %2."), ignore_label, replace_label )) +
+%1 and %2. YaST only replaces lines if the status is %2.
+"), ignore_label, replace_label )) +
 
-      OSRRepairUI::build_label_description( b_ignore_label, sformat(_("
-Change the state of the line to %1"), ignore_label)) +
+      OSRRepairUI::build_label_description( b_ignore_label, sformat(_("\nChange the status of the line to %1
+"), ignore_label)) +
 
-	  OSRRepairUI::build_label_description( b_replace_label, sformat(_("
-Change the state of the line to %1"), replace_label));
+	  OSRRepairUI::build_label_description( b_replace_label, sformat(_("\nChange the status of the line to %1
+"), replace_label));
       
       
-      string headline = _("Change existing fstab entries:");
+      string headline = _("Change Existing fstab Entries:");
 
       OSRPopup::OpenSuggestDialog(  headline,
 				    _("
-One or more existing fstab entry seems to invalid. Please
-compare the suggested  entry with the existing one."),
+One or more existing fstab entries seem invalid. 
+Compare the suggested  entry with the existing one.
+"),
 				    help_text,			    
 				    `VBox(`Left(`Label(existing_label )),
 					  `Table(`id(`table_e), `opt(`disabled), `header( state_label , fstab_line_label), modify_items(nlines, ignore_label, true)),
@@ -1607,20 +1617,20 @@ compare the suggested  entry with the existing one."),
 	    
 	    if ( changed_count == 0 ) {
 		Report::Warning(_("
-Please set the state of one
-table entry to replace at least.
+Set the status of at least one
+table entry to replace.
 "));
 		continue;
 	    }
 	    else if ( changed_count < size( nlines )) {
-		if(! UI::YesNoHeadlinePopup(_("Some table entries have not the state \"replace\"."),_("
+		if(! UI::YesNoHeadlinePopup(_("Some table entries do have not have the status \"replace\"."),_("
 YaST only replaces the fstab lines marked with
-\"replace\". In order to accept the whole YaST
-suggestion press the button \"No\" to go back to
-the dialog and change all lines to the state
+\"replace\". To accept the entire YaST
+suggestion, press \"No\" to return to
+the dialog and change all lines to the status
 replace.
 If YaST should only change the selected fstab
-lines press the button \"Yes\".
+lines, press \"Yes\".
 ")))
 		    continue;
 	    }  
@@ -1675,7 +1685,7 @@ lines press the button \"Yes\".
   define boolean really_write_fstab(boolean show)``{
       if ( ! show ) return true;
       
-      string headline 	= _("The new fstab:");
+      string headline 	= _("The New fstab:");
       string text 	= "";
       term   contents 	= `Empty();
       string new_fstab 	="";
@@ -1739,11 +1749,12 @@ lines press the button \"Yes\".
 	  UI::ChangeWidget( `id(`log ), `Value, new_fstab );
       }
       string help_text = _("
-<P>Until now YaST has not modified
-the fstab. If you press the cancel button nothing will
+<P>YaST has not yet modified
+fstab. If you press Cancel, nothing will
 be changed.</P>
-<P>Only if you press the save button the changes will be
-written to the fstab.</P>");
+<P>The changes will only be written to fstab
+if you press Save.</P>
+");
 
       
       symbol ret = `next;
@@ -1911,9 +1922,10 @@ written to the fstab.</P>");
       if( size(valid_root_partition_list) == 1 ) return valid_root_partition_list[0]:"";
       
       return OSRPopup::RadioButtonGroup(
-				      _("Select a root partition"),
+				      _("Select a root partition."),
 				      _("There are several valid root partitions in your system.
-You have to select one item in the list."),
+Select one item in the list.
+"),
 				      valid_root_partition_list,
 				      "",
 				      true
@@ -2002,10 +2014,10 @@ You have to select one item in the list."),
 	  {
 	      // no root partition found
 	      Report::Error(_("
-YaST can not find any valid
-root partition. Please go back
+YaST cannot find a valid
+root partition. Go back
 and select all scan options.
-Afterwards restart scanning.
+Afterwards, restart scanning.
 "));
 	      return nil;
 	  }
@@ -2066,9 +2078,9 @@ Afterwards restart scanning.
       if ( ! ReadedSuccessfully() )
       {
 	  Report::Error(_("
-YaST can not read the file /etc/fstab.
-The initialization of the target system
-is not possible. Please go back
+YaST cannot read the file /etc/fstab.
+Initialization of the target system
+is not possible. Go back
 and select all scan options.
 "));
 	  return nil;
