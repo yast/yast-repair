@@ -2084,7 +2084,7 @@ Select one item in the list.
     );
 
     mnt_list = sort (map x, map y, mnt_list, ``(
-	size (splitstring (x["file"]:x["mountpoint"]:"", "/")) >=
+	size (splitstring (x["file"]:x["mountpoint"]:"", "/")) >
 	size (splitstring (y["file"]:y["mountpoint"]:"" ,"/")))
     );
 
@@ -2248,7 +2248,7 @@ and select all scan options.
 	fstab["l"]:$[], ``(linedata));
 
     lines           = sort (map n, map m, lines,
-	``( size (splitstring (n[1]:"", "/")) >=
+	``( size (splitstring (n[1]:"", "/")) >
 	    size (splitstring (m[1]:"", "/")))
     );
     y2milestone(" sorted fstab lines %1", lines);
