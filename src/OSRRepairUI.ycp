@@ -503,8 +503,9 @@ for you.
 		
 		if( size(greq) != 0 ) {
 		    UI::OpenDialog(`opt(`decorated), `HBox(
-		    `HSpacing (0.5), `Label(_("
-YaST is resolving the dependencies
+		    `HSpacing (0.5), `Label(
+// popup label: wait while dependencies are being solved
+_("YaST is resolving the dependencies
 between the selected groups...
 ")),
 		    `HSpacing(0.5)));
@@ -774,8 +775,7 @@ Then select one proposal or cancel the repair. </P>
   define symbol AbortDialog() ``{
 
       // popup label, %1 is "YaST System Repair" (translated)
-      if( Popup::YesNo(sformat(_("
-Really abort %1?
+      if( Popup::YesNo(sformat(_("Really abort %1?
 "),tool_name )) )
 	  return `yes;
 
@@ -788,8 +788,7 @@ Really abort %1?
   define symbol FinishDialog() ``{
 
       // popup label, %1 is "YaST System Repair" (translated)
-      if( Popup::YesNo(sformat(_("
-Really finish %1?
+      if( Popup::YesNo(sformat(_("Really finish %1?
 "),tool_name )) )
 	  return `yes;
 
