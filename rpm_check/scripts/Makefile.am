@@ -1,6 +1,3 @@
-YAST2DIR = /tmp/yast2
-#/usr/lib/YaST2/
-
 bindir = $(YAST2DIR)/bin
 scrdir = $(YAST2DIR)/scrconf
 

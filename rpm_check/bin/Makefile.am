@@ -1,6 +1,3 @@
-YAST2DIR = /tmp/yast2
-
-
 bindir = $(YAST2DIR)/bin
 agentsdir = $(YAST2DIR)/servers_non_y2
 
