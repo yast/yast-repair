@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 12 10:39:24 CEST 2004 - jsuchome@suse.cz
+
+- removed usage of DownloadProgress widget, fixed types
+- 2.10.1 
+
+-------------------------------------------------------------------
 Tue Jun 22 20:16:29 CEST 2004 - jsuchome@suse.cz
 
 - fixed direct call of bootloader repair (#40223)
