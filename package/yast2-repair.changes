@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Mar 12 16:20:56 CET 2004 - jsuchome@suse.cz
+
+- use clients (osr_module_*) as include files now
+- used function reference in OSRPopup::MultiSelectionBox
+- fixed cyclic dependencies
+- 2.9.5
+
+-------------------------------------------------------------------
 Mon Mar  8 18:19:06 CET 2004 - jsuchome@suse.cz
 
 - more type fixes
