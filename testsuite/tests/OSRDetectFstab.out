@@ -1,0 +1,6 @@
+Return	true
+Return	nil
+Return	nil
+Return	["fs_check", "swap_check"]
+Dump	detect group: ["fstab_check", "fs_check", "swap_check"]
+Return	`detectok

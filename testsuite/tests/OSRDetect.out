@@ -1,0 +1,28 @@
+Dump	global entries: $[]
+Return	true
+Dump	global entries (keys): ["boot_check", "fs_check", "fstab_check", "init", "mbr_check", "packages_db_check", "packages_selection", "packages_verify_all", "packages_verify_base", "swap_check"]
+Dump	detect group: []
+Return	nil
+Dump	detect group: ["init", "mbr_check", "swap_check", "fs_check", "fstab_check", "packages_db_check", "packages_selection", "packages_verify_base", "boot_check"]
+Dump	----------------- start detection [no hard disk found]: ------
+Return	`error
+Dump	--------------------------------------------------------------
+Dump	--- status: detect_error
+Dump	--- failed in module: osr_module_partition
+Dump	----------------- start detection [hard disks now ok]: --------
+Log	root fstype not valid
+Log	root fstab line is not valid
+Log	no entry for /dev/hda1 found in the fstab
+Log	no entry for usbfs found in the fstab
+Log	no entry for proc found in the fstab
+Log	no entry for devpts found in the fstab
+Log	no entry for /dev/cdrom found in the fstab
+Log	no entry for  found in the fstab
+Log	no entry for /dev/hda1 found in the fstab
+Log	no entry for usbfs found in the fstab
+Log	no entry for proc found in the fstab
+Log	no entry for devpts found in the fstab
+Log	no entry for /dev/cdrom found in the fstab
+Log	no entry for  found in the fstab
+Log	The required value "bootloader_ask_user" is not yet set.
+Return	`detectok

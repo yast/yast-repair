@@ -27,7 +27,6 @@
   import "OSRSummary";
   import "OSRStatus";
   import "OSRLogFile";
-  import "OSRSystem";
   import "OSRDirect";
 
   textdomain "repair";
@@ -46,7 +45,7 @@
   /**
    * Only for define ComputesDetectMethodSequence ! not global.
    */
-  list global_provides_list		= [];
+  list<string> global_provides_list		= [];
 
   /**
    * Only for define Detect. Contains the current module index.
@@ -177,6 +176,34 @@
   }
 
   /**
+   * set OSRCommon::detect_group_list to []
+   */
+  global define void ResetDetectGroupList() {
+      OSRCommon::detect_group_list = [];
+  }
+
+  /**
+   * return size of OSRCommon::detect_group_list
+   */
+  global define integer SizeDetectGroupList () {
+      return size (OSRCommon::detect_group_list);
+  }
+
+  /**
+   * set new value for OSRCommon::detect_group_list
+   */
+  global define void SetDetectGroupList (list<string> gl) {
+      OSRCommon::detect_group_list = gl;
+  }
+
+  /**
+   * get value of OSRCommon::detect_group_list
+   */
+  global define list<string> DetectGroupList() {
+      return OSRCommon::detect_group_list;
+  }
+
+  /**
    * Computes the sequence of the detection methods of a module. 
    */
   define list<map> ComputesDetectMethodSequence(string module_name )``{
@@ -194,7 +221,7 @@
 	  map mm =  module_detect_methods[index]:$[];
 	  method_requires_list = mm["requires"]:[];
 
-	  if ( OSRSystem::IsSubSet(method_requires_list, global_provides_list ))
+	  if ( OSRCommon::IsSubSet(method_requires_list, global_provides_list ))
 	  {
 	      // if true add this module as next module in the sequence list, remove it from the
 	      // list of modules and decrease the size of the list
@@ -204,7 +231,8 @@
 	      index                 = 0;
 
 	      // concatenate, sort and remove duplicates of the global_provides_list and the module_provides_list
-	      global_provides_list = union( global_provides_list, mm["provides"]:[]);
+	      global_provides_list = (list<string>)
+		union (global_provides_list, mm["provides"]:[]);
 	  }
 	  else
 	  {
@@ -238,7 +266,8 @@
 	  module_provides_list = module_maps [module_name,"provides"]:[];
 
 	  // check if the requirements of the current module are resolved by the global provides
-	  if ( OSRSystem::IsSubSet(module_requires_list, union( global_provides_list, module_provides_list )))
+	  if (OSRCommon::IsSubSet (module_requires_list, (list<string>)
+	      union (global_provides_list, module_provides_list)))
 	  {
 	      // if true add this module as next module in the sequence list, remove it from the
 	      // list of modules and decrease the size of the list
@@ -431,8 +460,8 @@ modules were successfully solved.
   /**
    * Returns if all detection groups are selected for detection.
    */
-  define boolean all_groups_selected()``{
-      return (size( OSRCommon::detect_group_list ) == (size(OSRCommon::global_entries) - size( forall_groups_names())));
+  define boolean all_groups_selected() {
+      return (SizeDetectGroupList () == (size(OSRCommon::global_entries) - size( forall_groups_names())));
   }
 
 
@@ -440,8 +469,8 @@ modules were successfully solved.
    * Returns true if the specified requires argument
    * is not provided (not in the map global_provides).
    */
-  define boolean requires_not_provided(list<string> requires )``{
-    return !OSRSystem::IsSubSet (
+  define boolean requires_not_provided (list<string> requires) {
+    return !OSRCommon::IsSubSet (
     requires, maplist (string k, any v, OSRCommon::GlobalProvides () ,``(k)));
   }
 
@@ -466,7 +495,7 @@ modules were successfully solved.
 		detect_method["group"]:""));
 
 	y2debug("Required module groups %1", required_groups );
-	if (!OSRSystem::IsSubSet (required_groups,OSRCommon::detect_group_list))
+	if (!OSRCommon::IsSubSet (required_groups, DetectGroupList ()))
 	{
 	    req_not_in_detection_group = true;
 	}
@@ -485,7 +514,7 @@ modules were successfully solved.
   define boolean skip_detect_method(map method_map )``{
 
       // Check if only a few groups are selected -- ignore requires ( at the moment )
-      if ( ! contains( OSRCommon::detect_group_list, method_map["group"]:"" ))
+      if ( !contains (DetectGroupList (), method_map["group"]:""))
       {
 	  y2milestone ("Detection method '%1' skipped (not in detection group)",
 	    method_map["name"]:"");
@@ -494,10 +523,10 @@ modules were successfully solved.
       else
       {
 	  // If not all entries are selected
-	  if( all_groups_selected() ) {
+	  if (all_groups_selected ()) {
 	      // Check if the requires for the next detection method
 	      if ( requires_not_provided (method_map["requires"]:[] )  &&
-		   requires_in_detection_group(method_map["requires"]:[]))
+		   requires_in_detection_group (method_map["requires"]:[]))
 	      {
 		  // next step can not be executed - skip execution
 		  OSRLogFile::Add(sformat("Detection method with the summary :%1 could not be executed.
@@ -600,12 +629,13 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
     integer number_of_detection_methods = 0;
     if (size( module_sequence ) > 0)
     {
+	list<string> detect_list	= DetectGroupList ();
 	foreach (string mod, module_sequence, ``{
 
 	    // count the total number of detection methods
 	    number_of_detection_methods = number_of_detection_methods + size (
 		filter (map v, module_detection_methods[mod]:[], ``(
-		    contains (OSRCommon::detect_group_list, v["group"]:"" ))
+		    contains (detect_list, v["group"]:"" ))
 		));
 	});
     }
@@ -627,13 +657,11 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 
       integer old_detect_size = 0;
 
-      if (!OSRSystem::IsSubSet (forall_groups_names(),
-				OSRCommon::detect_group_list))
+      if (!OSRCommon::IsSubSet (forall_groups_names(), DetectGroupList ()))
       {
-	  OSRCommon::detect_group_list = (list<string>)
-	    merge (forall_groups_names(), OSRCommon::detect_group_list);
+	  SetDetectGroupList ((list<string>) merge (
+	    forall_groups_names(), DetectGroupList ()));
       }
-
       if ( size( module_sequence ) <= 0 )
       {
 	  y2error("List module_sequence is empty: %1. YaST system repair halts now!", module_sequence);
@@ -739,7 +767,6 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	    // Analyse the status set by one detection method
 	    //
 	    ///////////////////////////////////////////////////////////////////
-
 	    if ((OSRStatus::IsStatusDetectError() &&
 		 OSRStatus::IsErrorSeverityBlocking())  ||
 		(OSRStatus::IsStatusRepairError() &&
@@ -947,10 +974,9 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
     list<term> entries      = [];
 
     foreach (map d, SortGroupSequence( OSRCommon::global_entries ), ``{
-	if (OSRCommon::detect_group_list != nil &&
-	    size (OSRCommon::detect_group_list) != 0)
+	if (SizeDetectGroupList () > 0)
 	{
-	    mode = contains (OSRCommon::detect_group_list, d["key"]:"" );
+	    mode = contains (DetectGroupList (), d["key"]:"");
 	}
 	if (d["mode"]:"" != "forall" && d["key"]:"" != "" && d["text"]:"" != "")
 	{
@@ -966,40 +992,20 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
   }
 
 
-  /**
-   * ...
-   */
-  global define void ResetDetectGroupList()``{
-      OSRCommon::detect_group_list = [];
-  }
-
-  /**
-   * ...
-   */
-  global define integer SizeDetectGroupList()``{
-      return size( OSRCommon::detect_group_list );
-  }
-
-  /**
-   * ...
-   */
-  global define void SetDetectGroupList(list<string> gl )``{
-      OSRCommon::detect_group_list = gl;
-  }
-
-  global define list<string> DetectGroupList()``{
-      return OSRCommon::detect_group_list;
-  }
 
 
   global define void SelectDefaultDetectGroups()``{
 
-      OSRCommon::detect_group_list = maplist (map vv,
-	filter (map v, SortGroupSequence( OSRCommon::global_entries ),``(
+    SetDetectGroupList (maplist (map vv,
+	filter (map v, SortGroupSequence (OSRCommon::global_entries), ``(
 	    v["selected"]:true == true)),
-	``(vv["key"]:""));
+	``(vv["key"]:""))
+    );
   }
 
+  /**
+   * check the dependencies for seleced detect groups
+   */
   global define list<string> CheckGroupRequires()``{
 
     list<string> ret =  [];
@@ -1007,12 +1013,12 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
     while ( again )
     {
 	boolean found = false;
-	foreach (string group, OSRCommon::detect_group_list, ``{
+	foreach (string group, DetectGroupList (), {
 
 	    list<string> requires = (list<string>)
 		OSRCommon::global_entries[group,"requires"]:[];
-	    foreach (string req, requires, ``{
-		if (!contains(OSRCommon::detect_group_list, req ))
+	    foreach (string req, requires, {
+		if (!contains (OSRCommon::detect_group_list, req))
 		{
 		    if (!contains(ret, req))
 		    {
@@ -1024,8 +1030,7 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	});
 	if (found)
 	{
-	    OSRCommon::detect_group_list = (list<string>) union (
-		OSRCommon::detect_group_list, ret);
+	    SetDetectGroupList ((list<string>) union (DetectGroupList (), ret));
 	    again = true;
 	}
 	else

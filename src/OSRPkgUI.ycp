@@ -113,7 +113,9 @@
      */
     boolean protocol_mode	= false;
 
-    define void set_verify_text_header()``{
+    // crate header for verification output richtext
+    define void set_verify_text_header() {
+
 	string header        = "";
 	string hr            = "";
 	list<string> special = [];
@@ -135,7 +137,7 @@
                                <td %1><hr></td>
                                </tr>", special[1]:"");
 
-	    verified_text_ok = sformat( header, 
+	    verified_text_ok = sformat( header,
 					HTML::Bold(_("Package Name")),
 					HTML::Bold(_("Files ")),
 					HTML::Bold(_("Configuration File")),
@@ -149,7 +151,6 @@
 	else {
 	    y2debug("no headline");
 	}
-
     }
 
      /**
@@ -169,7 +170,7 @@
 	packages_to_reinstall	= [];
 
 	OSRProgress::Reset();
-	set_verify_text_header();
+
     }
 
     /**
@@ -317,6 +318,10 @@ YaST verifies packages now."))),
      */
     global define boolean OpenVerifyDialog(integer size_progress , string headline , boolean t_expert_mode )``{
 
+	if (verified_text == "")
+	{
+	    set_verify_text_header();
+	}
 	// count of package which should be verified.
 	package_count   = size_progress;
 

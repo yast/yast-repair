@@ -1,0 +1,56 @@
+/**
+ *  Test for OSRModuleLoading module
+ *  Jiri Suchomel <jsuchome@suse.cz>
+ *  $Id$
+ */
+
+{
+    // estedfiles: OSRModuleLoading.ycp ModuleLoading.ycp
+
+    include "testsuite.ycp";
+
+    map I_READ = $[
+	"proc" : $[
+	    "modules": $[]
+	],
+    ];
+
+    map I_EXEC = $[
+    ];
+    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+
+    map R	= $[
+	"proc" : $[
+	    "modules": $[]
+	],
+    ];
+    map W	= $[];
+    map E	= $[
+	"target"	: $[
+	    "modprobe"	: false
+	]
+    ];
+
+    import "OSRModuleLoading";
+
+    DUMP ("--------------------- loading module 'mod1' [modprobe failed]-");
+    TEST (``(OSRModuleLoading::Load ("mod1", "", "", "", true, true)), [R, W, E], 0);
+
+    E	= $[
+	"target"	: $[
+	    "modprobe"	: true
+	]
+    ];
+
+    DUMP ("--------------------- loading module 'mod1' [success]---------");
+    TEST (``(OSRModuleLoading::Load ("mod1", "arg", "", "", true, true)), [R, W, E], 0);
+
+    R	= $[
+	"proc" : $[
+	    "modules": $[ "mod1": $[ 1: 1] ]
+	],
+    ];
+    DUMP ("--------------------- loading module 'mod1' [already loaded] -");
+    TEST (``(OSRModuleLoading::Load ("mod1", "", "", "", true, true)), [R, W, E], 0);
+
+}

@@ -1,0 +1,157 @@
+/**
+ *  Test for running customized detection: check fstab entries
+ *  Jiri Suchomel <jsuchome@suse.cz>
+ *  $Id$
+ */
+
+{
+    // testedfiles: OSR.ycp OSRCommon.ycp osr_module_partition.ycp OSRFstab.ycp OSRFsck.ycp
+
+    include "testsuite.ycp";
+
+    map I_READ = $[
+	"probe" : $[
+	    "cdrom"	: $[
+		"manual"	: [],
+	    ],
+	    "is_uml"	: false,
+	    "floppy"	: $[
+		"manual"	: [
+		    $[
+			"dev_name":"/dev/fd0",
+		    ]
+		]
+	    ],
+	    "architecture"	: ""
+	],
+	"proc"	: $[
+	    "modules"	: $[]
+	],
+	"target" : $[
+	    "size"	: -1,
+	    "tmpdir"	: "/tmp/",
+	],
+	"product"	: $[
+	    "features"	: $[
+		"USE_DESKTOP_SCHEDULER"	: "",
+		"IO_SCHEDULER"		: "",
+		"UI_MODE"		: "",
+		"ENABLE_AUTOLOGIN"	: "",
+		"EVMS_CONFIG"		: ""
+	    ],
+	],
+    ];
+
+    map I_EXEC = $[
+	"target": $[
+	    "bash_output" : $[],
+	],
+    ];
+    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+
+    import "OSR";
+    import "OSRCommon";
+
+    string fstab	=
+"/dev/hda3	/	reiserfs	acl,user_xattr 1 1
+/dev/hda1	swap	swap	pri=42 0 0
+/dev/cdrom	/media/dvd	subfs	fs=cdfss,ro,procuid,nosuid,nodev,exec,iocharset=utf8 0 0
+devpts	/dev/pts	devpts	mode=0620,gid=5 0 0
+proc	/proc	proc	defaults 0 0
+/dev/fd0	/media/floppy	subfs	fs=floppyfss,procuid,nodev,nosuid,sync 0 0
+usbfs	/proc/bus/usb	usbfs	noauto 0 0";
+
+
+    map R	= $[
+	"target" : $[
+	    "yast2"	: $[
+		"/dev/hda": $[
+		    "device"	: "/dev/hda",
+		    "partitions": [
+			$[
+			    "fsid"	: 130,
+			    "device"	: "/dev/hda1",
+			    "nr"	: 1
+			],
+			$[
+			    "detected_fs":`reiser,
+			    "device"	: "/dev/hda3",
+			    "mount"	: "/",
+			    "nr"	: 3
+			],
+		    ]
+		],
+	    ],
+	    "size"	: 1,
+	    "string"	: fstab,
+	    "tmpdir"	: "/tmp/",
+	    "ycp"	: $[],
+	],
+	"md"	: $[
+	    "config"	: $[],
+	],
+	"lvm"	: $[
+	    "vg"	: $[],
+	    "pv"	: $[],
+	],
+	"evms"	: $[
+	    "container"	: [],
+	    "volume"	: [],
+	],
+	"probe" : $[
+	    "usbctrl"	: [ $[] ],
+	],
+	"proc"	: $[
+	    "swaps"	: [ ],
+	    "mounts"	: [ $["file": "/" , "spec": "/dev/hda3"],
+			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
+	],
+	"etc"	: $[
+	    "mtab"	: [ $["file": "/"] ]
+	],
+	"sysconfig"	: $[
+	    "kernel"	: $[
+		"INITRD_MODULES"	: "",
+	    ],
+	    "bootloader": $[
+		"LOADER_TYPE"		: "grub",
+	    ],
+	    "language"	: $[
+		"RC_LANG"		: "",
+		"DEFAULT_LANGUAGE"	: "",
+		"ROOT_USES_LANG"	: "",
+		"LANGUAGES"		: "",
+	    ],
+	],
+	"xml"		: $[],
+	"grub"		: [],
+    ];
+    map W	= $[];
+    map E	= $[
+	"target": $[
+	    "bash_output"	: $[
+		// output for /bin/guessfstype caled in FileSystems::DetectFs:
+		"exit"		: 0,
+		"stdout"	: "/dev/hda3 is reiserfs\n",
+	    ],
+	    "modprobe"		: true,
+	],
+    ];
+
+    import "Mode";
+
+    Mode::SetTest ("testsuite");
+
+    TEST (``(OSR::Init ()), [R, W, E], 0);
+
+    import "Hotplug";
+    TEST (``(Hotplug::StartUSB ()), [R, W, E], 0);
+
+    TEST (``(OSR::SetDetectGroupList (["fstab_check"])), [R, W, E], 0);
+
+    TEST (``(OSR::CheckGroupRequires ()), [R, W, E], 0);
+
+    DUMP (sformat ("detect group: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::Detect ()), [R, W, E], 0);
+}

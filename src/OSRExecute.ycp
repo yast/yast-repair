@@ -155,10 +155,11 @@
       // in test/demo-mode set "echo" in front of every commandline and delete
       // all ";" from the commandline
       if (Mode::test () )
+      {
 	  commandline = "/bin/echo " +
 	    mergestring (splitstring(commandline, ";"), " ");
-
-      if ( UI::WidgetExists(`id(`module_progress_bar )))
+      }
+      else if (UI::WidgetExists(`id(`module_progress_bar )))
 	   OSRProgress::SetLabel(`module_progress_bar, commandline );
 
       // only use the module progress bar if a filename was specified and the

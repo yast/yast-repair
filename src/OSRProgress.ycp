@@ -17,6 +17,7 @@
 
   textdomain "repair";
 
+  import "Mode";
 
   /**
    * The length of a ProgressBar
@@ -37,6 +38,7 @@
 
   global define term CreateProgressBar (symbol id, string label,
 					integer real_steps ) ``{
+
     if( ! haskey( progresses, id ) )
     {
 	progresses = add( progresses, id , $[ "type"		: "ProgressBar",
@@ -51,6 +53,7 @@
    * Create a new Progress Widget
    */
   global define term Create(symbol id, string label, integer steps, boolean downloadprogress ) ``{
+
 
       if ( ! (downloadprogress && UI::HasSpecialWidget(`DownloadProgress)))
       {
@@ -97,6 +100,8 @@
    */
   global define void SetSteps( symbol id, integer steps)``{
 
+    if (Mode::test ()) return;
+
       map progress = progresses[id]:$[];
 
       if ( progress["type"]:"" == "ProgressBar" ) {
@@ -118,6 +123,9 @@
    *  @return boolean True if the progress value was increased successfully.
    */
   global define boolean Increase(symbol id ) ``{
+
+    if (Mode::test ()) return true;
+
       map progress		= progresses[id]:$[];
 
       if ( progress["type"]:"" == "ProgressBar" ) {
@@ -153,8 +161,11 @@
    *  @return boolen True if the label was set correctly.
    */
   global define boolean SetLabel(symbol id, string new_label) ``{
-      if( UI::QueryWidget(`id(id), `Label) != new_label )
-      {
+
+    if (Mode::test ()) return true;
+
+    if (UI::QueryWidget(`id(id), `Label) != new_label)
+    {
 	  if ( new_label != "")
 	  {
 	      UI::ChangeWidget(`id(id), `Label, new_label);
@@ -167,8 +178,8 @@
 	  else {
 	      return DownloadIncrease(id, new_label);
 	  }
-      }
-      return false;
+    }
+    return false;
   };
 
   /**
@@ -176,6 +187,8 @@
    *  @return boolean True if the progress value was increased successfully.
    */
   global define boolean Fill(symbol id) ``{
+
+    if (Mode::test ()) return true;
 
       map progress		= progresses[id]:$[];
 

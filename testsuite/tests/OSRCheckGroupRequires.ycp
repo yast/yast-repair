@@ -1,0 +1,75 @@
+/**
+ *  Test for OSR::CheckGroupRequires
+ *  Jiri Suchomel <jsuchome@suse.cz>
+ *  $Id$
+ */
+
+{
+    // testedfiles: OSRRepairUI.ycp OSR.ycp OSRCommon.ycp
+
+    include "testsuite.ycp";
+
+    map I_READ = $[
+	"probe" : $[
+	    "cdrom"	: $[
+		"manual"	: [],
+	    ],
+	    "is_uml"	: false,
+	    "floppy"	: $[
+		"manual"	: [ $[] ] // 1 floppy for "init_floppy" method
+	    ],
+	    "architecture"	: ""
+	],
+	"proc"	: $[
+	    "modules"	: $[]
+	],
+	"target" : $[
+	    "size"	: -1,
+	    "tmpdir"	: "/tmp/",
+	],
+	"product"	: $[
+	    "features"	: $[
+		"USE_DESKTOP_SCHEDULER"	: "",
+		"IO_SCHEDULER"		: "",
+		"UI_MODE"		: "",
+		"ENABLE_AUTOLOGIN"	: "",
+		"EVMS_CONFIG"		: ""
+	    ],
+	],
+    ];
+
+    map I_EXEC = $[
+	"target": $[
+	    "bash_output" : $[],
+	],
+    ];
+    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+
+    import "OSR";
+    import "OSRCommon";
+
+    map R	= $[];
+    map W	= $[];
+    map E	= $[];
+
+    TEST (``(OSR::Init ()), [R, W, E], 0);
+
+    DUMP (sformat ("detect group list: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::SetDetectGroupList (["packages_selection"])), [R, W, E], 0);
+
+    DUMP (sformat ("detect group list: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::CheckGroupRequires ()), [R, W, E], 0);
+
+    DUMP (sformat ("detect group list: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::SetDetectGroupList (["boot_check"])), [R, W, E], 0);
+
+    DUMP (sformat ("detect group list: %1", OSR::DetectGroupList ()));
+
+    TEST (``(OSR::CheckGroupRequires ()), [R, W, E], 0);
+
+    DUMP (sformat ("detect group list: %1", OSR::DetectGroupList ()));
+
+}

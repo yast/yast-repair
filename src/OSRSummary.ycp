@@ -20,6 +20,7 @@
   module "OSRSummary";
 
   import "HTML";
+  import "Mode";
   import "Stage";
 
   import "OSRLogFile";
@@ -208,7 +209,7 @@ color
       map     group_text_map  = $[];
 
       //update show_details
-      if (UI::WidgetExists(`id(`details)))
+      if (!Mode::test() && UI::WidgetExists(`id(`details)))
 	  show_details = (boolean) UI::QueryWidget(`id(`details), `Value );
 
       foreach (string group, any entries, (map<string,any>)summary, ``{
@@ -303,7 +304,7 @@ color
 
       WFM::Write(.local.ycp, OSRLogFile::GetTmpDir()+"/summary" , summary );
 
-      return UI::ChangeWidget(`id(richtext_widget), `Value, text);
+      return Mode::test () || UI::ChangeWidget(`id(richtext_widget), `Value, text);
   };
 
   /**

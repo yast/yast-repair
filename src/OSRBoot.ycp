@@ -286,8 +286,12 @@
 	list<string> ret = [];
 	foreach(string package, packages, ``{
 	    string package_version = package;
-	    package_version = package_version + " current version: " + Pkg::PkgVersion(package) +
-		                                " required version: " + RequiredPackageVersion(bootloader, package);
+	    if (!Mode::test ())
+	    {
+		package_version = package_version + " current version: " +
+		    Pkg::PkgVersion(package) + " required version: " +
+		    RequiredPackageVersion(bootloader, package);
+	    }
 	    ret = add(ret, package_version );
 	});
 	return ret;
@@ -389,10 +393,9 @@
 	r1 = (string) SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	if( r1 == nil || r1 == "" ) not_valid_files = add(not_valid_files, needed_config_files["bootloader"]:"");
 
-	integer r2 = (integer) WFM::Execute(.local.bash,
+	integer r2 = Mode::test () ? 0 : (integer) WFM::Execute(.local.bash,
 	    sformat("/usr/bin/test -f %1%2",
 		root_mountpoint, needed_config_files["modules"]:""));
-
 	if (r2 != 0)
 	{
 	    not_valid_files = add (not_valid_files,
@@ -428,7 +431,7 @@
 
 	    if( what == "installed" )
 	    {
-		if(! Pkg::IsProvided ( package ) ) {
+		if(!Mode::test () && ! Pkg::IsProvided ( package ) ) {
 		    missing_packages = add(missing_packages, package);
 		}
 		else {
@@ -450,8 +453,9 @@
 	    }
 	    else if ( what == "version" )
 	    {
-		if( ! VersionIsHigherOrEqual( Pkg::PkgVersion(package),
-					      RequiredPackageVersion(bootloader, package)))
+		if (!Mode::test () &&
+		    !VersionIsHigherOrEqual (Pkg::PkgVersion (package),
+			RequiredPackageVersion(bootloader, package)))
 		{
 		    missing_packages = add(missing_packages, package );
 		}
@@ -537,7 +541,7 @@ Press Repair to install these packages.
 	list<string> missing = (list<string>) filter(string s, (list<string>)listed_modules,
 	    ``( !contains(current_initrd_modules, s)));
 
-	if( Mode::test () ) missing = add(missing, "reiserfs");
+//	if( Mode::test () ) missing = add(missing, "reiserfs");
 
 	if (size( missing ) > 0)
 	{
@@ -1216,7 +1220,7 @@ is bootable, press \"Skip\".
 	}
 	boolean () check_f =
 	    bootloader_config_check[bootloader,"config_check"]:OSRCommon::False;
-	if (!check_f ())
+	if (!Mode::test () && !check_f ())
 	{
 	    bootloader_error_found = true;
 	    y2error("boot loader config check returned an error");
