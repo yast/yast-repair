@@ -186,7 +186,7 @@ boot loader.
                        $[
                          "name"     : "direct_methods_booloader",
                                           // module method action label
-                         "button_text"  : _("Install New Boot Loader..."),
+                         "button_text"  : _("Install New Boot Loader"),
                          "method"       : ``(OSRDirectBootloader()),
                          "initial_only" : false,
                          "description"  : _("
@@ -374,23 +374,33 @@ y2warning ("type from sysconfig: %1", SCR::Read (.sysconfig.bootloader.LOADER_TY
       // OSRStatus::error
       if( size ( not_found ) > 0 )
       {
-        // FIXME: whole texts have to be rewritten!!
-        // popup header: %1 is root or boot
-        if( UI::AnyQuestionPopup(sformat(_("No valid %1 partition was found"),
-            not_found[0]:"" ),
-            // popup text: %1 is root or boot
-            sformat(_("
-YaST could not detect any valid %1 partition
+        // popup header
+        string header = _("No valid root partition was found");
+        // popup text
+        string text =  _("
+YaST could not detect any valid root partition
 in your system.  Probably, there is no valid
 Linux system on this computer. If you are
 sure you installed a Linux system, press
 \"Retry Scanning\". Otherwise, skip scanning
-the system and start a new installation.
-"), not_found[0]:"" ),
+the system and start a new installation.");
+
+        if (not_found[0]:"" == "boot")
+        {
+            // popup header
+            header =  _("No valid boot partition was found");
+            // popup text
+            text =  _("
+YaST could not detect any valid boot partition
+in your system.  Probably, there is no valid
+Linux system on this computer. If you are
+sure you installed a Linux system, press
+\"Retry Scanning\". Otherwise, skip scanning
+the system and start a new installation.");
+        }
+        if( UI::AnyQuestionPopup(header, text,
             // button label
-            _("&Retry Scanning"),
-            CancelButtonLabel(),
-            `focus_yes ) )
+            _("&Retry Scanning"), CancelButtonLabel(), `focus_yes ) )
         {
             OSRStatus::RestartScan("find_harddisks");
             return true;
@@ -470,22 +480,19 @@ system.
         // summary (error) text
         OSRSummary::DetectError("", _("Cannot initialize package database."));
 
-        // popup header, %1 is root or boot
-        if( UI::AnyQuestionPopup(sformat(_("YaST cannot initialize the package database."), not_found[0]:"" ),
-            // popup text, %1 is root or boot
+        // popup header
+        if( UI::AnyQuestionPopup(_("YaST cannot initialize the package database."),
+            // popup text
             _("
 YaST could not initialize the package database.
 Probably, there is no valid package database
 on this computer.
 To check the package database,
 press \"Retry Scanning\".
-Otherwise press \"Cancel\" and continue.
+Otherwise press \"Cancel\" and continue with other tests.
 "),
             // button label
-            _("&Retry Scanning"),
-            CancelButtonLabel(),
-            `focus_yes
-            ) )
+            _("&Retry Scanning"), CancelButtonLabel(), `focus_yes) )
         {
           OSRStatus::RestartScan("check_package_database");
           return true;
@@ -586,7 +593,7 @@ these packages.
       if( OSRBoot::CheckInitrdModules("") )
       {
         // summary text
-        OSRSummary::DetectOK("", sformat("All needed initrd modules found"));
+        OSRSummary::DetectOK("", sformat(_("All needed initrd modules found")));
         OSR::ProvideBoolean("bootloader_initrd_valid", true);
       }
       else

@@ -87,7 +87,7 @@
    */
   global define boolean Unload(string modulename ) ``{
 
-    if (modulename == "") return true; //FIXME (??), use target.rmmod ?
+    if (modulename == "") return true;
 
     if ( WFM::Execute(.local.bash, sformat("/sbin/rmmod %1",modulename)) != 0 )
     {

@@ -1765,10 +1765,10 @@ lines, press \"Yes\".
       }
       string help_text = _("
 <P>YaST has not yet modified
-fstab. If you press Cancel, nothing will
+fstab. If you press \"Cancel\", nothing will
 be changed.</P>
 <P>The changes will only be written to fstab
-if you press Save.</P>
+if you press \"Save\".</P>
 ");
 
       

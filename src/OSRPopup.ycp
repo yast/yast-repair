@@ -77,7 +77,6 @@
 
       term button_box    = `HBox(
 				 `PushButton(`id(`osr_popup_repair), `opt(`default), repair_label ),
-                 // FIXME: Cancel or Skip???
 				 `PushButton(`id(`osr_popup_skip), skip_label),
 				 `HSpacing(2),
 				 `Right( help_button )
