@@ -23,10 +23,6 @@ include_DATA =			\
 	osr_summary.ycp         \
 	osr_log_file.ycp
 
-bin_SCRIPTS =			\
-	osr_check_rpm.sh	\
-	osr_check_lilo_conf.sh
-
 menu_DATA = 			\
 	menuentry_osr.ycp
 
@@ -40,6 +36,5 @@ EXTRA_DIST = 			\
 	$(clients_DATA) 	\
 	$(include_DATA) 	\
 	$(menu_DATA) 		\
-	$(bin_SCRIPTS)		\
 	$(scr_DATA)		\
 	$(yast2_DATA)
