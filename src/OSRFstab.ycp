@@ -512,7 +512,7 @@ press \"Yes\".
 
     if (!(FileSystems::GetMountString (part["detected_fs"]:`unknown, "!")
 	    == line[2]:""
-	  || line[2]:"" == "auto"))
+	  || line[2]:"" == "auto" || line[2]:"" == "subfs"))
     {
 	return false;
     }
@@ -1302,8 +1302,8 @@ Really continue?
 		if (e["spec"]:"" != "" && e["mount"]:"" != ""){
 		    list<string> fstlist = [ k , e["mount"]:"",
 					     e["vfstype"]:"", e["mntops"]:"",
-					     sformat ("%1",e["freq"]:"0"),
-					     sformat ("%1",e["passno"]:"0") ];
+					     sformat ("%1",e["freq"]:0),
+					     sformat ("%1",e["passno"]:0) ];
 
 		    cmp[fack_lnr] =  e["mount"]:"";
 		    fack_lnr      =  fack_lnr + 1;
@@ -1313,11 +1313,9 @@ Really continue?
 
 	    map failed = check_and_create_mount_points(cmp);
 	    if (size (failed) > 0) ret =  `error;
-	    
 	}
-	
-    } until( ret == `ok || ret == `cancel || ret == `error);	      
-    
+    } until( ret == `ok || ret == `cancel || ret == `error);
+
     UI::CloseDialog();
     return ret;
   }
@@ -1704,7 +1702,7 @@ change the status.
 	{
 	    nlines[lnr] = nline;
 	}
-	else
+	else if (nline != line)
 	{
 	   y2error("the size of the suggested fstab entry is to less");
 	}
