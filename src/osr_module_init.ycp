@@ -55,28 +55,32 @@
       map  osr_module_init = $[];
 
       osr_module_init = $[
-		   "name"              :  "osr_module_init",
-		   "headline"          :  UI(_("Init")),
-		   "summary"           :  [],
-		   "test_mode_summary" :  [
-					   $["header" : "Init1", "description" : "o.k.", "error" : false],
+		   "name"           :  "osr_module_init",
+		   "headline"       :  _("Init"),
+		   "summary"        :  [],
+		   "test_mode_summary" : [
+					  $["header" : "Init1", "description" : "o.k.", "error" : false],
 		   ],
-		   "detect_methods"    :  [
-					   ``(OSRInitHWProbe()),
-					   ``(OSRInitCheckFstab())
-					   //,``(OSRInit1())
+		   "detect_methods" :  [
+					``(OSRInitConvertUserSettings()),
+					``(OSRInitHWProbe()),
+					``(OSRInitCheckFstab())
+					//,``(OSRInit1())
 		   ],
-		   "provides"          : $[
-					   "disk_device_list"   : $[ "type" : "list",   "value" : ["/dev/hda"],  "status" : "unknown" ],
-					   "root_partition"     : $[ "type" : "string", "value" : "/dev/hda1",   "status" : "unknown" ],
-					   "root_partition_map" : $[ "type" : "map",    "value" : $[],           "status" : "unknown" ],
-					   "kernel_path_list"   : $[ "type" : "list",   "value" : ["/boot/vmlinuz", "/boot/vmlinuz.suse"], "status" : "unknown"],
-					   "initrd_path_list"   : $[ "type" : "list",   "value" : ["/boot/initrd",  "/boot/initrd.suse"],  "status" : "unknown"],
-					   "fstab_list"         : $[ "type" : "list",   "value" : [],            "status" : "unknown" ]
+		   "provides"       : $[
+					"update_target"      : $[ "type" : "string", "value" : "", "status" : "unknown" ],
+					"target_map"         : $[ "type" : "map", "value" : $[], "status" : "unknown" ],
+					"repair_target"      : $[ "type" : "string", "value" : "/", "status" : "unknown" ],
+					"disk_device_list"   : $[ "type" : "list", "value" : ["/dev/hda"], "status" : "unknown" ],
+					"root_partition"     : $[ "type" : "string", "value" : "/dev/hda1", "status" : "unknown" ],
+					"root_partition_map" : $[ "type" : "map", "value" : $[], "status" : "unknown" ],
+					"kernel_path_list"   : $[ "type" : "list", "value" : ["/boot/vmlinuz", "/boot/vmlinuz.suse"], "status" : "unknown"],
+					"initrd_path_list"   : $[ "type" : "list", "value" : ["/boot/initrd", "/boot/initrd.suse"],  "status" : "unknown"],
+					"fstab_list"         : $[ "type" : "list", "value" : [], "status" : "unknown" ]
 		   ],
-		   "requires"          :  [],
-		   "progress_file"     : "/tmp/osr_module_init_progress",
-		   "progress_expect"   : 1000
+		   "requires"       :  [],
+		   "progress_file"  : "/tmp/osr_module_init_progress",
+		   "progress_expect" : 1000
       ];
       
       return osr_module_init;
@@ -121,16 +125,16 @@
       progress_expect = 100;
 
       // the string to be displayed above the upper progress bar
-      progress_label  = UI(_("Probing hardware"));
+      progress_label  = _("Probing hardware");
 
       // setup the module-progress-bar
-      OSRModuleProgressSetParams(progress_label, progress_file, progress_expect);
+      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       // begin section: error detection
 
-      list disk_list = SCR(`Read(.probe.disk));
+      list disk_list = SCR::Read(.probe.disk);
 
-      //SCR(`Write(.dumpto.tmp.disk_list, disk_list));
+      //SCR::Write(.dumpto.tmp.disk_list, disk_list);
 
       error_detected = false;
       
@@ -147,8 +151,8 @@
 
 	  OSRSummaryDetectOK(
 			     module_name,
-			     UI(_("Probing hardware")),
-			     sformat(UI(_("Getting information for all disk-devices%1")), summary_text)
+			     _("Probing hardware"),
+			     sformat(_("Getting information for all disk-devices%1"), summary_text)
 			     );
       }
       else
@@ -156,21 +160,21 @@
  	  status = OSRStatusDetectError();
 
 	  // set the error message that is displayed in the popup OSRRepairPopup
-	  error_message   = UI( _("An error was detected.\nPress Repair to fix the error.") );
+	  error_message   = _("An error was detected.\nPress Repair to fix the error.");
 
 	  // set the help-text to be displayed in the left RichText-widget of the main window
-	  help_text       = UI( _("<p>ERROR.</p>"));
-	  help_text       = help_text + UI( _("<p>Press <b>Repair</b>.</p>") );
+	  help_text       = _("<p>ERROR.</p>");
+	  help_text       = help_text + _("<p>Press <b>Repair</b>.</p>");
 
 	  // display the help-text
 	  //OSRDisplayHelpText(help_text);
 	  
 	  // launch the repair-popup
-          repair_question = OSRPopupRepair(UI(_("Error detected")), error_message, help_text);
+          repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
 	  // set the text that is displayed in the right RichText-widget of the main window
-	  //result_text = OSRSummaryItem(UI(_("TEMPLATE check 1")), UI(_("Error detected")), true);
-	  OSRSummaryDetectError(module_name, UI(_("Probing hardware")), UI(_("Error detected")));
+	  //result_text = OSRSummaryItem(_("TEMPLATE check 1"), _("Error detected"), true);
+	  OSRSummaryDetectError(module_name, _("Probing hardware"), _("Error detected"));
 			      
 	  // if the user selected Repair set the sequence of repair methods
   	  if (repair_question)
@@ -256,14 +260,14 @@
       
       status = OSRStatusDetectOK();
 
-      OSRModuleProgressSetParams(UI(_("Checking /etc/fstab")), "/tmp/osr_module_init_progress", 10);
+      OSRModuleProgress::SetParams(_("Checking /etc/fstab"), "/tmp/osr_module_init_progress", 10);
 
-      OSRModuleProgressAdd(1);
+      OSRModuleProgress::Add(1);
       
       // get the disk-devices maps as a list
-      all_disks  = SCR(`Read(.probe.disk));
+      all_disks  = SCR::Read(.probe.disk);
 
-      OSRModuleProgressAdd(1);
+      OSRModuleProgress::Add(1);
       
       // extract the device names from the disk-devices maps and add it to
       // the provides map
@@ -275,36 +279,36 @@
       }
       OSRProvideList("disk_device_list", disk_device_list);
 
-      OSRModuleProgressAdd(1);
+      OSRModuleProgress::Add(1);
       
       // get the fstab-entries as list of maps and add it to the provides map
-      fstab_list = SCR(`Read(.etc.fstab));
+      fstab_list = SCR::Read(.etc.fstab);
       OSRProvideList("fstab_list", fstab_list);
 
-      OSRModuleProgressAdd(1);
-      
-      // get the mountpoint of the root partition as string
-      root_path  = SCR(`Read(.target.root));
+      OSRModuleProgress::Add(1);
 
-      OSRModuleProgressAdd(1);
+      // get the mountpoint of the root partition as string
+      root_path  = SCR::Read(.target.root);
+
+      OSRModuleProgress::Add(1);
       
       // extract the map of the root partition and its device name and provide it
       root_partition_map = find(`m, fstab_list, ``(lookup(m, "file", "") == root_path));
       root_partition     = lookup(root_partition_map, "spec", "");
 
-      OSRModuleProgressAdd(1);
+      OSRModuleProgress::Add(1);
 
       OSRProvideMap("root_partition_map", root_partition_map);
       OSRProvideString("root_partition", root_partition);
 
-      OSRModuleProgressAdd(1);
+      OSRModuleProgress::Add(1);
       
       //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
       
       OSRSummaryDetectOK(
 		   module_name,
-		   UI(_("Checking filesystem table")),
-		   sformat(UI(_("<code>/etc/fstab</code> is o.k.<br>Root partition is: <code>%1</code>")), root_partition)
+		   _("Checking filesystem table"),
+		   sformat(_("<code>/etc/fstab</code> is o.k.<br>Root partition is: <code>%1</code>"), root_partition)
 		   );
 
       result_map = $[
@@ -313,8 +317,56 @@
 		     "error_repair"   : repair_question
       ];
 
-      OSRModuleProgressFill();
+      OSRModuleProgress::Fill();
 
+      return result_map;
+  }
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define OSRInitConvertUserSettings() ``{
+
+      boolean error_detected  = false;
+      boolean repair_question = false;
+      integer result          = 1;
+      string  command         = "";
+      map     result_map      = $[];
+      string  module_name     = "osr_module_init";
+      string  status          = "";
+      map     target_map      = $[];
+      string  update_target   = "";
+
+      status = OSRStatusDetectOK();
+
+      y2debug("OSRInitConvertUserSettings");
+
+      OSRModuleProgress::SetParams(_("Converting user-settings"), "/tmp/osr_module_init_progress", 10);
+      
+      //result_text = OSRSummaryItem(_("OSRInit1"), _("Is o.k."), false);
+
+      target_map     = lookup (user_settings, "targets",      $[]);
+      update_target  = lookup (user_settings, "updateTarget", "/mnt");
+
+      OSRModuleProgress::Add(5);
+      
+      OSRProvideMap("target_map", target_map);
+      OSRProvideString("update_target", update_target);
+
+      OSRModuleProgress::Add(5);
+      
+      OSRSummaryDetectOK(module_name, _("Converting user-settings"), _("O.k."));
+
+      result_map = $[
+		     "status"         : status,
+		     "error_detected" : error_detected,
+		     "error_repair"   : repair_question
+      ];
+
+      OSRModuleProgress::Fill();
+      
       return result_map;
   }
 
@@ -337,11 +389,11 @@
 
       y2debug("OSRInit1");
 
-      OSRModuleProgressSetParams(UI(_("Checking OSRInit1")), "/tmp/osr_module_init_progress", 10);
+      OSRModuleProgress::SetParams(_("Checking OSRInit1"), "/tmp/osr_module_init_progress", 10);
       
-      //result_text = OSRSummaryItem(UI(_("OSRInit1")), UI(_("Is o.k.")), false);
+      //result_text = OSRSummaryItem(_("OSRInit1"), _("Is o.k."), false);
 
-      OSRSummaryDetectOK(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")));
+      OSRSummaryDetectOK(module_name, _("OSRInit1"), _("Is o.k."));
 			     
       result_map = $[
 		     "status"         : status,
@@ -349,7 +401,7 @@
 		     "error_repair"   : repair_question
       ];
 
-      OSRModuleProgressFill();
+      OSRModuleProgress::Fill();
       
       return result_map;
   }
@@ -369,7 +421,7 @@
   if (init_mode)
   {
       map test_map = OSRInitInit();
-      //SCR(`Write(.dumpto.tmp.osr_module_init, test_map));
+      //SCR::Write(.dumpto.tmp.osr_module_init, test_map);
 
       return test_map; 
   }
