@@ -197,9 +197,14 @@ is not possible.</P>
 	{
 	    minimal_selection = (list<string>)
 		Pkg::SelectionContent("Minimal", false, "");
-	    if (size (minimal_selection) == 0)
-		minimal_selection = (list<string>)
-		    Pkg::SelectionContent("MINIMAL", false, "");
+	    // add also contents of required selections: (bug #37133)
+	    map sel_data = Pkg::SelectionData ("Minimal");
+	    foreach (string req, sel_data["requires"]:[], ``{
+		y2debug ("required selection: %1", req);
+		minimal_selection = (list<string>) union (
+		    minimal_selection, Pkg::SelectionContent (req, false, ""));
+		y2debug ("minimal: %1", minimal_selection);
+	    });
 	}
 	return minimal_selection;
     }
@@ -694,7 +699,7 @@ packages is recommended.  Press
 packages in the list.
 "),
 					     _("
-<P>SuSE Linux needs at least some packages for
+<P>&product; needs at least some packages for
 basic system functionality. Without these
 packages, the system is not executable.</P>
 ") +
