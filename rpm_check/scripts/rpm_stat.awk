@@ -57,12 +57,12 @@ function get_file_info( f_filename, f_rpmfail_str){
 	rls_command | getline;
 	close(rls_command);
 	ret_str = "$[";
-	if(f_rpmfail_str ~ /S/) ret_str = ret_str "\"S\":\""$11"\",";
+	if(f_rpmfail_str ~ /S/) ret_str = ret_str "\"S\":\""$12"\",";
 	if(f_rpmfail_str ~ /M/) ret_str = ret_str "\"M\":\""$2"\",";
 	if(f_rpmfail_str ~ /D/) ret_str = ret_str "\"D\":\""$8"\",";
 	if(f_rpmfail_str ~ /U/) ret_str = ret_str "\"U\":\""$6"\",";
 	if(f_rpmfail_str ~ /G/) ret_str = ret_str "\"G\":\""$7"\",";
-	if(f_rpmfail_str ~ /T/) ret_str = ret_str "\"T\":\""$15"\","; # modification time
+	if(f_rpmfail_str ~ /T/) ret_str = ret_str "\"T\":\""$16"\","; # modification time
 	if((f_rpmfail_str ~ /5/)||(f_rpmfail_str ~ /\?/)){ # the "?"-symbol appears if read-permission for this file isn't set
 		md5sum_command = MD5SUM " \"" f_filename "\"";
 		if(( md5sum_command|getline) > 0)
@@ -128,7 +128,7 @@ function add_filefails(f_filename, f_failstr, f_data_str){
 	rpm_name = $0;
 	rpm_version = "";
 	rpm_release = "";
-	# rpm_version will be changed after call get_rpm_name(...)
+	# rpm_version and rpm_release will be changed after call get_rpm_name(...)
 	rpm_short_name = get_rpm_name(rpm_name);
 	# main collecting varible OUTPUTstr
 	OUTPUTstr="$[\"RPM_NAME\":\""rpm_name"\",\"RPM_VERSION\":\""rpm_version"\",\"RPM_RELEASE\":\""rpm_release"\",\"RPM_SHORT_NAME\":\""rpm_short_name"\",";
@@ -143,7 +143,7 @@ function add_filefails(f_filename, f_failstr, f_data_str){
 	missed_files = "[";
 	rpm_damage = "false";
 	# POSSIBLE: stdout->stderr BUT mishmash-DANGER!
-	rpm_V_command = RPM " -V " rpm_name " 2>&1 | cat ";
+	rpm_V_command = RPM " -V " rpm_name " 2>&1";
 	# if the rpm-package isn't installed a void "not_damaged" map will be returned
 	while((rpm_V_command | getline) > 0){
 		# if some output from "rpm -V" => rpm_errors

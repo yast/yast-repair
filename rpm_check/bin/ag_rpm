@@ -1,21 +1,23 @@
 #!/bin/bash
 # need files: awk,sed
-PREFIX=/usr/local/yast2/modules/y2m_os_repair/rpm_check/
+PREFIX=/usr/local/yast2/modules/y2m_os_repair/rpm_check
 PREFIX=/usr/lib/YaST2
 export PREFIX  # $PREFIX is used by $RPM_STAT as environment variable
-LANG=C
+export LANG=C 
+
 RPM_STAT=$PREFIX/bin/rpm_stat.awk
 GET_PACKAGENAMES=$PREFIX/bin/get_packagenames.awk
 READ_DB=$PREFIX/bin/rpm_dDB2list.awk
-RPM_LIST=/var/adm/current_package_descr/suse/setup/descr/Minimal+X11.sel # typical location
+
+MIN_INSTALL_LIST=/var/adm/current_package_descr/suse/setup/descr/Minimal+X11.sel # typical location
 COMMON_LIST=/var/adm/current_package_descr/suse/setup/descr/common.pkd # typical location
 
-
-SCRPATH1="Read (.rpm_stat, " # an _installed_ rpm: the failure status of a rpm (dependencies; missed, fail files)
-SCRPATH2="Write (.create_rpm_dDB, "
-SCRPATH3="Read (.get_rpm_dDB, "
-SCRPATH4="Write (.add_rpm_dDB, " # add from rpm-name generated rpm_stat-entry to an existing rpm_dDB
-SCRPATH5="Read (.rpm_install_stat, " # rpm status: installed/not_installed
+# SCR-paths
+SCRPATH1="Read (.rpm_stat, "		# read stat of an _installed_ rpm-package: the failure status of a rpm (dependencies; missed, fail files)
+SCRPATH2="Write (.create_rpm_dDB, " # creates a new rpm_dDB from a set of packagenames with [<path>/]filename specified by the argument 
+									# the package set will be filtered from files $MIN_INSTALL_LIST(minimal SuSE-install) and $COMMON_LIST(packages for this platform)
+SCRPATH3="Read (.get_rpm_dDB, "		# reads the by argument specified rpm_dDB and returns a YCP-list with rpm-difference-maps
+SCRPATH4="Write (.add_rpm_dDB, "	# add from rpm-name generated rpm_stat-entry to an existing rpm_dDB
 
 while true ; do
     read COMMAND || exit
@@ -37,15 +39,15 @@ while true ; do
 		fi
 	;;
 	
-	# create a rpm_dDB (rpm diff Data Base, first argument) from a 
-	# rpm_namelist-file(Minimal+X11.sel contains sets for minimal instalation) and 
-	# common_list-file (common.pkd contains platform specific packages)
+	# creates a rpm_dDB (rpm diff Data Base, first argument) from a 
+	# rpm_min_install_list-file(Minimal+X11.sel contains sets for minimal instalation) and 
+	# common_list-file (common.pkd contains platform specific packagenames)
 	$SCRPATH2*)
 		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH2"'"\(.*\)")/\1/p'`
-		if test \( "x$DB_NAME" = "x" \) -o \( "x$RPM_LIST" = "x" \) -o \( "x$COMMON_LIST" = "x" \) -o \( ! -r "$RPM_LIST" \) -o \( ! -s "$RPM_LIST" \) -o \( ! -r "$COMMON_LIST" \) -o \( ! -s "$COMMON_LIST" \); then
+		if test \( "x$DB_NAME" = "x" \) -o \( "x$MIN_INSTALL_LIST" = "x" \) -o \( "x$COMMON_LIST" = "x" \) -o \( ! -r "$MIN_INSTALL_LIST" \) -o \( ! -s "$MIN_INSTALL_LIST" \) -o \( ! -r "$COMMON_LIST" \) -o \( ! -s "$COMMON_LIST" \); then
 			echo "false"
 		else
-			awk -v min_file_name="$RPM_LIST" -f "$GET_PACKAGENAMES" < "$COMMON_LIST" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
+			awk -v min_file_name="$MIN_INSTALL_LIST" -f "$GET_PACKAGENAMES" < "$COMMON_LIST" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' > "$DB_NAME"
 			if test $? -eq 0; then 
 				echo "true"
 			else
@@ -58,9 +60,10 @@ while true ; do
 	# otherwise returns "nil"
 	$SCRPATH3*)
 		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH3"'"\(.*\)")/\1/p'`
+		echo $DB_NAME > /dev/stderr
 		if  test \( "x$DB_NAME" = "x" \) -o \( ! -r "$DB_NAME" \) -o \( ! -s "$DB_NAME" \); then 
 			echo "nil"
-		else 
+		else
 			awk -f "$READ_DB" < "$DB_NAME" 
 		fi
 	;;
@@ -72,24 +75,16 @@ while true ; do
 		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH4"'"\(.*\)" *, *"\(.*\)" *)/\1/p'`
 		RPM_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH4"'"\(.*\)" *, *"\(.*\)" *)/\2/p'`
 		if test "x$DB_NAME" != "x"; then 
+			touch "$DB_NAME"
 			if ! test -w "$DB_NAME"; then
-				touch "$DB_NAME"
+				echo "false"
+			else
+				echo "$RPM_NAME" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' >> "$DB_NAME"
+				echo "true"
 			fi
-			echo "$RPM_NAME" | awk -f "$RPM_STAT" | sed -n '/"DAMAGED" *: *true/p' >> "$DB_NAME"
-			echo "true"
 		else
 			echo "false"
 		fi
-	;;
-	# 1 argument: is a short or full rpm_package_name 
-	# returns "nil" if the package isn't installed or a list with maps 
-	# (a map contains information about a rpm_package -- if more that 1 
-	# package matched (in case of short name rpm can indicate more that 1 package).
-	# a map has keys: "RPM_NAME", "RPM_SHORT_NAME", "RPM_VERSION" (all this values will be extracted from RPM_NAME only!)
-	$SCRPATH5*)
-		RPM_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH5"'"\(.*\)")/\1/p'`
-		echo "nil"
-			 
 	;;
 	
 	*)
