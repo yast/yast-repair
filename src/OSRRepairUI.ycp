@@ -13,6 +13,7 @@
   import "Wizard";
   import "Progress";
   import "Report";
+  import "Sequencer";
   import "StorageDevices";
   import "StorageControllers";
   import "ModuleLoading";
@@ -29,8 +30,6 @@
   import "OSRProgress";
   import "OSRStatus";
 
-
-  include "wizard/sequencer.ycp";
   import "Label";
   import "Popup";
 
@@ -866,8 +865,7 @@ global define symbol OsrMainDialog() ``{
 	],
     ];
 
-    return WizardSequencer(aliases, sequence); //FIXME include
-//    return `back;
+    return Sequencer::Run (aliases, sequence);
 }
 
 }//EOF

@@ -973,7 +973,7 @@ press \"Yes\".
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       dev2check = (list<string>) union (dev2check,
-	maplist (any k, map<string,any> d, (map<any,map<string,any> >)StorageDevices::ZipDrives,
+	maplist (string k, map d, (map<string,map>) StorageDevices::ZipDrives,
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       return dev2check;
@@ -1045,10 +1045,9 @@ press \"Yes\".
    */
   define map suggest_missing_entries()``{
 
-    /*
     if (Mode::test) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]];
 
-E   include "partitioning/write_fstab.ycp";
+    include "partitioning/write_fstab.ycp";
     integer other_nr = 1;	// count other mounts -> global for wirte_fstab
     map new_entries = $[];
 
@@ -1114,9 +1113,7 @@ E   include "partitioning/write_fstab.ycp";
     else {
 	y2milestone("Suggested new fstab entries %1", new_entries);
     }
-    return new_entries; FIXME
-    */
-    return $[];
+    return new_entries;
   }
 
   /**
@@ -1321,14 +1318,15 @@ Really continue?
 
     // found fstab line without valid mount point, e.g. (not_valid_lines):
     // $[4: ["dev", false, true, true ,true ,true ,true ]], //spec error
-    list cmpl =  maplist (integer kk, list vv,
+    list<integer> cmpl =  maplist (integer kk, list vv,
 	filter (integer k, list v, (map<integer,list<any> >)not_valid_lines, ``(
 		v[1]:true == true	&&
 		v[2]:true == false	&&
 		substring (fstab [4, "fields", 1]:"", 0, 1) == "/"  &&
 		(!contains (defs_pos_exist(1,-1) ,v[0]:"") || v[0]:"" == "pts")
 	)),
-	``(kk));
+	``(kk)
+    );
 
     if (Mode::test) cmpl = [1,2];
     return AsciiFile::GetLines (fstab, cmpl);
