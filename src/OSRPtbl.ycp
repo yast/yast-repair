@@ -1274,35 +1274,32 @@ partition table of %2 with the backup.
       return `cancel;
   }
 
-   
-  
   /**
-   * Need mounted floppy
+   * Write partition info of given disk to floppy (needs mounted floppy)
    */
-  global define boolean WritePartitionsInfo2Floppy(string key )``{
+  global define boolean WritePartitionsInfo2Floppy (string key, list parts) {
+
       if (Mode::test () ) return true;
 
-      boolean write_error = false;
-      map target_map      = Storage::GetTargetMap();
-
-      string file = build_file_name(key);
+      boolean write_error	= false;
+      string file		= build_file_name (key);
 
       // set the dd-command
-      string command = sformat("dd if=%1 of=%2.mbr bs=512 count=1", key, file );
+      string command = sformat("dd if=%1 of=%2.mbr bs=512 count=1", key, file);
 
       // write mbr to floppy
-      OSRExecute::Command(.local.bash, command);
+      OSRExecute::Command (.local.bash, command);
 
       // write partition list to floppy
-      WFM::Write(.local.ycp, file+".ycp", target_map[key, "partitions"]:[] );
-	  
+      WFM::Write (.local.ycp, file+".ycp", parts);
+
       if (!(WFM::Read(.local.size, file + ".mbr") == 512  &&
-	     WFM::Read(.local.size, file + ".ycp") != 0 ))
-      {	
+	    WFM::Read(.local.size, file + ".ycp") != 0 ))
+      {
 	  write_error = true;
       }
 
-      return ( ! write_error);  
+      return (!write_error);
   }
 
   

@@ -1270,7 +1270,7 @@ a valid %2 file system.
   }
 
   /**
-   *
+   * Save disk partition info to floppy
    */
   define symbol OSRDirectSave2Floppy()``{
 
@@ -1279,15 +1279,15 @@ a valid %2 file system.
 
 
       UI::NormalCursor();
-      if ( ! StorageDevices::FloppyPresent )
+      if (!StorageDevices::FloppyPresent)
       {
-      // message popup (no floppy drive was detected)
-      Report::Message(_("
+	// message popup (no floppy drive was detected)
+	Report::Message(_("
 YaST could not detect a floppy drive in your
 system. Saving system information is not
 possible.
 "));
-      return `error;
+	return `error;
       }
       // popup text
       if (! Popup::ContinueCancel(_("
@@ -1296,26 +1296,28 @@ in your floppy drive and press
 Continue.
 ")))
       {
-      return `cancel;
+	return `cancel;
       }
-      else {
+
       map target_map = Storage::GetTargetMap();
       boolean error  = false;
 
-      if ( OSRFloppy::Open(true, size(target_map)) )
+      if (OSRFloppy::Open (true, size(target_map)))
       {
-          foreach(string target, map value, (map<string,map>) target_map, ``{
-          // progress label
-          OSRFloppy::NextStep(sformat(_("Saving partition table of disk %1..."), target ));
-          if ( ! error &&  ! OSRPtbl::WritePartitionsInfo2Floppy( target ) )
-          {
+          foreach (string key, map v, (map<string,map>) target_map, {
+	    OSRFloppy::NextStep (
+		// progress label
+		sformat (_("Saving partition table of disk %1..."), key));
+	    if (!error &&
+		!OSRPtbl::WritePartitionsInfo2Floppy (key, v["partitions"]:[]))
+	    {
               // eroro popup
               Report::Error(sformat(_("
 The primary partition table of disk %1
 was not written correctly to floppy disk.
-"), target));
+"), key));
                 error = true;
-          }
+	    }
           });
       }
       OSRFloppy::Close();
@@ -1334,7 +1336,6 @@ not successful. Try again.
           Report::Message(_("\nWriting the system information was successful.
 "));
 
-      }
       }
       return `ok;
   }
@@ -1681,34 +1682,4 @@ table with the stored system information.
 
   };
 
-
-  /*
-  // begin argument handling:
-  // in the initial phase the framework calls each module
-  // with the argument ".init", don't delete!
-  integer arg_n = 0;
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  MAIN
-  //
-  //////////////////////////////////////////////////////////////////////
-
-  // in init mode only execute the init function and return the module map
-  // to the framework, don't delete
-  while ( arg_n < size(WFM::Args()) )
-  {
-      if ( WFM::Args(arg_n) == .init )
-      {
-	y2milestone("Argument: %1", WFM::Args(arg_n));
-	return OSRPartitionInit();
-      }
-      else
-      {
-	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
-	return $[];
-      }
-      arg_n = arg_n + 1;
-  }
-  */
 }//EOF
