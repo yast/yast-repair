@@ -196,6 +196,9 @@
 	      sleep(2000);
 	      UI::CloseDialog();
 
+	      // TODO: use real fstab!
+	      //fstab = SCR::Read(.etc.fstab1, ["" + mountpoint + "/etc/fstab"]);
+	      
 	      // Reading fstab and mount all required mount-points to /mnt
 	      fstab = SCR::Read(.etc.fstab);
 
@@ -266,6 +269,57 @@ Check log-file : /var/log/y2log.");
   };
 
   /**
+   *  Returns a list of names of all mountable partitions that contain a file /etc/fstab
+   *  out of the specified list.
+   *
+   *  @param list linux_partition_list A list of valid linux-partitions out of which
+   *         the mountable partitions are to be returned.
+   *  @return list The list of partition-names that were successfully mounted to /mnt and contain a filesystem table.
+   */
+  global define GetValidRootPartitions(list linux_partition_list) ``{
+
+      list valid_root_partitions = [];
+      
+      foreach(`partition_item, linux_partition_list, ``{
+
+	  boolean ret_bool = true;
+	  list    fstab    = [];
+
+	  // as default: umount /mnt before mount anything else
+	  SCR::Execute(.target.umount, "/mnt");
+	  
+	  // Mount partition to /mnt
+	  // TODO: demo_mode && test_mode
+	  ret_bool = SCR::Execute(.target.mount, [partition_item, "/mnt"]);
+
+	  if ( ret_bool )
+	  {
+	      // use the .target.size agent instead of the .etc.fstab agent because it finds the
+	      // fstab of the currently mounted root partition
+	      if (SCR::Read(.target.size, "/mnt" + "/etc/fstab") > 0)
+	      {
+		  y2debug("Partition %1: fstab found", partition_item);
+		  
+		  valid_root_partitions = add(valid_root_partitions, partition_item);
+	      }
+	      else
+	      {
+		  y2debug("Partition: %1; no fstab found", partition_item);
+	      }
+	  }
+	  else
+	  {
+	      y2error("Partition: %1; not possible to mount to /mnt", partition_item);
+	  }
+      });
+      
+      // umount the partition
+      SCR::Execute(.target.umount, "/mnt");
+
+      return valid_root_partitions;
+  };
+  
+  /**
    *  Returns a list of names of all mountable partitions out of the specified list.
    *
    *  @param list linux_partition_list A list of valid linux-partitions out of which
@@ -278,38 +332,21 @@ Check log-file : /var/log/y2log.");
       
       foreach(`partition_item, linux_partition_list, ``{
 
-	  boolean ret_bool  = true;
-
 	  // as default: umount /mnt before mount anything else
 	  SCR::Execute(.target.umount, "/mnt");
 	  
 	  // Mount partition to /mnt
 	  // TODO: demo_mode && test_mode
-	  ret_bool = SCR::Execute(.target.mount, [partition_item, "/mnt"]);
-	  //list fstab = [];
+	  boolean ret_bool = SCR::Execute(.target.mount, [partition_item, "/mnt"]);
+
 	  if ( ret_bool )
 	  {
 	      mount_possible_list = add(mount_possible_list, partition_item);
 
-	      // Reading fstab and mount all required mount-points to /mnt
-	      //list fstab = SCR::Read(.etc.fstab);
-	      //fstab = SCR(`Read(.etc.fstab));
-		  
-	      //if ( size ( fstab ) > 0 )
-
-	      if(SCR::Read (.target.size, "/mnt" + "/etc/fstab") > 0)
-	      {
-		  //y2milestone("found fstab :%1", fstab );
-		  partition_list = add(partition_list, partition_item);
-	      }
 	      SCR::Execute(.target.umount, "/mnt");
 	  }
       });
-
-      if (mount_possible_list == nil)
-      {
-	  y2error("Error: mount_possible_list == nil");
-      }
+      
       return mount_possible_list;
   };
 
@@ -385,7 +422,7 @@ Check log-file : /var/log/y2log.");
       }
       else if (is_ext2fs == nil)
       {
-	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/dumpe2fs -h %1\" or the bash-agent.", partition);
+	  y2error("IsExt2fs ERROR: something's wrong with the command \"/sbin/dumpe2fs -h %1\" or the bash-agent.", partition);
       }
       else
       {
@@ -414,7 +451,7 @@ Check log-file : /var/log/y2log.");
       }
       else if (is_reiserfs == nil)
       {
-	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/debugreiserfs %1\"", partition);
+	  y2error("IsReiserfs ERROR: something's wrong with the command \"/sbin/debugreiserfs %1\"", partition);
       }
       else
       {
@@ -427,39 +464,139 @@ Check log-file : /var/log/y2log.");
    *  Checks the specified partition for consistency with "/sbin/e2fsck".
    *
    *  @param string partition The device-name of the partition.
-   *  @return boolean True if the partition is consistent.
-   *  @example boolean check_ext2fs = CheckExt2fs("/dev/hda1");
+   *  @return integer The exit code of the e2fsck command. See man 8 e2fsck for details.
+   *      The exit code returned by e2fsck is the sum of the following conditions:
+   *      0 - No errors,
+   *      1 - File system errors corrected,
+   *      2 - File system errors corrected, system should be rebooted if file system was mounted,
+   *      4 - File system errors left uncorrected,
+   *      8 - Operational error,
+   *      16 - Usage or syntax error,
+   *      128 - Shared library error.
+   *  @example integer check_ext2fs = CheckExt2fs("/dev/hda1");
    */
   global define CheckExt2fs(string partition) ``{
 
       integer check_ext2fs = 0;
+      string  command      = "/sbin/e2fsck -y " + partition;
       
-      check_ext2fs = WFM::Execute(.local.bash, "/sbin/e2fsck -y " + partition );
+      check_ext2fs = WFM::Execute(.local.bash, command);
 
-      if (check_ext2fs == 0)
+      if (check_ext2fs == nil)
+      {
+	  y2error("CheckExt2fs ERROR: something's wrong with the command \"%1\" or the calling agent", command);
+      }
+      else if (check_ext2fs == 0)
       {
 	  y2milestone("partition %1 is o.k., /sbin/e2fsck reports no errors", partition);
       }
-      else if (check_ext2fs == nil)
+      else if (check_ext2fs == 1)
       {
-	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/e2fsck -y %1\"", partition);
+	  y2milestone("/sbin/e2fsck reports \"File system errors corrected\" for partition %1", partition);
+      }
+      else if (check_ext2fs == 2)
+      {
+	  y2milestone("/sbin/e2fsck reports \"File system errors corrected, system should \
+be rebooted if file system was mounted\" for partition %1", partition);
+      }
+      else if (check_ext2fs == 4)
+      {
+	  y2error("/sbin/e2fsck reports \"File system errors left uncorrected\" for partition %1", partition);
+      }
+      else if (check_ext2fs == 8)
+      {
+	  y2error("/sbin/e2fsck reports \"Operational error\" for partition %1, command line: %2", partition, command);
+      }
+      else if (check_ext2fs == 16)
+      {
+	  y2error("/sbin/e2fsck reports \"Usage or syntax error\" for partition %1, command line: %2", partition, command);
+      }
+      else if (check_ext2fs == 128)
+      {
+	  y2error("/sbin/e2fsck reports \"Shared library error\" for partition %1, command line: %2", partition, command);
       }
       else
       {
-	  y2milestone("partition %1 is NOT o.k., /sbin/e2fsck reports errors", partition);
+	  y2error("/sbin/e2fsck reports an error: %1, command line: %2", check_ext2fs, command);
       }
-      
-      return (check_ext2fs == 0);
+
+      return check_ext2fs;
   };
 
   /**
-   *  
+   *  Checks the specified partition for consistency with "/sbin/reiserfsck".
    *
-   *  @return 
+   *  @param string partition The device-name of the partition.
+   *  @param string logfile The name of the log file. If the empty string is specified, no log file will be used.
+   *  @return integer The exit code of the reiserfsck command. See man 8 fsck for details.
+   *      The exit code returned by fsck is the sum of the following conditions:
+   *      0 - No errors,
+   *      1 - File system errors corrected,
+   *      2 - File system errors corrected, system should be rebooted if file system was mounted,
+   *      4 - File system errors left uncorrected,
+   *      8 - Operational error,
+   *      16 - Usage or syntax error,
+   *      128 - Shared library error.
+   *  @example integer check_reiserfs = CheckReiserfs("/dev/hda1", "/tmp/reiserfsck.log");
    */
-  global define CheckReiserfs(string partition) ``{
+  global define CheckReiserfs(string partition, string logfile) ``{
 
-      // TODO
+      integer check_reiserfs = 0;
+      string  command        = "";
+      string  output         = logfile;
+      
+      // check if a log file was specified
+      if (logfile == "")
+      {
+	  command = sformat("echo Yes | /sbin/reiserfsck -x %1", partition);
+      }
+      else
+      {
+	  command = sformat("echo Yes | /sbin/reiserfsck -x -l %1 %2 2> %3", logfile, partition, output);
+      }
+
+      // execute the reiserfsck command
+      check_reiserfs = WFM::Execute(.local.bash, command);
+
+      if (check_reiserfs == nil)
+      {
+	  y2error("CheckReiserfs ERROR: something's wrong with the command \"%1\" or the calling agent", command);
+      }
+      else if (check_reiserfs == 0)
+      {
+	  y2milestone("partition %1 is o.k., /sbin/reiserfsck reports no errors", partition);
+      }
+      else if (check_reiserfs == 1)
+      {
+	  y2milestone("/sbin/reiserfsck reports \"File system errors corrected\" for partition %1", partition);
+      }
+      else if (check_reiserfs == 2)
+      {
+	  y2milestone("/sbin/reiserfsck reports \"File system errors corrected, system should \
+be rebooted if file system was mounted\" for partition %1", partition);
+      }
+      else if (check_reiserfs == 4)
+      {
+	  y2error("/sbin/reiserfsck reports \"File system errors left uncorrected\" for partition %1", partition);
+      }
+      else if (check_reiserfs == 8)
+      {
+	  y2error("/sbin/reiserfsck reports \"Operational error\" for partition %1, command line: %2", partition, command);
+      }
+      else if (check_reiserfs == 16)
+      {
+	  y2error("/sbin/reiserfsck reports \"Usage or syntax error\" for partition %1, command line: %2", partition, command);
+      }
+      else if (check_reiserfs == 128)
+      {
+	  y2error("/sbin/reiserfsck reports \"Shared library error\" for partition %1, command line: %2", partition, command);
+      }
+      else
+      {
+	  y2error("/sbin/reiserfsck reports an error: %1, command line: %2", check_reiserfs, command);
+      }
+
+      return check_reiserfs;
   };
 
   /**
@@ -488,10 +625,16 @@ Check log-file : /var/log/y2log.");
 
       // Check if the specified swap-partition is already "swapped", if true don't swapon.
       // filter(...) returns a list of all "swapped" partitions where the name equals to the specified partition
-      if (filter(`swap_partition, proc_swaps, ``(lookup(swap_partition, "file", "") == spec)) > 0)
+      if (size(filter(`swap_partition, proc_swaps, ``(lookup(swap_partition, "file", "") == spec))) > 0)
       {
 	  y2debug("Swap-partition \"%1\" is already swapped-on!", spec);
 
+	  /*
+	      UI::OpenDialog(`opt(`decorated), `Label(sformat("Swapon: %1 already swapped-on\n%2", spec, proc_swaps)));
+	      sleep(5000);
+	      UI::CloseDialog();
+	  */
+	  
 	  return true;
       }
 	  
@@ -528,6 +671,13 @@ Check log-file : /var/log/y2log.");
       {
 	  y2error("not a valid fstab-entry: %1", fstab_entry);
       }
+
+      /*
+      	      UI::OpenDialog(`opt(`decorated), `Label(sformat("Swapon result: %1", swapon_result)));
+	      sleep(2000);
+	      UI::CloseDialog();
+      */
+      
       return (swapon_result == 0);
   };
 
@@ -556,8 +706,8 @@ Check log-file : /var/log/y2log.");
 	  // check the fs-type: ext2 or reiserfs, others have to be implemented
 	  if ((vfstype == "ext2") && (IsExt2fs(spec)))
 	  {
-	      // run fsck.ext2
-	      if (CheckExt2fs(spec))
+	      // run fsck.ext2, see man 8 fsck for details on the error codes
+	      if (CheckExt2fs(spec) == 0)
 	      {
 		  y2milestone("Partition %1 is a consistent ext2-filesystem", spec);
 	      }
@@ -568,8 +718,8 @@ Check log-file : /var/log/y2log.");
 	  }
 	  else if((vfstype == "reiserfs") && (IsReiserfs(spec)))
 	  {
-	      // run fsck.reiserfs
-	      if (CheckReiserfs(spec))
+	      // run fsck.reiserfs, see man 8 fsck for details on the error codes
+	      if (CheckReiserfs(spec, "") == 0)
 	      {
 		  y2milestone("Partition %1 is a consistent reiserfs", spec);
 	      }
