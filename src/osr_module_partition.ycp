@@ -1521,18 +1521,20 @@ cannot be executed.
                           _("Progress:"),
                           0,true);
       term contents = `HBox(
-                `VBox(
-                      // label
-                      `HBox(`HWeight(30, `Left(`Heading(_("Checking file system...")))),
-                        `HWeight(30, `HSpacing(10))),
-                      `VSpacing(1),
-                      `Left(`Label(_("Partition: ") + scan_dev )),
-                      `VSpacing(1),
-                      progress,
-                      `VSpacing(2),
-                      `PushButton(`id(`ok_cancel), CancelButtonLabel())
-                      )
-          );
+	`HSpacing(1),
+        `VBox(
+            `VSpacing(1),
+	    // label
+            `HBox(`HWeight(30,`Left(`Heading(_("Checking file system...")))),
+            `HWeight(30, `HSpacing(10))),
+            `VSpacing(1),
+            `Left(`Label(_("Partition: ") + scan_dev )),
+            `VSpacing(1),
+            progress,
+            `VSpacing(1)
+        ),
+	`HSpacing(1)
+      );
       UI::OpenDialog( contents );
 
       OSRProgress::DeleteFile( OSRLogFile::GetTmpDir() + "/"+ direct_name );
@@ -1552,21 +1554,33 @@ system check is not possible.
 "), scan_dev ));
           ret = `error;
       }
-      else {
-          symbol  used_fs   = Storage::GetSubDevParam(Storage::GetSubDevKey( p["maindev"]:"", p["nr"]:0 ), "detected_fs" );
+      else
+      {
+          symbol  used_fs = Storage::GetSubDevParam (
+	    Storage::GetSubDevKey( p["maindev"]:"", p["nr"]:0 ), "detected_fs");
 
-          if ( fs_ok ) {
-          // message popup
-          Report::Message(sformat(_("
+          if (!fs_ok)
+	  {
+	    if (OSRFsck::IsNonLinuxFileSystem (used_fs))
+		// message popup %1 is partition, %2 filesystem type name
+		Report::Message(sformat(_("
+The partition %1 contains
+non-linux file system \"%2\".
+No partitions checks were done.
+"),scan_dev, FileSystems::GetName( used_fs, "unkonwn") ));
+	    else
+		// message popup %1 is partition, %2 filesystem type name
+		Report::Message(sformat(_("
 The partition %1 contains
 a valid %2 file system.
 "),scan_dev, FileSystems::GetName( used_fs, "unkonwn") ));
           }
-          else {
-          if( OSRFsck::Repair(scan_dev, used_fs ) != `ok )
-          {
-              ret =  `error;
-          }
+          else
+	  {
+	    if( OSRFsck::Repair(scan_dev, used_fs ) != `ok )
+	    {
+		ret =  `error;
+	    }
           }
       }
       OSRFsck::Reset();
