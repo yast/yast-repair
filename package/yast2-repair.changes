@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Feb 17 17:50:26 CET 2003 - jbuch@suse.de
+
+- remove one line in OSRBoot.ycp; now adding Storage 
+  Controller modules for a new boot loader installation 
+  works 
+  2.7.2
+
+-------------------------------------------------------------------
 Thu Feb 13 16:10:41 CET 2003 - jsuchome@suse.de
 
 - corected calling inst_language
