@@ -102,7 +102,9 @@
 				  "repair"	: ``(repair_fat()),
 				  "check"	: ``(check_fat())*/
                   ],
-           `ntfs : $[] // TODO: ignore??
+           `ntfs : $[
+                  "find"    : ``(is_ntfs()) // FIXME faked
+                  ]
   ];
 
 
@@ -124,6 +126,8 @@
   global define OSRFsck()``{
 
       fsck_fsid = union( Partitions::fsid_wintypes, Partitions::fsid_dostypes );
+      // ntfs should be only ignored when found
+      fsck_fsid = union( fsck_fsid, Partitions::fsid_ntfstypes );
       fsck_fsid = union( fsck_fsid, [Partitions::fsid_native ]);
   }
 
@@ -169,7 +173,9 @@
       list(map) partitions =	[];
 
       foreach(string dev, map target, Storage::GetTargetMap(), ``{
+
 	  foreach(map p, target["partitions"]:[],``{
+
 	      if( p["delete"]:false == false &&
 		  ( contains ( fsck_fsid, p["fsid"]:0 ) &&
  		    contains ( fsck_type, p["type"]:`unknown ) ) )
@@ -381,7 +387,13 @@
       return is_fat;
   };
 
-
+  /**
+   * just to ignore ntfs and don't report errors
+   */
+  define boolean is_ntfs()  ``{
+      return true;
+  };
+  
 
   
   /**
