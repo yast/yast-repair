@@ -280,8 +280,12 @@ Check your hardware.
   define void set_buttons_enable (boolean pause, boolean back, boolean next) ``{
 
       UI::ChangeWidget(`id(`pause),`Enabled, pause);
-      UI::ChangeWidget(`id(`back ),`Enabled, back );
-      UI::ChangeWidget(`id(`next ),`Enabled, next );
+
+      if ( back )	Wizard::EnableBackButton();
+      else		Wizard::DisableBackButton();
+
+      if ( next )	Wizard::EnableNextButton();
+      else		Wizard::DisableNextButton();
   }
 
  /**
