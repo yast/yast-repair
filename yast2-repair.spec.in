@@ -1,0 +1,28 @@
+@HEADER-COMMENT@
+
+# neededforbuild  yast2-devel-packages
+
+@HEADER@
+Requires:	yast2
+
+BuildArchitectures:	noarch
+
+Summary:	YaST2 Repair
+
+%description
+-
+
+@PREP@
+
+@BUILD@
+
+@INSTALL@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+@configdir@/*.y2cc
+@clientdir@/*.ycp
+@moduledir@/*.ycp
+%doc @docdir@
