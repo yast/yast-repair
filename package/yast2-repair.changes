@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  1 11:01:01 CET 2005 - jsuchome@suse.cz
+
+- adapt bootloader config file check for embedding stage 1.5
+- 2.11.8
+
+-------------------------------------------------------------------
 Mon Feb  7 16:55:17 CET 2005 - jsuchome@suse.cz
 
 - merged texts from proofreading
