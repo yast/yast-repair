@@ -81,12 +81,12 @@
   /**
    * The path
    */
-  global string tabpath	= "/etc/fstab";
+  global string fstabpath	= "/etc/fstab";
 
   /**
    * The default fstab entries for proc, usb, ...
    */
-  map defs = $[
+  map<string, list <string> > defs = $[
     "pts":	["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
     "proc":	["proc", "/proc", "proc", "defaults", "0", "0"],
     "usb":	["usbdevfs", "/proc/bus/usb", "usbdevfs", "noauto", "0", "0"],
@@ -348,7 +348,7 @@
 	    // Check fstab exist
 	    // use the .local.size agent instead of the .etc.fstab agent
 	    // because it finds the fstab of currently mounted root partition
-	    if (WFM::Read (.local.size, mount_p + tabpath) > 0)
+	    if (WFM::Read (.local.size, mount_p + fstabpath) > 0)
 	    {
 		y2milestone("Partition %1: fstab found", partition_item);
 		fstab_found_partitions = add (fstab_found_partitions,
@@ -405,7 +405,7 @@
   global define boolean ReadFstab(string mount_p , boolean strict)``{
 
     root_mountpoint	= mount_p;
-    fstab		= Partitions::GetFstab(  mount_p + tabpath);
+    fstab		= Partitions::GetFstab(  mount_p + fstabpath);
 
     if (fstab == nil ||  size (fstab) == 0 || fstab["l"]:$[] == $[])
     {
@@ -422,10 +422,10 @@ press \"Yes\".
 ")))
 	{
 	    OSRExecute::Command (.local.bash,
-		sformat ("/bin/mv %1%2 %1%2.YaSTsave",root_mountpoint,tabpath));
+		sformat ("/bin/mv %1%2 %1%2.YaSTsave",root_mountpoint,fstabpath));
 	    OSRExecute::Command (.local.bash,
-		sformat ("/bin/touch %1%2", root_mountpoint, tabpath));
-	    fstab = Partitions::GetFstab (mount_p + tabpath);
+		sformat ("/bin/touch %1%2", root_mountpoint, fstabpath));
+	    fstab = Partitions::GetFstab (mount_p + fstabpath);
 	    return true;
 	}
 	return false;
@@ -973,7 +973,7 @@ press \"Yes\".
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       dev2check = (list<string>) union (dev2check,
-	maplist (`k, map d, StorageDevices::ZipDrives,
+	maplist (any k, map d, StorageDevices::ZipDrives,
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       return dev2check;
@@ -1082,9 +1082,11 @@ press \"Yes\".
 	}
 	else if (contains (defs_pos_exist(0,0), dev))
 	{
-	    list<string> line = (list<string>) select (
-		maplist (string m, map n,
-		    filter (string k,map v, defs, ``( v[0]:"" == dev)), ``(n)
+	    //   map<string, list <string> > defs 
+
+	    list<string> line = select (
+		maplist (string m, list<string> n,
+		    filter (string k, list<string> v, defs, ``( v[0]:"" == dev)), ``(n)
 		), 0, []
 	   );
 	    new_entries[dev]	= fstabline2map (line);
@@ -1843,7 +1845,7 @@ lines, press \"Yes\".
 
 	    // save and reread before append fstab !!
 	    // Remove don't resort list positions!!
-	    AsciiFile::RewriteFile (fstab, root_mountpoint + tabpath);
+	    AsciiFile::RewriteFile (fstab, root_mountpoint + fstabpath);
 	    ReadFstab (root_mountpoint, true);
 
 	    foreach (integer rp, rp_list, ``{
@@ -1899,7 +1901,7 @@ lines, press \"Yes\".
 
     if ((size (filter (symbol r, ret, ``( r == `ok))) > 0))
     {
-	AsciiFile::RewriteFile (fstab, root_mountpoint + tabpath);
+	AsciiFile::RewriteFile (fstab, root_mountpoint + fstabpath);
 	ResetSettings ();
 	ReadFstab (root_mountpoint, true);
     }
