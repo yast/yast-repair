@@ -61,13 +61,16 @@
       string  color          = "";
       string  status_text    = "";
       integer text_width     = 0;
-      string  execution_mode = "";
 
-      execution_mode = lookup(osr_map, "execution_mode", "linux");
+      boolean initial_mode   = false;
+      boolean continue_mode  = false;
 
-      // the width of the RichText-widget depends on the execution-mode, it is
-      // expanded in "linux"-mode
-      if (execution_mode == "linux")
+      initial_mode  = lookup(osr_map, "initial_mode", false);
+      continue_mode = lookup(osr_map, "continue_mode", false);
+
+      // The width of the RichText-widget depends on the execution-mode, it is
+      // expanded if the rescue-system is launched from the running Linux-system.
+      if (!initial_mode && !continue_mode)
       {
 	  text_width = 380;
       }

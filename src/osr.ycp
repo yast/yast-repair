@@ -34,6 +34,8 @@
   import "osr/OSRGlobalProgress";
   import "osr/OSRLogFile";
 
+  import "Installation";
+
   ////////////////////////////////////////////////////////////////////////////////
   //
   //  GLOBAL VARIABLES
@@ -57,15 +59,50 @@
   //     "osr_module_lilo"      : [ ... ] ]
   map osr_detect_method_map = $[];
 
+  // get the execution-mode
+  // Installation::initial_mode  == true -> Initial boot per CD-Rom or NFS
+  // Installation::continue_mode == true -> Continue installation
+  // (Installation::initial_mode == false) && (Installation::continue_mode == false) -> Running Linux-system
+  if (!Installation::initial_mode && !Installation::continue_mode)
+  {
+      y2milestone("Starting the rescue-system from the running Linux-system!");
+  }
+  else if (Installation::initial_mode && !Installation::continue_mode)
+  {
+      y2milestone("Starting the rescue-system directly after boot from cdrom or per nfs");
+  }
+  else if (!Installation::initial_mode && Installation::continue_mode)
+  {
+      y2milestone("NOT starting the rescue-system! Continue installation first!");
+
+      ErrorPopup(_("You have to finish installation before
+starting the YaST2 OS Repair-system.
+
+YaST2 OS Repair halts now."));
+	  
+      return false;
+  }
+  else
+  {
+      y2error("Something's wrong: initial_mode == %1 and continue_mode == %2",
+	      Installation::initial_mode, Installation::continue_mode);
+  }
+      
+  osr_map = $[
+	      "initial_mode"  : Installation::initial_mode,
+	      "continue_mode" : Installation::continue_mode
+  ];
+  
   // if YaST2 OS Repair runs
   // - from CD-ROM or per NFS, get the user_settings from installation.ycp
   // - the installed Linux-system, get the user_settings from file
   map user_settings = user_settings;
-  
+
   if ((size(user_settings) == nil) || (size(user_settings) == 0))
   {
+      user_settings = $[];
       // TODO: compute the user_settings (like installation.ycp)
-      user_settings = SCR::Read(.target.ycp, "/var/lib/YaST2/user_settings");
+      //user_settings = SCR::Read(.target.ycp, "/var/lib/YaST2/user_settings");
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +120,7 @@
   boolean script_mode    = false;      // No GUI, no user-interaction, input-values come from a map.
   boolean provides_mode  = false;      // Prints the values provided by the detection-modules to the
                                        // file /tmp/osr_global_provides.
+  boolean test_mode      = false;
 
   if      ( size(Args()) == 0 ) normal_mode = true;
   else if ( size(Args()) > 1 )
@@ -140,15 +178,40 @@
    */
   define OSRInit() ``{
 
-      // TODO: specify if the rescue-system is executed from CD-ROM, NFS, from a running Linux-system, ...
-      //SCR::Read(.proc.mounts);
+      /*
+      // get the execution-mode
+      // Installation::initial_mode  == true -> Initial boot per CD-Rom or NFS
+      // Installation::continue_mode == true -> Continue installation
+      // (Installation::initial_mode == false) && (Installation::continue_mode == false) -> Running Linux-system
+      if (!Installation::initial_mode && !Installation::continue_mode)
+      {
+	  y2milestone("Starting the rescue-system from the running Linux-system!");
+      }
+      else if (Installation::initial_mode && !Installation::continue_mode)
+      {
+	  y2milestone("Starting the rescue-system directly after boot from cdrom or per nfs");
+      }
+      else if (!Installation::initial_mode && Installation::continue_mode)
+      {
+	  y2milestone("NOT starting the rescue-system! Continue installation first!");
 
+	  ErrorPopup(_("You have to finish installation before
+starting the YaST2 OS Repair-system.
 
-      // TODO: get the execution-mode
-      string execution_mode = "linux";
+YaST2 OS Repair halts now."));
+	  
+	  return false;
+      }
+      else
+      {
+	  y2error("Something's wrong: initial_mode == %1 and continue_mode == %2",
+		  Installation::initial_mode, Installation::continue_mode);
+      }
+      */
       
       osr_map = $[
-		  "execution_mode"               : execution_mode,
+		  //"initial_mode"                 : Installation::initial_mode,
+		  //"continue_mode"                : Installation::continue_mode,
 		  "module_sequence"              : [],               // sequence of execution of the detection-modules
 		  "module_list"                  : [],               // the whole list of detection-modules
 		  "log_file"                     : "/tmp/osr.log",   // default log-file-path
@@ -683,13 +746,25 @@ YaST2 OS Repair halts now."));
       return UI::CloseDialog();
   }
 
+  // Start the client "inst_startup.ycp" if the rescue-system is launched from
+  // a running Linux-system.
+  if (!Installation::initial_mode && !Installation::continue_mode)
+  {
+      CallFunction(`inst_startup());
+
+      UI::ChangeWidget(`id(`next), `Enabled, true);
+      UI::ChangeWidget(`id(`abort), `Enabled, true);
+      UI::ChangeWidget(`id(`back), `Enabled, true);
+      UI::SetFocus(`id(`next));
+  }
+
   any user_input = nil;
 
   repeat
       {
 	  // Ask the user for reading an old osr_map from a previos YaST2 OS Repair-session.
 	  // The map has to be stored in a file "osr_map.ycp" on a floppy-disk.
-	  any returned_user_input = OSRMapReadFloppy();
+	  any returned_user_input = OSRReadFloppy();
 
 	  if (returned_user_input == `back)
 	  {
@@ -721,7 +796,9 @@ YaST2 OS Repair halts now."));
   until (user_input != `back);
 
   // Ask the user to store the whole osr_map to floppy-disk for later YaST2 OS Repair-sessions.
-  OSRMapWriteFloppy();
+  OSRWriteFloppy();
+
+  //SCR::Write(.dumpto.tmp.user_settings, user_settings);
   
   if (!script_mode)
   {

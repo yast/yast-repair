@@ -16,6 +16,8 @@
 
 {
   textdomain "osr";
+
+  import "Installation";
   
   /**
    *  Checks if the first specified list (of strings) is a subset of the second one. The sequence
@@ -175,26 +177,21 @@
    */
   global define OSROpenMainWindow() ``{
 
-      string header         = "";
-      string execution_mode = "";
+      string  header        = "";
+/*
+      boolean initial_mode  = false;
+      boolean continue_mode = false;
 
-      execution_mode = lookup(osr_map, "execution_mode", "linux");
-      
-      if (execution_mode == "linux")
+      initial_mode  = lookup(osr_map, "initial_mode", false);
+      continue_mode = lookup(osr_map, "continue_mode", false);
+*/
+      if (!Installation::initial_mode && !Installation::continue_mode)
       {
 
       }
-      else if (execution_mode == "cdrom")
+      else if (Installation::initial_mode && !Installation::continue_mode)
       {
 	  UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
-      }
-      else if (execution_mode == "nfs")
-      {
-	  UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
-      }
-      else
-      {
-	  y2error("unknown execution_mode: %1", execution_mode);
       }
 
       if (!script_mode)
@@ -210,9 +207,9 @@
 	      header = _("YaST2 OS Repair: automatic mode");
 	  }
       
-	  // display the main window to indicate progress
-
-	  if (execution_mode == "linux")
+	  // open a new window if the rescue-system is launched from a running
+	  // Linux-system.
+	  if (!Installation::initial_mode && !Installation::continue_mode)
 	  {
 	      UI(``{
 		  OpenDialog(`opt(`defaultsize),
