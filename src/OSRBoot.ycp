@@ -29,7 +29,6 @@
     import "OSRPkg";
     import "OSRPopup";
 
-//    include "lilo/routines.ycp";
     textdomain "repair";
 
     /**

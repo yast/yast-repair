@@ -32,7 +32,7 @@
     /**
      * Package database files
      */
-    list(string) rpm_db_files = [	 
+    list(string) rpm_db_files = [
 				 "/var/lib/rpm/conflictsindex.rpm",
 				 "/var/lib/rpm/fileindex.rpm",
 				 "/var/lib/rpm/groupindex.rpm",
@@ -554,7 +554,6 @@ database was not successful.
 	    return false;
 	}
 
-	
 	list(string) installed_packages = Pkg::GetPackages(`installed, true);
 	list(string) minimal_packages   = get_verify_packages( "base" );
 
@@ -562,7 +561,8 @@ database was not successful.
 
 	// fix Pkg bug. GetPackages get not the reinstalled_packages!!
 	missing_packages = filter(string pkg_name, missing_packages, ``( ! contains( reinstalled_packages, pkg_name)));
-	
+
+
 	boolean ret      = size(missing_packages) == 0;
 
 	if (! ret )
@@ -602,14 +602,13 @@ install the missing packages.</P>
 
     };
 
-    
     /**
-     * Return all packages which should be verified 
+     * Return all packages which should be verified
      */
     define list(string) get_verify_packages(string what ) ``{
 
 	list(string)  ret = [];
-	
+
 	// return all packages
 	if(what == "all" )
 	{
@@ -618,35 +617,23 @@ install the missing packages.</P>
 	// return base packages only
 	else if ( what == "base")
 	{
-	    // check how to get base packages
-	    // TODO replace osr_minimal.ycp with a method which get the minimal selection
-	    // from the Pkg interface.
-
-	    list(string) minimal = [];//CallFunction(`osr_minimal());
+	    list(string) minimal = Pkg::SelectionContent("Minimal", false, "");
 	    list(string) special = [];
 
-        minimal = Pkg::SelectionContent("Minimal", false, "");
-        minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
-
-        //Packages::ComputeSystemPackageList();
-
-	    ret = union( minimal, special) ;
-
+	    minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
+	    ret = union (minimal, special) ;
 	}
 	else {
 	    y2error("Parameter what not valid. Only all or base are allowed.");
 	    ret =  nil;
 	}
-
-	
 	if (ret != nil )
 	{
-	    ret = union( ret , architecture_packages );
+	    ret = union (ret, architecture_packages );
 	}
-	
 	return ret;
     }
-    
+
     /**
      * Verify all specified packages.
      * @param root The mount point where the target system is mounted.
@@ -655,7 +642,7 @@ install the missing packages.</P>
      * @param reset Clear missing_packages before start verifying.
      */
     global define symbol VerifyPackages(string root, string what , boolean expert_mode, boolean reset )``{
-	
+
 	if( root != "" && root != nil )
 	{
 	    root_mountpoint = root;
@@ -793,7 +780,6 @@ package.</P>
 	return ret;
     }
 
-    
     /**
      * Install selected Packages. The packages are damaged or not install.
      * Call CheckMinimum or VerifyPackages before.
@@ -801,7 +787,7 @@ package.</P>
     global define symbol InstallMissing(boolean use_dialog )``{
 
 	symbol ret = `ok;
-	
+
 	if( size(missing_packages) > 0 )
 	{
 	    list(list) item_list = [];
@@ -813,13 +799,13 @@ package.</P>
 	    if (use_dialog )
 	    {
 		missing_packages = OSRPopup::MultiSelectionBox(
-						       install_missing_dialog_data[0]:"",
-						       install_missing_dialog_data[1]:"",
-						       install_missing_dialog_data[2]:"",
-						       install_missing_dialog_data[3]:"",
-						       install_missing_dialog_data[4]:"",
-						       item_list,
-						       install_missing_dialog_data[5]:[]);
+		    install_missing_dialog_data[0]:"",
+		    install_missing_dialog_data[1]:"",
+		    install_missing_dialog_data[2]:"",
+		    install_missing_dialog_data[3]:"",
+		    install_missing_dialog_data[4]:"",
+		    item_list,
+		    install_missing_dialog_data[5]:[]);
 	    }
 
 	   if( missing_packages == [] )
@@ -829,8 +815,7 @@ package.</P>
 	   }
 	   else
 	   {
-	       y2milestone("Install missing or damaged packages %1", missing_packages );
-	       
+		y2milestone("Install missing or damaged packages %1", missing_packages );
 		if ( OpenPkg(root_mountpoint ))
 		{
 		    boolean ok = true;
@@ -839,13 +824,16 @@ package.</P>
 			ok = ok && Pkg::PkgInstall (p);
 			if( ! ok )
 			{
-			    y2error("Change the state to install for  package %1 failed", p );
+			    y2error("Change the state to install for package %1 failed", p );
 			}
 		    });
 
+//		FIXME: Solver returns some error, but installation is OK...
+// watch bug 26586
 		    ok = ok && Pkg::PkgSolve ();
+
 		    y2milestone("Solving dependencies returned %1", ok );
-		    
+
 		    list result = Pkg::PkgCommit (0);
 		    y2milestone ("PkgCommit: %1", result );
 
@@ -872,7 +860,7 @@ package.</P>
 	else {
 	    y2error("No missing packages. Set missing_packages before.");
 	    ret = `cancel;
-	}	
+	}
 	return ret;
     }
 

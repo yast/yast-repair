@@ -238,7 +238,6 @@
     define string build_problems( string pkg_name, map pkg_data )``{
 	
 	map org_data =  initial_verified_packages[pkg_name]:$[];
-	
 	if ( size( filter(string key, map d, org_data, ``( d == pkg_data ))) > 0 )
 	{
 	    return "build_problems";
@@ -251,9 +250,9 @@
      * Return if a package was not build correctly.
      */
     global define string GreenPackageProblems(string pkg_name, map pkg_data )``{
-	
+
 	if( haskey( pkg_data , "green_status" )) return pkg_data["green_status"]:"";
-						     
+
 	string green_status =  ""; 
 
 	// set config files to green status
@@ -313,21 +312,23 @@
 		verify_output_counter = verify_output_counter  +1 ;
 		key = key +1 ;
 		string pkg_key =  sformat("%1%2%3", pkg_name,separator, key );
-		if( substring(verify_output, 0, size(missing) )  == missing )
+		if( substring (verify_output, 0, size(missing) )  == missing )
 		{
-		    verify_data[ pkg_key ]  = 
-		    $["config_file"  : issubstring(substring(verify_output, size(missing),
-							     findfirstof(verify_output, "/") - size(missing)), "c" ),
-		      "file"	: substring(verify_output, findfirstof(verify_output, "/")),
+		    verify_data[ pkg_key ]  = $[
+			"config_file"  : issubstring (
+			    substring(verify_output,size(missing), findfirstof(verify_output, "/") - size(missing)),
+			    "c" ),
+			"file"	: substring(
+			    verify_output, findfirstof(verify_output, "/")),
 		      "status"	: missing
-		    ];	  
+		    ];
 		}
 		else if( substring(verify_output, 0, size(unsatisfied )) == unsatisfied )
 		{
 		    verify_data[ pkg_key ] =
 		    $[ "config_file" : false,
 		       "file"	: substring(verify_output, size(unsatisfied)),
-		       "status"	: unsatisfied 
+		       "status"	: unsatisfied
 		    ];
 		}
 		else if( findfirstnotof(substring(verify_output,0,8), possible ) == nil )
@@ -351,7 +352,7 @@
 		}
 	    }
 	});
-	
+
 	verified_packages[ pkg_name ] = verify_data;
 
 	// return false if the package was not verified successfully.
@@ -389,12 +390,12 @@
 	OSRExecute::CommandOutput(.local.bash,  sformat("LANG=ENG /bin/rpm --root %2 -V %1", p, OSRPkg::root_mountpoint ));
 
 	y2milestone("-----------package %1 verified", p);
-	
-	return add_package_summary( p, OSRExecute::stdout );	
-    }
-	
 
-    
+	return add_package_summary( p, OSRExecute::stdout );
+    }
+
+
+
     /**
      * Debug the verified packages informations.
      */

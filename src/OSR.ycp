@@ -200,11 +200,12 @@
 
   /**
    * Maximal execution of a detect function.
+   * (The proper meaning is "do not run max_index_detect_loop-times", so
+   * the variable means "maximal execution + 1")
    */
   integer max_index_detect_loop     = 3;
 
 
-  
   /**
    * Reset all.
    */
@@ -701,18 +702,17 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	  while(( index_detect >= 0) && ( index_detect < size(detect_methods)))
 	  {
 
-	      
 	      // Poll user input
 	      if ( ! OSRMode::script ) {
 		  symbol ret = UI::PollInput();
 		  if ( ret == `pause || ret == `cancel || ret == `abort || ret == `details ) return ret;
 	      }
-	          
+
 	      current_detect_map =  detect_methods[index_detect]:$[];
 	      y2milestone("The name of the current detect method is: %1", current_detect_map["name"]:"");
 
 
-	      // check call count - no endless loop  
+	      // check call count - no endless loop
 	      if( index_detect != last_index_detect )
 	      {
 		  last_index_detect = index_detect;
@@ -720,8 +720,8 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	      else {
 		  index_detect_loop_counter = index_detect_loop_counter +1;
 	      }
-	      
-	      // check skip 
+
+	      // check skip
 	      if ( skip_detect_mehtod(current_detect_map) ||
 		   index_detect_loop_counter == max_index_detect_loop ) {
 		  index_detect = index_detect + 1;
@@ -733,11 +733,9 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 		  continue;
 	      }
 
-	   
-	      
 	      // Init module progress bar (DownloadProgress widget)
 	      OSRSummary::PrepareNewEntry(current_detect_map );
-	      
+
 	      // evaluate the functions and get the result_map
 	      // ret is boolean and not used at the moment
 	      eval( lookup(current_detect_map , "method", ``(osr_empty()) ) );
@@ -777,69 +775,75 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 		  }
 		  return (OSRStatus::IsCancel()) ? `back :  `error;
 	      }
-	      else if ( ( OSRStatus::IsStatusDetectError() &&  OSRStatus::IsErrorSeverityModuleBlocking()) ||
-			( OSRStatus::IsStatusRepairError() && OSRStatus::IsErrorSeverityModuleBlocking())  ||
-			(  OSRStatus::IsStatusRepairOmit() && OSRStatus::IsErrorSeverityModuleBlocking())  )
+	      else if ( ( OSRStatus::IsStatusDetectError() &&
+			    OSRStatus::IsErrorSeverityModuleBlocking()) ||
+			( OSRStatus::IsStatusRepairError() &&
+			    OSRStatus::IsErrorSeverityModuleBlocking())	||
+			( OSRStatus::IsStatusRepairOmit() &&
+			    OSRStatus::IsErrorSeverityModuleBlocking()))
 	      {
+		  /*
+		    - DetectError & SeverityModuleBlocking:
+			if a module-blocking error was detected but no repair
+			method started
+		    - RepairError & SeverityModuleBlocking:
+			if a module-blocking error was detected but the repair
+			method failed
+		    - RepairOmit & SeverityModuleBlocking:
+			if the user omitted repairing a module-blocking error
 
-		  // DetectError & SeverityModuleBlocking:
-		  // if a module-blocking error was detected but no repair method started
-		  // execute no further detection methods from the current module and jump
-		  // to the next detection module
-
-		  // RepairError & SeverityModuleBlocking:
-		  // if a module-blocking error was detected but the repair method failed
-		  // execute no further detection methods from the current module and jump
-		  // to the next detection module
-
-		  // RepairOmit & SeverityModuleBlocking:
-		  // if the user omitted repairing a module-blocking error
-		  // go to the next module
+		    -> execute no further detection methods from the current
+			module and jump to the next detection module
+		    */
 
 		  // adjust the value of the global progress bar
 		  while (index_detect < size(detect_methods))
 		  {
 		      OSRProgress::Increase(`global_progress_bar);
 		      index_detect = index_detect + 1;
-		  }		  
+		  }
 	      }
-	      else if ( OSRStatus::IsStatusDetectOK ()  	||
+	      else if ( OSRStatus::IsStatusDetectOK ()		||
 			OSRStatus::IsStatusDetectOmit()		||
 			OSRStatus::IsStatusNotFound()		||
-		   OSRStatus::IsStatusDetectError()  	||
-		   OSRStatus::IsStatusDetectProblem()   ||
-		   OSRStatus::IsStatusRepairOmit()
-		   )
-	      {		  
-		  // DetectOK:
-		  // if no error detected go to the next detection-method
+			OSRStatus::IsStatusDetectError()	||
+			OSRStatus::IsStatusDetectProblem()	||
+			OSRStatus::IsStatusRepairOmit())
+	      {
+		  /*
+		    - DetectOK:
+			no error detected
+		    - DetectProblem:
+			potential problem detected and no repair method started
+		    - RepairOmit:
+			user omitted repairing a "normal" error
 
-		  // DetectError:
-		  // if a "normal" error was detected but no repair method started
-		  // restart the current detection method
+		    -> go to the next detection method
+		    */
 
-		  // DetectProblem:
-		  // if a potential problem was detected and no repair method started
-		  // go to the next detection method
-
-		  // RepairOmit:
-		  // if the user omitted repairing a "normal" error go to
-		  // the next detection method
-
+		// FIXME no restarting is done here, so why is DetectError here?
+		// DetectError:
+		// if a "normal" error was detected but no repair method started
+		// restart the current detection method
 		  OSRProgress::Increase(`global_progress_bar);
 		  index_detect = index_detect + 1;
 	      }
-	      else if ( OSRStatus::IsStatusRepairOK()  		||  // restart the current detection method
-			OSRStatus::IsStatusRepairError() 	 )
+	      else if ( OSRStatus::IsStatusRepairOK() ||
+			OSRStatus::IsStatusRepairError() )
 	      {
-		  // RepairError:
-		  // if the repair-method was not successfull restart the current
-		  // detection method
+		/*
+		    - RepairError:
+			repair-method was not successfull
+		    - RepairOK:
+			all detected errors were repaired
+		    ->restart detect
+		*/
 
-
-		  // RepairOK:
-		  // if all detected errors were repaired restart the current
-		  // detection method
+		y2milestone ("restarting detection method after repair");
+		/*
+		    NOTE: detection is restarted only once - see above check
+		    "index_detect_loop_counter == max_index_detect_loop"
+		*/
 	      }
 	      else if ( OSRStatus::IsOpen() )
 	      {
@@ -849,11 +853,11 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	      }
 	      else
 	      {
-		  y2error("not a valid status: %1", OSRStatus::status );	  
+		  y2error("not a valid status: %1", OSRStatus::status );
 	      }
- 
+
 	      OSRSummary::FinishNewEntry();
-	      
+
 	      if( back2status_detect_method_name()) {
 		  OSRStatus::Open();
 		  current_detect_map  = $[];
@@ -868,13 +872,13 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	  y2milestone("Finished module with the name  %1", current_module_name);
 
 	  current_module_name = "";
-	  
+
 	  // go to the next module
 	  index_modules = index_modules + 1;
       }
-	  
-      // fill up the global-progress-bar to 100%, this can be necessary because of
-      // arithmetic rounding problems
+
+      // fill up the global-progress-bar to 100%, this can be necessary
+      // because of arithmetic rounding problems
       OSRProgress::Fill(`global_progress_bar);
       OSRSummary::Finish();
 
