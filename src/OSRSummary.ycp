@@ -204,14 +204,14 @@ color
    */
   global define boolean Update() ``{
 
-      string  text  	      = "";
+      string  text	      = "";
       map     group_text_map  = $[];
 
       //update show_details
       if (UI::WidgetExists(`id(`details)))
 	  show_details = (boolean) UI::QueryWidget(`id(`details), `Value );
 
-      foreach (string group, list<map<string,any> > entries, (map<string,list<map<string,any> > >)summary, ``{
+      foreach (string group, any entries, (map<string,any>)summary, ``{
 
 	if (group == finish_key )
 	{
@@ -225,7 +225,7 @@ color
 	    string summary_text	= "";
 	    list<string> summary_list	= [];
 
-	    foreach (map<string,any> entry, entries, ``{
+	    foreach (map entry, (list<map>) entries, ``{
 
 		if (g_priority<OSRStatus::Priority(entry["status"]:"detect_ok"))
 		{
