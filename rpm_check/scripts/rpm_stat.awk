@@ -1,3 +1,5 @@
+# used by ag_rpm (rpm agent)
+# makes rpm -V and creates rpm-map (result map)
 BEGIN{
 	# define varibles for other programms that this script using
 	PREFIX = ENVIRON["PREFIX"]; # PREFIX have to be an exported environment Variable
