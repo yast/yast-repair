@@ -322,7 +322,7 @@ reverting to a backup.</P>
 
 <P><B>What is the minimal package selection?</B><BR>
 %1
-SuSE Linux needs at least some packages for
+&product; needs at least some packages for
 the basic system functionality. Without these
 packages, the system is not executable.</P>
 "), common_package_texts ) +

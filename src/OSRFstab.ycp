@@ -1302,8 +1302,8 @@ Really continue?
 		if (e["spec"]:"" != "" && e["mount"]:"" != ""){
 		    list<string> fstlist = [ k , e["mount"]:"",
 					     e["vfstype"]:"", e["mntops"]:"",
-					     sformat ("%1",e["freq"]:0),
-					     sformat ("%1",e["passno"]:0) ];
+					     sformat ("%1",e["freq"]:nil),
+					     sformat ("%1",e["passno"]:nil) ];
 
 		    cmp[fack_lnr] =  e["mount"]:"";
 		    fack_lnr      =  fack_lnr + 1;
