@@ -246,7 +246,7 @@ Check your hardware.
 	  UI::ChangeWidget(`id(`abort), `Enabled, true );
 	  UI::ChangeWidget(`id(`back),  `Enabled, true );
 
-	  UI::SetFocus(`id(`next));
+	  Wizard::SetFocusToNextButton();
       }
 
       initialized = true;
