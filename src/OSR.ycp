@@ -1044,13 +1044,14 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 	boolean found = false;
 	foreach (string group, OSRCommon::detect_group_list, ``{
 
-	    list<string>requires=OSRCommon::global_entries[group,"requires"]:[];
+	    list<string> requires = (list<string>)
+		OSRCommon::global_entries[group,"requires"]:[];
 	    foreach (string req, requires, ``{
 		if (!contains(OSRCommon::detect_group_list, req ))
 		{
 		    if (!contains(ret, req))
 		    {
-			ret = toset(add(ret, req));
+			ret = (list<string>) toset(add(ret, req));
 			found = true;
 		    }
 		}
@@ -1062,7 +1063,10 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 		OSRCommon::detect_group_list, ret);
 	    again = true;
 	}
-	else again = false;
+	else
+	{
+	    again = false;
+	}
     }
     return ret;
   }
