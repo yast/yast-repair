@@ -18,28 +18,22 @@
 
   import "OSRExecute";
   import "OSRPopup";
-  
+
   import "Storage";
   import "Partitions";
-  
-  
 
   textdomain "repair";
 
-  global define void Reset()``{
-      y2debug(" empty"); 
-  };
-  
   /**
    * Create swap area on a swap partition.
    */
   global define symbol Repair( string target )``{
-      
-      ///////////////////////////////////////////////////////////////////////////////////
+
+      //////////////////////////////////////////////////////////////////////////
       //
       //  Repair swap area with mkswap
       //
-      ///////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////
 
       // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
       string error_message = sformat(_("
@@ -66,66 +60,68 @@ close this help dialog and press
 \"Repair\" for automatic
 repair.</p>
 ");
-      
+
       while( true )
-      {     
-	  if (! OSRPopup::Repair(_("Error detected."), error_message, help_text) ) return `cancel;
+      {
+	  if (!OSRPopup::Repair(_("Error detected."), error_message, help_text))
+	      return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
 			       `Label(_("Creating swap area. Please wait...")),
 			       `VSpacing(1)));
-	  
-	  boolean ret =  OSRExecute::Command(.local.bash, "/sbin/mkswap " + target );
+
+	  boolean ret = OSRExecute::Command(.local.bash,"/sbin/mkswap "+target);
 
 	  UI::CloseDialog();
 	  if ( ret ) return `ok;
       }
   };
 
-
   /**
    *  Get all valid swap-partitions.
-   *
-   *  @param map target_map The map that contains all informations about all detected harddisks and all partitions.
    *  @return list The list of valid swap-partitions.
    */
-  global define list(string) Partitions() ``{
-      
-      list(string) ret = [];
-      foreach ( string dev, map disk, Storage::GetTargetMap(), ``{
-	  if( !disk["is_lvm_vg"]:false && dev != "/dev/md" )
-	  {
-	      list(map) l = filter( map `p, disk["partitions"]:[], 
-			       ``(p["delete"]:false==false  && p["fsid"]:0 == Partitions::fsid_swap ) );
-	      ret = union( ret,  maplist( map `p, l,
-				       ``(Storage::GetDeviceName(dev,p["nr"]:0)))); 
-	    }
-      });
+  global define list<string> Partitions() ``{
 
-      y2debug( "GetPartitionList ret=%1", ret );
-      return( ret );	       
+    list<string> ret = [];
+    foreach (string dev, map disk, Storage::GetTargetMap(), ``{
+	if( !disk["is_lvm_vg"]:false && dev != "/dev/md" )
+	{
+	    list l = filter (map p, disk["partitions"]:[], ``(
+		!p["delete"]:false && p["fsid"]:0 == Partitions::fsid_swap)
+	    );
+
+	    ret = (list<string>) union (ret, maplist (map p, l,
+		``(Storage::GetDeviceName (dev,p["nr"]:0))));
+	}
+    });
+
+    y2debug ("GetPartitionList ret=%1", ret );
+    return ret;
   };
 
 
-  
   /**
-   *  Returns a list of names e.g. ["/dev/hda1", "/dev/hdb3"] of all partitions that can be mounted to the system as swap
-   *  out of the specified list.
+   *  Returns a list of names (e.g. ["/dev/hda1", "/dev/hdb3"]) of all
+   *	partitions that can be mounted to the system as swap out of
+   *	the specified list.
    *
-   *  @param list partition_list  e.g. ["/dev/hda1", "/dev/hdb3"] - A list of partitions out of which
-   *         the "swapable" partitions are to be returned.
-   *  @return list The list of partition-names that were successfully added to the system as swap partitions.
+   *  @param list partition_list A list of partitions out of which
+   *    the "swapable" partitions are to be returned,
+   *	e.g. ["/dev/hda1", "/dev/hdb3"] -
+   *  @return list The list of partition names that were successfully added
+   *	to the system as swap partitions.
    */
-  global define list(string) ValidPartitions(list(string) partition_list) ``{
+  global define list<string> ValidPartitions(list<string> partition_list) ``{
 
-      list(string) swap_possible_list = [];
-      list(string) already_swapped_on = Storage::SwappingPartitions();
+      list<string> swap_possible_list = [];
+      list<string> already_swapped_on = Storage::SwappingPartitions();
 
       foreach(string partition_item, partition_list, ``{
 
 	  if ( contains(already_swapped_on, partition_item) )
 	  {
-	      // this partition is already swapped on, so it seems to be swapable
+	      // this partition is already swapped on,so it seems to be swapable
 	      swap_possible_list = add( swap_possible_list, partition_item );
 	  }
 	  else
@@ -146,4 +142,4 @@ repair.</p>
       return swap_possible_list;
   };
 
-}
+}//EOF

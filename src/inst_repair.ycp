@@ -20,17 +20,17 @@
   import "Wizard";
   import "Misc";
 
-  Mode::update = false;
-  Mode::installation = true;
-  Mode::initial      = true;
-  
+  Mode::update		= false;
+  Mode::installation	= true;
+  Mode::initial		= true;
+
   y2milestone( "Starting yast repair tool" );
 
   Wizard::OpenNextBackDialog();
-	
-  symbol ret = WFM::CallFunction(`repair());
+
+  any ret = WFM::CallFunction ("repair");
 
   Misc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
-  return `finish;
-  
+
+  return ret;
 }

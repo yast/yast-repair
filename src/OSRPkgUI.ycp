@@ -126,20 +126,13 @@ modified.
      */
     boolean protocol_mode	= false;
    
-    /**
-     * Constructor- reset module settings.
-     */
-    global define OSRPkgUI()``{
-	Reset();
-    }
-
     define void set_verify_text_header()``{
 	string header        = "";
 	string hr            = "";
-	list(string) special = [];
+	list<string> special = [];
 
 	// Build headers for the tables in qt-mode
-	if( UI::HasSpecialWidget(`DownloadProgress))
+	if (UI::HasSpecialWidget(`DownloadProgress))
 	{	
 	    special = [ "width=400", "align=right"];
 	   
@@ -171,8 +164,8 @@ modified.
 	}
 
     }
-    
-    /**
+
+     /**
      * Reset all (not static)  module settings.
      */
     global define void Reset()``{
@@ -192,7 +185,14 @@ modified.
 	
     }
 
- 
+    /**
+     * Constructor- reset module settings.
+     */
+    global define void OSRPkgUI()``{
+	Reset();
+    }
+
+
 
     
     
@@ -201,13 +201,50 @@ modified.
      * Used in ncurses mode for formatting.
      */
     define string fill(string str, integer length, string c)``{
-	if( size(str) > length ) return substring(str, 0, length);
+	if (size(str) > length ) return substring(str, 0, length);
 	while( size(str) < length ) { str = str +c ;}
 	return str;
     }
 
    
+    /**
+     * Return the current dialog ( expert or normal dialog).
+     */
+    define term get_verify_dialog()``{
+	
+	integer pos =  0;
+	if (protocol_mode ) pos = 3;
+	else {
+	    pos = ( expert_mode ) ? 0 : 1 ;
+	}
+	return dialogs[ pos ]:`Empty();
+    }
+    
+    /**
+     * Repaint the displayed text depending on the show_ok value (CheckBox Show all).
+     */
+    define boolean repaint()``{
 
+	if (UI::WidgetExists(`id(package_widget )))
+	{
+	    string table = "</table>";
+
+	    if (! UI::HasSpecialWidget(`DownloadProgress))
+	    {	
+		table = "";
+	    }
+	    
+	    if (show_ok && UI::WidgetExists(`id(package_widget )))
+	    {
+		return UI::ChangeWidget(`id( package_widget), `Value,  verified_text_ok + table );
+	    }
+	    else {
+		return UI::ChangeWidget(`id( package_widget), `Value,  verified_text + table );
+	    }
+	}
+	return false;
+    }
+  
     /**
      * Switch between expert and normal mode.
      */
@@ -217,7 +254,7 @@ modified.
 	expert_mode = t_expert_mode;
 	show_ok     = true;
 
-	if( UI::WidgetExists(`id(mode_replace_point_key)))
+	if (UI::WidgetExists(`id(mode_replace_point_key)))
 	{
 	    UI::ReplaceWidget(`id(mode_replace_point_key), get_verify_dialog());
 	    UI::ChangeWidget( `id(mode_key ), `Value, expert_mode);
@@ -225,26 +262,13 @@ modified.
 	    repaint();
 	}
 	
-	if( UI::WidgetExists(`id( package_progress_bar )))
+	if (UI::WidgetExists(`id( package_progress_bar )))
 	{
 	    UI::ChangeWidget(`id( package_progress_bar), `Value, size( OSRPkgVerify::verified_packages));
 	}
     }
 
-    /**
-     * Return the current dialog ( expert or normal dialog).
-     */
-    define term get_verify_dialog()``{
-	
-	integer pos =  0;
-	if( protocol_mode ) pos = 3;
-	else {
-	    pos = ( expert_mode ) ? 0 : 1 ;
-	}
-	return dialogs[ pos ]:`Empty();
-    }
-    
-    
+   
     /**
      * Build string: Checking package: (43/234)
      */
@@ -329,37 +353,6 @@ YaST verifies packages now."))),
 	return ret;
     }
 
-
-    global define list(list) ProtocolDialog()``{
-
-	protocol_mode = true;
-
-	UI::OpenDialog( get_verify_dialog()  );
-
-	symbol ret  = `next;
-	string rret = "";
-
-	repaint();
-	
-	repeat {
-	    rret = UI::UserInput();
-	    y2milestone(" user input in protocol dialogs : %1", rret);
-	    ret  = EvalUserInput(rret);
-
-	} until ( ret == `abort || ret == `cancel  );
-
-	UI::CloseDialog();
-	protocol_mode = false;
-
-	list(list) item_list = [];
-	    foreach(string item, OSRPkgVerify::not_successful_verified , ``{
-		item_list = add( item_list, [item, true]);
-	    });
-
-	return item_list;
-    }
-    
-
     /**
      * Generate a key for a package without error.
      */
@@ -371,53 +364,55 @@ YaST verifies packages now."))),
      * Decode the package name from a key for a package without error.
      */
     define string ok_key2pkg_name(string input ) ``{
-	if(substring(input, 0, size("status")) == "status" )
+	if (substring(input, 0, size("status")) == "status" )
 	{
 	    string pkg_name = substring(input, size("status") );
-	    if( haskey(OSRPkgVerify::verified_packages, pkg_name))
+	    if (haskey(OSRPkgVerify::verified_packages, pkg_name))
 		return pkg_name;
 	}
 	return "";
-    }	
+    }
 
 
-    
     /**
      * Add a new package entry to the internal list and the displayed text.
      * Update the process bar too.
      * Afterwards call repaint define.
      */
     define boolean update(string pkg_name, map pkg_data , boolean repaint_mode )``{
-	
+
 	//update show_ok
-	if(repaint_mode && UI::WidgetExists(`id("show_ok")))
-	    show_ok = UI::QueryWidget(`id("show_ok"), `Value );
+	if (repaint_mode && UI::WidgetExists(`id("show_ok")))
+	    show_ok = (boolean) UI::QueryWidget(`id("show_ok"), `Value );
 
-	string tab_body         	= "";
-	string tab_pkg_status   	= "";
-	string tab_pkg_name_color 	= ( contains( OSRPkgVerify::not_successful_verified, pkg_name )) ? "red" : "blue" ;
-	string tab_pkg_name    		= HTML::Link(HTML::Bold(HTML::Colorize( pkg_name,  tab_pkg_name_color )), pkg_name );
-	string align            	= ( ! UI::HasSpecialWidget(`DownloadProgress)) ? "" : "align=right";
-	string fill_c           	= "";
-	string line_sf 			= "";
-	    
-	if( pkg_data == $[]  )
+	string tab_body			= "";
+	string tab_pkg_status		= "";
+	string fill_c			= "";
+	string line_sf			= "";
+	string tab_pkg_name_color	= contains (
+	    OSRPkgVerify::not_successful_verified, pkg_name) ? "red" : "blue" ;
+	string tab_pkg_name		= HTML::Link (HTML::Bold (
+	    HTML::Colorize (pkg_name, tab_pkg_name_color)), pkg_name);
+	string align =
+	    UI::HasSpecialWidget(`DownloadProgress) ? "align=right" : "";
+
+	if (pkg_data == $[]  )
 	{
-	    tab_pkg_status = HTML::Link(HTML::Bold(HTML::Colorize("ok", "blue")), pkg_name2ok_key(pkg_name) );
+	    tab_pkg_status = HTML::Link (HTML::Bold (
+		HTML::Colorize ("ok", "blue")), pkg_name2ok_key(pkg_name));
 	}
-	else if ( pkg_data != $[]  )
+	else if (pkg_data != $[]  )
 	{
-	    if( tab_pkg_status == "" ) tab_pkg_status = HTML::Bold("...");
+	    if (tab_pkg_status == "" ) tab_pkg_status = HTML::Bold("...");
 
-	 
-	    foreach(string key,  map line, pkg_data, ``{
- 
+	    foreach (string key,  map line, pkg_data, ``{
+
 		string color       = ( OSRPkgVerify::GreenPackageProblems(pkg_name, line ) == "" ) ? "red" : "green" ;
 		string file_status = HTML::Link(HTML::Bold(HTML::Colorize( line["status"]:"",  color)),  key );
 		string file        = line["file"]:"";
 		string config_file = sformat("%1", line["config_file"]:"");
-		
-		if( UI::HasSpecialWidget(`DownloadProgress))
+
+		if (UI::HasSpecialWidget(`DownloadProgress))
 		{
 		    line_sf = "<tr> 
                                  <td  colspan=2 align=right> %1</td>
@@ -430,7 +425,6 @@ YaST verifies packages now."))),
 		    file 	= fill( sformat("%1",line["file"]:""), 	   60, "." ) + "..";
 		    config_file = fill( sformat("%1",line["config_file"]:false), 8,   ".");
 		}
-		    
 		tab_body = tab_body + sformat(line_sf,
 					      file,
 					      config_file,
@@ -438,12 +432,10 @@ YaST verifies packages now."))),
 					      align);
 	    });
 
-	   
 	}
 
-	if ( UI::HasSpecialWidget(`DownloadProgress))
+	if (UI::HasSpecialWidget(`DownloadProgress))
 	{
-	    
 	    line_sf = "<tr><th>%1</th>
                                     <th></th>
                                     <th></th>
@@ -459,85 +451,80 @@ YaST verifies packages now."))),
 	}
 
 	string table = sformat(line_sf, tab_pkg_name, tab_pkg_status, tab_body,align);
-	
 	verified_text_ok = verified_text_ok + table;
 
-	if( pkg_data != $[] )
-	{	
+	if (pkg_data != $[] )
+	{
 	    verified_text = verified_text + table;
 	}
-	    
 	return ( (repaint_mode ) ? repaint() : true );
     }
 
-    /**
-     * Repaint the displayed text depending on the show_ok value (CheckBox Show all).
-     */
-    define boolean repaint()``{
 
-	if( UI::WidgetExists(`id(package_widget )))
-	{
-	    string table = "</table>";
-
-	    if(! UI::HasSpecialWidget(`DownloadProgress))
-	    {	
-		table = "";
-	    }
-	    
-	    if ( show_ok && UI::WidgetExists(`id(package_widget )))
-	    {
-		return UI::ChangeWidget(`id( package_widget), `Value,  verified_text_ok + table );
-	    }
-	    else {
-		return UI::ChangeWidget(`id( package_widget), `Value,  verified_text + table );
-	    }
-	}
-	return false;
-    }
-    
-    global define boolean AddPackageSummary(string  pkg_name,map pkg_data )``{
-
-	boolean ret = update(pkg_name, pkg_data , true );
-
-	if( UI::WidgetExists(`id( package_progress_bar )))
-	{
-	    OSRProgress::SetLabel(package_progress_bar, check_string());
-	}
-	return ret;
-    }
-
-    
     define boolean rebuild_protocol_text()``{
-	verified_text_ok 	 = "";
-	verified_text	 	 = "";
+	verified_text_ok	 = "";
+	verified_text		 = "";
 	set_verify_text_header();
-	
-	foreach(string pkg_name, map pkg_data, OSRPkgVerify::verified_packages, ``{
+
+	foreach (string pkg_name, map pkg_data, OSRPkgVerify::verified_packages,
+	``{
 	    update( pkg_name, pkg_data, false );
 	});
 	return repaint();
     }
-    
-    define symbol show_package_details(string pkg_name )``{
-	map ret = OSRPopup::CheckBoxDialog(_("Package Details:"), Pkg::PkgSummary(input),
-					[[ pkg_name , _("Reinstall the Package"),
-					  contains(OSRPkgVerify::not_successful_verified, pkg_name ) ]]);
-	foreach(string pkg, boolean reinstall , ret , ``{
-	    if( reinstall )
+
+    /**
+     *
+     */
+    define symbol show_package_details (string pkg_name)``{
+	// popup headline
+	map ret = OSRPopup::CheckBoxDialog (_("Package Details:"),
+	    Pkg::PkgSummary (pkg_name),
+	    [ [ pkg_name,
+		// checkbox label
+		_("Reinstall the Package"),
+		contains (OSRPkgVerify::not_successful_verified, pkg_name)
+	    ] ]
+	);
+	foreach (string pkg, boolean reinstall , ret , ``{
+
+	    if (reinstall)
 	    {
-		OSRPkgVerify::not_successful_verified = union( OSRPkgVerify::not_successful_verified, [ pkg ]);
+		OSRPkgVerify::not_successful_verified = (list<string>) union (
+		    OSRPkgVerify::not_successful_verified,
+		    [ pkg ]);
 	    }
-	    else {
-		OSRPkgVerify::not_successful_verified = filter( string name, OSRPkgVerify::not_successful_verified,
-								``( name != pkg  ));
+	    else
+	    {
+		OSRPkgVerify::not_successful_verified = filter (string name,
+		    OSRPkgVerify::not_successful_verified, ``( name != pkg ));
 	    }
 	});
-
 	rebuild_protocol_text();
-	
 	return `next;
     }
-    
+
+    /**
+     * Toggle the pause button between pause and continue.
+     */
+    define symbol toggle_pause_button() ``{
+	pause = ! pause;
+
+	if (UI::WidgetExists(`id(pause_key)))
+	{
+	    if (!pause)
+	    {
+		UI::ChangeWidget(`id(pause_key), `Label,  pause_label  );
+		return `continue;
+	    }
+	    else
+	    {
+		UI::ChangeWidget(`id(pause_key), `Label,  continue_label  ); 
+		return `pause;
+	    }
+	}
+    }
+
     /**
      * Show the details of a package in a new dialog.
      * @param pkg_name The name of the package e.g.: filesystem
@@ -554,7 +541,7 @@ YaST verifies packages now."))),
 
 	string status     		= pkg_data["status"]:"";
 	
-	if( status == OSRPkgVerify::missing )
+	if (status == OSRPkgVerify::missing )
 	{
 	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
 	    // TODO write more
@@ -578,13 +565,13 @@ the unsatisfied dependencies.
 ", pkg_data["file"]:""));
 
 	}
-	else if ( status != "" )
+	else if (status != "" )
 	{
-	    list(string) special = [];
+	    list<string> special = [];
 	    string header = "";
 	    string line   = "";
 	    string end    =  "</table>";
-	    if( UI::HasSpecialWidget(`DownloadProgress))
+	    if (UI::HasSpecialWidget(`DownloadProgress))
 	    {
 		special = [ "width=400", "width=20", "width=270", "width=110"];
 	    
@@ -607,12 +594,13 @@ the unsatisfied dependencies.
 	    term    config_term  	= `Label(_("YaST suggests reinstalling this package."));
 	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
 
-	    if( pkg_data["green_status"]:"" != "" )
+	    if (pkg_data["green_status"]:"" != "" )
 	    {
 		string green_status = pkg_data["green_status"]:"";
 		y2milestone("green status of the package %1", green_status );
-		string message = OSRPkgVerify::unimportant2help[ green_status ]:"";
+		string message = OSRPkgVerify::unimportant2help [green_status]:"";
 		y2milestone("message : %1" ,message );
+		// FIXME: this is never shown!!! check it!!
 		config_term = `Label( message );
 	    }
 	    
@@ -620,11 +608,11 @@ the unsatisfied dependencies.
 	    while ( size( status ) != 0 )
 	    {
 		string c = substring(status, 0,1);
-		if( c != "." && c != "?")
+		if (c != "." && c != "?")
 		{
 		    not_passed = add(not_passed, c );
 		}
-		else if ( c == "?")
+		else if (c == "?")
 		{
 		    not_passed = add(not_passed, modes[( 8 - size(status)) ,0]:"");
 		}
@@ -633,7 +621,7 @@ the unsatisfied dependencies.
 	    
 	    foreach(list t, modes, ``{
 	
-		if ( contains(not_passed, t[0]:"" ))
+		if (contains(not_passed, t[0]:"" ))
 		{
 		    body     = body + sformat(line, t[0]:"", t[1]:"", HTML::Colorize(_("Test not passed"), problem_color),
 					      special[1]:"",special[2]:"", special[3]:"");
@@ -673,7 +661,6 @@ the unsatisfied dependencies.
 				      `VWeight(10, `VBox(`Left(`Label(_("Corresponding File of the Package:"))),
 							 `Left(`Label(`opt(`outputField),  pkg_data["file"]:""))
 							 )
-					       
 					       ),
 				      //`VSpacing(0.2),
 				      //`VWeight(10,`Left(config_term)),
@@ -695,39 +682,18 @@ the unsatisfied dependencies.
 
 
     /**
-     * Toggle the pause button between pause and continue.
-     */
-    define symbol toggle_pause_button()``{
-	pause = ! pause;
-
-	if( UI::WidgetExists(`id(pause_key )))
-	{
-	    if ( ! pause ) 
-	    {
-		UI::ChangeWidget(`id(pause_key), `Label,  pause_label  );
-		return `continue;
-	    }
-	    else
-	    {
-		UI::ChangeWidget(`id(pause_key), `Label,  continue_label  ); 
-		return `pause;
-	    }
-	}
-    }
-    
-    /**
      * Eval the user input.
      */
-    global define symbol EvalUserInput( string input  )``{
-	
+    global define symbol EvalUserInput (string input) ``{
+
 	// if the user pressed the or or cancel button ask or abort
-	if ( input == ok_or_cancel_key )
+	if (input == ok_or_cancel_key )
 	{
 	    // if not all packages are verified ask the user if he
 	    // want really cancel.
-	    if( package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
+	    if (package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
 	    {
-		if( ! Popup::YesNo(_("\nReally cancel package verification?
+		if (! Popup::YesNo(_("\nReally cancel package verification?
 ")))
 		{
 		    return `again;
@@ -736,28 +702,28 @@ the unsatisfied dependencies.
 	    }
 	    return `abort;
 	}
-	else if ( input == pause_key )
+	else if (input == pause_key )
 	{
 	    // if the user pressed the pause or continue button
 	    // change the label of the button.
 	    return toggle_pause_button();
 	}
-	else if ( input == "show_ok")
+	else if (input == "show_ok")
 	{
 	    // if the dialog in the expert mode and the user
 	    // clicked the checkbox "show_ok" change the
 	    // shown verify text
-	    show_ok = UI::QueryWidget(`id("show_ok"), `Value );
+	    show_ok = (boolean) UI::QueryWidget(`id("show_ok"), `Value );
 	    repaint();
 	}
-	else if ( haskey(OSRPkgVerify::verified_packages, input ))
+	else if (haskey(OSRPkgVerify::verified_packages, input))
 	{
 	    // if the dialog in the expert mode and the
 	    // user clicked a package name open a dialog
 	    // with the summary of the package
-	    show_package_details( input );
+	    show_package_details (input);
 	}
-	else if ( ok_key2pkg_name(input) != "" )
+	else if (ok_key2pkg_name (input) != "" )
 	{
 	    // if the dialog in the expert mode and the
 	    // user clicked a package status open a
@@ -766,30 +732,70 @@ the unsatisfied dependencies.
 Verifying the packages %1 was successful.
 "), ok_key2pkg_name(input)));
 	}
-	else if ( input == mode_key )
+	else if (input == mode_key )
 	{
 	    // change the dialog mode between the expert
 	    // and the normal mode.
-	    set_expert_mode( UI::QueryWidget(`id(mode_key ), `Value));
-	  
-	    if( pause )
+	    set_expert_mode ((boolean)UI::QueryWidget(`id(mode_key ), `Value));
+	    if (pause)
 	    {
 		toggle_pause_button();
 		return `continue;
-	    }	    
+	    }
 	}
-	else 
+	else
 	{
 	    // open a extended dialog which describe the packages status
 	    //S.5....T c  <- Config file
-	    string pkg_name = regexpsub( input, sformat("(.*%1).*", OSRPkgVerify::separator),  "\\1" );	    
-	    pkg_name        = substring(pkg_name, 0,  size(pkg_name) - size(OSRPkgVerify::separator)); 
-	    map pkg_data    = OSRPkgVerify::verified_packages[pkg_name]:$[];
-	    return show_verify_details( pkg_name, pkg_data[input]:$[] );
+	    string pkg_name = regexpsub (input,
+		sformat("(.*%1).*", OSRPkgVerify::separator),  "\\1");
+	    pkg_name        = substring (pkg_name, 0,
+		size(pkg_name) - size (OSRPkgVerify::separator));
+	    map pkg_data    = OSRPkgVerify::verified_packages [pkg_name]:$[];
+
+	    return show_verify_details (pkg_name, pkg_data[input]:$[]);
 	}
 	return `again;
     }
 
+
+    global define list<list> ProtocolDialog()``{
+
+	protocol_mode = true;
+
+	UI::OpenDialog( get_verify_dialog()  );
+
+	symbol ret  = `next;
+	string rret = "";
+
+	repaint();
+	repeat
+	{
+	    rret = (string) UI::UserInput();
+	    y2milestone(" user input in protocol dialogs : %1", rret);
+	    ret  = EvalUserInput (rret);
+	} until ( ret == `abort || ret == `cancel  );
+
+	UI::CloseDialog();
+	protocol_mode = false;
+
+	list<list> item_list = [];
+	foreach (string item, OSRPkgVerify::not_successful_verified , ``{
+	    item_list = add (item_list, [item, true]);
+	});
+	return item_list;
+    }
+
+    global define boolean AddPackageSummary(string  pkg_name,map pkg_data )``{
+
+	boolean ret = update(pkg_name, pkg_data , true );
+
+	if (UI::WidgetExists(`id( package_progress_bar )))
+	{
+	    OSRProgress::SetLabel(package_progress_bar, check_string());
+	}
+	return ret;
+    }
 
     /**
      * Finish the dialog.
@@ -797,13 +803,12 @@ Verifying the packages %1 was successful.
     global define void Finish()``{
 	UI::ChangeWidget(`id(ok_or_cancel_key), `Label, Label::OKButton());
 
-	if( UI::WidgetExists(`id(pause_key ) ))
+	if (UI::WidgetExists(`id(pause_key ) ))
 	{
 	    UI::ChangeWidget(`id(pause_key),	`Enabled, false);
 	}
     }
 
 
-    
-    }
+}//EOF
 

@@ -18,7 +18,7 @@
     import "HTML";
     import "Mode";
 
-    import "OSR";
+    import "OSRCommon";
     import "OSRSystem";
     import "OSRFstab";
     import "OSRFsck";
@@ -31,43 +31,38 @@
 
     /**
      * Contains the data and the keys of all direct repair mehtods. 
-     */ 
-    map direct_methods = $[];
-    
-    /**
-     * The name of the current direct repair method.
      */
-    global string current_direct_name = "";
+    map direct_methods = $[];
 
     /**
      * Mounted root partition.
      */
     global string mounted_root_partition = "";
-    
+
     /**
      * Reset the module settings.
-     * Don`t reset direct_methods. 
+     * Don`t reset direct_methods.
      */
     global define void Reset()``{
-	
+
 	// The name of the current direct repair method.
-	current_direct_name 	= "";
-	mounted_root_partition  = "";
-	
+	OSRCommon::current_direct_name	= "";
+	mounted_root_partition		= "";
+
 	// change the root environment for the scr to /
 	OSRSystem::SetOrgRoot();
     }
 
-    
     /**
      * Add a new entry to the direct_methods map.
      * Used in OSR module at the initial sequence.
      * @param new_entries A list that describe the new direct repair entries.
      */
-    global define void AddEntries(list new_entries, term client ) ``{
+//    global define void AddEntries(list new_entries, term client ) ``{
+    global define void AddEntries(list new_entries, string client ) ``{
 
-	foreach(map p, new_entries, ``{
-	    if ( !((! Mode::initial) && p["initial_only"]:false == true ))
+	foreach (map p, new_entries, ``{
+	    if (!( !Mode::initial && p["initial_only"]:false ))
 	    {
 		p["client"] = client;
 		direct_methods[p["name"]:""] =  p;
@@ -75,65 +70,77 @@
 	});
     }
 
-
     /**
      * Return a automatically generated menu for all
      * direct repair methods.
      */
     global define term OptionMenu()``{
-	
-	term direct_items 	     = `VBox(`VSpacing(1), `Left(`Label(_("Select One Option:"))));
-	list(term) menu_button_items = [];
 
-	    
-	// layout with buttons. 
-	if( size( direct_methods) <= max_direct_push_buttons  ) {
-	    foreach(string key, map data, direct_methods , ``{
-		direct_items = add(direct_items,
-			       `HBox(`HSpacing(1),
-				     `HWeight(40, `Left(`PushButton(`id(key),`opt(`hstretch), data["button_text"]:"" ))),
-				     `HSpacing(2),
-				     `HWeight(60,   `Left(`Label(data["description"]:""))),
-				     `HSpacing(1)
-				     ));
-			       
+	list<term> menu_button_items = [];
+	term direct_items	     = `VBox (
+	    // header (options with buttons will follow)
+	    `VSpacing(1), `Left(`Label(_("Select One Option:"))));
+
+	// layout with buttons
+	if (size (direct_methods) <= max_direct_push_buttons)
+	{
+	    foreach (string key, map data, direct_methods , ``{
+		direct_items = add (direct_items, `HBox (
+		    `HSpacing(1),
+		    `HWeight (40, `Left (`PushButton (`id(key),`opt(`hstretch),
+			data["button_text"]:"" ))
+		    ),
+		    `HSpacing(2),
+		    `HWeight (60, `Left (`Label (data["description"]:""))),
+		    `HSpacing(1)
+		));
 	    });
-	    direct_items =  `HSquash(direct_items );
+	    direct_items = `HSquash (direct_items );
 	}
 	// layout with a RichText field.
-	else {
+	else
+	{
 	    string text = "";
-	    foreach(string key, map data, direct_methods , ``{
+	    foreach (string key, map data, direct_methods , ``{
 
 		string item = "";
-
-		if( UI::HasSpecialWidget(`DownloadProgress))
-		{	
-		    item =  "<tr> <th width=30 colspan=2 > %1 </th> <th></th></tr>" +  "<tr> <td width=30>  </th>
-                                  <td width=370>%2</th></tr>" +  "<tr><td>  </th><td></th></tr>";
+		if (UI::HasSpecialWidget(`DownloadProgress))
+		{
+		    item = "<tr><th width=30 colspan=2> %1 </th><th></th></tr>"
+		    +  "<tr> <td width=30>  </th> <td width=370>%2</th></tr>"
+		    +  "<tr><td>  </th><td></th></tr>";
 		}
-		else {
+		else
+		{
 		    item = "<li>%1 </li> <li>%2 </li> <li> </li><br>";
 		}
-		data["description"] = mergestring(splitstring(data["description"]:"", "\n"), " ");
+		data["description"] = mergestring (
+		    splitstring (data["description"]:"", "\n"), " ");
 
 		y2milestone("key %1", key);
-		text = text  + sformat(item,
-				      HTML::Link(HTML::Bold(HTML::Colorize(data["button_text"]:"",  "blue")), key ),
-				      data["description"]:""    );
+		text = text  + sformat (item, HTML::Link (
+		    HTML::Bold (HTML::Colorize (data["button_text"]:"","blue")),
+		    key),
+		    data["description"]:"");
 
-		menu_button_items = add(menu_button_items, `item( `id(key), data["button_text"]:"" ));
+		menu_button_items = add (menu_button_items,
+		    `item (`id(key), data["button_text"]:""));
 	    });
-	    if( UI::HasSpecialWidget(`DownloadProgress))
+	    if (UI::HasSpecialWidget(`DownloadProgress))
 	    {
-		direct_items = add( direct_items,`RichText(`id(`options), sformat("<table>%1</table>",text) ));
+		direct_items = add (direct_items,
+		    `RichText(`id(`options),sformat("<table>%1</table>",text)));
 	    }
-	    else {
-		direct_items = add( direct_items, `RichText(`id(`options), text));
+	    else
+	    {
+		direct_items = add (direct_items,`RichText(`id(`options),text));
 	    }
 
-	    direct_items = add(direct_items , `MenuButton( _("Re&pair Tools..."), menu_button_items ));
-	    direct_items = add(direct_items , `VSpacing(0.2));
+	    direct_items = add (direct_items,
+		// menubutton label
+		`MenuButton( _("Re&pair Tools..."), menu_button_items));
+
+	    direct_items = add (direct_items, `VSpacing(0.2));
 	}
 
 	// return the build dialog
@@ -142,25 +149,29 @@
 
 
     /**
-     * Eval the selected direct repair method. 
+     * Eval the selected direct repair method.
      */
-    global define symbol EvalDirectMethod(string method )``{
+    global define symbol EvalDirectMethod (string method )``{
 
 	// reset settings
 	Reset();
 
 	// set current direct repair method data
-	current_direct_name    	 = method;
-	OSR::current_module_name = "";
-	map method_data 	 = direct_methods[method]:$[];
-	symbol ret               = `error;
-    y2debug ("--------- method_data: %1", method_data);
+	OSRCommon::current_direct_name	= method;
+	OSRCommon::current_module_name	= "";
+	map method_data			= direct_methods[method]:$[];
+	symbol ret			= `error;
+
+	y2debug ("--------- method_data: %1", method_data);
 
 	// eval current direct repair method
-	if ( method_data != $[] && method_data != nil )
+	if (method_data != $[] && method_data != nil )
 	{
 	    // prepare executing direct method
-	    UI::OpenDialog(`Label(_("Reading system settings. Please wait...")));
+	    UI::OpenDialog (
+		// wait popup
+		`Label(_("Reading system settings. Please wait...")));
+
 	    OSRFstab::Reset();
 	    OSRFsck::LoadAllFsModules();
 	    Storage::ReReadTargetMap();
@@ -168,45 +179,54 @@
 	    OSRSystem::SetOrgRoot();
 
 	    // mount target system if needed
-	    list(map) mounted  = [];
-	    if( method_data["initial_root"]:false )
+	    list<map> mounted  = [];
+	    if (method_data["initial_root"]:false )
 	    {
 		// get list with root device name
 		mounted     = OSRFstab::RootDev( OSRSystem::TargetRoot() );
-		if ( mounted == nil || mounted == [] )
+		if (mounted == nil || mounted == [] )
 		{
 		    y2error("Eval direct method: no valid target root system found.");
 		    UI::CloseDialog();
 		    return `error;
 		}
 		mounted_root_partition = mounted[0,"partition"]:"";
-		mounted = union( mounted, OSRFstab::MountAll( OSRSystem::TargetRoot()));
+		mounted = (list<map>) union ( mounted,
+		    OSRFstab::MountAll( OSRSystem::TargetRoot()));
 	    }
-	    
+
 	    UI::CloseDialog();
 	    UI::BusyCursor();
-	    
+
 	    // really eval method
-	    CallFunction(method_data["client"]:``{ return false;});
-	    ret =  eval(method_data["method"]:``(y2error("direct method not found")));
+	    if (method_data["client"]:"" != "")
+		WFM::CallFunction (method_data["client"]:"");
+
+	    // FIXME: "method" will be pointer to function...
+	    ret = eval (method_data["method"]:``(y2error("direct method not found")));
 
 	    OSRSystem::SetOrgRoot();
 
-	    mounted = union( [
-			      $[ "partition" : "usbdevfs"   , "mountpoint" : OSRSystem::TargetRoot() + "/proc/bus/usb", "status" : true  ],
-			      $[ "partition" : "proc"       , "mountpoint" : OSRSystem::TargetRoot() + "/proc", 	   "status" : true  ]
-			      ],
-			     mounted );
-	    
-	    if ( mounted != [] && mounted != nil )
+	    mounted = (list<map>) union ([
+		$[
+		    "partition" : "usbdevfs",
+		    "mountpoint" : OSRSystem::TargetRoot() + "/proc/bus/usb",
+		    "status" : true  ],
+		$[
+		    "partition" : "proc",
+		    "mountpoint" : OSRSystem::TargetRoot() + "/proc",
+		    "status" : true  ]
+		], mounted );
+
+	    if (mounted != [] && mounted != nil )
 	    {
-		OSRFstab::UmountAll( filter(map p, mounted, ``( p["status"]:false == true )));
+		OSRFstab::UmountAll (
+		    filter(map p, mounted, ``( p["status"]:false == true )));
 	    }
-	    
 	}
 
 	// reset settings
 	Reset();
 	return ret;
     }
-}
+}//EOF

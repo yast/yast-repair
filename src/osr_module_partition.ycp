@@ -17,375 +17,35 @@
 {
   import "Storage";
   import "FileSystems";
+  import "Partitions";
 
   import "Label";
   import "Popup";
-
   import "Report";
-  import "Misc";
   import "Mode";
 
   import "OSR";
+  import "OSRProgress";
+  import "OSRCommon";
   import "OSRSummary";
   import "OSRSystem";
   import "OSRStatus";
-  import "OSRFloppy";
   import "OSRExecute";
   import "OSRPtbl";
   import "OSRSwap";
   import "OSRFsck";
-  import "OSRLogFile";
   import "OSRFstab";
   import "OSRPopup";
   import "OSRModuleLoading";
 
   textdomain "repair";
 
-  // begin argument handling: in the initial phase the framework calls each module
+  include "partitioning/custom_part_dialogs.ycp";//FIXME only ReallyInstPrepdisk
+
+  // begin argument handling:
+  // in the initial phase the framework calls each module
   // with the argument ".init", don't delete!
   integer arg_n = 0;
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  METHODS
-  //
-  //////////////////////////////////////////////////////////////////////
-
-  /**
-   *  Initialization of the module map that contains all important information
-   *  for this module.
-   *
-   *  @return map The map that contains all information about the module
-   *  osr_module_partition.
-   */
-
-  define map OSRPartitionInit() ``{
-      return $[
-           // has to be the name of the file
-           "name"              :  "osr_module_partition",
-                                  // module headline
-           "headline"          :  _("Partitions and File Systems"),
-           "global_entries"    : $[
-                       "mbr_check" : $[
-                                      // module action label
-                          "text"    : _("Check Partition Tables"),
-                                      // helptext
-                          "help"    : _("
-<P><B>What is a partition table?</B><BR>
-The partition table is the part of
-a hard disk where the information about
-the size and the position of the
-partitions of a hard disk are stored.
-Every hard disk has its own partition
-table.</P>
-") +
-_("<P>Without such a partition table,
-Linux cannot find a partition on a hard
-disk.</P>
-") +
-
-_("<P><B>Check Partition Tables</B><BR>
-If you delete a partition by mistake,
-it is sometimes possible to recover the
-lost partition. YaST can analyze
-the hard disk and try to find such a
-partition.
-The partition table can also be lost 
-or damaged due to a system crash or a virus.
-Even in these cases, YaST can sometimes
-recover a partition table.</P>
-")
-                       ],
-                       "swap_check" :
-                       $[
-                                  // module action label
-                         "text" : _("Check Swap Areas"),
-                                  // helptext
-                         "help" : _("
-<P><B>What is a swap area?</B><BR>
-The swap area is the virtual memory of a
-Linux system. Linux swap areas can be a
-special partition or in a file.</P>
-") +
-
-_("<P><B>Check Swap Areas</B><BR>
-YaST checks all found swap areas.
-If a swap area is damaged, the
-repair system proposes creating
-a new swap area.
-</P>
-")
-                       ],
-                       "fs_check" :
-                       $[
-                                  // module action label
-                         "text" : _("Check File Systems"),
-                                  // helptext
-                         "help" : _("
-<P><B>What is a file system?</B><BR>
-Formatting a partition means a
-file system will be created in a partition.
-After that, you can mount the partition and
-save files and other data to the partition.
-Linux can normally use only partitions with
-a valid file system for saving data and
-programs. </p>
-") +
-
-_("<P><B>Check File System</B><BR>
-An inconsistent file system occurs when
-a partition is not correctly unmounted.
-For example, this happens when the system
-crashes.</p>
-") +
-
-_("<p>There is a repair method for each file
-system. For example, if the file system
-of the damaged partition is ext2 or
-ext3, use fsck.ext2 (e2fsck) with the
-corresponding options to repair the
-file system.</P>
-") +
-_("<P>YaST checks the file system of all
-found partitions and suggests 
-repairing it if an error was found.</P>
-")
-                         ],
-
-                       "fstab_check" :
-                       $[
-                                  // module action label
-                         "text" : _("Check fstab Entries"),
-                                  // helptext
-                         "help" : _("
-<P><B>What is fstab?</B><BR>
-fstab is a configuration file that
-contains entries for all devices that should
-be mounted during the boot process. 
-If you have deleted a partiton without
-removing the corresponding fstab entry, you
-get a warning during the boot process.</P>
-")+
-
-_("<P><B>Check fstab Entries</B><BR>
-YaST checks all entries listed in the
-fstab and reports missing, obsolete, and
-erroneous entries.</P>
-"),
-                         "requires" : ["fs_check", "swap_check"]
-                       ]
-           ],
-
-           "static_provides"    : $[
-                        //"root_mountpoint"     : "/mnt"
-
-           ],
-           "reset_methods"      : [
-                                      // module reset label
-                       $["summary"  : _("Reset Module Settings"),
-                         "method"   : ``(OSRPartitionReset()),
-                         "provides" : 10 ]
-           ],
-           // the sequence of the detection methods of this module
-           "detect_methods"    :  [
-                       $[ "name"      : "find_harddisks",
-                                        // module method progress label
-                           "summary"  : _("Searching for hard disks..."),
-                           "method"   : ``(OSRPartitionCheckDiskCount()),
-                           "requires" :  ["repair_target"],
-                           "provides" :  ["valid_target"],
-                           "group"    : "mbr_check",
-                           "progress" : 10
-                          ],
-                       $[ "name"     : "check_harddisks",
-                                        // module method progress label
-                          "summary"  : _("Checking partition tables..."),
-                          "method"   : ``(OSRPartitionCheckDisks()),
-                          "requires" :  [ "has_floppy", "valid_target"],
-                          "provides" :  [ "valid_target_list"],
-                          "group"    : "mbr_check",
-                          "progress" :  100
-                          ],
-                       $["name"   : "find_swap",
-                                        // module method progress label
-                          "summary"   : _("Searching for valid swap partitions..."),
-                          "method"    : ``(OSRPartitionCheckSwap()),
-                           "requires" :  [ "valid_target_list"   ],
-                          "provides"  :  [ "swap_partition_list" ],
-                         "group"      : "swap_check",
-                          "progress"  : 20
-                          ],
-                       $[ "name"     : "find_swapable",
-                                        // module method progress label
-                          "summary"  : _("Searching for swappable partitions..."),
-                          "method"   : ``(OSRPartitionCheckSwapAble()),
-                          "requires" :  [ "swap_partition_list" ],
-                          "provides" :  [ "swapable_partitions" ],
-                          "group"    :  "swap_check",
-                          "progress" : 20
-                          ],
-                       $[ "name"     : "load_modules",
-                                        // module method progress label
-                          "summary"  : _("Installing kernel modules for file system support..."),
-                          "method"   : ``(OSRPartitionLoadAllFsModules()),
-                          "requires" : [],
-                          "group"    : "fs_check",
-                          "provides" :  ["fs_module_loaded"],
-                          "progress" : 20
-                          ],
-                       $[ "name"     : "find_mounted",
-                                        // module method progress label
-                          "summary"  : _("Searching for currently mounted partitions..."),
-                          "method"   : ``(OSRPartitionCurrentlyMountedPartitions()),
-                          "requires" :  ["valid_target_list", "fs_module_loaded" ],
-                          "provides" :  ["mounted_partitions"],
-                          "group"    : "fs_check",
-                          "progress" :  20
-                       ],
-                       $["name"  : "find_fscheck",
-                                        // module method progress label
-                          "summary"  : _("Found partitions for file system check"),
-                          "method"   : ``(OSRPartition2CheckPartitions()),
-                          "requires" :  [ "mounted_partitions" ],
-                          "provides" :  [ "fsck_partitions"],
-                          "group"    : "fs_check",
-                          "progress" :  20
-                       ],
-                       $[ "name"     : "fsck",
-                          "summary"  : "",
-                          "method"   : ``(OSRPartitionFSCheck()),
-                          "requires" :  [ "fsck_partitions" ],
-                          "provides" :  [ "checked_partitions" ],
-                          "group"    : "fs_check",
-                          "progress" :  200
-                       ],
-                       $[ "name"     : "find_linux_partitions",
-                                        // module method progress label
-                          "summary"  : _("Searching for valid Linux partitions..."),
-                          "method"   : ``(OSRPartitionLinuxPartitions()) ,
-                          "requires" :  ["checked_partitions" ],
-                          "provides" :  ["linux_partition_list"],
-                          "group"    :  "fstab_check",
-                          "progress" : 20
-                           ],
-                       $[ "name"     : "find_mountable_linux_partitions",
-                                        // module method progress label
-                          "summary"  : _("Searching for mountable partitions..."),
-                          "method"   : ``(OSRPartitionMountableLinuxPartitions()),
-                          "requires" :  ["linux_partition_list"],
-                          "provides" :  ["mount_possible_list" ],
-                          "group"    :  "fstab_check",
-                          "progress" : 20
-                          ],
-                       $[ "name"     : "find_valid_root_partitions",
-                                        // module method progress label
-                          "summary"  : _("Searching for valid root partitions..."),
-                          "method"   : ``(OSRPartitionFindRootPartitions()),
-                          "requires" :  ["mount_possible_list"],
-                          "provides" :  ["root_partition", "valid_root_partitions" ],
-                          "group"    : "fstab_check",
-                          "progress" : 20
-                          ],
-                       $[ "name"     : "mount_root",
-                          "summary"  : "",
-                          "method"   : ``(OSRPartitionMountRoot()),
-                          "requires" :  [ "root_partition"],
-                          "provides" :  ["root_mounted"   ],
-                          "group"    : "fstab_check",
-                          "progress" : 20
-                          ],
-                       $[ "name"     : "read_fstab",
-                          "summary"  : "",
-                          "method"   : ``(OSRPartitionReadFstab()),
-                          "requires" :  [ "root_mounted"      ],
-                          "provides" :  [ "fstab_readed"      ],
-                          "group"    : "fstab_check",
-                          "progress" : 20
-                       ],
-                       $[ "name"     : "check_root_entry",
-                                        // module method progress label
-                          "summary"  : _("Checking root file system entry of fstab"),
-                          "method"   : ``(OSRPartitionCheckFstabRoot()),
-                          "requires" :  [ "fstab_readed"        ],
-                          "provides" :  [ "fstab_root_checked"      ],
-                          "group"    : "fstab_check",
-                          "progress" : 20
-                        ],
-                       $[ "name"     : "check_entries",
-                                        // module method progress label
-                          "summary"  : _("Checking fstab entries"),
-                          "method"   : ``(OSRPartitionCheckFstab()),
-                          "requires" :  [ "fstab_root_checked"      ],
-                          "provides" :  [ "fstab_checked"       ],
-                          "group"    : "fstab_check",
-                          "progress" : 20
-                       ]
-           ],
-           "direct_methods" : [
-                   $[
-
-                     "name"     : "direct_methods_custom_part",
-                                      // module method action label
-                     "button_text"  : _("Start Partitioning Tool"),
-                                      // module method description
-                     "description"  : _("
-To resize, delete, or create a partition,
-press this button
-to start the YaST partitioning tool.
-"),
-                     "method"       : ``(OSRDirectCustomPart()),
-                     "initial_only"     : true,
-                     "visible"      : false,
-                   ],
-                     $[
-
-                       "name"       : "direct_methods_recover_partition",
-                                          // module method action label
-                       "button_text"    : _("Recover Lost Partitions"),
-                                          // module method description
-                       "description"    : _("
-If you have deleted or lost one or all
-partitions of a hard disk accidentally,
-press this button to attempt
-recovery.
-"),
-                       "method"     : ``(OSRDirectPartitionTable()),
-                       "initial_only"   : false,
-                       "visible"    : true,
-                     ],
-                     $[
-
-                       "name"       : "direct_methods_filesystem",
-                                          // module method action label
-                       "button_text"    : _("Repair File System"),
-                                          // module method description
-                       "description"    : _("
-If the system crashed and you have a
-corrupted file system afterward press
-this button to scan and repair the file
-system.
-"),
-                       "method"     : ``(OSRDirectFilesystem()),
-                       "initial_only"   : false,
-                       "visible"    : true
-                     ],
-                     $[
-                       "name"       : "direct_methods_save",
-                                          // module method action label
-                       "button_text"    : _("Save System Settings to Floppy"),
-                                          // module method description
-                       "description"    : _("This can be helpful for later system checks. For example, it is possible to recover a lost partition
-table with the stored system information.
-"),
-                       "method"     : ``(OSRDirectSave2Floppy()),
-                       "initial_only"   : false,
-                       "visible"    : true
-                     ]
-           ]
-      ];
-
-
-  };
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -407,7 +67,8 @@ table with the stored system information.
       Storage::ReReadTargetMap();
 
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
-      list(string)   disk_list      = Storage::GetMainDevFilter("all", "key_list" );
+      list<string> disk_list = (list<string>)
+	Storage::GetMainDevFilter("all", "key_list" );
 
       if ((size(disk_list) == 0) || (disk_list == nil))
       {
@@ -457,12 +118,12 @@ YaST halts now.
       /////////////////////////////////////////////////////////////////////////
 
       map           target_map      = Storage::GetTargetMap();
-      list(string)  valid_target_list   = [];
+      list<string>  valid_target_list   = [];
 
       // check all targets (all disks) for partition entries
       foreach(string target, map values, target_map, ``{
 
-      list(map) target_partitions = values["partitions"]:[];
+      list<map> target_partitions = values["partitions"]:[];
       path      target_scrpath    = values["scrpath"]:.;
 
       if ( size(target_partitions) == 0 )
@@ -548,7 +209,7 @@ YaST halts now.
       // search for valid swap partitions
       //
       /////////////////////////////////////////////////////////////////
-      list(string) swap_partition_list = OSRSwap::Partitions();
+      list<string> swap_partition_list = OSRSwap::Partitions();
 
       if ( size( swap_partition_list ) <= 0 )
       {
@@ -574,9 +235,9 @@ YaST halts now.
       // search for "swap-able" partitions
       //
       /////////////////////////////////////////////////////////////////
-      list(string) swap_partition_list     = OSR::RequireList("swap_partition_list");    // ["/dev/hda1", "/dev/hdb2"]
-      list(string) swapable_partition_list = OSRSwap::ValidPartitions(swap_partition_list); // ["/dev/hdb2"]
-      list(string) swapon_notpossible_list = filter(string p, swap_partition_list, ``( ! contains( swapable_partition_list, p )));
+      list<string> swap_partition_list     = OSR::RequireList("swap_partition_list");    // ["/dev/hda1", "/dev/hdb2"]
+      list<string> swapable_partition_list = OSRSwap::ValidPartitions(swap_partition_list); // ["/dev/hdb2"]
+      list<string> swapon_notpossible_list = filter(string p, swap_partition_list, ``( ! contains( swapable_partition_list, p )));
 
       if (size( swapable_partition_list ) <= 0 )
       {
@@ -716,7 +377,7 @@ partition %1"), part)
       OSRSystem::SetOrgRoot();
       OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
-      list(map) mounted_partitions = Partitions::CurMounted();
+      list<map> mounted_partitions = Partitions::CurMounted();
       // filter swap partitions
       mounted_partitions = filter(map p, mounted_partitions,
         ``(p["file"]:"" != "swap" && findfirstof( p["spec"]:"", "/") == 0 ));
@@ -735,7 +396,7 @@ partition %1"), part)
       else
       {
         // create a mount-like output
-        list(string) mounted_output = maplist(string entry, mounted_partitions,
+        list<string> mounted_output = maplist(map entry, mounted_partitions,
                     // %1 is device, %2 mount point, %3 is fs type, %4 options
                     // example: "/dev/hda3 on /local type  rw" (=empty type)
                     ``(sformat (_("%1 on %2 type %3 %4"),
@@ -761,14 +422,14 @@ partition %1"), part)
       //
       /////////////////////////////////////////////////////////
 
-      list(map) fs_check_parts = OSRFsck::PossiblePartitions();
+      list<map> fs_check_parts = OSRFsck::PossiblePartitions();
 
       if( size( fs_check_parts ) == 0 || fs_check_parts == nil) {
         // summary text
         OSRSummary::DetectError("",_("No partitions found."));
       }
       else {
-        list(string) key_list = maplist(string p, fs_check_parts,
+        list<string> key_list = maplist(map p, fs_check_parts,
             ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:0)));
         OSRSummary::DetectOK("", sformat(_("%1"), mergestring(key_list, " " )));
       }
@@ -786,9 +447,9 @@ partition %1"), part)
       // fsck for all possible partitions
       //
       /////////////////////////////////////////////////////////
-      list(map) fsck_partitions     = OSR::RequireList("fsck_partitions");
-      list(map) mounted_partitions  = OSR::RequireList("mounted_partitions");
-      list(string) checked_partitions = [];
+      list<map> fsck_partitions     = OSR::RequireList("fsck_partitions");
+      list<map> mounted_partitions  = OSR::RequireList("mounted_partitions");
+      list<string> checked_partitions = [];
 
       foreach(map p, fsck_partitions, ``{
 
@@ -805,7 +466,8 @@ partition %1"), part)
       else
       {
           boolean fs_ok    = OSRFsck::Check( p );
-          symbol  used_fs  = Storage::GetSubDevParam(Storage::GetSubDevKey( p["maindev"]:"", p["nr"]:0 ), "detected_fs" );
+          symbol used_fs  = (symbol) Storage::GetSubDevParam (
+	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:0 ), "detected_fs");
 
           if ( fs_ok == true )
           {
@@ -858,8 +520,8 @@ partition %1"), part)
     global define boolean OSRPartitionLinuxPartitions()``{
 
       // Raid and LVM not supported at the moment!!
-      list(string) checked_partitions = OSR::RequireList("checked_partitions");
-      list(string) linux_partition_list = OSRFstab::LinuxPartitions(checked_partitions);
+      list<string> checked_partitions = OSR::RequireList("checked_partitions");
+      list<string> linux_partition_list = OSRFstab::LinuxPartitions(checked_partitions);
 
       if (size(linux_partition_list) <= 0 )
       {
@@ -917,8 +579,8 @@ installation.
       // search for mountable partitions
       //
       /////////////////////////////////////////////////////////
-      list(string) linux_partition_list = OSR::RequireList("linux_partition_list");
-      list(string) mount_possible_list  = OSRFstab::MountablePartitions(linux_partition_list, OSRSystem::TargetRoot());
+      list<string> linux_partition_list = OSR::RequireList("linux_partition_list");
+      list<string> mount_possible_list  = OSRFstab::MountablePartitions(linux_partition_list, OSRSystem::TargetRoot());
 
       if ( size(mount_possible_list) > 0 )
       {
@@ -965,7 +627,7 @@ the system and start a new installation.
         }
       }
 
-      list(string) not_mountable_linux  = filter(string p, linux_partition_list, ``( ! contains( mount_possible_list, p)));
+      list<string> not_mountable_linux  = filter(string p, linux_partition_list, ``( ! contains( mount_possible_list, p)));
       if ( size( not_mountable_linux ) != 0 ) {
 
       // summary text
@@ -991,7 +653,7 @@ the system and start a new installation.
       //
       /////////////////////////////////////////////////////////////////
 
-      list(string) valid_root_partition_list = OSRFstab::ValidRootPartitions (
+      list<string> valid_root_partition_list = OSRFstab::ValidRootPartitions (
         OSR::RequireList("mount_possible_list"), OSRSystem::TargetRoot());
       string  root_partition         = "";
 
@@ -1076,7 +738,7 @@ start a new installation.
       /////////////////////////////////////////////////////////////////////////
       string root_partition         = OSR::RequireString("root_partition");
 
-      list(map)    just_mounted         = [];
+      list<map>    just_mounted         = [];
       // summary header, %1 is root partition, %2 target
       string  summary_header = sformat(_("Mounting root partition %1 to %2"),
         root_partition, OSRSystem::TargetRoot());
@@ -1085,7 +747,8 @@ start a new installation.
       if ( OSRSystem::TargetRoot() != Partitions::MountedOn( root_partition, Partitions::CurMounted()))
       {
         // Mount selected partition to /mnt
-        if (  WFM::Execute(.local.mount, [root_partition, OSRSystem::TargetRoot(), OSRExecute::OutputFile()]) )
+        if ((boolean) WFM::Execute(.local.mount,
+	    [root_partition, OSRSystem::TargetRoot(),OSRExecute::OutputFile()]))
         {
           // add the mounted partition to the list, this has to be known for being able to
           // umount all partitions that were mounted by the rescue system
@@ -1216,7 +879,7 @@ root partition or cancel scanning the system.
         // summary text
         OSRSummary::DetectError("", _("The root entry of fstab is not valid."));
 
-        OSRSummary::SetRepairSummary(OSRFstab::Repair(1),
+        OSRSummary::SetRepairSummary(OSRFstab::Repair(),
                        "",
                        // summary text
                        _("Repairing the root entry was successful."),
@@ -1246,7 +909,7 @@ root partition or cancel scanning the system.
         // summary text
         OSRSummary::DetectError("",_("At least one fstab entry is not valid."));
 
-        OSRSummary::SetRepairSummary(OSRFstab::Repair(2),
+        OSRSummary::SetRepairSummary(OSRFstab::Repair(),
                        "",
                        // summary text
                        _("The fstab entry was successfully repaired."),
@@ -1266,19 +929,19 @@ root partition or cancel scanning the system.
   global define boolean OSRPartitionReset()``{
 
       // umount just_mount!!
-      list(map) just_mounted    = OSR::RequireList("just_mounted");
+      list<map> just_mounted    = OSR::RequireList("just_mounted");
       just_mounted      = sort(map x, map y, just_mounted,
         ``(size(splitstring(x["mountpoint"]:"", "/")) >=
            size(splitstring( y["mountpoint"]:"" ,"/"))));
       y2milestone(" just_mounted %1", just_mounted );
 
       // mount just_umounted!!
-      list(map) just_umounted   = OSR::RequireList("just_umounted");
-      just_umounted     = sort(map x, map y, just_umounted,
+      list<map> just_umounted   = OSR::RequireList("just_umounted");
+      just_umounted		= sort(map x, map y, just_umounted,
         ``(size(splitstring(x["mountpoint"]:"", "/")) <=
-           size(splitstring( y["mountpoint"]:"" ,"/"))));
+           size(splitstring(y["mountpoint"]:"" ,"/"))));
 
-      just_mounted = union( [
+      just_mounted = (list<map>) union ( [
             $[  "partition" : "usbdevfs",
                 "mountpoint" : OSRSystem::TargetRoot() + "/proc/bus/usb" ],
             $[  "partition" : "proc",
@@ -1286,7 +949,7 @@ root partition or cancel scanning the system.
             ], just_mounted );
 
       // build todo map
-      list(map) todo = [];
+      list<map> todo = [];
 
       foreach(map mp, just_mounted, ``{
         todo = add( todo, add( mp, "path", .local.umount ));
@@ -1298,9 +961,11 @@ root partition or cancel scanning the system.
       y2milestone(" reset map %1" , todo);
       // execute todo
       foreach( map mp , todo , ``{
-      if( (mp["path"]:.local.umount == .local.mount ) ?
-          WFM::Execute(mp["path"]:.local.mount,[ mp["partition"]:"", mp["mountpoint"]:""])
-          : WFM::Execute(mp["path"]:.local.umount , mp["mountpoint"]:"" ))
+      if( (mp["path"]:.local.umount == .local.mount )
+	  ? (boolean) WFM::Execute(mp["path"]:.local.mount,
+	    [ mp["partition"]:"", mp["mountpoint"]:""])
+          : (boolean) WFM::Execute(mp["path"]:.local.umount,
+	    mp["mountpoint"]:"" ))
       {
           y2milestone(" %1 %2 succeeded", mp["path"]:.local.umount,mp["mountpoint"]:"" );
       }
@@ -1312,7 +977,6 @@ root partition or cancel scanning the system.
       OSRModuleLoading::UnloadAll();
 
       OSRPtbl::Reset();
-      OSRSwap::Reset();
       OSRFsck::Reset();
       OSRFstab::Reset();
 
@@ -1323,18 +987,18 @@ root partition or cancel scanning the system.
    * Direct partitioning with the custom part tool.
    */
   global define symbol OSRDirectCustomPart()``{
-      include "partitioning/custom_part_dialogs.ycp";
+
       y2milestone("Direct start Custom Part");
 
       // remove all mount points
       map target_map = Storage::GetTargetMap();
-      foreach(`dev,`parts, target_map, ``{
-      integer counter = 0;
-      foreach( `part, parts["partitions"]:[], ``{
-          if ( part["mount"]:"" != "" )
-          target_map[dev, "partitions", counter,"mount"] = "";
-          counter = counter  +1;
-      });
+      foreach(`dev, map parts, target_map, ``{
+	integer counter = 0;
+	foreach (map part, parts["partitions"]:[], ``{
+	    if ( part["mount"]:"" != "" )
+		target_map[dev, "partitions", counter,"mount"] = "";
+	    counter = counter  +1;
+	});
       });
       Storage::SetTargetMap(target_map);
       Storage::SetPartMode("CUSTOM");
@@ -1345,22 +1009,23 @@ root partition or cancel scanning the system.
       repeat {
       Storage::immediate_prepdisk = true;
 
-      ret =  CallFunction(`inst_disk(true, true));
+      ret = (symbol) WFM::CallFunction ("inst_disk", [true, true] );
       Storage::immediate_prepdisk = false;
 
       if ( ret == `next  )
       {
-          ret = ReallyInstPrepdisk( );
+	  // FIXME: ReallyInstPrepdisk should be part of some module...-> fehr
+          ret = ReallyInstPrepdisk ();
           if ( ret == `back ) ret = `again;
 
           if ( ret == `apply  )
           {
-          ret = CallFunction(`inst_prepdisk(false, false));
-          ret = `again;
+	    ret = (symbol) WFM::CallFunction ("inst_prepdisk", [false, false]);
+	    ret = `again;
           }
           if ( ret == `finish )
           {
-          ret = CallFunction(`inst_prepdisk(false, false));
+	    ret = (symbol) WFM::CallFunction ("inst_prepdisk", [false, false]);
           }
       }
       } until ( ret ==  `back || ret == `next || ret == `ok || ret == `cancel || ret == `abort);
@@ -1375,7 +1040,8 @@ root partition or cancel scanning the system.
       y2milestone("Direct start repairing partition table");
 
       symbol ret             = `next;
-      list(string) disk_list = Storage::GetMainDevFilter("all", "key_list" );
+      list<string> disk_list = (list<string>)
+	Storage::GetMainDevFilter("all", "key_list" );
       string repair_dev      = disk_list[0]:"";
 
       UI::NormalCursor();
@@ -1427,13 +1093,13 @@ lost partitions is not possible.
 
       y2milestone("Direct start repairing a file system ");
 
-      list(map) parts_data = Storage::GetSubDevFilterList("all", "no_delete" ,"all" );
+      list<map> parts_data = Storage::GetSubDevFilterList("all", "no_delete" ,"all" );
 
       parts_data = filter(map p, parts_data,
         ``(  ( contains ( OSRFsck::fsck_fsid, p["fsid"]:0 )) &&
                contains ( OSRFsck::fsck_type, p["type"]:`unknown )));
 
-      list(string) partitions = maplist(map p, parts_data, ``(p["device"]:""));
+      list<string> partitions = maplist(map p, parts_data, ``(p["device"]:""));
       string scan_dev         = "";
 
       UI::NormalCursor();
@@ -1461,11 +1127,7 @@ Where should YaST execute a file system check?
       }
       if( scan_dev != "" )
       {
-      import "OSRProgress";
       import "OSRLogFile";
-      import "OSRDirect";
-      import "Partitions";
-      import "FileSystems";
 
       map subdevkeys    = Storage::GetDiskPartition( scan_dev );
       map p = find(map p, parts_data, ``( scan_dev == p["device"]:"" )); //Storage::GetSubDev( subdevkey );
@@ -1518,7 +1180,7 @@ cannot be executed.
       }
 
       symbol ret = `next;
-      string direct_name = OSRDirect::current_direct_name;
+      string direct_name = OSRCommon::current_direct_name;
 
       term progress = OSRProgress::Create(`fsck_progress,
                           _("Progress:"),
@@ -1559,8 +1221,8 @@ system check is not possible.
       }
       else
       {
-          symbol  used_fs = Storage::GetSubDevParam (
-	    Storage::GetSubDevKey( p["maindev"]:"", p["nr"]:0 ), "detected_fs");
+          symbol used_fs = (symbol) Storage::GetSubDevParam (
+	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:0 ), "detected_fs");
 
           if (!fs_ok)
 	  {
@@ -1596,6 +1258,7 @@ a valid %2 file system.
    *
    */
   global define symbol OSRDirectSave2Floppy()``{
+
       import "OSRFloppy";
       import "StorageDevices";
 
@@ -1665,24 +1328,387 @@ not successful. Try again.
 
   //////////////////////////////////////////////////////////////////////
   //
+  //  METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   *  Initialization of the module map that contains all important information
+   *  for this module.
+   *
+   *  @return map The map that contains all information about the module
+   *  osr_module_partition.
+   */
+
+  define map OSRPartitionInit() ``{
+      return $[
+           // has to be the name of the file
+           "name"              :  "osr_module_partition",
+                                  // module headline
+           "headline"          :  _("Partitions and File Systems"),
+           "global_entries"    : $[
+                       "mbr_check" : $[
+                                      // module action label
+                          "text"    : _("Check Partition Tables"),
+                                      // helptext
+                          "help"    : _("
+<P><B>What is a partition table?</B><BR>
+The partition table is the part of
+a hard disk where the information about
+the size and the position of the
+partitions of a hard disk are stored.
+Every hard disk has its own partition
+table.</P>
+") +
+_("<P>Without such a partition table,
+Linux cannot find a partition on a hard
+disk.</P>
+") +
+
+_("<P><B>Check Partition Tables</B><BR>
+If you delete a partition by mistake,
+it is sometimes possible to recover the
+lost partition. YaST can analyze
+the hard disk and try to find such a
+partition.
+The partition table can also be lost 
+or damaged due to a system crash or a virus.
+Even in these cases, YaST can sometimes
+recover a partition table.</P>
+")
+                       ],
+                       "swap_check" :
+                       $[
+                                  // module action label
+                         "text" : _("Check Swap Areas"),
+                                  // helptext
+                         "help" : _("
+<P><B>What is a swap area?</B><BR>
+The swap area is the virtual memory of a
+Linux system. Linux swap areas can be a
+special partition or in a file.</P>
+") +
+
+_("<P><B>Check Swap Areas</B><BR>
+YaST checks all found swap areas.
+If a swap area is damaged, the
+repair system proposes creating
+a new swap area.
+</P>
+")
+                       ],
+                       "fs_check" :
+                       $[
+                                  // module action label
+                         "text" : _("Check File Systems"),
+                                  // helptext
+                         "help" : _("
+<P><B>What is a file system?</B><BR>
+Formatting a partition means a
+file system will be created in a partition.
+After that, you can mount the partition and
+save files and other data to the partition.
+Linux can normally use only partitions with
+a valid file system for saving data and
+programs. </p>
+") +
+
+_("<P><B>Check File System</B><BR>
+An inconsistent file system occurs when
+a partition is not correctly unmounted.
+For example, this happens when the system
+crashes.</p>
+") +
+
+_("<p>There is a repair method for each file
+system. For example, if the file system
+of the damaged partition is ext2 or
+ext3, use fsck.ext2 (e2fsck) with the
+corresponding options to repair the
+file system.</P>
+") +
+_("<P>YaST checks the file system of all
+found partitions and suggests 
+repairing it if an error was found.</P>
+")
+                         ],
+
+                       "fstab_check" :
+                       $[
+                                  // module action label
+                         "text" : _("Check fstab Entries"),
+                                  // helptext
+                         "help" : _("
+<P><B>What is fstab?</B><BR>
+fstab is a configuration file that
+contains entries for all devices that should
+be mounted during the boot process. 
+If you have deleted a partiton without
+removing the corresponding fstab entry, you
+get a warning during the boot process.</P>
+")+
+
+_("<P><B>Check fstab Entries</B><BR>
+YaST checks all entries listed in the
+fstab and reports missing, obsolete, and
+erroneous entries.</P>
+"),
+                         "requires" : ["fs_check", "swap_check"]
+                       ]
+           ],
+
+           "static_provides"    : $[
+                        //"root_mountpoint"     : "/mnt"
+
+           ],
+           "reset_methods"      : [
+                                      // module reset label
+                       $["summary"  : _("Reset Module Settings"),
+//                         "method"   : ``(OSRPartitionReset()),FIXME
+                         "method"   : OSRPartitionReset,
+                         "provides" : 10 ]
+           ],
+           // the sequence of the detection methods of this module
+           "detect_methods"    :  [
+                       $[ "name"      : "find_harddisks",
+                                        // module method progress label
+                           "summary"  : _("Searching for hard disks..."),
+//                           "method"   : ``(OSRPartitionCheckDiskCount()),
+                           "method"   : OSRPartitionCheckDiskCount,
+                           "requires" :  ["repair_target"],
+                           "provides" :  ["valid_target"],
+                           "group"    : "mbr_check",
+                           "progress" : 10
+                          ],
+                       $[ "name"     : "check_harddisks",
+                                        // module method progress label
+                          "summary"  : _("Checking partition tables..."),
+//                          "method"   : ``(OSRPartitionCheckDisks()),
+                          "method"   : OSRPartitionCheckDisks,
+                          "requires" :  [ "has_floppy", "valid_target"],
+                          "provides" :  [ "valid_target_list"],
+                          "group"    : "mbr_check",
+                          "progress" :  100
+                          ],
+                       $["name"   : "find_swap",
+                                        // module method progress label
+                          "summary"   : _("Searching for valid swap partitions..."),
+//                          "method"    : ``(OSRPartitionCheckSwap()),
+                          "method"    : OSRPartitionCheckSwap,
+                           "requires" :  [ "valid_target_list"   ],
+                          "provides"  :  [ "swap_partition_list" ],
+                         "group"      : "swap_check",
+                          "progress"  : 20
+                          ],
+                       $[ "name"     : "find_swapable",
+                                        // module method progress label
+                          "summary"  : _("Searching for swappable partitions..."),
+//                          "method"   : ``(OSRPartitionCheckSwapAble()),
+                          "method"   : OSRPartitionCheckSwapAble,
+                          "requires" :  [ "swap_partition_list" ],
+                          "provides" :  [ "swapable_partitions" ],
+                          "group"    :  "swap_check",
+                          "progress" : 20
+                          ],
+                       $[ "name"     : "load_modules",
+                                        // module method progress label
+                          "summary"  : _("Installing kernel modules for file system support..."),
+//                          "method"   : ``(OSRPartitionLoadAllFsModules()),
+                          "method"   : OSRPartitionLoadAllFsModules,
+                          "requires" : [],
+                          "group"    : "fs_check",
+                          "provides" :  ["fs_module_loaded"],
+                          "progress" : 20
+                          ],
+                       $[ "name"     : "find_mounted",
+                                        // module method progress label
+                          "summary"  : _("Searching for currently mounted partitions..."),
+//                          "method"   : ``(OSRPartitionCurrentlyMountedPartitions()),
+                          "method"   : OSRPartitionCurrentlyMountedPartitions,
+                          "requires" :  ["valid_target_list", "fs_module_loaded" ],
+                          "provides" :  ["mounted_partitions"],
+                          "group"    : "fs_check",
+                          "progress" :  20
+                       ],
+                       $["name"  : "find_fscheck",
+                                        // module method progress label
+                          "summary"  : _("Found partitions for file system check"),
+//                          "method"   : ``(OSRPartition2CheckPartitions()),
+                          "method"   : OSRPartition2CheckPartitions,
+                          "requires" :  [ "mounted_partitions" ],
+                          "provides" :  [ "fsck_partitions"],
+                          "group"    : "fs_check",
+                          "progress" :  20
+                       ],
+                       $[ "name"     : "fsck",
+                          "summary"  : "",
+//                          "method"   : ``(OSRPartitionFSCheck()),
+                          "method"   : OSRPartitionFSCheck,
+                          "requires" :  [ "fsck_partitions" ],
+                          "provides" :  [ "checked_partitions" ],
+                          "group"    : "fs_check",
+                          "progress" :  200
+                       ],
+                       $[ "name"     : "find_linux_partitions",
+                                        // module method progress label
+                          "summary"  : _("Searching for valid Linux partitions..."),
+//                          "method"   : ``(OSRPartitionLinuxPartitions()) ,
+                          "method"   : OSRPartitionLinuxPartitions,
+                          "requires" :  ["checked_partitions" ],
+                          "provides" :  ["linux_partition_list"],
+                          "group"    :  "fstab_check",
+                          "progress" : 20
+                           ],
+                       $[ "name"     : "find_mountable_linux_partitions",
+                                        // module method progress label
+                          "summary"  : _("Searching for mountable partitions..."),
+//                          "method"   : ``(OSRPartitionMountableLinuxPartitions()),
+                          "method"   : OSRPartitionMountableLinuxPartitions,
+                          "requires" :  ["linux_partition_list"],
+                          "provides" :  ["mount_possible_list" ],
+                          "group"    :  "fstab_check",
+                          "progress" : 20
+                          ],
+                       $[ "name"     : "find_valid_root_partitions",
+                                        // module method progress label
+                          "summary"  : _("Searching for valid root partitions..."),
+//                          "method"   : ``(OSRPartitionFindRootPartitions()),
+                          "method"   : OSRPartitionFindRootPartitions,
+                          "requires" :  ["mount_possible_list"],
+                          "provides" :  ["root_partition", "valid_root_partitions" ],
+                          "group"    : "fstab_check",
+                          "progress" : 20
+                          ],
+                       $[ "name"     : "mount_root",
+                          "summary"  : "",
+//                          "method"   : ``(OSRPartitionMountRoot()),
+                          "method"   : OSRPartitionMountRoot,
+                          "requires" :  [ "root_partition"],
+                          "provides" :  ["root_mounted"   ],
+                          "group"    : "fstab_check",
+                          "progress" : 20
+                          ],
+                       $[ "name"     : "read_fstab",
+                          "summary"  : "",
+//                          "method"   : ``(OSRPartitionReadFstab()),
+                          "method"   : OSRPartitionReadFstab,
+                          "requires" :  [ "root_mounted"      ],
+                          "provides" :  [ "fstab_readed"      ],
+                          "group"    : "fstab_check",
+                          "progress" : 20
+                       ],
+                       $[ "name"     : "check_root_entry",
+                                        // module method progress label
+                          "summary"  : _("Checking root file system entry of fstab"),
+//                          "method"   : ``(OSRPartitionCheckFstabRoot()),
+                          "method"   : OSRPartitionCheckFstabRoot,
+                          "requires" :  [ "fstab_readed"        ],
+                          "provides" :  [ "fstab_root_checked"      ],
+                          "group"    : "fstab_check",
+                          "progress" : 20
+                        ],
+                       $[ "name"     : "check_entries",
+                                        // module method progress label
+                          "summary"  : _("Checking fstab entries"),
+//                          "method"   : ``(OSRPartitionCheckFstab()),
+                          "method"   : OSRPartitionCheckFstab,
+                          "requires" :  [ "fstab_root_checked"      ],
+                          "provides" :  [ "fstab_checked"       ],
+                          "group"    : "fstab_check",
+                          "progress" : 20
+                       ]
+           ],
+           "direct_methods" : [
+                   $[
+
+                     "name"     : "direct_methods_custom_part",
+                                      // module method action label
+                     "button_text"  : _("Start Partitioning Tool"),
+                                      // module method description
+                     "description"  : _("
+To resize, delete, or create a partition,
+press this button
+to start the YaST partitioning tool.
+"),
+//                     "method"       : ``(OSRDirectCustomPart()),
+                     "method"       : OSRDirectCustomPart,
+                     "initial_only"     : true,
+                     "visible"      : false,
+                   ],
+                     $[
+
+                       "name"       : "direct_methods_recover_partition",
+                                          // module method action label
+                       "button_text"    : _("Recover Lost Partitions"),
+                                          // module method description
+                       "description"    : _("
+If you have deleted or lost one or all
+partitions of a hard disk accidentally,
+press this button to attempt
+recovery.
+"),
+//                       "method"     : ``(OSRDirectPartitionTable()),
+                       "method"     : OSRDirectPartitionTable,
+                       "initial_only"   : false,
+                       "visible"    : true,
+                     ],
+                     $[
+
+                       "name"       : "direct_methods_filesystem",
+                                          // module method action label
+                       "button_text"    : _("Repair File System"),
+                                          // module method description
+                       "description"    : _("
+If the system crashed and you have a
+corrupted file system afterward press
+this button to scan and repair the file
+system.
+"),
+//                       "method"     : ``(OSRDirectFilesystem()),
+                       "method"     : OSRDirectFilesystem,
+                       "initial_only"   : false,
+                       "visible"    : true
+                     ],
+                     $[
+                       "name"       : "direct_methods_save",
+                                          // module method action label
+                       "button_text"    : _("Save System Settings to Floppy"),
+                                          // module method description
+                       "description"    : _("This can be helpful for later system checks. For example, it is possible to recover a lost partition
+table with the stored system information.
+"),
+//                       "method"     : ``(OSRDirectSave2Floppy()),
+                       "method"     : OSRDirectSave2Floppy,
+                       "initial_only"   : false,
+                       "visible"    : true
+                     ]
+           ]
+      ];
+
+
+  };
+
+
+  //////////////////////////////////////////////////////////////////////
+  //
   //  MAIN
   //
   //////////////////////////////////////////////////////////////////////
 
   // in init mode only execute the init function and return the module map
   // to the framework, don't delete
-  while ( arg_n < size(Args()) )
+  while ( arg_n < size(WFM::Args()) )
   {
-      if ( Args(arg_n) == .init )
+      if ( WFM::Args(arg_n) == .init )
       {
-      y2milestone("Argument: %1", Args(arg_n));
-      return OSRPartitionInit();
+	y2milestone("Argument: %1", WFM::Args(arg_n));
+	return OSRPartitionInit();
       }
       else
       {
-      y2error("ERROR: unknown option %1", Args(arg_n) );
-      return $[];
+	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
+	return $[];
       }
       arg_n = arg_n + 1;
   }
-}
+}//EOF

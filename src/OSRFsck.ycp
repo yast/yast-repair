@@ -20,107 +20,123 @@
   import "Storage";
   import "Partitions";
   import "Mode";
+  import "Popup";
 
   import "OSRExecute";
   import "OSRLogFile";
   import "OSRModuleLoading";
   import "OSRPopup";
 
-
-  import "Popup";
-
   textdomain "repair";
 
   /**
    * The last return value from a check_... call
-   */ 
-  integer last_check_return = 0;
+   */
+  integer last_check_return		= 0;
 
   /**
    * Options for a repair call. Not Supported at the moment.
    */
-  string  fsck_options      = "";
+  string  fsck_options			= "";
 
   /**
    * The not loaded filesystem an lvm/raid modules.
    */
-  global list(string) not_installed_modules = [];
+  global list<string> not_installed_modules = [];
 
   /**
    * The loaded modules.
    */
-  global list(string) fs_kernel_modules     = [];
+  global list<string> fs_kernel_modules = [];
 
   /**
-   * A list of all possible filesystem id's for fsck... 
+   * A list of all possible filesystem id's for fsck...
    */
-  global list(integer) fsck_fsid 	    = [];
+  global list fsck_fsid			= [];
 
   /**
-   * A list of all possible types for a fsck ...	
+   * A list of all possible types for a fsck ...
    */
-  global list(symbol) fsck_type		    = [ `sw_raid, `lvm, `logical, `primary ];
-  
+  global list<symbol> fsck_type		= [`sw_raid, `lvm, `logical, `primary];
+
   /**
    * The partition name witch is currently in work ( checked - repaired)
    */
-  string check_partition = "";
+  string check_partition		= "";
+
+  // prototypes of check/repair functions
+  define boolean is_ext2fs();
+  define boolean is_reiserfs();
+  define boolean is_xfs();
+  define boolean is_jfs();
+  define boolean is_fat();
+  define boolean is_ntfs();
+
+  define boolean repair_ext2fs();
+  define boolean repair_reiserfs();
+  define boolean repair_xfs();
+  define boolean repair_jfs();
+
+  define boolean check_ext2fs();
+  define boolean check_reiserfs();
+  define boolean check_xfs();
+  define boolean check_jfs();
 
   /**
    * The find/check/repair define for all supported filesystems.
    */
   map fsck_map = $[
-		   `ext2 :	$[
-                   "find"	: ``(is_ext2fs()),
-				   "repair"	: ``(repair_ext2fs()),
-				   "check"	: ``(check_ext2fs()) ],
-		   `ext3 :  $[
-                   "find"	: ``(is_ext2fs()),
-				   "repair"	: ``(repair_ext2fs()),
-				   "check"	: ``(check_ext2fs()) ],
-		   `reiser: $[
-				   "find"	: ``(is_reiserfs()),
-				   "repair"	: ``(repair_reiserfs()),
-				   "check"	: ``(check_reiserfs()) ],
-		   `xfs	:	$[
-				  "find"	: ``(is_xfs()	),
-				  "repair"	: ``(repair_xfs()),
-				  "check"	: ``(check_xfs()) ],
-		   `jfs :	$[
-				  "find"	: ``(is_jfs()),
-				  "repair"	: ``(repair_jfs()),
-				  "check"	: ``(check_jfs())],
+		    `ext2 : $[
+				"find"		: ``(is_ext2fs()),
+				"repair"	: ``(repair_ext2fs()),
+				"check"		: ``(check_ext2fs()) ],
+		    `ext3 :  $[
+				"find"		: ``(is_ext2fs()),
+				"repair"	: ``(repair_ext2fs()),
+				"check"		: ``(check_ext2fs()) ],
+		    `reiser: $[
+				"find"		: ``(is_reiserfs()),
+				"repair"	: ``(repair_reiserfs()),
+				"check"		: ``(check_reiserfs()) ],
+		    `xfs : $[
+				"find"		: ``(is_xfs()	),
+				"repair"	: ``(repair_xfs()),
+				"check"		: ``(check_xfs()) ],
+		    `jfs : $[
+				"find"		: ``(is_jfs()),
+				"repair"	: ``(repair_jfs()),
+				"check"		: ``(check_jfs())],
 		    // "Do not touch non-linux partitions" (#25002)
 		    // -> no check/repair functions for other filesystems
-		   `fat16 :	$[
-				  "find"	: ``(is_fat()) ],
-		   `fat32 :	$[
-				  "find"	: ``(is_fat()) ],
-		    `ntfs :	$[
-				    "find"	: ``(is_ntfs()) ]
+		    `fat16 : $[
+				"find"		: ``(is_fat()) ],
+		    `fat32 : $[
+				"find"		: ``(is_fat()) ],
+		    `ntfs : $[
+				"find"		: ``(is_ntfs()) ]
   ];
 
 
   string file_name = "";
 
-  global define void Reset()``{ 
-      file_name 		= "";
-      last_check_return 	= 0;
-      fsck_options      	= "";
-      not_installed_modules 	= [];
-      fs_kernel_modules     	= [];
-      check_partition 		= "";
- 
+  global define void Reset()``{
+      file_name			= "";
+      last_check_return		= 0;
+      fsck_options		= "";
+      not_installed_modules	= [];
+      fs_kernel_modules		= [];
+      check_partition		= "";
   }
-  
+
   /**
+   * Constructor.
    * Fill the list fsck_fsid with the date from module Partition.
    */
-  global define OSRFsck()``{
+  global define void OSRFsck()``{
 
-    fsck_fsid = union( Partitions::fsid_wintypes, Partitions::fsid_dostypes );
-    fsck_fsid = union( fsck_fsid, Partitions::fsid_ntfstypes );
-    fsck_fsid = union( fsck_fsid,
+    fsck_fsid = union (Partitions::fsid_wintypes, Partitions::fsid_dostypes );
+    fsck_fsid = union (fsck_fsid, Partitions::fsid_ntfstypes );
+    fsck_fsid = union (fsck_fsid,
 	[ Partitions::fsid_native, Partitions::fsid_lvm  ]);
   }
 
@@ -131,23 +147,26 @@
   global define boolean LoadAllFsModules()``{
 
       if( Mode::test )  return true;
-      
+
       not_installed_modules = [];
       fs_kernel_modules     = [];
-      
-      list(symbol) all_supportet_fs    	= maplist(symbol fs, map details, FileSystems::GetAllFileSystems(false, false ), ``(fs) );
-      
-      foreach(symbol fs, all_supportet_fs , ``{
-	  fs_kernel_modules = union(fs_kernel_modules, FileSystems::GetNeededModules(fs ));
-      });
-      
-      fs_kernel_modules = union(fs_kernel_modules , [ "xor", "raid0", "raid1", "raid5", "lvm-mod"]);
 
-      
+      list all_supportet_fs = maplist (symbol fs, map details,
+	    FileSystems::GetAllFileSystems(false, false ), ``(fs) );
+
+      foreach (symbol fs, all_supportet_fs , ``{
+	  fs_kernel_modules = (list<string>) union (
+	    fs_kernel_modules, FileSystems::GetNeededModules (fs));
+      });
+
+      fs_kernel_modules = (list<string>) union (
+	fs_kernel_modules , [ "xor", "raid0", "raid1", "raid5", "lvm-mod"]);
+
+
       // iterate all listed kernel modules
       foreach(string fs_module, fs_kernel_modules, ``{
 	  if (! OSRModuleLoading::Load( fs_module, "","","",false, true))
-	      not_installed_modules = add( not_installed_modules, fs_module );
+	      not_installed_modules = add (not_installed_modules, fs_module);
       });
 
       return size( not_installed_modules ) == 0;
@@ -160,11 +179,17 @@
    * Return a list witch contains all partitions names that can be
    * used for a fsck.
    */
-  global define list(map) PossiblePartitions()``{
+  global define list<map> PossiblePartitions()``{
 
-      if ( Mode::test ) return ["/dev/hda1", "/dev/hda2"];
+      if ( Mode::test )
+      {
+	return [
+	    $[ "maindev"	: "/dev/hda1" ],
+	    $[ "maindev"	: "/dev/hda2" ]
+	];
+      }
 
-      list(map) partitions =	[];
+      list<map> partitions =	[];
 
       foreach(string dev, map target, Storage::GetTargetMap(), ``{
 	  foreach(map p, target["partitions"]:[],``{
@@ -184,10 +209,264 @@
   }
 
 
+  define boolean is_unknown()``{
+      y2warning ("unkonwn file system");
+      return false;
+  }
+
+  /**
+   *  Checks if the specified check_partition is of filesystem-type ext2fs.
+   *  @return boolean True if the check_partition is ext2fs.
+   */
+  define boolean is_ext2fs() ``{
+
+    boolean isext2fs = OSRExecute::Command (
+	.local.bash, "/sbin/dumpe2fs -h " + check_partition);
+
+    if (isext2fs )
+	y2milestone("partition %1 is ext2fs", check_partition);
+    else
+	y2milestone("partition %1 is NOT ext2fs", check_partition);
+
+    return isext2fs;
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type reiserfs.
+   *  @return boolean True if the partition is reiserfs.
+   */
+  define boolean is_reiserfs() ``{
+
+    boolean isreiserfs = OSRExecute::Command (
+	.local.bash, "/sbin/debugreiserfs " + check_partition);
+
+    if ( isreiserfs )
+    {
+	y2milestone("partition %1 is reiserfs", check_partition);
+    }
+    else
+    {
+	y2milestone("partition %1 is NOT reiserfs", check_partition);
+    }
+    return isreiserfs;
+  };
+
+
+  /**
+   *  Checks if the specified partition is of filesystem-type xfs.
+   *  @return boolean True if the partition is xfs.
+   */
+  define boolean is_xfs()``{
+
+    boolean isxfs = OSRExecute::CommandOutput (
+	.local.bash, "/usr/sbin/xfs_admin -l -u " + check_partition);
+    // failed
+    //xfs_admin: unexpected XFS SB magic number 0xdd0a05a6
+    //bad sb magic # 0xdd0a05a6 in AG 0
+    //failed to read label in AG 0
+    //bad sb magic # 0xdd0a05a6 in AG 0
+    //failed to read UUID from AG 0
+
+    // success
+    //label = ""
+    //uuid = ad743076-12b8-452b-86c0-2e62918479ae
+    if (issubstring (OSRExecute::stdout, "label") &&
+	issubstring (OSRExecute::stdout, "uuid" ))
+    {
+	y2milestone("partition %1 is xfs", check_partition);
+	isxfs = true;
+    }
+    else
+    {
+	y2milestone("partition %1 is NOT xfs", check_partition);
+	isxfs = false;
+    }
+    return isxfs;
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type jfs.
+   *  @return boolean True if the partition is jfs.
+   */
+  define boolean is_jfs()``{
+
+    string command = sformat ("if /usr/bin/test -f %1; then /bin/rm %1; fi",
+	OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
+
+    // delete the old progress_file, if it exists
+    if (WFM::Execute(.local.bash, command) != 0)
+    {
+	y2error("The file %1 could not be deleted.",
+	    OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
+    }
+
+    command		= sformat("cd %1; /sbin/jfs_logdump %2",
+	OSRLogFile::GetTmpDir(), check_partition );
+    boolean isjfs	= OSRExecute::CommandOutput (.local.bash, command );
+
+    // check_jfs is 0 !! -> read jfslog.dmp
+    string jfslog	= (string) WFM::Read (.local.string,
+	OSRLogFile::GetTmpDir()+"/jfslog.dmp" );
+
+    y2milestone("jfslog.dmp %1", jfslog);
+
+    if ( issubstring( jfslog, "?????????????????" ))
+    {
+	isjfs = false;
+    }
+    return isjfs;
+  };
+
+
+  /**
+   *  Checks if the specified partition is of filesystem-type fat/vfat.
+   *  @return boolean True if the partition is fat/vfat.
+   */
+  define boolean is_fat()``{
+
+    string command	= sformat("/bin/guessfstype %1", check_partition );
+    boolean isfat	= OSRExecute::CommandOutput (.local.bash, command );
+
+    if ( issubstring( OSRExecute::stdout, "fat" ))
+    {
+	isfat = true;
+    }
+    else
+    {
+	isfat = false;
+    }
+    return isfat;
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type ntfs
+   *  @return boolean True if the partition is ntfs
+   */
+  define boolean is_ntfs()  ``{
+
+    string command	= sformat("/bin/guessfstype %1", check_partition );
+    boolean isntfs	= false;
+    OSRExecute::CommandOutput (.local.bash, command );
+
+    if (issubstring (OSRExecute::stdout, "ntfs" ))
+	isntfs = true;
+    return isntfs;
+  };
+
+  /**
+   *  Checks the specified partition for consistency with "/sbin/e2fsck".
+   *  @return boolean
+   *    The exit code returned by e2fsck is the sum of the following conditions:
+   *      0 - No errors,
+   *      1 - File system errors corrected,
+   *      2 - File system errors corrected, system should be rebooted if file system was mounted,
+   *      4 - File system errors left uncorrected,
+   *      8 - Operational error,
+   *      16 - Usage or syntax error,
+   *      128 - Shared library error.
+   */
+  define boolean check_ext2fs() ``{
+
+    string command	= sformat("/sbin/fsck.ext2 -n -f %1", check_partition );
+    boolean checkext2fs = OSRExecute::Command (.local.bash,command);
+    last_check_return	= OSRExecute::result;
+
+    if (checkext2fs)
+    {
+	y2milestone("partition %1 is o.k., /sbin/e2fsck reports no errors",
+	    check_partition);
+    }
+    else
+    {
+	y2error("/sbin/e2fsck reports an error: %1, command line: %2",
+	    checkext2fs, command);
+    }
+    return checkext2fs;
+  };
+
+  /**
+   *  Checks the specified partition for consistency with "/sbin/reiserfsck".
+   */
+  define boolean check_reiserfs() ``{
+
+    string command = sformat("/bin/echo Yes | /sbin/reiserfsck --check %1",
+	check_partition);
+
+    // don't use OSRExecute .. because OSRExecute use .target.bash_output and
+    // this break the whole Yast2 -> output is to much !! e.g. 14 MB
+    last_check_return		= (integer) WFM::Execute(.local.bash, command);
+    boolean checkreiserfs	= last_check_return == 0 ;
+
+    if (checkreiserfs )
+    {
+	y2milestone("partition %1 is o.k., /sbin/reiserfsck reports no errors",
+	    check_partition);
+    }
+    else
+    {
+	y2error("/sbin/reiserfsck reports an error: %1, command line: %2",
+	    checkreiserfs, command);
+    }
+    return checkreiserfs;
+  };
+
+  /**
+   * Checks the specified partition for consistency with "/sbin/xfs_db -c check".
+   */
+  define boolean check_xfs()``{
+
+    string command = sformat("/usr/sbin/xfs_db -c check %1", check_partition);
+    boolean checkxfs	= OSRExecute::Command(.local.bash, command);
+    last_check_return   = OSRExecute::result;
+
+    if (checkxfs)
+    {
+	y2milestone("partition %1 is o.k., xfs_check reports no errors",
+	    check_partition);
+    }
+    else
+    {
+	y2milestone("xfs_check reports an error for partition %1",
+	    check_partition );
+    }
+    return checkxfs;
+  };
+
+  /**
+   * Checks the specified partition for consistency with "/sbin/fsck.jfs -n ".
+   */
+  define boolean check_jfs()``{
+
+    string command	= sformat("/sbin/fsck.jfs -n %1", check_partition);
+    boolean checkjfs	= OSRExecute::Command(.local.bash, command);
+    last_check_return	= OSRExecute::result;
+
+    if (checkjfs)
+    {
+	y2milestone ("partition %1 is o.k., jfs_check reports no errors",
+	    check_partition);
+    }
+    else
+    {
+	y2milestone("jfs_check reports an error for partition %1",
+	    check_partition );
+    }
+    return checkjfs;
+  };
+
+/**
+ * checks for filesystem type
+ * (Repair module should not touch non-linux partitions - bug #25002)
+ */
+global define boolean IsNonLinuxFileSystem (symbol fs) ``{
+
+    return contains ([`ntfs, `fat16, `fat32], fs);
+
+}
+
 /**
   * Test the filesystem of one partition.
   * @param the partition map
-  *
   */
 global define boolean Check(map part ) ``{
     if(Mode::test ) return true;
@@ -211,9 +490,9 @@ global define boolean Check(map part ) ``{
 	used_fs            = `unknown;
 	symbol new_used_fs = `unknown;
 
-	foreach(symbol fs, map fs_map, fsck_map, ``{
+	foreach (symbol fs, map fs_map, fsck_map, ``{
 	    if ( fs != used_fs ) {
-		if( eval( fs_map["find"]:``{ return false; }))
+		if ( (boolean) eval (fs_map["find"]:``{ return false; }))
 		{
 		    new_used_fs = fs;
 		}
@@ -242,7 +521,7 @@ global define boolean Check(map part ) ``{
 	    y2milestone("non-linux filesystem: no checks");
 	    return true;
 	}
-	if( eval (fsck_map[used_fs, "check"]:``{ return false;}))
+	if ((boolean) eval (fsck_map[used_fs, "check"]:``{ return false;}))
 	{
 	    y2milestone("file system check successful executed");
 	    return true;
@@ -258,248 +537,6 @@ global define boolean Check(map part ) ``{
   }
 
 
-  define boolean is_unknown()``{
-      y2warning ("unkonwn file system");
-      return false;
-  }
-
-  /**
-   *  Checks if the specified check_partition is of filesystem-type ext2fs.
-   *  @return boolean True if the check_partition is ext2fs.
-   */
-  define boolean is_ext2fs() ``{
-
-      boolean is_ext2fs =  OSRExecute::Command(.local.bash, "/sbin/dumpe2fs -h " + check_partition );
-      
-      if (is_ext2fs )
-      {
-	  y2milestone("partition %1 is ext2fs", check_partition);
-      }
-      else 
-      {
-	  y2milestone("partition %1 is NOT ext2fs", check_partition);
-      }
-
-      return is_ext2fs;
-  };
-
-  
-  /**
-   *  Checks if the specified partition is of filesystem-type reiserfs.
-   *  @return boolean True if the partition is reiserfs.
-   */
-  define boolean is_reiserfs() ``{
-
-      boolean is_reiserfs = OSRExecute::Command(.local.bash, "/sbin/debugreiserfs " + check_partition);
-      
-      if ( is_reiserfs )
-      {
-	  y2milestone("partition %1 is reiserfs", check_partition);
-      }
-      else
-      {
-	  y2milestone("partition %1 is NOT reiserfs", check_partition);
-      }
-      
-      return is_reiserfs;
-  };
-
-
-  /**
-   *  Checks if the specified partition is of filesystem-type xfs.
-   *  @return boolean True if the partition is xfs.
-   */
-  define boolean is_xfs()``{
-
-      boolean is_xfs = OSRExecute::CommandOutput(.local.bash, "/usr/sbin/xfs_admin -l -u " + check_partition);
-      // failed
-      //xfs_admin: unexpected XFS SB magic number 0xdd0a05a6
-      //bad sb magic # 0xdd0a05a6 in AG 0
-      //failed to read label in AG 0
-      //bad sb magic # 0xdd0a05a6 in AG 0
-      //failed to read UUID from AG 0
-
-      // success
-      //label = ""
-      //uuid = ad743076-12b8-452b-86c0-2e62918479ae  
-      if ( issubstring(OSRExecute::stdout, "label") &&
-	   issubstring(OSRExecute::stdout, "uuid" ) )
-      {
-	  y2milestone("partition %1 is xfs", check_partition);
-	  is_xfs = true;
-      }
-      else
-      {
-	  y2milestone("partition %1 is NOT xfs", check_partition);
-	  is_xfs = false;
-      }
-
-      return is_xfs;
-      
-  };
-
-
-
-  /**
-   *  Checks if the specified partition is of filesystem-type jfs.
-   *  @return boolean True if the partition is jfs.
-   */
-  define boolean is_jfs()``{
-
-      string command  =  sformat("if /usr/bin/test -f %1; then /bin/rm %1; fi", OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
-
-      // delete the old progress_file, if it exists
-      if (  WFM::Execute(.local.bash, command) != 0 )
-	  y2error("The file %1 could not be deleted.", OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
-
-      
-      string  command        	= sformat("cd %1; /sbin/jfs_logdump %2", OSRLogFile::GetTmpDir(), check_partition );
-      boolean is_jfs 		= OSRExecute::CommandOutput(.local.bash, command );
-
-      // check_jfs is 0 !! -> read jfslog.dmp
-      string jfslog 		= WFM::Read(.local.string, OSRLogFile::GetTmpDir()+"/jfslog.dmp" );
-
-      y2milestone("jfslog.dmp %1", jfslog);
-      
-      if ( issubstring( jfslog, "?????????????????" ))
-      {
-	  is_jfs = false;
-      }
-
-      return is_jfs;
-  };
-
-
-  
-  /**
-   *  Checks if the specified partition is of filesystem-type fat/vfat.
-   *  @return boolean True if the partition is fat/vfat.
-   */
-  define boolean is_fat()``{
-      string  command   = sformat("/bin/guessfstype %1", check_partition );
-      boolean is_fat	= OSRExecute::CommandOutput(.local.bash, command );
-
-      if ( issubstring( OSRExecute::stdout, "fat" ))
-      {
-	  is_fat = true;
-      }
-      else {
-	  is_fat = false;
-      }
-
-      return is_fat;
-  };
-
-  /**
-   *  Checks if the specified partition is of filesystem-type ntfs
-   *  @return boolean True if the partition is ntfs
-   */
-  define boolean is_ntfs()  ``{
-      string  command   = sformat("/bin/guessfstype %1", check_partition );
-      boolean is_ntfs	= false;
-      OSRExecute::CommandOutput(.local.bash, command );
-
-      if ( issubstring( OSRExecute::stdout, "ntfs" ))
-	    is_ntfs = true;
-
-      return is_ntfs;
-  };
-
-  /**
-   *  Checks the specified partition for consistency with "/sbin/e2fsck".
-   *  @return boolean
-   *    The exit code returned by e2fsck is the sum of the following conditions:
-   *      0 - No errors,
-   *      1 - File system errors corrected,
-   *      2 - File system errors corrected, system should be rebooted if file system was mounted,
-   *      4 - File system errors left uncorrected,
-   *      8 - Operational error,
-   *      16 - Usage or syntax error,
-   *      128 - Shared library error.
-   */
-  define boolean check_ext2fs() ``{
-
-      string command	   = sformat("/sbin/fsck.ext2 -n -f %1", check_partition );
-      boolean check_ext2fs = OSRExecute::Command(.local.bash,command);
-      last_check_return    = OSRExecute::result;
-
-      if (check_ext2fs  )
-      {
-	  y2milestone("partition %1 is o.k., /sbin/e2fsck reports no errors", check_partition);
-      }
-      else
-      {
-	  y2error("/sbin/e2fsck reports an error: %1, command line: %2", check_ext2fs, command);
-      }
-
-      return check_ext2fs;
-  };
-
-  /**
-   *  Checks the specified partition for consistency with "/sbin/reiserfsck".
-   */
-  define boolean check_reiserfs() ``{
-    string command = sformat("/bin/echo Yes | /sbin/reiserfsck --check %1",
-	check_partition);
-
-    // don't use OSRExecute .. because OSRExecute use .target.bash_output and
-    // this break the whole Yast2 -> output is to much !! e.g. 14 MB
-    last_check_return      = WFM::Execute(.local.bash, command );
-    boolean check_reiserfs = last_check_return == 0 ;
-
-    if (check_reiserfs )
-    {
-	y2milestone("partition %1 is o.k., /sbin/reiserfsck reports no errors",
-	    check_partition);
-    }
-    else
-    {
-	y2error("/sbin/reiserfsck reports an error: %1, command line: %2",
-	    check_reiserfs, command);
-    }
-    return check_reiserfs;
-  };
-
-  /**
-   * Checks the specified partition for consistency with "/sbin/xfs_db -c check".
-   */
-  define boolean check_xfs()``{
-      string  command        	= sformat("/usr/sbin/xfs_db -c check %1", check_partition );
-      boolean check_xfs 	= OSRExecute::Command(.local.bash, command);
-      last_check_return         = OSRExecute::result;
-      
-      if (check_xfs )
-      {
-	  y2milestone("partition %1 is o.k., xfs_check reports no errors", check_partition);
-      }
-      else 
-      {
-	  y2milestone("xfs_check reports an error for partition %1", check_partition );
-      }
-
-      return check_xfs;
-  };
-
-  
-  /**
-   * Checks the specified partition for consistency with "/sbin/fsck.jfs -n ".
-   */
-  define boolean check_jfs()``{
-      string  command        	= sformat("/sbin/fsck.jfs -n %1", check_partition );
-      boolean check_jfs 	= OSRExecute::Command(.local.bash, command);
-      last_check_return         = OSRExecute::result;
-            
-      if (check_jfs )
-      {
-	  y2milestone("partition %1 is o.k., jfs_check reports no errors", check_partition);
-      }
-      else 
-      {
-	  y2milestone("jfs_check reports an error for partition %1", check_partition );
-      }
-
-      return check_jfs;
-  };
 
   /**
    * The main repair dialog.
@@ -572,32 +609,32 @@ close this help dialog and press
 	  // if file exist
 	  if( WFM::Execute(.local.bash, "/usr/bin/test -f " + file_name ) == 0 )
 	  {
-	      WFM::Execute(.local.bash, "/bin/rm %1", file_name );
+	      WFM::Execute(.local.bash, sformat ("/bin/rm %1", file_name) );
 	  }
-	  
+
 	  boolean ret = true;
-	  if( ! Mode::test )
+	  if( !Mode::test )
 	  {
-	      ret = eval( fsck_map[used_fs, "repair"]:``{ return false;});
+	      ret = (boolean)
+		eval (fsck_map[used_fs, "repair"]:``{ return false;});
 	  }
-	  
 	  UI::CloseDialog();
-	
+
 	  string headline = "";
-	  
-	  if ( ret ) {
+
+	  if ( ret )
+	  {
 	      headline = sformat(_("
 Repairing %1 file system of
 partition %2 was successful."),
-				 FileSystems::GetName(used_fs, "unkonwn"),
-				 check_partition );
+		FileSystems::GetName(used_fs, "unkonwn"), check_partition );
 	  }
-	  else {
+	  else
+	  {
 	      headline = sformat(_("
 Repairing %1 file system of partition
 %2 was not successful."),
-				 FileSystems::GetName(used_fs, "unkonwn"),
-				 check_partition );
+		FileSystems::GetName(used_fs, "unkonwn"), check_partition );
 	  }
 
 	  // if file exist
@@ -607,7 +644,6 @@ Repairing %1 file system of partition
 	  }
 
 	  if ( ret ) return `ok;
-	  
       }
   }
 
@@ -624,43 +660,48 @@ Repairing %1 file system of partition
    */
   define boolean repair_ext2fs()``{
 
-      if(  last_check_return == 4 ) {
+    if (last_check_return == 4 )
+    {
+	y2milestone("repair ext2/ext3 filesystem on partition %1",
+	    check_partition);
 
-	  y2milestone("repair ext2/ext3 filesystem on partition %1", check_partition);
+	string command		= sformat("/sbin/fsck.ext2 -p -f %1 %2",
+	    fsck_options, check_partition );
+	boolean repairext2fs	= OSRExecute::CommandProgress (
+	    .local.bash,command ,file_name);
 
-	  string command = sformat("/sbin/fsck.ext2 -p -f %1 %2", fsck_options, check_partition );
-	  boolean repair_ext2fs = OSRExecute::CommandProgress(.local.bash,command ,file_name);
-
-	  // TODO what is if fsck.ext2 requires y y y y for del indo XX ...
-	  
-	  if ( OSRExecute::result == 0 ||
-	       OSRExecute::result == 1 ||
-	       OSRExecute::result == 2 ) {
-	      return true;
-	  }
-	  
-      }
-   
-      y2milestone("ext2 filesystem not successful repaired.");
-      return false;
+	// TODO what is if fsck.ext2 requires y y y y for del indo XX ...
+	if (OSRExecute::result == 0 ||
+	    OSRExecute::result == 1 ||
+	    OSRExecute::result == 2 )
+	{
+	    return true;
+	}
+    }
+    y2milestone("ext2 filesystem not successful repaired.");
+    return false;
   }
-		   
 
   /**
    * Repair reiserfs filesystem.
    */
   define boolean repair_reiserfs()``{
-      
-      string command 		= "";
-      integer repair_reiserfs   = 0;
-      
-      if ( last_check_return == 1 ) {
-	  command 	    = sformat("/bin/echo Yes | /sbin/reiserfsck --fix-fixable %1", check_partition);
-	  repair_reiserfs   = WFM::Execute(.local.bash,command, file_name );
-      }
-      else if ( last_check_return == 2 ) {
-	  
-	  if ( Popup::YesNoHeadline(_("Reiserfs Fatal Corruptions"), _("
+
+    string command		= "";
+    integer repairreiserfs	= 0;
+
+    if ( last_check_return == 1 )
+    {
+	command = sformat("/bin/echo Yes | /sbin/reiserfsck --fix-fixable %1",
+	    check_partition);
+	repairreiserfs = (integer) WFM::Execute (.local.bash, command);
+    }
+    else if ( last_check_return == 2 )
+    {
+	// popup headline
+	if ( Popup::YesNoHeadline(_("Reiserfs Fatal Corruptions"),
+	// popup text (yes/no)
+_("
 Checking the file system (reiserfs) reports
 fatal corruptions. Only a rebuild of the reiserfs
 file system tree (reiserfsck --rebuild-tree)
@@ -670,58 +711,52 @@ To rebuild your reiserfs tree,
 press \"Yes\". Otherwise press
 \"No\" and repair the file system manually.
 ")))
-	  {
-	      command 	        = sformat("/bin/echo Yes | /sbin/reiserfsck --rebuild-tree %1", check_partition);
-	      repair_reiserfs   = WFM::Execute(.local.bash,command , file_name);
-	  }
-	  else {
-	      return false;
-	  }
-      }
-      
-      if ( repair_reiserfs == 0 || 
-	   repair_reiserfs == 1 ||
-	   repair_reiserfs == 2   ) {
-	  return true;
-      }
-      
-      return false;
+	{
+	    command =
+		sformat("/bin/echo Yes | /sbin/reiserfsck --rebuild-tree %1",
+		check_partition);
+	    repairreiserfs = (integer) WFM::Execute (.local.bash,command);
+	}
+	else
+	{
+	    return false;
+	}
+    }
+    if (repairreiserfs == 0 ||
+	repairreiserfs == 1 ||
+	repairreiserfs == 2 )
+    {
+	return true;
+    }
+    return false;
   }
 
   /**
    * Repair xfs filesystem.
    */
   define boolean repair_xfs()``{
-      string command 		= sformat("/sbin/xfs_repair %1", check_partition);
-      return  OSRExecute::CommandProgress(.local.bash,command , file_name);
+
+    string command	= sformat("/sbin/xfs_repair %1", check_partition);
+    return OSRExecute::CommandProgress (.local.bash,command, file_name);
   }
 
   /**
    * Repair jfs filesystem.
    */
   define boolean repair_jfs()``{
-      string command 		= sformat("/sbin/fsck.jfs -p %1", check_partition);
-      boolean repair_jfs 	= OSRExecute::CommandProgress(.local.bash,command , file_name);
 
-      if ( OSRExecute::result == 0 ||
-	   OSRExecute::result == 1 ||
-	   OSRExecute::result == 2 ) {
-	  return true;
-      }
-      y2milestone("not ext2 filesystem repaired successful.");
-      return false;
+    string command	= sformat("/sbin/fsck.jfs -p %1", check_partition);
+    boolean repairjfs	= OSRExecute::CommandProgress (
+	.local.bash, command, file_name);
 
+    if (OSRExecute::result == 0 ||
+	OSRExecute::result == 1 ||
+	OSRExecute::result == 2 )
+    {
+	return true;
+    }
+    y2milestone("not ext2 filesystem repaired successful.");
+    return false;
   }
 
-/**
- * checks for filesystem type
- * (Repair module should not touch non-linux partitions - bug #25002)
- */
-global define boolean IsNonLinuxFileSystem (symbol fs) ``{
-
-    return contains ([`ntfs, `fat16, `fat32], fs);
-
-}
-
-
-}
+}//EOF

@@ -3,7 +3,7 @@
  *    OSRExecute.ycp
  *
  *  Module:
- *	
+ *	YaST Repair
  *  Summary:
  *
  *  Author:
@@ -16,42 +16,37 @@
 
   import "Mode";
 
-  import "OSRDirect";
+  import "OSRCommon";
   import "OSRLogFile";
   import "OSRProgress";
-  import "OSR";
 
   textdomain "repair";
-  
-  
+
   global integer result      = 0;
   global string  stdout      = "";
   global string  stderr      = "";
-  map result_map 	     = $[];
-  
+  map result_map	     = $[];
 
   define boolean exec(path environment, string commandline )``{
 
       if ( environment == .local.bash || environment == .local.bash_output )
       {
-	  result_map  = WFM::Execute(.local.bash_output, commandline );
+	  result_map  = (map) WFM::Execute(.local.bash_output, commandline );
       }
       else if ( environment == .target.bash || environment == .target.bash_output )
       {
-	  result_map  = SCR::Execute(.target.bash_output, commandline);
+	  result_map  = (map) SCR::Execute(.target.bash_output, commandline);
       }
       else
       {
 	  y2error("OSRExecute::CommandOutput ERROR: wrong environment \"%1\", has to be .local.bash_output or .target.bash_output", environment);
 	  return false;
       }
-      
       result      = result_map[ "exit"   ]:-1;
       stdout      = result_map[ "stdout" ]:"";
       stderr      = result_map[ "stderr" ]:"";
       return true;
   }
-
 
   global define void Reset()``{
       result      = 0;
@@ -61,7 +56,7 @@
   }
 
   define void debugResult()``{
-      
+
       if ( result == 0 )
       {
 	  y2debug("OSRExecute::CommandOutput: command succeeded: %1", result);
@@ -93,88 +88,56 @@
 
 
   /**
-   *  Executes the given commandline in a bash and writes all execution-information
-   *  to the standard log file. This function returns all output from the commandline
-   *  in a result map. Use these functions instead of directly calling the SCR or WFM
-   *  agents (e.g. SCR::Execute(.target.bash_output, "rpm -q lilo") resp.
-   *  WFM::(.local.bash_output, "rpm -q -r /mnt lilo")) to be sure to support logging
-   *  correctly.
+   *  Executes the given commandline in a bash and writes all
+   *  execution-information to the standard log file. This function returns all
+   *  output from the commandline in a result map. Use these functions instead
+   *  of directly calling the SCR or WFM agents
+   *	(e.g. SCR::Execute(.target.bash_output, "rpm -q lilo") resp.
+   *	 WFM::(.local.bash_output, "rpm -q -r /mnt lilo"))
+   *  to be sure to support logging correctly.
    *
    *  API function.
    *
-   *  @param path environment The environment-path, has to be .local.bash_output or
+   *  @param environment The environment-path, has to be .local.bash_output or
    *         .target.bash_output (or .local.bash resp. .target.bash)
    *  @param string commandline The commandline.
-   *  @return map The result map with all output from the command.
-   *  @example map result_map = OSRExecuteCommandOutput(.local.bash_output, "rpm -qi -r /mnt/ lilo");
    */
   global define boolean CommandOutput(path environment, string commandline) ``{
 
       Reset();
-
-      if ( Mode::demo || Mode::test ) commandline = "/bin/echo " +  mergestring(splitstring(commandline, ";"), " ");
+      if ( Mode::test )
+	  commandline = "/bin/echo " +
+	    mergestring(splitstring(commandline, ";"), " ");
 
       // accept also .local.bash and .target.bash as parameter
       if ( ! exec( environment, commandline ) ) return false;
-      
-      OSRLogFile::Add(sformat("Command: %1\nstdout: %2\nstderr: %3\nexit: %4\n", commandline, stdout, stderr, result));
+
+      OSRLogFile::Add (
+	sformat("Command: %1\nstdout: %2\nstderr: %3\nexit: %4\n",
+	    commandline, stdout, stderr, result));
+
       debugResult();
-      
       return ( result == 0);
   };
 
-  
-  global define string OutputFile()``{
-      if( OSR::current_module_name != "" )
-      {
-	  return OSRLogFile::GetTmpDir()+"/"+ OSR::current_module_name;
-      }
-      else if ( OSRDirect::current_direct_name != "" )
-      {
-	  return OSRLogFile::GetTmpDir()+"/"+ OSRDirect::current_direct_name;
-      }
-      return OSRLogFile::GetTmpDir()+"/"+ "osr_default";
-  }
-  
   /**
-   *  Executes the given commandline in a bash and writes all execution-information
-   *  to the specified logfile. Use these functions instead of directly calling the
-   *  SCR or WFM agents (e.g. SCR::Execute(.target.bash, "rpm -q lilo") resp.
-   *  WFM::(.local.bash, "rpm -q -r /mnt lilo")) to be sure to support logging correctly.
+   *  Executes the given commandline in a bash and writes all
+   *  execution-information to the specified logfile. Use these functions
+   *  instead of directly calling the SCR or WFM agents
+   *	 (e.g. SCR::Execute(.target.bash, "rpm -q lilo") resp.
+   *	  WFM::(.local.bash, "rpm -q -r /mnt lilo"))
+   *  to be sure to support logging correctly.
    *
    *  API function.
    *
-   *  @param path environment The environment-path, has to be .local.bash or .target.bash
-   *  @param string commandline The commandline.
-   *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommand(.local.bash, "rpm -qi -r /mnt/ lilo");
-   *
-   *   $ cat /tmp/osr.log
-   *   *** /bin/rpm -qi lilo ***
-   *   Name      : lilo         Relocations: (not relocateable)
-   *   Version   : 21.6              Vendor: SuSE GmbH, Nuernberg, Germany
-   *   [...]
-   *   SuSE series: a
-   *   *** exit code: 0 ***
-   */
-  global define boolean Command(path environment, string commandline) ``{
-
-      return CommandProgress(environment, commandline, OutputFile() );
-  };
-  
-  /**
-   *  Executes the given commandline in a bash and writes all execution-information
-   *  to the specified logfile. Use these functions instead of directly calling the
-   *  SCR or WFM agents (e.g. SCR::Execute(.target.bash, "rpm -q lilo") resp.
-   *  WFM::(.local.bash, "rpm -q -r /mnt lilo")) to be sure to support logging correctly.
-   *
-   *  API function.
-   *
-   *  @param path environment The environment-path, has to be .local.bash or .target.bash
+   *  @param path environment The environment-path,
+   *	has to be .local.bash or .target.bash
    *  @param string commandline The commandline.
    *  @param string progress_file The path of the progress file.
-   *  @return integer The exit code of the execution.
-   *  @example OSRExecuteCommandProgress(.local.bash, "rpm -qi -r /mnt/ lilo", "/tmp/progress_file");
+   *  @return boolean Success
+   *  @example
+   *	OSRExecute::CommandProgress (.local.bash, "rpm -qi -r /mnt/ lilo",
+   *		"/tmp/progress_file");
    *
    *   $ cat /tmp/osr.log
    *   *** /bin/rpm -qi lilo ***
@@ -184,36 +147,40 @@
    *   SuSE series: a
    *   *** exit code: 0 ***
    */
-  global define boolean CommandProgress(path environment, string commandline, string progress_file ) ``{
+  global define boolean CommandProgress(path environment, string commandline,
+					string progress_file ) ``{
 
       Reset();
 
-      // in demo-mode set "echo" in front of every commandline and delete all ";" from
-      // the commandline
-      if (Mode::demo || Mode::test )  commandline = "/bin/echo " + mergestring(splitstring(commandline, ";"), " ");
+      // in test/demo-mode set "echo" in front of every commandline and delete
+      // all ";" from the commandline
+      if (Mode::test )
+	  commandline = "/bin/echo " +
+	    mergestring (splitstring(commandline, ";"), " ");
 
-      if ( UI::WidgetExists(`id(`module_progress_bar ))) 
+      if ( UI::WidgetExists(`id(`module_progress_bar )))
 	   OSRProgress::SetLabel(`module_progress_bar, commandline );
-      
+
       // only use the module progress bar if a filename was specified and the
       // UI interpreter supports the DownloadProgressWidget
       if ((progress_file != "") && progress_file != nil
 	  && progress_file != OSRLogFile::GetTmpDir()
 	  && progress_file != OSRLogFile::GetTmpDir()+"/"
 	  )
-      {	  
-	  // write the specified command line to the log file and execute the command,
-	  // write all output to the specified progress file
+      {
+	  // write the specified command line to the log file and execute the
+	  // command, write all output to the specified progress file
 	  commandline = sformat("%1 >> %2 2>> %2", commandline, progress_file );
 
 
 	  if ( ! exec( environment, commandline ) ) return false;
-	  
+
 	  // get the output from the progress file to write it to the log file
-	  string output_string = WFM::Read(.local.string, progress_file );
-	  
-	  OSRLogFile::Add(sformat("Command: %1\nProgress file: %2\noutput: %3\nexit: %4\n",
-				  commandline, progress_file, output_string, result));
+	  string output_string = (string)WFM::Read(.local.string,progress_file);
+
+	  OSRLogFile::Add (
+	    sformat("Command: %1\nProgress file: %2\noutput: %3\nexit: %4\n",
+		commandline, progress_file, output_string, result));
       }
       else
       {
@@ -227,12 +194,33 @@
 
 	  if ( ! exec( environment, commandline ) ) return false;
 
-	  OSRLogFile::Add(sformat("Command: %1\nstdout: %2\nstderr: %3\nexit: %4\n", commandline, stdout, stderr, result));
-	
+	  OSRLogFile::Add (
+	    sformat("Command: %1\nstdout: %2\nstderr: %3\nexit: %4\n",
+		commandline, stdout, stderr, result));
       }
 
-      debugResult();      
+      debugResult();
       return ( result == 0);
+  };
+
+  global define string OutputFile()``{
+      if( OSRCommon::current_module_name != "" )
+      {
+	  return OSRLogFile::GetTmpDir()+"/"+ OSRCommon::current_module_name;
+      }
+      else if ( OSRCommon::current_direct_name != "" )
+      {
+	  return OSRLogFile::GetTmpDir()+"/"+ OSRCommon::current_direct_name;
+      }
+      return OSRLogFile::GetTmpDir()+"/"+ "osr_default";
+  }
+
+  /**
+   *  Wrapper to CommandProgress, with the use of current log file
+   */
+  global define boolean Command(path environment, string commandline) ``{
+
+      return CommandProgress(environment, commandline, OutputFile() );
   };
 
 }
