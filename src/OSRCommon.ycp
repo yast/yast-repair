@@ -49,6 +49,12 @@ global define string EmptyString () ``{
     return "";
 }
 
+/**
+ * @return $[]
+ */
+global define map EmptyMap () ``{
+    return $[];
+}
 
 // ---------------------------------------------------------------------
 // from OSRDirect.ycp:
