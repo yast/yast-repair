@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  7 12:42:39 CEST 2003 - jsuchome@suse.de
+
+- removed useless parameter for fsck.ext2
+
+-------------------------------------------------------------------
 Mon Aug  4 13:13:33 CEST 2003 - jsuchome@suse.de
 
 - added .desktop file
