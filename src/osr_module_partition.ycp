@@ -488,7 +488,7 @@ partition %1"), part)
                 dev_name, fsname );
 	    if (fsname == "unknown")
 		// summary text, %1 is device
-		summary = sformat(_("%1 contains uknown file system"),dev_name);
+		summary = sformat(_("%1 contains unknown file system"),dev_name);
 
             OSRSummary::DetectError (summary_header, summary);
             if( fs_ok != nil )
