@@ -109,12 +109,21 @@
 
     }
     // now check the correct product version: (#45306)
-    // TODO create separate function, use popup with much better help text
     if (! OSRPkg::CheckProductVersions ())
     {
-	OSRSummary::DetectError ("", _("Error detected."));
+	// error text in summary
+	OSRSummary::DetectError ("", _("Different versions of products."));
 	OSRStatus::ErrorSeverityModuleBlocking ();
-	Popup::Error (_("Cannot initialize package database."));
+	// error popup, %1 is tool name
+	Popup::Error (sformat (_("You are using %1 from the different
+product than the installed one.
+
+Because the package database of the installed product 
+can be broken, only the package database on the installation 
+media is used for package database checking. 
+ 
+Checking the package database is not possible and will be skipped."),
+	OSRCommon::tool_name));
     }
 
     return true;

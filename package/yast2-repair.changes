@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 22 14:31:20 CEST 2004 - jsuchome@suse.cz
+
+- fixed helptext for different product versions (#45306)
+
+-------------------------------------------------------------------
 Mon Oct 11 16:52:02 CEST 2004 - jsrain@suse.cz
 
 - adapted to new Arch:: interface
