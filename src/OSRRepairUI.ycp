@@ -784,126 +784,6 @@ Really abort %1?
   }
 
   
-  /**
-   * End dialog
-   */
-  /*
-  define symbol EndDialog() ``{
-      //Write OSR value to tmp. Only for debuging.
-      OSR::WriteAll2Tmp();
-    
-      string store_label     = _("&Store system information");
-      string main_menu_label = _("Back to main menu");
-      term store_box 	     = `Empty();
-
-      string help_text = sformat(_("<P><I>%1</I> is finished now.</P>"), scan_header);
-    
-      help_text = help_text + build_label_description(BackButtonLabel(),
-						      _("Press the back button to see the scan and repair
-protocol again."));
-
-      // if a floppy was found add a special button and a help text for the button
-      if( StorageDevices::FloppyPresent )
-      {
-	store_box = `PushButton(`id(`osr_floppy_button), `opt(`hstretch) , store_label );
-
-	help_text = help_text + build_label_description(store_label, _("Store some system information
-to a floppy disk. This can be helpful for later system checks. For example it is possible to recover a lost partition
-table with the stored system information."));
-      }
-
-      // %1 - YaST system repair
-      help_text = help_text + build_label_description(main_menu_label, sformat(_("Go back to the first dialog of the
-%1 tool."), tool_name ));
-    
-      term  contents    =
-	`HVCenter( `VBox(
-			 `VSpacing(2),
-
-			 // YaST system scan is finished
-			 `Heading(sformat(_("%1 is finished now."), scan_header)),
-			 `VSpacing(4),
-			 
-			 `HBox(`HWeight(3, `HSpacing(3)),
-			       `HWeight(3, `VBox( store_box,
-						  `VSpacing(1),
-						  `PushButton(`id(`main),`opt(`hstretch), main_menu_label ))
-					       ),
-			       `HWeight(3, `HSpacing(3))
-			       ),
-			 `VSpacing(2)
-			 ));
-				  
-
-    
-    // YaST system repair - Finished	
-    Wizard::SetContentsButtons( tool_name + _("- Finished"), contents, help_text, BackButtonLabel(), FinishButtonLabel());
-    symbol ret = `next;
-    repeat
-	{
-	    ret = UI::UserInput();
-
-	    if (ret == `osr_floppy_button)
-	    {
-		if (! UI::ContinueCancelPopup(_("
-Please insert a formatted disk
-in your floppy drive and press
-the button continue.
-")))
-		{
-		    continue;
-		}
-		
-		//if ( ! StorageDevices::FloppyPresent )
-		//{
-	   
-		    // display that no floppy drive was detected
-		//  Report::Message(_("
-//YaST could not detect a floppy drive in your
-//system. A backup copy of the primary partition
-//table could not be read.
-//"));
-		//	
-		//}	
-		//else {
-		        
-		map target_map = Storage::GetTargetMap();
-		boolean error  = false;
-		    
-		if ( OSRFloppy::Open(true, size(target_map)) )
-		{
-		    foreach(string target, map value, target_map, ``{
-			OSRFloppy::NextStep(sformat(_("Saving partition table of disk %1"), target ));
-			if ( ! error &&  ! OSRPtbl::WritePartitionsInfo2Floppy() )
-			{
-			    Report::Error(sformat(_("
-The primary partition table of disk %1
-was not written correctly to floppy disk.
-"), target));	
-			    error = true;
-			}
-		    });
-		}
-		OSRFloppy::Close();
-
-		if ( error )
-		{
-			Report::Error(_("
-Writing the system information was
-not successfull. Please try again.
-"));
-		}
-		    //}
-	    }
-	  } until ( ret != `osr_floppy_button);
-
-    if( ret == `main ) OSR::ResetDetectionModules();
-    
-    return ret;
-}
-  */
-
-
 
 /**
  * Main dialog.
@@ -916,7 +796,6 @@ global define symbol OsrMainDialog() ``{
 		    "scan_options"	: ``(ScanOptionsDialog()),
 		    "direct_repair"	: ``(RepairToolsDialog()),
 		    "detect"		: ``(DetectDialog()),
-		    //"end"    		: ``(EndDialog())
     ];
 
     map sequence = $[
@@ -951,15 +830,7 @@ global define symbol OsrMainDialog() ``{
 		     `error: `error,
 		     `next:  "start",
 		     `cancel: `cancel
-        ],
-	/*
-        "end" : $[
-		  `abort      : "abort",
-		  `cancel     : "abort",
-		  `error      : `error,
-		  `next       : `next,
-		  `main	      : "start"
-		  ]*/
+        ]
     ];
 
     return WizardSequencer(aliases, sequence);

@@ -46,21 +46,21 @@
   ////////////////////////////////////////////////////////////////////////////////
 
   // Check the user-name, only root has access to the rescue-system.
-  // If the rescue-system was started via cdrom or nfs this test is not necessary.
-  if ((!Mode::demo ) && (!Mode::initial) && (!Mode::cont))
-  {
-      if ( SCR::Read(.runtime.username) != "root") {
-	  UI::AnyMessagePopup(_("YaST user error"),
-			      sformat(_("
-You have to be logged in as the root
-user in order to start the rescue
-system.
-
-%1 halts now."), OSRRepairUI::tool_name ));
-	  
-	  return `error;
-      }
-  }
+  //If the rescue-system was started via cdrom or nfs this test is not necessary.
+  //if ((!Mode::demo ) && (!Mode::initial) && (!Mode::cont))
+  //{
+  //   if ( SCR::Read(.runtime.username) != "root") {
+  //	  UI::AnyMessagePopup(_("YaST user error"),
+  //			      sformat(_("
+  //You have to be logged in as the root
+  //user in order to start the rescue
+  //system.
+  //
+  //%1 halts now."), OSRRepairUI::tool_name ));
+  //	  
+  //	  return `error;
+  //     }
+  //}
 
   
   // ===== Open UI ==================================================
