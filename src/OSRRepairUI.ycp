@@ -498,6 +498,7 @@ for you.
 	    {
 		Report::Warning(_("\nSelect at least one item.
 "));
+		ret = `again;
 		continue;
 	    }
 	    if ( ret == `next )
