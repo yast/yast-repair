@@ -44,10 +44,11 @@
       {
 	  y2milestone("changing root environment to %1", new_root );
 
-	  WFM::SCRClose ( Installation::scrHandle );
-	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
+	  WFM::SCRClose ( Installation::scr_handle );
+	  Installation::scr_handle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
+	  Installation::scr_destdir = "/";
 
-	  if( Installation::scrHandle < 0 )
+	  if( Installation::scr_handle < 0 )
 	  {
 	      y2error("changing root was not successful");
 	      Report::Error(_("
@@ -58,8 +59,9 @@ system was not successful."));
 	      root = "";
 	      return false;
 	  }
-	  else {
-	      WFM::SCRSetDefault (Installation::scrHandle);
+	  else
+	  {
+	      WFM::SCRSetDefault (Installation::scr_handle);
 	      SCR::Read (.target.tmpdir);
 
 	      root = new_root;
