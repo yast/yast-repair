@@ -43,7 +43,6 @@
    */
   boolean detected 		= false;
   
-//  string exit_label		= "&Exit";// FIXME!!
   string exit_label		= UI::FinishButtonLabel();
   
   /**
@@ -763,12 +762,13 @@ Then select one proposal or cancel the repair. </P>
       } while (ret == `again);
       return ret;
   }
-  
+
   /**
    *  AbortDialog
    **/
   define symbol AbortDialog() ``{
 
+      // popup label, %1 is "YaST System Repair" (translated)
       if( UI::YesNoPopup(sformat(_("
 Really abort %1?
 "),tool_name )) )
@@ -777,7 +777,20 @@ Really abort %1?
     return `back;
   }
 
-  
+  /**
+   *  FinishDialog
+   **/
+  define symbol FinishDialog() ``{
+
+      // popup label, %1 is "YaST System Repair" (translated)
+      if( UI::YesNoPopup(sformat(_("
+Really finish %1?
+"),tool_name )) )
+	  return `yes;
+
+    return `back;
+  }
+
 
 /**
  * Main dialog.
@@ -785,20 +798,24 @@ Really abort %1?
  */
 global define symbol OsrMainDialog() ``{
 
-    
     map aliases = $[
-		    "abort"  		: ``(AbortDialog() ),
+		    "abort"		: ``(AbortDialog() ),
             "start"		: ``(StartDialog() ),
 		    "scan_options"	: ``(ScanOptionsDialog()),
 		    "direct_repair"	: ``(RepairToolsDialog()),
 		    "detect"		: ``(DetectDialog()),
-    ];
+		    "finish"		: ``(FinishDialog() ),
+ ];
 
     map sequence = $[
         "ws_start" : "start",
 	"abort" : $[
 		    `yes: `abort
         ],
+    // TODO: does it work in Mode::init?
+    "finish": $[
+            `yes: `finish
+    ],
 	"start"	: $[
 		    `abort 			: "abort",
 		    `scan_repair  		: "detect",
@@ -806,7 +823,8 @@ global define symbol OsrMainDialog() ``{
 		    `direct_repair 		: "direct_repair",
 		    `error			: `error,	
 		    `cancel			: "abort",
-		    `next			: "abort"
+//		    `next			: "abort"
+		    `next			: "finish"
 	],
 	"scan_options" : $[
 			   `abort 		: "abort",

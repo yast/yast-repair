@@ -457,12 +457,12 @@
      * Install all missing package if the user accept.
      */
     global define symbol InstallLoaderPackage(string loader, string root, string install_reason )``{
-//	include "require.ycp"; FIXME: why??
 
 	if( loader 	!= "" ) bootloader 	= loader;
 	if( root 	!= "" ) root_mountpoint	= root;
 
 	string help_text 	= build_packages_help( missing_packages );
+    // error message: %1 is explanation, %2 is list of packages
 	string error_message  	= sformat(_("
 %1
 
@@ -664,29 +664,32 @@ to create a new configuration file.
 
 	    y2error("lilo config file %1 is not valid", bootloader_config_check[bootloader, "config_file" ]:"");
 
+        // help text 1/2
 	    help_text = _("
 <p>The command /sbin/lilo -t checks the syntax
 of the LILO boot loader configuration file.</p>
 ") +
 
-_("<p>This command returns an error. This normally means 
+// help text 2/2
+_("<p>This command returned an error. This normally means 
 your system is not bootable.
 
 It is recommended to create a new configuration
 file.</P>
 ");
 
+        // error message
 	    error_message = _("
 The syntax of the boot loader configuration
 file is not valid. 
 The configuration file contains defective
 data needed for booting the Linux system.
 
-Press Repair to have YaST generate a new
+Press \"Repair\" to have YaST generate a new
 configuration file. 
 
 If you sure that your configuration file
-contains no errors, press Cancel.
+contains no errors, press \"Skip\".
 ");
 	    return false;
 	}
@@ -814,12 +817,13 @@ contains no errors, press Cancel.
     define boolean check_grub_addr( string addr  )``{
 	if( addr == "" )
 	{
-	    addr = bootloader_config_check[bootloader, "menu"]:"";// FIXME:menu???
+        addr = grub_conf_defaults["addr"]:"";
 	    y2milestone("adrr not set - use default addr");
 	}
-	
+
 	if( addr != grub_conf_defaults["addr"]:""){
 	    y2error("grub addr (%1) changed not default %2",addr,  grub_conf_defaults["addr"]:"");
+        // TODO is it a problem, that addr is different from default?
 	}
 	return true;
     }
@@ -845,7 +849,9 @@ contains no errors, press Cancel.
 	{
 	    stage1 = bootloader_config_check[bootloader, "stage1"]:"";
 	}
-    // FIXME: file can be on other partition! (= grub_root) -> hack:
+//y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
+// file can be on other partition! (= grub_conf["root"]) -> hack
+// TODO FIXME: get the mount point of device...
 	return OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage1));
     }
@@ -854,7 +860,9 @@ contains no errors, press Cancel.
      * Test if stage2 exist.
      */
     define boolean check_grub_stage2(string stage2)``{
-    // FIXME: file can be on other partition! (= grub_root) -> hack:
+//y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
+// file can be on other partition! (= grub_conf["root"]) -> hack
+// TODO FIXME: get the mount point of device...
 	return OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage2 ));
     }
@@ -979,6 +987,7 @@ contains no errors, press Cancel.
 	    y2error("grub menu device not found %1", menu);
 	    return false;
 	}
+    // TODO: get the really mountpoint for boot partition
 	if(!OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, menu_path)))
 	{
@@ -990,7 +999,6 @@ contains no errors, press Cancel.
 	{
 	    // read grub menu file
 	    map global_options = sectOptions2Map("grub" , "", "");
-//	    list sects         = SCR::Dir(list2path(["grub", "sections"]));
 	    list sects         = SCR::Dir(.grub.sections);
 	    list sections      = [];
 
@@ -1018,6 +1026,7 @@ contains no errors, press Cancel.
      */
     define boolean check_grub_device_map()``{
 
+    // TODO: get the really mountpoint for boot partition
 	string grub_dir = root_mountpoint +  "/boot/grub";
 	if (! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1",grub_dir)))
 	{
@@ -1084,6 +1093,8 @@ contains no errors, press Cancel.
     string conf_file_contens = SCR::Read(.target.string,
         bootloader_config_check[bootloader, "config_file"]:"");
 	map grub_conf = BootGRUB::parseGrubConf(conf_file_contens);
+    y2debug ("grub_conf: %1", grub_conf);
+
 	boolean grub_device	    = check_grub_device(grub_conf["device"]:"" );
 	boolean grub_root       = check_grub_root(grub_conf["root"]:"" );
 	boolean grub_addr       = check_grub_addr(grub_conf["addr"]:"" );
@@ -1091,40 +1102,25 @@ contains no errors, press Cancel.
 	boolean grub_stage1	    = check_grub_stage1(grub_conf["stage1"]:"");
 	boolean grub_stage2	    = check_grub_stage2(grub_conf["stage2"]:"");
 
-	// if grub_XXX is nil -> set false;
-	if ( ! grub_device ) {
+	if ( ! grub_device )
         y2error("grub conf device entry is invalid");
-        grub_device = false;
-    }
-	if ( ! grub_root   ) {
+	if ( ! grub_root   )
         y2error("grub conf root entry is invalid");
-        grub_root   = false;
-    }
-	if ( ! grub_addr   ) {
+	if ( ! grub_addr   )
         y2error("grub conf addr entry is invalid");
-        grub_addr   = false;
-    }
-	if ( ! grub_discheck) {
+	if ( ! grub_discheck)
         y2error("grub conf discswitch entry is invalid");
-        grub_discheck = false;
-    }
-	if ( ! grub_stage1 ) {
+	if ( ! grub_stage1 )
         y2error("grub conf state1 is invalid");
-        grub_stage1 = false;
-    }
-	if ( ! grub_stage2 ) {
+	if ( ! grub_stage2 )
         y2error("grub conf state2 is invalid");
-        grub_stage2 = false;
-    }
 
 	// check grub menu file default /boot/grub/menu.lst
 	boolean grub_menu	= check_grub_menu(grub_conf["menu"]:"" );
-	if ( ! grub_menu   ) {
+	if ( grub_menu == nil ) {
         y2error("grub menu is invalid");
         grub_menu = false;
     }
-
-
 	if( grub_device && grub_root && grub_addr && grub_menu && grub_discheck && grub_stage1 && grub_stage2 && grub_device_map )
 	{
 	    return true;
@@ -1140,6 +1136,7 @@ contains no errors, press Cancel.
 		menu_path = substring(menu_path , findfirstof(menu_path, ")") +1 );
 	    }
 
+        // help text 1/4
 	    help_text = _("
 <p>A default GRUB installation needs three
 configuration files:</p>
@@ -1149,36 +1146,39 @@ sformat("<p>%1</p>", mergestring([ bootloader_config_check[bootloader, "device_m
 				   bootloader_config_check[bootloader, "config_file"]:"",
 				   menu_path
 				   ],"<br>")) +
-		
-_("<P>YaST found the following file or files
+
+// help text 2/4
+_("<P>YaST found the following files
 that are not valid:</p>
 ") +
-		
+
 sformat("<p>%1</p>", mergestring(invalid_config_files, "<br>")) +
-		
+
+// help text 3/4
 _("<p>This generally means that your system is not
 bootable.</p>
 ") +
 
+// help text 4/4
 _("<p>Creating a new boot loader
 configuration is recommended.</p>
 ");
 
-		  
+        // error text
 	    error_message = _("
 The configuration of the boot loader
 contains errors. 
 
-Press Repair to have YaST generate a new
+Press \"Repair\" to have YaST generate a new
 configuration.
 
 If you sure your configuration
 contains no errors and your system
-is bootable, press Cancel.
+is bootable, press \"Skip\".
 ");
-	    
+
 	    return false;
-	}    
+	}
     }
 
     
@@ -1216,7 +1216,6 @@ is bootable, press Cancel.
     global define symbol repair_grub_config()``{
 
 	// change root for boot loader module call - why??
-//	OSRSystem::ChangeRoot("/"); // FIXME -> this can cause bad detection??
 	Bootloader::setLoaderType (nil);
     Bootloader::Reset();
     Bootloader::Propose(); // does not read current configuration...
@@ -1227,8 +1226,6 @@ is bootable, press Cancel.
 	{
         // message popup: wait for action
 	    UI::OpenDialog(`Label(_("Saving new boot loader configuration...")));
-
-//	    OSRSystem::ChangeRoot( root_mountpoint );
 
 	    // prepare environment for saving boot loader settings
 	    string destproc = "/proc";
@@ -1327,12 +1324,12 @@ file.
 ");
 	    return `error;
 	}
-	
+
 	list(string) t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
 
 	error_message = sformat(_("
 YaST cannot find the following 
-configuration file or files:
+configuration files:
 
 %1
 
@@ -1346,8 +1343,8 @@ reinstall the boot loader.
 Otherwise, press \"Repair\"
 to install a new boot loader.
 "), mergestring(maplist(string file, not_valid_files, ``(file)), "\n"));
-	
-	
+
+
 	return RepairConfig(bootloader,true);
     }
 }

@@ -41,7 +41,6 @@
       //
       ///////////////////////////////////////////////////////////////////////////////////
 
-      // FIXME: Cancel or Skip?
       // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
       string error_message = sformat(_("
 The partition %1 has the file system ID 130, but
@@ -51,6 +50,7 @@ a valid swap area, press \"Repair\".
 Press \"Skip\" to avoid repairing.
 "), target);
 
+      // helptext 1/2
       string help_text         = _("
 <p>A partition with the ID 130 should be 
 a Linux swap partition. All swap partitions
@@ -58,6 +58,7 @@ need a valid swap area, which is created with
 the tool mkswap.</p>
 ") +
 
+      // helptext 2/2
 _("<p>If you know how to use mkswap, 
 close YaST and create a new swap area
 on the damaged swap partition. Otherwise

@@ -323,7 +323,7 @@ erroneous entries.</P>
 
                      "name"     : "direct_methods_custom_part",
                                       // module method action label
-                     "button_text"  : _("Start Partitioning Tool..."),
+                     "button_text"  : _("Start Partitioning Tool"),
                                       // module method description
                      "description"  : _("
 To resize, delete, or create a partition,
@@ -338,7 +338,7 @@ to start the YaST partitioning tool.
 
                        "name"       : "direct_methods_recover_partition",
                                           // module method action label
-                       "button_text"    : _("Recover Lost Partitions..."),
+                       "button_text"    : _("Recover Lost Partitions"),
                                           // module method description
                        "description"    : _("
 If you have deleted or lost one or all
@@ -354,7 +354,7 @@ recovery.
 
                        "name"       : "direct_methods_filesystem",
                                           // module method action label
-                       "button_text"    : _("Repair File System..."),
+                       "button_text"    : _("Repair File System"),
                                           // module method description
                        "description"    : _("
 If the system crashed and you have a
@@ -369,7 +369,7 @@ system.
                      $[
                        "name"       : "direct_methods_save",
                                           // module method action label
-                       "button_text"    : _("Save System Settings to Floppy..."),
+                       "button_text"    : _("Save System Settings to Floppy"),
                                           // module method description
                        "description"    : _("This can be helpful for later system checks. For example, it is possible to recover a lost partition
 table with the stored system information.
@@ -474,7 +474,7 @@ YaST halts now.
           //  from gpart
           //
           /////////////////////////////////////////////////////////////////////
-          OSRSummary::SetRepairSummary( OSRPtbl::MainPtblRepiarDialog(target , target_scrpath ),
+          OSRSummary::SetRepairSummary( OSRPtbl::MainPtblRepairDialog(target , target_scrpath ),
                 // summary header
                 sformat(_("Repairing partition table of hard disk %1"), target),
                 // summary text

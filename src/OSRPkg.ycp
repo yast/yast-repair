@@ -158,7 +158,6 @@ is not possible.</P>
      */
     global define boolean OpenPkg( string root )``{
 
-    // FIXME: doesn't work running from CD!
 	y2milestone("Open pkg database with target system  -%1-", root );
 	if( root != "" && root != nil ) root_mountpoint = root;
 

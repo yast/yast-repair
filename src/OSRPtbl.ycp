@@ -999,7 +999,8 @@ system performance and the hard disk size.
       }
       UI::ChangeWidget(`id(`start), `Enabled, false);
       UI::ChangeWidget(`id(`cancel), `Enabled, false);
-      //TODO action cannot be cancelled!
+      //TODO FIXME action cannot be cancelled!
+      // progress doesn't have sence!
 
       UI::BusyCursor();
       if ( OSRExecute::CommandProgress(.target.bash_output, gpart_command ,gpart_file))
@@ -1253,7 +1254,7 @@ partition table of %2 with the backup.
    * @parm t_target_scrpath the souce path of the target .dev.hda
    * 
    */
-  global define symbol MainPtblRepiarDialog(string t_target, path t_target_scrpath ) ``{
+  global define symbol MainPtblRepairDialog(string t_target, path t_target_scrpath ) ``{
 
       //Save all mbr's to tmp directory.
       SavePtbl();
@@ -1287,16 +1288,15 @@ skip the repair.
 	  y2error("could not open main dialog");
 	  return `error;
       }
-      
+
       symbol ret     = `ok;
       repeat {
 	  ret             = UI::UserInput();
 	  symbol selected = UI::QueryWidget(`id(`rb), `CurrentButton);
-	
+
 	  if( ret == `help ) {
 	      UI::LongTextPopup( OSRPopup::help_headline,
-            // FIXME Empty or return Empty?
-            `RichText( eval( repair_methods[selected,"help"]:``(`Empty() ))), 50, 20);
+            `RichText( eval( repair_methods[selected,"help"]:"")), 50, 20);
 	  }
 	  else if ( ret == `ok ) {
 	      UI::CloseDialog();
@@ -1328,12 +1328,12 @@ skip the repair.
 
 
   /**
-   *
+   * FIXME: this function is never called!!
    */
   global define void ShowAllDialogs()``{
       if( ! Mode::test ) return ;
       
-      MainPtblRepiarDialog("/dev/hda", .dev.hda );
+      MainPtblRepairDialog("/dev/hda", .dev.hda );
 
       list part = [
 		   $[
@@ -1379,7 +1379,7 @@ skip the repair.
       y2milestone("fake floppy");
       StorageDevices::FloppyPresent =true ;
       OSRPtbl();
-      MainPtblRepiarDialog("/dev/hda", .dev.hda );
+      MainPtblRepairDialog("/dev/hda", .dev.hda );
 
       FoundPtblDialog( part, "/dev/hda", "gpart",false );
       FoundPtblDialog( part, "/dev/hda", "Floppy",true );

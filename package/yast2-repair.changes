@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 24 13:52:51 CET 2003 - jsuchome@suse.de
+
+- help/error texts fixes (e.g. #25088, #25000)
+- removed functions for fat filesystems checking
+- 2.8.0
+
+-------------------------------------------------------------------
 Mon Mar 17 12:44:24 CET 2003 - jsuchome@suse.de
 
 - more mount options for fstab: "nls", "code" (#24983)
