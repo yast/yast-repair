@@ -1,0 +1,97 @@
+/**
+ *  File:
+ *    repair.ycp
+ *
+ *  Module:
+ *    YaST2 system repair tool - automatic error detection and repair tool for Linux.
+ *
+ *  Summary:
+ *    This file provides the framework of the YaST2 system repair tool.
+ *    It contains the main function that starts the scan and repair process. 
+ *
+ *  Author:
+ *    Johannes Buchhold <jbuch@suse.de>
+ *
+ * $Id$
+ */
+{
+ 
+  include "ui/common_popups.ycp";
+  
+  import "Wizard";
+  import "Mode";
+  import "Progress";
+  import "Report";
+
+  import "OSRRepairUI";
+  import "OSRLogFile";
+  import "OSRModuleLoading";
+  import "OSR";
+  import "OSRMode";
+  import "OSRProgress";
+  import "OSRExecute";
+  import "OSRRepairUI";
+  
+  textdomain "repair";
+  
+  // check the special osr modes
+  if( ! OSRMode::IsValid() ) return `error;
+
+  // write verify output to tmp directory.
+  OSRMode::save = true;
+  ////////////////////////////////////////////////////////////////////////////////
+  //
+  //  MAIN
+  //
+  ////////////////////////////////////////////////////////////////////////////////
+
+  // Check the user-name, only root has access to the rescue-system.
+  // If the rescue-system was started via cdrom or nfs this test is not necessary.
+  if ((!Mode::demo ) && (!Mode::initial) && (!Mode::cont))
+  {
+      if ( SCR::Read(.runtime.username) != "root") {
+	  UI::AnyMessagePopup(_("YaST user error"),
+			      sformat(_("
+You have to be logged in as the root
+user in order to start the rescue
+system.
+
+%1 halts now."), OSRRepairUI::tool_name ));
+	  
+	  return `error;
+      }
+  }
+
+  
+  // ===== Open UI ==================================================
+  if( (! Mode::cont) && (! Mode::initial))
+  {
+      Wizard::CreateDialog();
+  }
+  else {
+      //OSR::Reset();
+  }
+
+  // ===== Init the Rescue System =================================
+  symbol ret = OSRRepairUI::InitDialog();
+
+  if ( ret != `next ) return ret;
+
+  // ==== Open main dialog =========================================
+  ret = OSRRepairUI::OsrMainDialog();
+
+
+  // ==== Try to unload all loaded modules =========================
+  OSRModuleLoading::UnloadAll();
+
+  
+  // ==== Close the dialog =========================================
+  if( (! Mode::cont) && (! Mode::initial))
+  {
+      UI::CloseDialog();
+  }
+  
+  return ret;
+    
+}
+
