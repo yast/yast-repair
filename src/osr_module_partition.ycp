@@ -121,7 +121,7 @@ YaST halts now.
       list<string>  valid_target_list   = [];
 
       // check all targets (all disks) for partition entries
-      foreach(string target, map values, target_map, ``{
+      foreach(string target, map values, (map<string,map>) target_map, ``{
 
       list<map> target_partitions = values["partitions"]:[];
       path      target_scrpath    = values["scrpath"]:.;
@@ -1000,7 +1000,7 @@ root partition or cancel scanning the system.
 
       // remove all mount points
       map target_map = Storage::GetTargetMap();
-      foreach(string dev, map parts, target_map, ``{
+      foreach(string dev, map parts, (map<string,map>) target_map, ``{
 	integer counter = 0;
 	foreach (map part, parts["partitions"]:[], ``{
 	    if ( part["mount"]:"" != "" )
@@ -1299,7 +1299,7 @@ Continue.
 
       if ( OSRFloppy::Open(true, size(target_map)) )
       {
-          foreach(string target, map value, target_map, ``{
+          foreach(string target, map value, (map<string,map>) target_map, ``{
           // progress label
           OSRFloppy::NextStep(sformat(_("Saving partition table of disk %1..."), target ));
           if ( ! error &&  ! OSRPtbl::WritePartitionsInfo2Floppy( target ) )

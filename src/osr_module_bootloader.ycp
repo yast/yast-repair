@@ -76,7 +76,7 @@
             // summary text, %1 are file names
             sformat(_("Configuration files were found:<br>%1"),
             mergestring ((list<string>) maplist(string k, string file,
-                OSRBoot::needed_config_files, ``(file)), "<br>")));
+                (map<string,string>) OSRBoot::needed_config_files, ``(file)), "<br>")));
         OSR::ProvideBoolean("config_files", true );
       }
       return true;
