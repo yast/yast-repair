@@ -25,7 +25,8 @@ module_DATA =			\
 	OSRPkgVerify.ycp	\
 	OSRPopup.ycp		\
 	OSRSystem.ycp		\
-	OSRMode.ycp
+	OSRMode.ycp		\
+	OSRCommon.ycp
 
 
 client_DATA = 			\
@@ -35,12 +36,10 @@ client_DATA = 			\
 	osr_module_list.ycp	\
 	osr_module_packages.ycp	\
 	osr_module_partition.ycp\
-	osr_minimal.ycp		\
 	osr_verified_packages.ycp	\
 	osr_module_bootloader.ycp
 
-#config_DATA =			\
-#	repair.y2cc
 
 EXTRA_DIST = $(client_DATA) $(module_DATA)
-# $(config_DATA) 
+
+include $(top_srcdir)/Makefile.am.common

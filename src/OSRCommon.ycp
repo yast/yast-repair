@@ -1,0 +1,108 @@
+/**
+ *  File:
+ *	OSRCommon.ycp
+ *
+ *  Module:
+ *	repair
+ *
+ *  Summary:
+ *	Common functions and variables, used by other OSR modules
+ *
+ *  Author:
+ *	Jiri Suchomel <jsuchome@suse.de>
+ *
+ * $Id$
+ */
+{
+
+/**
+ * Variables and functions in these module were moved from other
+ * OSR* modules to break their cyclic dependencies.
+ *
+ * This module should not import any other OSR module
+ */
+
+module "OSRCommon";
+
+textdomain "repair";
+
+// ---------------------------------------------------------------------
+// from OSRDirect.ycp:
+
+/**
+ * The name of the current direct repair method.
+ */
+global string current_direct_name	= "";
+
+
+// ---------------------------------------------------------------------
+// from OSRRepair.ycp:
+
+/**
+ * The name of the repair and rescue tool.
+ */
+global string tool_name		= _("YaST System Repair");
+
+
+// ---------------------------------------------------------------------
+// from OSR.ycp:
+
+/**
+ * The name of the current module during detection.
+ * e.g.: osr_module_partition
+ */
+global string current_module_name	= "";
+
+
+/**
+ * ["init", "mbr_check", "swap_check", "fs_check", "fstab_check"]
+ */
+global list<string> detect_group_list	= [];
+
+/**
+ * The current detection map during detection.
+ *
+ * $[
+ "group":"init",
+ "method": ``OSRInitFloppy(),
+ "progress":10,
+ "provides":["repair_target"],
+ "requires":[],
+ "summary":"Init target system"
+ ]
+ */
+global map current_detect_map	        = $[];
+
+/**
+ * $[	"fs_check" : $[
+ *		"help"	: "Mounting a filesystem is not possible",
+ *		"text"	: "Check filesystem"
+ *	],
+ *	"fstab_check" : $[
+ *		"help"	: "Mounting a filesystem is not possible",
+ *		"text"	: "Check fstab entries"
+ *	],
+ *	"init" : $[
+ *		"help"	: "",
+ *		"mode"	: "forall",
+ *		"text"	: "Init repair system"
+ *	],
+ *	"mbr_check" : $[
+ *		"help"	: "If you have installed a other os after inst. Linux",
+ *		"text"	: "Check master boot record"
+ *	],
+ *	........
+ * ]
+ */
+global map global_entries		= $[];
+
+
+/**
+ * Get group data.
+ */
+global define map GetGroupMap (string key) ``{
+
+    return global_entries[key]:$[];
+}
+
+}//EOF
