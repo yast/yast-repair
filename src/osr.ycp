@@ -44,7 +44,18 @@
   //  GLOBAL VARIABLES
   //
   ////////////////////////////////////////////////////////////////////////////////
-  
+
+  // Path of the global log file.
+  string log_file = "" + OSRGetTmpDir() + "/osr_log";
+
+  // Set the global log file, if it not succeeds, exit the rescue system.
+  if (!OSRLogFile::SetFile(log_file))
+  {
+      y2error("YaST2 OS Repair exits now!");
+
+      return false;
+  }
+
   // This map contains all informations for the whole YaST2 OS Repair-system, except
   // the lists of detection-methods. The .. is that the functions are executed if
   // the osr_map is written to a file.
@@ -69,14 +80,20 @@
   if (!Installation::initial_mode && !Installation::continue_mode)
   {
       y2milestone("Starting the rescue-system from the running Linux-system!");
+
+      OSRLogFile::Add("Starting the rescue-system from the running Linux-system!\n");
   }
   else if (Installation::initial_mode && !Installation::continue_mode)
   {
       y2milestone("Starting the rescue-system directly after boot from cdrom or per nfs");
+
+      OSRLogFile::Add("Starting the rescue-system directly after boot from cdrom or per nfs\n");
   }
   else if (!Installation::initial_mode && Installation::continue_mode)
   {
       y2milestone("NOT starting the rescue-system! Continue installation first!");
+
+      OSRLogFile::Add("NOT starting the rescue-system! Continue installation first!\n");
 
       ErrorPopup(_("You have to finish installation before
 starting the YaST2 OS Repair-system.
@@ -89,6 +106,9 @@ YaST2 OS Repair halts now."));
   {
       y2error("Something's wrong: initial_mode == %1 and continue_mode == %2",
 	      Installation::initial_mode, Installation::continue_mode);
+
+      OSRLogFile::Add(sformat("Something's wrong: initial_mode == %1 and continue_mode == %2\n",
+	      Installation::initial_mode, Installation::continue_mode));
   }
       
   osr_map = $[
@@ -104,8 +124,13 @@ YaST2 OS Repair halts now."));
   if ((size(user_settings) == nil) || (size(user_settings) == 0))
   {
       user_settings = $[];
-      // TODO: compute the user_settings (like installation.ycp)
-      //user_settings = SCR::Read(.target.ycp, "/var/lib/YaST2/user_settings");
+  }
+  else
+  {
+      // write the actual user settings for later use
+      SCR::Write(.target.ycp, "/var/lib/YaST2/user_settings", user_settings);
+      
+      OSRLogFile::Add("map user_settings:\n%1\n" + user_settings);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +150,12 @@ YaST2 OS Repair halts now."));
                                        // file /tmp/osr_global_provides.
   boolean test_mode      = false;
 
-  if      ( size(Args()) == 0 ) normal_mode = true;
+  if ( size(Args()) == 0 )
+  {
+      normal_mode = true;
+
+      OSRLogFile::Add("Running in normal mode.\n");
+  }
   else if ( size(Args()) > 1 )
   {
       y2error("ERROR: too many arguments: %1, no more than one allowed.", size(Args()) );
@@ -135,14 +165,54 @@ YaST2 OS Repair halts now."));
   {
       while ( arg_n < size(Args()) )
       {
-	  if      ( Args(arg_n) == .automatic ) automatic_mode = true;
-	  else if ( Args(arg_n) == .auto      ) automatic_mode = true;
-	  else if ( Args(arg_n) == .demo      ) demo_mode      = true;
-	  else if ( Args(arg_n) == .detection ) detection_mode = true;
-	  else if ( Args(arg_n) == .detect    ) detection_mode = true;
-	  else if ( Args(arg_n) == .normal    ) normal_mode    = true;
-	  else if ( Args(arg_n) == .script    ) script_mode    = true;
-	  else if ( Args(arg_n) == .provides  ) provides_mode  = true;
+	  if ( Args(arg_n) == .automatic )
+	  {
+	      automatic_mode = true;
+
+	      OSRLogFile::Add("Running in automatic mode.\n");
+	  }
+	  else if ( Args(arg_n) == .auto )
+	  {
+	      automatic_mode = true;
+
+	      OSRLogFile::Add("Running in automatic mode.\n");
+	  }
+	  else if ( Args(arg_n) == .demo )
+	  {
+	      demo_mode      = true;
+
+	      OSRLogFile::Add("Running in demo mode.\n");
+	  }
+	  else if ( Args(arg_n) == .detection )
+	  {
+	      detection_mode = true;
+
+	      OSRLogFile::Add("Running in detection mode.\n");
+	  }
+	  else if ( Args(arg_n) == .detect )
+	  {
+	      detection_mode = true;
+
+	      OSRLogFile::Add("Running in detection mode.\n");
+	  }
+	  else if ( Args(arg_n) == .normal )
+	  {
+	      normal_mode    = true;
+
+	      OSRLogFile::Add("Running in normal mode.\n");
+	  }
+	  else if ( Args(arg_n) == .script )
+	  {
+	      script_mode    = true;
+
+	      OSRLogFile::Add("Running in script mode.\n");
+	  }
+	  else if ( Args(arg_n) == .provides )
+	  {
+	      provides_mode  = true;
+
+	      OSRLogFile::Add("Running in provides mode.\n");
+	  }
 	  else
 	  {
 	      y2error("ERROR: unknown option %1", Args(arg_n) );
@@ -181,13 +251,11 @@ YaST2 OS Repair halts now."));
    */
   define OSRInit() ``{
 
-      string log_file = "";
       string header   = "";
       
       osr_map = $[
 		  "module_sequence"              : [],               // sequence of execution of the detection-modules
 		  "module_list"                  : [],               // the whole list of detection-modules
-		  "log_file"                     : "/tmp/osr.log",   // default log-file-path
 		  "has_download_progress_widget" : true,             // boolean, DownloadProgress-widget exists for current UI
 		  "read_old_osr_map"             : false,            // boolean, old osr_map is already read from floppy
 		  "osr_map_stored"               : false             // boolean, osr_map is already stored to floppy
@@ -214,6 +282,8 @@ YaST2 OS Repair halts now."));
       {
 	  y2error("OSRInit Error: something's wrong with the file \"osr_module_list.ycp\"");
 
+	  OSRLogFile::Add("OSRInit Error: something's wrong with the file \"osr_module_list.ycp\"");
+
 	  OSRPopupDisplayQuick(_("Error: the file osr_module_list.ycp
 is not a valid YCP-file.
 
@@ -221,23 +291,12 @@ YaST2 OS Repair halts now."), 2000);
 	  
 	  return false;
       }
+      OSRLogFile::Add(sformat("List of modules:\n%1\n", osr_module_list));
       
       // add .init to the symbols: `osr_module_init() -> `osr_module_init(.init)
       list temp_list = [];
       foreach(`n, osr_module_list, ``{temp_list = add(temp_list, add(n, .init));});
       osr_module_list = temp_list;
-
-      // get the name of the global log-file and set it up
-      // TODO
-      /*
-      log_file = OSRLogFile::GetFile();
-      
-      if (!OSRLogFile::Setup(log_file))
-      {
-	  //return false;
-      }
-      */
-      OSRLogFile::SetFile("osr.log");
 
       integer index    = 0;
 
@@ -254,15 +313,10 @@ YaST2 OS Repair halts now."), 2000);
 
 	  if ((result_map == nil) || (result_map == $[]))
 	  {
-	      OSRPopupDisplayQuick(
-				   sformat(UI_("An error occurred during execution
+	      OSRPopupDisplayQuick(sformat(_("An error occurred during execution
 of the init-functions of module: %1
 
-YaST2 OS Repair halts now.",
-				     select(osr_module_list, index)
-				     )),
-				   2000
-				   );
+YaST2 OS Repair halts now."), select(osr_module_list, index)), 2000);
 	      
 	      y2error("An error occurred during execution of the init-functions of module: %1",
 		      select(osr_module_list, index));
@@ -311,6 +365,8 @@ YaST2 OS Repair halts now.",
       else
       {
 	  y2error("ERROR OSRInit: not all dependencies between the modules successfully solved!");
+
+	  OSRLogFile::Add("Not all dependencies between the modules successfully solved.");
 
 	  if (!automatic_mode)
 	  {
@@ -362,11 +418,21 @@ YaST2 OS Repair halts now."));
 					  WFM::osr_global_progress_length
 					  );
 
+	      /*
+	      // perhaps use a LogView widget instead of RichText
+	      rich_text = `LogView(
+				    `id(`rich_text_info),
+				    "",                     // header
+				    10,                     // number of visible lines
+				    100                     // number of lines to hold in memory
+				    );
+	      */
+
 	      rich_text = `RichText(
 				    `id(`rich_text_info),
 				    ""
 				    );
-	  
+
 	      // Contents of the dialog	  
 	      contents = `VBox(
 			       `VSpacing(0.3),
@@ -413,15 +479,22 @@ YaST2 OS Repair halts now."));
   define OSRDetect() ``{
 
       integer index_modules = 0;
-
+      
       // this list contains the sequence of detection-modules
       list module_sequence = lookup(osr_map, "module_sequence", []);
-
+      
       if ( size(module_sequence) <= 0 )
       {
 	  y2error("OSRDetect ERROR: list module_sequence is empty: %1", module_sequence);
+
+	  OSRLogFile::Add("No sequence of modules.");
+	  
 	  return false;
       }
+
+      OSRLogFile::Add(sformat("Sequence of detection modules:\n%1\n", module_sequence));
+
+      OSRLogFile::Add("Starting detection.\n");
 
       while (index_modules < size(module_sequence))
       {
@@ -469,6 +542,12 @@ YaST2 OS Repair halts now."));
 		  // if the user omitted repairing go to the next detection method
 		  OSRGlobalProgress::Increase();
 		  index_detect = index_detect + 1;
+	      }
+	      else if (status == "exit")
+	      {
+		  // if a blocking error was detected exit the rescue system, e.g. if no harddisks were detected
+		  y2error("A blocking error was detected, the rescue system is exiting now.");
+		  return false;
 	      }
 	      else
 	      {
@@ -566,7 +645,12 @@ YaST2 OS Repair halts now."));
   // a running Linux-system.
   if (!Installation::initial_mode && !Installation::continue_mode)
   {
+      OSRLogFile::Add("Calling client module inst_startup.\n");
+      
       CallFunction(`inst_startup());
+
+      // write the actual user settings for later use (e.g. CallFunction(`lilo()) needs it)
+      SCR::Write(.target.ycp, "/var/lib/YaST2/user_settings", user_settings);
 
       UI::ChangeWidget(`id(`next), `Enabled, true);
       UI::ChangeWidget(`id(`abort), `Enabled, true);
@@ -638,6 +722,9 @@ YaST2 OS Repair halts now."));
       {
 	  user_input = UI::UserInput();
       }
+
+      // show the contents of the log file
+      ShowFilePopup(_("YaST2 OS Repair - Log file"), OSRLogFile::GetFile());
       
       if ((user_input == `next) || (user_input == `abort))
       {
