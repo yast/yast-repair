@@ -18,7 +18,7 @@
 
   import "Mode";
   import "Wizard";
-  import "Misc";
+  import "Linuxrc";
 
   Mode::update		= false;
   Mode::installation	= true;
@@ -30,7 +30,7 @@
 
   any ret = WFM::CallFunction ("repair");
 
-  Misc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
+  Linuxrc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
 
   return ret;
 }
