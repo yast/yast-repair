@@ -62,7 +62,7 @@
 
 		   // the sequence of the detection methods of this module
 		   "detect_methods"    :  [
-				    	   ``(OSRPartitionCheck())
+				    	   ``(OSRPartitionCheckDisks())
 		   ],
 
 		   // the values this module requires from other modules of the rescue system
@@ -96,6 +96,163 @@
   //
   //////////////////////////////////////////////////////////////////////
   
+  /**
+   *
+   *  @return map The result_map.
+   */
+  global define OSRPartitionCheckDisks() ``{
+
+      boolean repair_question  = false;
+      boolean error_detected   = false;
+      integer progress_expect  = 10;
+      string  module_name      = "osr_module_partition";
+      string  help_text        = "";
+      string  error_message    = "";
+      string  progress_file    = "";
+      string  progress_label   = UI(_("Probing disks"));
+      string  log_file         = "";
+      string  status           = "";
+      map     result_map       = $[];
+      
+      module_map    = OSRGetModuleMap(module_name);
+      log_file      = OSRLogFileGet();
+      progress_file = lookup(module_map, "progress_file");
+
+      // set the parameters for the module-progress-bar
+      OSRModuleProgressSetParams(progress_label, progress_file, progress_expect);
+
+      // the following looks like this:
+      // [$["bus":"IDE", "class_id":262, "dev_name":"/dev/hda", "device":"ST313021A",
+      // "resource":$["cache":[$["size":512]],
+      // "disk_log_geo": [$["cylinders":1583, "heads":255, "sectors":63]],
+      // "disk_phys_geo":[$["cylinders":25232, "heads":16, "sectors":63]],
+      // "size":[$["unit":"sectors", "x":25434228, "y":512]]],
+      // "rev":"3.03", "sub_class_id":0, "unique_key":"6NKn.ajve1oLEn+C"],
+      // $["bus":"SCSI", "class_id":262, "dev_name":"/dev/sda", "device":"LIGHTNING 730S",
+      // "resource":$["disk_log_geo":[$["cylinders":699, "heads":64, "sectors":32]],
+      // "size":[$["unit":"sectors", "x":1431760, "y":512]]], "rev":"241E", "sub_class_id":0,
+      // "unique_key":"mgh8.lKftjjVg6ZD", "vendor":"QUANTUM"]]
+      list disk_list = SCR(`Read(.probe.disk));
+      SCR(`Write(.dumpto.tmp.disk_list, disk_list));
+
+      // get all device-names from the disk-list
+      list dev_names = [];
+      foreach(`bus, disk_list, ``{
+	  dev_names = add(dev_names, lookup(bus, "dev_name", ""));
+      });
+      //y2error("DEVNAMES: %1", dev_names);
+      
+      list dev_names2 = [];
+      foreach(`device, dev_names, ``{
+	  dev_names2 = add(dev_names2, select(splitstring(device, "/"), 2));
+      });
+      //y2error("DEVNAMES2: %1", dev_names2);
+
+      list dev_names3 = [];
+      foreach(`device, dev_names2, ``{
+	  dev_names3 = add(dev_names3, topath(sformat(".disk.%1", device)));
+      });
+      //y2error("DEVNAMES3: %1", dev_names3);
+
+      foreach(`device, dev_names3, ``{
+	  list partitions = SCR(`Read(topath(sformat("%1.partitions", device))));
+	  //y2error("PARTITIONS: %1", partitions);
+
+	  // check the regions
+	  foreach(`partition, partitions, ``{
+	      list region = lookup(partition, "region", []);
+
+	      // ...
+	  });
+      });
+      
+      // the following looks like this:
+      // [$["fsid":131, "fstype":"Linux native",      "nr":1, "region":[0, 144],    "type":`primary],
+      //  $["fsid":130, "fstype":"Linux swap",        "nr":2, "region":[144, 39],   "type":`primary],
+      //  $["fsid":15,  "fstype":"Win95 Ext'd (LBA)", "nr":3, "region":[183, 1400], "type":`extended],
+      //  $["fsid":131, "fstype":"Linux native",      "nr":5, "region":[183, 144],  "type":`logical]]
+      list hda_partitions = SCR(`Read(.disk.hda.partitions));
+      SCR(`Write(.dumpto.tmp.hda_partitions, hda_partitions));
+
+      // the following looks like this:
+      // [$["fsid":1, "fstype":"DOS", "nr":1, "region":[0, 699], "type":`primary]]
+      list sda_partitions = SCR(`Read(.disk.sda.partitions));
+      SCR(`Write(.dumpto.tmp.sda_partitions, sda_partitions));
+
+      error_detected = false;
+      
+      // end section
+      
+      if (!error_detected)
+      {
+ 	  status = OSRStatusDetectOK();
+
+	  string summary_text = "";
+	  foreach(`m, disk_list, ``{
+	      summary_text = summary_text + sformat("<br><code>%1</code>: o.k.", lookup(m, "dev_name", ""));
+	  });
+
+	  OSRSummaryDetectOK(
+			     module_name,
+			     UI(_("Probing disks")),
+			     sformat(UI(_("Getting information for all disk-devices%1")), summary_text)
+			     );
+      }
+      else
+      {
+ 	  status = OSRStatusDetectError();
+
+	  // set the error message that is displayed in the popup OSRRepairPopup
+	  error_message   = UI( _("An error was detected.\nPress Repair to fix the error.") );
+
+	  // set the help-text to be displayed in the left RichText-widget of the main window
+	  help_text       = UI( _("<p>ERROR.</p>"));
+	  help_text       = help_text + UI( _("<p>Press <b>Repair</b>.</p>") );
+	  
+	  // launch the repair-popup
+          repair_question = OSRPopupRepair(UI(_("Error detected")), error_message, help_text);
+
+	  // set the text that is displayed in the right RichText-widget of the main window
+	  //result_text = OSRSummaryItem(UI(_("TEMPLATE check 1")), UI(_("Error detected")), true);
+	  OSRSummaryDetectError(module_name, UI(_("Probing disks")), UI(_("Error detected")));
+			      
+	  // if the user selected Repair set the sequence of repair methods
+  	  if (repair_question)
+	  {
+	    if (!OSRPartitionRepair1())
+	      {
+		status = OSRStatusRepairError();
+	      }
+	    else
+	      {
+		status = OSRStatusRepairOK();
+	      }
+
+	    if (!OSRPartitionRepair2())
+	      {
+		status = OSRStatusRepairError();
+	      }
+	    else
+	      {
+		status = OSRStatusRepairOK();
+	      }
+	  }
+	  else
+	  {
+	    status = OSRStatusRepairOmit();
+	  }
+      }
+      
+      result_map = $[
+		     "status" : status
+      ];
+
+      // set the value of the module-progress-bar to 100%
+      OSRModuleProgressFill();
+      
+      return result_map;
+  }
+
   /**
    *
    *  @return map The result_map.
