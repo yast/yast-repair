@@ -1,4 +1,4 @@
-/**
+**
  *  File:
  *   osr_summary.ycp
  *
@@ -293,7 +293,11 @@
    */
   global define OSRSummaryDetectOK(string module_name, string header, string description) ``{
 
-      return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_ok"));
+      string status_string = "detect_ok";
+      
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "O.k." + "\n" + description + "\n");
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }
 
   /**
@@ -309,7 +313,11 @@
    */
   global define OSRSummaryDetectError(string module_name, string header, string description) ``{
 
-      return (OSRSummaryChangeModuleSummary(module_name, header, description, "detect_error"));
+      string status_string = "detect_error";
+      
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Error" + "\n" + description + "\n");
+      
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }
 
   /**
@@ -325,7 +333,11 @@
    */
   global define OSRSummaryRepairOK(string module_name, string header, string description) ``{
 
-      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_ok"));
+      string status_string = "repair_ok";
+
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Repair succeeded" + "\n" + description + "\n");
+      
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }
 
   /**
@@ -341,7 +353,11 @@
    */
   global define OSRSummaryRepairError(string module_name, string header, string description) ``{
 
-      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_error"));
+      string status_string = "repair_error";
+
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Repair failed" + "\n" + description + "\n");
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }
 
   /**
@@ -357,7 +373,11 @@
    */
   global define OSRSummaryRepairOmit(string module_name, string header, string description) ``{
 
-      return (OSRSummaryChangeModuleSummary(module_name, header, description, "repair_omit"));
+      string status_string = "repair_omit";
+
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Repair omitted" + "\n" + description + "\n");
+
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }
 
 }
