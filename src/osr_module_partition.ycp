@@ -84,9 +84,9 @@
 
 		   // the values this module will provide
 		   "provides"          : $[
-					   "root_partition"    : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
-					   "target_partitions" : $["type" : "list", "value" : [], "status" : "unknown"],
-					   "target_scrpath"    : $["type" : "path", "value" : ., "status" : "unknown"]
+					   "root_partition"      : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
+					   "target_partition_map": $["type" : "map", "value" : $[], "status" : "unknown"],
+					   "target_scrpath_map"  : $["type" : "map", "value" : $[], "status" : "unknown"]
 					   //"lilo_package_is_installed" : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
 					   //"lilo_package_is_verified"  : $[ "type" : "boolean", "value" : false, "status" : "unknown" ],
 					   //"lilo_conf_path"            : $[ "type" : "string", "value" : "/etc/lilo.conf", "status" : "unknown" ]
@@ -117,13 +117,19 @@
    */
   global define OSRPartitionCheckDisks() ``{
 
-      string status         = "";
-      string module_name    = "osr_module_partition";
-      map    target_map     = $[];
-      map    result_map     = $[];
-      list   partition_list = [];
-      list   disk_list      = [];
+      boolean repair_question = false;
+      string  error_message   = "";
+      string  help_text       = "";
+      string  status          = "";
+      string  module_name     = "osr_module_partition";
+      map     target_map      = $[];
+      map     result_map      = $[];
+      list    partition_list  = [];
+      list    disk_list       = [];
 
+      // "installMap" : $[..., "disks" : "/dev/hda /dev/sda", ...]
+      disk_list = lookup(lookup(user_settings, "installMap", $[]), "disks", []);
+      
       target_map = GetDisks();
 
       if ((target_map == $[]) || (target_map == nil))
@@ -138,6 +144,16 @@
 
 	  return $["status" : status];
       }
+      else
+      {
+	  status = OSRStatusDetectOK();
+
+	  OSRSummaryDetectOK(
+				module_name,
+				_("Checking disks"),
+				sformat(_("Disks found: %1, %2"), mergestring(disk_list, ", "), disk_list)
+				);
+      }
 
       // check all targets (all disks) for partition-entries
       foreach(`target, `values, target_map, ``{
@@ -145,8 +161,8 @@
 	  list target_partitions = lookup(values, "partitions", []);
 	  path target_scrpath    = lookup(values, "scrpath", .);
 
-	  OSRProvideList("target_partitions", target_partitions);
-	  OSRProvidePath("target_scrpath", target_scrpath);
+	  OSRProvideMap("target_partition_map", $[target : target_partitions]);
+	  OSRProvideMap("target_scrpath_map", $[target : target_scrpath]);
 	  
       	  if (size(target_partitions) == 0)
 	  {
@@ -169,7 +185,94 @@ from a former session."), target);
 
 	      if (repair_question)
 	      {
-		  old_osr_map = OSRMapReadFloppy();
+		  string  disk_name     = select(splitstring(target, "/"), (size(splitstring(target, "/"))-1));
+		  string  ptbl_name     = "" + disk_name + ".ptbl";
+		  boolean has_floppy    = lookup(user_settings, "has_floppy", true);
+		  string  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
+
+		  if (has_floppy)
+		  {
+		      UI::OpenDialog(`opt(`decorated), `Label(_("Loading system information...")));
+
+		      // mount the floppy to /media/floppy/
+		      boolean mounted = (WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+
+		      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
+		      // correctly!
+		      if (mounted)
+		      {
+			  integer ptbl_check = SCR::Read(.target.size, "/media/floppy/" + ptbl_name);
+
+			  if (ptbl_check != 512)
+			  {
+			      y2error("file %1 is not of the correct size.", "/media/floppy/" + ptbl_name);
+
+			      OSRPopupDisplayQuick(sformat(_("The partition-table of disk %1
+could not be read correctly from this floppy."), target), 1000);
+			  }
+			  else
+			  {
+			      UI::CloseDialog();
+
+			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446", ptbl_name, target);
+
+			      UI::OpenDialog(`opt(`decorated), `Label(sformat(_("Reverting old partition-table\n%1"), command)));
+
+			      integer revert = WFM::Execute(.local.bash, command);
+
+			      if (revert == 0)
+			      {
+                                  // TODO: read the partition-table!
+				  string partition_path = ".disk" + target_scrpath + ".partitions";
+				  //string partition_path = ".disk." + disk_name + ".partitions";
+				  list partition_table = SCR::Read(topath(partition_path));
+
+				  OSRPopupDisplayQuick(sformat("path: %1\nptbl: %2", partition_path, partition_table), 3000);
+
+				  if ((partition_table != nil) && (partition_table != []))
+				  {
+				      // o.k.
+				      status = OSRStatusRepairOK();
+
+				      OSRSummaryRepairOK(
+							 module_name,
+							 _("Repairing partition-table"),
+							 _("Reverted old partition-table")
+							 );
+
+				      OSRProvideMap("target_partition_map", $[target : partition_table]);
+
+				      map partition_map = $["partitions" : partition_table];
+				      target_map = add(target_map, target, partiton_map);
+				      user_settings = add(user_settings, "targets", target_map);
+
+				      // umount the floppy after reading
+				      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+  
+				      UI::CloseDialog();
+
+				      OSRModuleProgressFill();
+
+				      return $["status" : status];
+				  }
+			      }
+			      else
+			      {
+				  y2error("Reverting of the partition-table was not successfull.");
+			      }
+			  }
+		      }
+		      // umount the floppy after reading
+		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+  
+		      UI::CloseDialog();
+
+		  }
+
+
+
+		  /*    
+		  old_osr_map = OSRReadFloppy();
 
 		  if ((old_osr_map == nil) || (old_osr_map == $[]))
 		  {
@@ -180,7 +283,7 @@ from a former session."), target);
 					   _("Repairing partition-table"),
 					   _("Old system-information was not loaded<br>
 Partition-table not repaired")
-					   );		      
+					   );
 		  }
 		  else
 		  {
@@ -220,10 +323,10 @@ Partition-table not repaired")
 						    _("Partition-table not written correctly")
 						    );
 			  }
-		  
 		      }
-
 		  }
+		  */
+		  
 	      }
 	      else
 	      {
@@ -235,7 +338,6 @@ Partition-table not repaired")
 				       _("Partition-table not repaired")
 				       );
 	      }
-
 	  }
 	  else
 	  {
@@ -246,7 +348,6 @@ Partition-table not repaired")
 				 _("Checking partition tables"),
 				 sformat(_("Partition tables found for disk <code>%1</code>"), target)
 				 );
-
 	  }
       });
       
@@ -340,6 +441,8 @@ Partition-table not repaired")
       	  user_settings = add(user_settings, "validRootPartitions", partition_list);
       }
 
+      list mounted_partitions = GetMountedPartitions();
+      //y2error("mounted_partitions: %1", mounted_partitions);
 
       if (size(mount_possible_list) > 0)
       {
