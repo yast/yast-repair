@@ -546,8 +546,11 @@ ext2 and ext2: fsck.ext2 or e2fsck
 reiserfs:      reiserfsck
 jfs:           fsck.jfs
 xfs:           xfs_repair
-msdos (fat):   fsck.msdos</pre></p>") +
+msdos (fat):   fsck.msdos</pre></p>");
 
+    // do not write about "closing YaST" when Mode::init?
+    if (!Mode::initial)
+	help_text = help_text +
 _("<p>If you know what kind of file system
 you have and how to use the corresponding
 tool, close YaST and repair the

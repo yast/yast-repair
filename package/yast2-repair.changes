@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 25 16:40:29 CEST 2003 - jsuchome@suse.de
+
+- fixed helptext
+
+-------------------------------------------------------------------
 Thu Aug 14 15:23:28 CEST 2003 - jsuchome@suse.de
 
 - removed obsolete AskShowLog function
