@@ -595,6 +595,7 @@ database was not successful.
 	missing_packages = filter(string pkg_name, minimal_packages, ``( ! contains(installed_packages, pkg_name )));
 
 	// fix Pkg bug. GetPackages get not the reinstalled_packages!!
+	// (seems to be fixed in 9.0 ...)
 	missing_packages = filter(string pkg_name, missing_packages, ``( ! contains( reinstalled_packages, pkg_name)));
 
 
@@ -887,10 +888,6 @@ package.</P>
 			ret = `ok;
 		    }
 		    else ret = `error;
-		    // close pkg database, so the changes
-		    // (=new installed packages) can be remembered
-		    if (missing_packages != [])
-			target_initialized = ! Pkg::TargetFinish ();
 		}
 		else {
 		    y2error("Opening the ppackage database failed");
