@@ -533,7 +533,7 @@ Press Repair to install these packages.
 	//add initrd modules for mixed devices
 	list ide_recorders = StorageDevices::ProbeIDERecorders ();
 	y2milestone("found ide_recorders %1",ide_recorders);
-	Kernel::IDERecorders (ide_recorders);
+	Kernel::IDERecorders ((list<string>)ide_recorders);
 
 	list listed_modules = Initrd::ListModules();
 	y2milestone("needed initrd_modules in Boot %1", listed_modules );
@@ -576,7 +576,8 @@ modules to the initial ramdisk.
 		return `cancel;
 	}
 	boolean ret           = true;
-	string  kernel_initrd = mergestring (Initrd::ListModules(), " ");
+	string  kernel_initrd = mergestring
+	    ((list<string>)Initrd::ListModules(), " ");
 
 	if ( ! Mode::test )
 	{
@@ -955,7 +956,7 @@ contains no errors, press \"Skip\".
 	    if (BootCommon::isSpecial(e))
 	    {
 		retval = add (retval,
-		    e, mergestring ((list)SCR::Read(add(p, e)), ","));
+		    e, mergestring ((list<string>)SCR::Read(add(p, e)), ","));
 	    }
 	    else
 	    {

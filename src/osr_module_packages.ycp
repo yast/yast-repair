@@ -41,7 +41,7 @@
   /**
    *
    */
-  global define boolean OSRPackagesMountAll()``{
+  define boolean OSRPackagesMountAll()``{
       /////////////////////////////////////////////////////////////////////////
       //
       // Mount all partitions specified in the fstab
@@ -88,7 +88,7 @@
   /**
    *
    */
-  global define boolean OSRPackagesDBFind() ``{
+  define boolean OSRPackagesDBFind() ``{
       /////////////////////////////////////////////////////////////////////////
       //
       //
@@ -120,7 +120,7 @@
   /**
    *
    */
-  global define boolean OSRPackagesCheckMinimumSelection()``{
+  define boolean OSRPackagesCheckMinimumSelection()``{
       /////////////////////////////////////////////////////////////////////////
       //
       //
@@ -152,7 +152,7 @@
   /**
    *
    */
-  global define boolean OSRPackagesVerifyPackages(string what)``{
+  define boolean OSRPackagesVerifyPackages(string what)``{
       /////////////////////////////////////////////////////////////////////////
       //
       //
@@ -209,7 +209,7 @@
       return OSRPackagesVerifyPackages ("all");
   }
 
-  global define symbol OSRDirectPackageCheck()``{
+  define symbol OSRDirectPackageCheck()``{
       symbol ret       = `next;
       // radio button label
       string sret      = _("Base Packages Only");
@@ -258,7 +258,7 @@ is very time consuming.
   /**
    *  Reset boot loader temporary settings.
    */
-  global define boolean OSRPackagesReset() ``{
+  define boolean OSRPackagesReset() ``{
 
       OSRSystem::SetOrgRoot();
       OSRPkg::Reset();
@@ -393,7 +393,6 @@ selection.</P>
                       $[
                                       // module reset label
                         "summary"   : _("Reset Package Check Settings"),
-//                        "method"    : ``(OSRPackagesReset()), FIXME
                         "method"    : OSRPackagesReset,
                         "provides"  : 10
                       ]
@@ -403,7 +402,6 @@ selection.</P>
                       $[ "name" : "mount_all",
                                       // module method progress label
                          "summary"  : _("Mounting all partitions..."),
-//                         "method"   : ``(OSRPackagesMountAll()),
                          "method"   : OSRPackagesMountAll,
                          "requires" :  [ "fstab_checked" ],
                          "provides" :  [ "mounted_all" ],
@@ -413,7 +411,6 @@ selection.</P>
                       $[ "name" : "find_package_db",
                                       // module method progress label
                          "summary"  : _("Searching for package database..."),
-//                         "method"   : ``(OSRPackagesDBFind()),
                          "method"   : OSRPackagesDBFind,
                          "requires" :  [ "mounted_all" ],
                          "provides" :  [ "package_db_found" ],
@@ -423,7 +420,6 @@ selection.</P>
                       $[ "name" : "find_minimal_selection",
                                       // module method progress label
                          "summary"  : _("Searching for minimal required packages..."),
-//                         "method"   : ``(OSRPackagesCheckMinimumSelection()),
                          "method"   : OSRPackagesCheckMinimumSelection,
                          "requires" :  [ "package_db_found" ],
                          "provides" :  [ "package_minimal_selection" ],
@@ -433,7 +429,6 @@ selection.</P>
                       $[ "name" : "verify_base_packages",
                                       // module method progress label
                          "summary"  : _("Verifying base packages..."),
-//                         "method"   : ``(OSRPackagesVerifyPackages("base")),
                          "method"   : OSRPackagesVerifyBasePackages,
                          "requires" :  [ "package_minimal_selection" ],
                          "provides" :  [ "package_base_verified" ],
@@ -453,7 +448,6 @@ If you have problems with some installed
 applications, select this to check
 all software packages.
 "),
-//                    "method"        : ``(OSRDirectPackageCheck()),
                     "method"        : OSRDirectPackageCheck,
                     "initial_only"  : false,
                     "visible"       : true,
@@ -468,7 +462,6 @@ all software packages.
                       $[ "name"     : "verify_all_packages",
                                       // module method progress label
                          "summary"  : _("Verifying all installed packages..."),
-//                         "method"   : ``(OSRPackagesVerifyPackages("all")),
                          "method"   : OSRPackagesVerifyAllPackages,
                          "requires" :  [ "package_minimal_selection" ],
                          "provides" :  [ "package_all_verified" ],

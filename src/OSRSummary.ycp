@@ -223,7 +223,7 @@ color
 	    integer g_priority	= 1;
 	    map g_entry_map     = OSRCommon::GetGroupMap (group);
 	    string summary_text	= "";
-	    list summary_list	= [];
+	    list<string> summary_list	= [];
 
 	    foreach (map entry, entries, ``{
 

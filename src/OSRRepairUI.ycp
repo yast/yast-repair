@@ -362,7 +362,7 @@ table or verify the package database.
       term right_box = `VBox(`VSpacing(2));
       foreach( map option, start_dialog_entries, ``{
 	  left_box  = add( left_box,  `VWeight(10, `Left(`Label(option["description"]:""))));
-	  right_box = add( right_box, `VWeight(10, `Left(`PushButton(`id( option["symbol"]:"" ), `opt(`hstretch) , option["headline"]:"" ))));
+	  right_box = add( right_box, `VWeight(10, `Left(`PushButton(`id( option["symbol"]:`nothing ), `opt(`hstretch) , option["headline"]:"" ))));
       });
 
       left_box  = add( left_box,  `VSpacing(2));
@@ -834,6 +834,7 @@ global define symbol OsrMainDialog() ``{
 		    `direct_repair 		: "direct_repair",
 		    `error			: `error,
 		    `cancel			: "abort",
+		    `back			: "abort",
 		    `next			: "finish"
 	],
 	"scan_options" : $[

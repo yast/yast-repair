@@ -119,7 +119,7 @@
 
   /**
    * Sequence of all rescue (detect and repair) modules
-   * 
+   *
    * ["osr_module_init", "osr_module_partition"]
    */
    list<string> module_sequence			= [];
@@ -158,13 +158,21 @@
   integer max_index_detect_loop     = 3;
 
 
+    /**
+     * Function that could be used as a default in lookups for functin pointers
+     * @return false
+     */
+    define boolean False () ``{
+	return false;
+    }
+
   /**
    * Reset all.
    */
   global define void Reset()``{
       global_provides_list	= [];
 
-      index_detect 		= 0;
+      index_detect		= 0;
       index_modules		= 0;
 
       global_provides		= $[];
@@ -172,13 +180,13 @@
       module_detection_methods	= $[];
       module_sequence		= [];
 
-      OSRCommon::current_module_name 	= "";
-      OSRCommon::current_detect_map 	= $[];
+      OSRCommon::current_module_name	= "";
+      OSRCommon::current_detect_map	= $[];
 
-      module_maps	 	= $[];
-    
+      module_maps		= $[];
+
       OSRCommon::global_entries		= $[];
-      OSRCommon::detect_group_list		= [];
+      OSRCommon::detect_group_list	= [];
   }
 
   /**
@@ -203,13 +211,14 @@
   define list<map> ComputesDetectMethodSequence(string module_name )``{
 
       y2milestone("Build method sequence for module %1", module_name );
-      
-      list<map>      module_detect_methods     	= module_detection_methods[ module_name ]:[];
-      list<string>   method_requires_list      	= [];
-      integer        index 			= 0;
-      list<map>      ret			= [];
 
-      while((index >= 0) && index < size(module_detect_methods )) {
+      list<map> module_detect_methods	=
+	module_detection_methods[module_name]:[];
+      list<string> method_requires_list	= [];
+      integer index			= 0;
+      list<map> ret			= [];
+
+      while((index >= 0) && index < size (module_detect_methods )) {
 
 	  map mm =  module_detect_methods[index]:$[];
 	  method_requires_list = mm["requires"]:[];
@@ -231,7 +240,7 @@
 	      index = index + 1;
 	  }
       }
-      y2debug("Detection method sequence for module %1 : %2", module_name , ret);
+//      y2debug ("Detection method sequence for module %1 : %2", module_name , ret);
       return ret;
   }
 
@@ -265,7 +274,7 @@
 	      // list of modules and decrease the size of the list
 	      module_sequence  = add(module_sequence, module_name);
 	      module_name_list = remove(module_name_list, index);
-	      index            = 0;   
+	      index            = 0;
 
 	      // concatenate, sort and remove duplicates of the global_provides_list and the module_provides_list
 	      global_provides_list = (list<string>) union (global_provides_list,
@@ -382,23 +391,25 @@ of module: %1. YaST system repair halts now!",
 	  // get the current module-name, put it to the module-list and store it in the global map
 	  module_name_list = add(module_name_list, module_name );
 
-	  static_provides  = union( static_provides, result_map["static_provides"]:$[] );
+	  static_provides  = union (static_provides, result_map["static_provides"]:$[] );
 
 
-	  OSRCommon::global_entries   = union( OSRCommon::global_entries,  result_map["OSRCommon::global_entries"]:$[]);
+	  OSRCommon::global_entries   = union( OSRCommon::global_entries,  result_map["global_entries"]:$[]);
 
 	  OSRDirect::AddEntries (result_map["direct_methods"]:[],
 	    module_function_list[index]:"");
 
 	  // delete the detect_methods from the result_map (it should not appear in the osr_map)
-	  result_map = filter(`k, `v, result_map, ``(k != "detect_methods" &&
-						     k != "static_provides" &&
-						     k != "OSRCommon::global_entries"  &&
-						     k != "direct_methods" ));
-	  
+	  result_map = filter (string k, any v, result_map, ``(
+	    k != "detect_methods" &&
+	    k != "static_provides" &&
+	    k != "global_entries"  &&
+	    k != "direct_methods" )
+	  );
+
 	  // add the module_map to the global osr_map
 	  module_maps[ module_name ] =  result_map;
-	  
+
 	  // increase the index counter
 	  index = index + 1;
     }
@@ -461,8 +472,8 @@ modules were successfully solved.
    * is not provided (not in the map global_provides).
    */
   define boolean requires_not_provided(list<string> requires )``{
-    return
-	!OSRSystem::IsSubSet (requires, maplist (`k,`v ,global_provides,``(k)));
+    return !OSRSystem::IsSubSet (
+	    requires, maplist (string k, any v, global_provides,``(k)));
   }
 
   /**
@@ -505,12 +516,14 @@ modules were successfully solved.
   define boolean skip_detect_method(map method_map )``{
 
       // Check if only a few groups are selected -- ignore requires ( at the moment )
-      if ( ! contains( OSRCommon::detect_group_list, method_map["group"]:"" )) {
-
-	  y2milestone("Skip detection method (not in detection group) %1", lookup(method_map , "method", ``(osr_empty())));
+      if ( ! contains( OSRCommon::detect_group_list, method_map["group"]:"" ))
+      {
+	  y2milestone ("Detection method '%1' skipped (not in detection group)",
+	    method_map["name"]:"");
 	  return true;
       }
-      else {	  
+      else
+      {
 	  // If not all entries are selected
 	  if( all_groups_selected() ) {
 	      // Check if the requires for the next detection method
@@ -518,15 +531,14 @@ modules were successfully solved.
 		   requires_in_detection_group(method_map["requires"]:[]))
 	      {
 		  // next step can not be executed - skip execution
-		  
 		  OSRLogFile::Add(sformat("Detection method with the summary :%1 could not be executed.
-The conditions are not complied.",module_detection_methods["summary"]:"")); 
-		      
+The conditions are not complied.",module_detection_methods["summary"]:""));
+
 		  y2error("Skip detection method (requires not solved ) %1", lookup(method_map , "method", ``(osr_empty())));
 		  return true;
 	      }
 	  }
-      }      
+      }
       return false;
   }
 
@@ -551,22 +563,24 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 
 	      if( current_reset_map != $[] )
 	      {
-		  if ( haskey ( current_reset_map , "method" )) {
-		      // FIXME: pointer...
-		      boolean ret = eval( lookup(current_reset_map , "method", ``(osr_empty()) ) );
-		      if(ret == true )
-		      {
-			  y2milestone("%1 : was successfull", current_reset_map["summary"]:"");
-		      }
-		      else {
-			  y2milestone("%1 : was not successfull", current_reset_map["summary"]:"");
-		      }
+		  if (haskey (current_reset_map , "method"))
+		  {
+		    boolean () f = current_reset_map["method"]:False;
+		    if(f ())
+		    {
+			y2milestone("%1 : was successfull", current_reset_map["summary"]:"");
+		    }
+		    else
+		    {
+			y2milestone("%1 : was not successfull", current_reset_map["summary"]:"");
+		    }
 		  }
 	      }
 	      index_reset = index_reset + 1;
 	  }
 	  reset_module_index = reset_module_index -1;
-      }      return true;
+      }
+      return true;
   }
 
 
@@ -589,7 +603,6 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 
 	  while(( i_detect >= 0) && ( i_detect < size(d_methods)))
 	  {
-//	      map c_detect_map =  detect_methods [i_detect]:$[]; FIXME
 	      map c_detect_map =  d_methods [i_detect]:$[];
 	      if (OSRStatus::next_detect_method_name == c_detect_map["name"]:"")
 	      {
@@ -708,6 +721,10 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	    OSRCommon::current_detect_map =  detect_methods[index_detect]:$[];
 	    y2milestone("The name of the current detect method is: %1",
 		OSRCommon::current_detect_map["name"]:"");
+if (OSRCommon::current_detect_map["name"]:"" == "")
+{
+y2warning ("detect map: %1", OSRCommon::current_detect_map);
+}
 
 	    // check call count - no endless loop
 	    if (index_detect != last_index_detect )
@@ -737,8 +754,12 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	    OSRSummary::PrepareNewEntry(OSRCommon::current_detect_map );
 
 	    // evaluate the functions and get the result_map
-	    // ret is boolean and not used at the moment FIXME pointer??
-	    eval (OSRCommon::current_detect_map["method"]:``(osr_empty()));
+	    // ret is boolean and not used at the moment
+	    if (haskey (OSRCommon::current_detect_map, "method"))
+	    {
+		boolean () f = OSRCommon::current_detect_map["method"]:False;
+		f ();
+	    }
 
 	    ///////////////////////////////////////////////////////////////////
 	    //
@@ -851,8 +872,9 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	    }
 	    else if ( OSRStatus::IsOpen() )
 	    {
-		y2milestone("no status set in detection method: %1",
-		    OSRCommon::current_detect_map);
+		y2milestone("no status set in detection method: %1 (group %2)",
+		    OSRCommon::current_detect_map["name"]:"",
+		    OSRCommon::current_detect_map["group"]:"");
 		OSRProgress::Increase(`global_progress_bar);
 		index_detect = index_detect + 1;
 	    }
@@ -1097,28 +1119,26 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
    */
   define list<map> SortGroupSequence( map groups )``{
 
-      list<map>      ret = [];
-      list<string> g_list = [];
-
-      foreach(string module_name,  module_sequence, ``{
+      list<map> ret		= [];
+      list<string> g_list	= [];
+      foreach (string module_name,  module_sequence, ``{
 
 	  list<map> detect_methods = ComputesDetectMethodSequence(module_name );
 	  foreach(map method, detect_methods, ``{
-	  
-	      if ( ! contains( g_list, method["group"]:"" ))
+	      if (!contains( g_list, method["group"]:"" ))
+	      {
 		  g_list = add (g_list , method["group"]:"");
+	      }
 	  });
       });
-
       foreach(string group, g_list, ``{
-	  ret = add( ret, add( groups[group]:$[], "key", group )); 
+	  ret = add( ret, add( groups[group]:$[], "key", group ));
       });
-      
       return ret;
   }
 
   /**
-   * Count of all reset Methods. 
+   * Count of all reset Methods.
    */
   define integer ResetMethodesCount()``{
 
@@ -1126,11 +1146,10 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 
       foreach (string mod, module_sequence, ``{
 	  number_of_reset_methods = number_of_reset_methods +
-	      size(module_reset_methods[mod]:[] ); 
+	      size(module_reset_methods[mod]:[] );
       });
       return number_of_reset_methods;
-  }	
-  
+  }
 
 
   /**
@@ -1141,9 +1160,8 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
     list<term> entries      = [];
 
     foreach(map d, SortGroupSequence( OSRCommon::global_entries ), ``{
-
-	if (size (OSRCommon::detect_group_list) != 0 &&
-	    OSRCommon::detect_group_list != nil)
+	if (OSRCommon::detect_group_list != nil &&
+	    size (OSRCommon::detect_group_list) != 0)
 	{
 	    mode = contains (OSRCommon::detect_group_list, d["key"]:"" );
 	}
@@ -1153,7 +1171,7 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	}
 	else if( d["mode"]:"" != "forall" )
 	{
-	    y2error("Found not valid key or text entrie. key: %1 text %2",
+	    y2error("Key not valid ('%1') or text entry ('%2') is empty",
 		d["key"]:"", d["text"]:"");
 	}
     });
@@ -1166,7 +1184,8 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
    */
   global define list<string> GroupKeys()``{
 
-      return (list<string>) maplist(`k, `v, OSRCommon::global_entries, ``( k ));
+    return (list<string>)
+	maplist(string k, map v, OSRCommon::global_entries, ``( k ));
   }
 
   /**

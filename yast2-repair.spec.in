@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild  yast2-devel-packages
+# neededforbuild  yast2-devel-packages yast2-storage
 
 @HEADER@
 Requires:	yast2 gpart jfsutils yast2-bootloader yast2-storage
