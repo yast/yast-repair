@@ -1,0 +1,61 @@
+Documentation for the YaST2 OS Repair-API
+-----------------------------------------
+
+file:   README
+author: Michael Koehrmann <curry@suse.de>
+
+
+Creating the Makefile:
+----------------------
+
+Create the Makefile in the doc-directory "y2m_os_repair/doc/" by typing
+
+ $ make -f Makefile.cvs
+
+or alternatively
+
+ $ aclocal; autoconf; automake -a; ./configure
+
+from the main-directory "y2m_os_repair/".
+
+
+Creating the document output:
+-----------------------------
+
+Type
+
+ $ make API.dvi
+
+to create the dvi-format,
+
+ $ make API.ps
+
+to create the ps-format,
+
+ $ make API.pdf
+
+to create the pdf-format.
+
+If you didn't install the Makefile you can alternatively type:
+
+ $ latex API.tex      # (2 times for generating the correct references)
+ $ dvips API.dvi
+ $ ps2pdf API.ps API.pdf
+
+
+Required packages:
+------------------
+
+- "te_latex" : 
+  for the dvi-format
+
+- "te_latex" & "tetex" :
+  for the ps-format
+
+- "te_latex" & "tetex" & "gs_lib" :
+  for the pdf-format
+
+This version of the API-documentation is created with the packages:
+- te_latex-1.0.7-196
+- tetex-1.0.7-196
+- gs_lib-5.50-194

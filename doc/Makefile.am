@@ -11,9 +11,11 @@ html_DATA =
 
 EXTRA_DIST = $(html_DATA)
 
-API.ps: API.tex api.tex
+API.dvi: API.tex api.tex
 	latex API.tex
 	latex API.tex
+
+API.ps: API.dvi
 	dvips API.dvi
 
 API.pdf: API.ps
