@@ -91,7 +91,7 @@
 
     if ( WFM::Execute(.local.bash, sformat("/sbin/rmmod %1",modulename)) != 0 )
     {
-        y2error("Can't remove module %1", modulename );
+        y2warning("Can't remove module %1", modulename );
 	    return false;
     }
     return true;
