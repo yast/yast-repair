@@ -60,7 +60,6 @@ while true ; do
 	# otherwise returns "nil"
 	$SCRPATH3*)
 		DB_NAME=`echo "$COMMAND" | sed -n 's/'"$SCRPATH3"'"\(.*\)")/\1/p'`
-		echo $DB_NAME > /dev/stderr
 		if  test \( "x$DB_NAME" = "x" \) -o \( ! -r "$DB_NAME" \) -o \( ! -s "$DB_NAME" \); then 
 			echo "nil"
 		else
