@@ -917,7 +917,8 @@ package.</P>
 
 		    ok = ok && result[1]:nil == [] && result[2]:nil == [];
 		    Wizard::CreateDialog ();
-		    WFM::CallFunction ("inst_suseconfig", [false, false]);
+                    Wizard::SetDesktopIcon("repair");
+                    WFM::CallFunction ("inst_suseconfig", [false, false]);
 
 		    Wizard::CloseDialog ();
 
