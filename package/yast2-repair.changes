@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 17 10:10:17 CEST 2003 - jsuchome@suse.cz
+
+- read the list of packages in Minimal selection directly after the
+  pkg database is opened (due to bug #30423 it fails to read them later)
+- 2.8.5
+
+-------------------------------------------------------------------
 Mon Sep 15 17:21:18 CEST 2003 - jsuchome@suse.cz
 
 - prevent the fall in the bootloader check (switched bootloader
