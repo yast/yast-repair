@@ -733,77 +733,85 @@ start a new installation.
 
   define boolean OSRPartitionMountRoot()``{
 
-      /////////////////////////////////////////////////////////////////////////
-      //
-      //  mount the root partition to /mnt
-      //
-      /////////////////////////////////////////////////////////////////////////
-      string root_partition         = OSRCommon::RequireString("root_partition");
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  mount the root partition to /mnt
+    //
+    /////////////////////////////////////////////////////////////////////////
+    string root_partition	= OSRCommon::RequireString ("root_partition");
 
-      list<map>    just_mounted         = [];
-      // summary header, %1 is root partition, %2 target
-      string  summary_header = sformat(_("Mounting root partition %1 to %2"),
-        root_partition, OSRSystem::TargetRoot());
+    list<map> just_mounted	= [];
 
-      // check if the specified partition is already mounted to "/mnt", mount only if it is not already done.
-      if ( OSRSystem::TargetRoot() != Partitions::MountedOn( root_partition, Partitions::CurMounted()))
-      {
-        // Mount selected partition to /mnt
-        if ((boolean) WFM::Execute(.local.mount,
+    // summary header, %1 is root partition, %2 target
+    string  summary_header	= sformat(_("Mounting root partition %1 to %2"),
+	root_partition, OSRSystem::TargetRoot());
+
+    // check if the specified partition is already mounted to "/mnt",
+    // mount only if it is not already done.
+    if ( OSRSystem::TargetRoot() !=
+	 Partitions::MountedOn (root_partition, Partitions::CurMounted()))
+    {
+	// Mount selected partition to /mnt
+        if ((boolean) WFM::Execute (.local.mount,
 	    [root_partition, OSRSystem::TargetRoot(),OSRExecute::OutputFile()]))
         {
-          // add the mounted partition to the list, this has to be known for being able to
-          // umount all partitions that were mounted by the rescue system
-          just_mounted = add(just_mounted, $[ "partition" : root_partition, "mountpoint" : OSRSystem::TargetRoot() ]);
-          OSRSummary::DetectOK( summary_header,
-            // summary text
-            _("Root partition was successfully mounted"));
-      }
-      else
-      {
-        OSRSummary::DetectError( summary_header,
-            // summary text
-            sformat(_("Root partition was not successfully mounted to %1"),
-                OSRSystem::TargetRoot() ));
-        if( size( OSRCommon::RequireList("valid_root_partitions")) > 1 ){
+	    // add the mounted partition to the list, this has to be known for
+	    // being able to umount all partitions that were mounted
+	    // by the rescue system
+	    just_mounted = add (just_mounted, $[
+		"partition"	: root_partition,
+		"mountpoint"	: OSRSystem::TargetRoot()
+	    ]);
+	    OSRSummary::DetectOK (summary_header,
+		// summary text
+		_("Root partition was successfully mounted"));
+	}
+	else
+	{
+	    OSRSummary::DetectError (summary_header,
+		// summary text, %1 is mount point
+		sformat(_("Root partition was not successfully mounted to %1"),
+		    OSRSystem::TargetRoot() ));
 
-        if( Popup::AnyQuestion(
-            // popup label
-            sformat(_("Root partition was not successfully mounted to %1"),
-                OSRSystem::TargetRoot() ),
-            // popup text, %1 is root partition
-            sformat(_("
+	    if (size (OSRCommon::RequireList("valid_root_partitions")) > 1)
+	    {
+
+		if (Popup::AnyQuestion (sformat (
+		    // popup label, %1 is mount point
+		    _("Root partition was not successfully mounted to %1"),
+			OSRSystem::TargetRoot()),
+		    // popup text, %1 is root partition
+		    sformat (_("
 YaST could not mount the root partition %1.
 Restart the scanning and choose a another
 root partition or cancel scanning the system.
-"),root_partition),
-                // button label
-                _("&Restart Scanning"),
-                Label::CancelButton(),
-                `focus_yes ))
-          {
-              OSRStatus::RestartScan("find_valid_root_partitions");
-              return true;
-          }
-          }
-          OSRStatus::ErrorSeverityModuleBlocking();
-          return false;
-      }
-      }
-      else
-      {
-        OSRSummary::DetectOK(
-            // summary header
+"), root_partition),
+		    // button label
+		    _("&Restart Scanning"), Label::CancelButton(), `focus_yes)
+		)
+		{
+		    OSRStatus::RestartScan ("find_valid_root_partitions");
+		    return true;
+		}
+	    }
+	    OSRStatus::ErrorSeverityModuleBlocking();
+	    return false;
+	}
+    }
+    else
+    {
+	OSRSummary::DetectOK(
+	    // summary header (%1 is partition, %2 mount point)
             sformat(_("Mount Root Partition %1 to %2"),
                 root_partition, OSRSystem::TargetRoot()),
-            // summary text
+            // summary text (%1 is mount point)
             sformat(_("Root partition is already mounted to %1"),
                 OSRSystem::TargetRoot()  ));
-      }
+    }
 
-      OSRCommon::ProvideList("just_mounted", just_mounted );
-      OSRCommon::ProvideBoolean("root_mounted", true );
-      return true;
+    OSRCommon::ProvideList("just_mounted", just_mounted );
+    OSRCommon::ProvideBoolean("root_mounted", true );
+    return true;
   }
 
   /**

@@ -530,12 +530,12 @@ color
    */
   global define boolean RepairOmit( string header, string description) ``{
       if (OSRCommon::current_module_name == "" ) return true;
-      
+
       if (header == "") header = summary_header;
       OSRStatus::RepairOmit();
       OSRProgress::SetLabel(`module_progress_bar, header );
-      
-      OSRLogFile::Add("Module: " + OSRCommon::current_module_name + "\n" + header + "\t" + "Repair omitted" + "\n" + description + "\n");
+
+      OSRLogFile::Add ("Module: " + OSRCommon::current_module_name + "\n" + header + "\t" + "Repair omitted" + "\n" + description + "\n");
 
       return (change_summary( header, description ));
   };
@@ -545,27 +545,27 @@ color
   global define void SetRepairSummary( symbol repair_ret, string repair_header,
 				       string detect_ok_message,
 				       string detect_cancel_message,
-				       string detect_error_message )
-      ``{
-      
-      if (OSRCommon::current_module_name == "" ) return;
-      
-      if (repair_ret == `cancel || repair_ret == `abort || repair_ret == `back )
-      {
-	  RepairOmit(repair_header, detect_cancel_message );
-      }	
-      else if (repair_ret == `ok || repair_ret == `next )
-      {
-	  RepairOK(repair_header, detect_ok_message );  
-      }
-      else if (repair_ret == `error )
-      {
-	 RepairError( repair_header, detect_error_message);  
-      }
-      else {
-	  y2error("Not supported repair return symbol %1",repair_ret);
-	  RepairError( repair_header, detect_error_message);  
-      }
+				       string detect_error_message ) {
+
+    if (OSRCommon::current_module_name == "" ) return;
+
+    if (repair_ret == `cancel || repair_ret == `abort || repair_ret == `back )
+    {
+	RepairOmit (repair_header, detect_cancel_message );
+    }
+    else if (repair_ret == `ok || repair_ret == `next )
+    {
+	RepairOK (repair_header, detect_ok_message );
+    }
+    else if (repair_ret == `error )
+    {
+	RepairError (repair_header, detect_error_message);
+    }
+    else
+    {
+	y2error ("Not supported repair return symbol %1",repair_ret);
+	RepairError (repair_header, detect_error_message);
+    }
   };
 
 }//EOF

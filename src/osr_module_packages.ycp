@@ -82,21 +82,22 @@
    *
    */
   define boolean OSRPackagesDBFind() ``{
-      /////////////////////////////////////////////////////////////////////////
-      //
-      //
-      //
-      /////////////////////////////////////////////////////////////////////////
-      if ( OSRPkg::CheckDB( OSRSystem::TargetRoot() ) )
-      {
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //
+    //
+    /////////////////////////////////////////////////////////////////////////
+    if ( OSRPkg::CheckDB (OSRSystem::TargetRoot()))
+    {
+	// summary text
+        OSRSummary::DetectOK ("",_("Package database was found."));
+        OSRCommon::ProvideBoolean ("package_db_found", true);
+    }
+    else
+    {
         // summary text
-        OSRSummary::DetectOK("",_("Package database was found."));
-        OSRCommon::ProvideBoolean("package_db_found", true);
-      }
-      else {
-        // summary text
-        OSRSummary::DetectError("", _("No package database was found."));     
-        OSRSummary::SetRepairSummary(OSRPkg::RepairDB(),
+        OSRSummary::DetectError ("", _("No package database was found."));
+        OSRSummary::SetRepairSummary (OSRPkg::RepairDB(),
                        // summary header
                        _("Initializing new package database..."),
                        // summary text
@@ -106,8 +107,17 @@
                        // summary text
                        _("Initialization of the new package database was not successful."));
 
-      }
-      return true;
+    }
+    // now check the correct product version: (#45306)
+    // TODO create separate function, use popup with much better help text
+    if (! OSRPkg::CheckProductVersions ())
+    {
+	OSRSummary::DetectError ("", _("Error detected."));
+	OSRStatus::ErrorSeverityModuleBlocking ();
+	Popup::Error (_("Cannot initialize package database."));
+    }
+
+    return true;
   }
 
   /**
@@ -146,26 +156,28 @@
    *
    */
   define boolean OSRPackagesVerifyPackages(string what)``{
-      /////////////////////////////////////////////////////////////////////////
-      //
-      //
-      //
-      /////////////////////////////////////////////////////////////////////////
-      symbol ret = OSRPkg::VerifyPackages("", what, false, true );
 
-      if( ret == `abort || ret == `cancel )
-      {
-        // summary text
-        OSRSummary::DetectOmit("", _("Package verification was canceled."));
-      }
-      else if ( ret == `error )
-      {
-        // summary text
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //
+    //
+    /////////////////////////////////////////////////////////////////////////
+
+    symbol ret = OSRPkg::VerifyPackages("", what, false, true );
+
+    if( ret == `abort || ret == `cancel )
+    {
+	// summary text
+	OSRSummary::DetectOmit("", _("Package verification was canceled."));
+    }
+    else if (ret == `error || ret == `different_products)
+    {
+	// summary text
         OSRSummary::DetectError("", _("Package verification failed."));
-      }
-      else if ( size( OSRPkg::missing_packages ) > 0 )
-      {
-      OSRSummary::SetRepairSummary( OSRPkg::InstallMissing(true),
+    }
+    else if ( size( OSRPkg::missing_packages ) > 0 )
+    {
+	OSRSummary::SetRepairSummary( OSRPkg::InstallMissing(true),
                 "",
                 // summary text
                 _("Reinstallation of unverified packages was successful."),
@@ -173,17 +185,17 @@
                 _("Reinstallation of unverified packages was skipped."),
                 // summary text
                 _("Reinstallation of unverified packages was not successful."));
-      }
-      else if ( size( OSRPkg::missing_packages ) == 0 )
-      {
+    }
+    else if ( size( OSRPkg::missing_packages ) == 0 )
+    {
         // summary text
         OSRSummary::DetectOK("", _("All packages were verified successfully."));
-      }
+    }
 
-      //Not a second verify process!!
-      OSRStatus::DetectOK();
-      OSRCommon::ProvideBoolean("package_verified", true);
-      return true;
+    //Not a second verify process!!
+    OSRStatus::DetectOK();
+    OSRCommon::ProvideBoolean("package_verified", true);
+    return true;
   }
 
   /**
@@ -229,17 +241,26 @@ is very time consuming.
       {
       ret = `cancel;
       }
-      else {
-      OSRPkg::VerifyPackages( OSRSystem::TargetRoot(), ( options[0]:"" == sret ) ? "base" : "all"   , false , true);
-
-      if ( OSRPkg::missing_packages != [] )
+      else
       {
-          OSRPkg::InstallMissing(true);
-      }
-      else {
-          Report::Message(sformat(_("YaST verified %1 packages successfully.
+	symbol verified = OSRPkg::VerifyPackages (OSRSystem::TargetRoot(),
+	    ( options[0]:"" == sret ) ? "base" : "all",
+	    false, true);
+
+	if (verified == `different_products)
+	{
+	    Popup::Error (_("Cannot initialize package database."));
+	}
+	else if (OSRPkg::missing_packages != [])
+	{
+	    OSRPkg::InstallMissing(true);
+	}
+	else
+	{
+	    Report::Message (sformat(_("YaST verified %1 packages successfully.
 "), size(OSRPkgVerify::verified_packages )));
-      }
+
+	}
       }
 
       OSRFstab::Reset();

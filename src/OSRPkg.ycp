@@ -279,6 +279,36 @@ database or reverting a backup.
     }
 
     /**
+     * Check if target product is the same as the source (bug #45306)
+     * @return true if product are the same
+     */
+    global define boolean CheckProductVersions () {
+
+	integer source_id	= 1;
+
+	// TODO we could use Packages::theSources
+	list curr_sources	= Pkg::SourceGetCurrent (true);
+
+	source_id		= curr_sources[0]:source_id;
+	map source_product	= Pkg::SourceProduct (source_id);
+	list all_products	= Pkg::TargetProducts ();
+	map target_product	= all_products[0]:$[];
+
+	y2debug ("source product: %1", source_product);
+	y2debug  ("target_product: %1", target_product);
+
+	if (source_product["product"]:"" != target_product["product"]:"")
+	{
+	    y2error("target product (%1) is different from source product (%2)",
+		target_product["product"]:"", source_product["product"]:"");
+	    y2warning ("source product: %1", source_product);
+	    y2warning ("target_product: %1", target_product);
+	    return false;
+	}
+	return true;
+    }
+
+    /**
      * Return false if db files are missing.
      * Save missing files in the list not_found_files.
      */
@@ -754,6 +784,11 @@ install the missing packages.</P>
 	    return `error;
 	}
 
+	if (! CheckProductVersions ())
+	{
+	    return `different_products;
+	}
+
 	list<string> check_packages = toset(get_verify_packages(what));
 
 	if (check_packages == nil ||  size(check_packages) == 0 )
@@ -980,5 +1015,6 @@ reinstall only the packages that do not work properly.</p>
 	}
 	return ret;
     }
+
 
 }//EOF
