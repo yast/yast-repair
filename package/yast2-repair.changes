@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 24 17:06:33 CET 2003 - jsuchome@suse.de
+
+- fixed minimal selection checking
+- fixed text for mounting swap partition (#23241)
+
+-------------------------------------------------------------------
 Mon Feb 17 17:50:26 CET 2003 - jbuch@suse.de
 
 - remove one line in OSRBoot.ycp; now adding Storage 

@@ -261,6 +261,7 @@ install a new boot loader.
       //
       /////////////////////////////////////////////////////////////////////////
       string loader_type = Bootloader::getLoaderType();
+y2warning ("type from sysconfig: %1", SCR::Read (.sysconfig.bootloader.LOADER_TYPE));
       if ( loader_type != "" && loader_type != nil )
       {
         OSRSummary::DetectOK("",

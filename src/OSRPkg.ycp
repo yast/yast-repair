@@ -622,15 +622,19 @@ install the missing packages.</P>
 	{
 	    // check how to get base packages
 	    // TODO replace osr_minimal.ycp with a method which get the minimal selection
-	    // from the Pkg interface.  
-	   
-	    list(string) minimal = CallFunction(`osr_minimal());  
+	    // from the Pkg interface.
+
+	    list(string) minimal = [];//CallFunction(`osr_minimal());
 	    list(string) special = [];
-	    
-            //Packages::ComputeSystemPackageList();
-	  
+
+        minimal = Pkg::SelectionContent("Minimal", false, "");
+        minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
+        //y2internal ("minimal: %1", minimal);
+
+        //Packages::ComputeSystemPackageList();
+
 	    ret = union( minimal, special) ;
-	    
+
 	}
 	else {
 	    y2error("Parameter what not valid. Only all or base are allowed.");
