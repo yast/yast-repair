@@ -70,19 +70,26 @@ USAGE
 BUGS
 
 	rpm_stat.awk:
-	1) makes a 'rpm -q --dump' call and takes the 1st word as filename -> if filename contains <whitespace> 
+	
+	1. makes a 'rpm -q --dump' call and takes the 1st word as filename -> if filename contains <whitespace> 
 	this script delivers false information (look rpmpackage liblcms). 
-	2) the output of rpm-calls will be tunneled into stderr -> output-string mishmash-danger!
+	2. the output of rpm-calls will be tunneled into stderr -> output-string mishmash-danger!
 	Afected SCR-paths: .rpm.rpm_stat, .rpm.create_rpm_dDB, .rpm.add_rpm_dDB
+
+	rls.C:
+	
+	resolving of user- and groupname works not correctly --> now rpm-map stores ony uid and gid
 
 
 TODO
 
-	SCR-path for repair: recover that is recoverable, re-/install
+	1. SCR-path for repair: recover that is recoverable, re-/install
+	2. rpm_stat.awk: function rpm_stderr_match(f_str): add more rpm error messages for parsing
+
 
 _______________________
 
-DEVELOPERS INFROMATION
+DEVELOPERS INFORMATION
 _______________________
 
 
@@ -120,3 +127,5 @@ STRATEGY of rpm-check/repair
 	CALL YaST2-installation-module: finally dependencies test and the user can edit the list of packages to re-/install
 
 
+
+SCRIPTS
