@@ -1084,7 +1084,7 @@ press \"Yes\".
 	{
 	    //   map<string, list <string> > defs 
 
-	    list<string> line = select (
+	    list<string> line = (list<string>) select (
 		maplist (string m, list<string> n,
 		    filter (string k, list<string> v, defs, ``( v[0]:"" == dev)), ``(n)
 		), 0, []
