@@ -17,7 +17,7 @@
  */
 
 {
-  textdomain "osr";
+  textdomain "repair";
 
   integer arg_c = size(Args());
   integer arg_n = 0;
