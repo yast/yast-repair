@@ -259,16 +259,16 @@
 		if (size (checked_partitions) != 0)
 		{
 		    if (contains (checked_partitions,
-			    Storage::GetDeviceName (device, partition["nr"]:0)))
+			Storage::GetDeviceName (device, partition["nr"]:nil)))
 		    {
 			linux_partition_list = add (linux_partition_list,
-			    Storage::GetDeviceName (device, partition["nr"]:0));
+			  Storage::GetDeviceName (device, partition["nr"]:nil));
 		    }
 		}
 		else
 		{
 		    linux_partition_list = add (linux_partition_list,
-			Storage::GetDeviceName( device, partition["nr"]:0));
+			Storage::GetDeviceName( device, partition["nr"]:nil));
 		}
 	    }
 	});
@@ -623,8 +623,8 @@ press \"Yes\".
 	  // subdevkeys
 	  // $["disk":"/dev/hda", "nr":3]
 	  map subdevkeys    = Storage::GetDiskPartition( dev_name);
-	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:0);
-	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:0);
+	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:nil);
+	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:nil);
 	  // root_part
 	  // $["detected_fs":`reiser, "device":"/dev/hda3", "fsid":131, "fstype":"Linux native", "mount":"/", "nr":3, "region":[148, 1175],
 	  // "type":`primary, "used_fs":`reiser, "uuid":"a7fb4dc2-cd09-41d1-a696-805ea613abee"]

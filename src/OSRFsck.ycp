@@ -310,7 +310,7 @@
 
     y2milestone("jfslog.dmp %1", jfslog);
 
-    if ( issubstring( jfslog, "?????????????????" ))
+    if (jfslog == nil || issubstring( jfslog, "?????????????????" ))
     {
 	isjfs = false;
     }
@@ -472,7 +472,7 @@ global define boolean Check(map part ) ``{
     if(Mode::test () ) return true;
 
     symbol used_fs = part["detected_fs"]:`unknown;
-    check_partition = Storage::GetDeviceName(part["maindev"]:"", part["nr"]:0);
+    check_partition = Storage::GetDeviceName(part["maindev"]:"",part["nr"]:nil);
 
     y2milestone("Check the file system of the partition %1", check_partition );
     // find fs
@@ -513,7 +513,7 @@ global define boolean Check(map part ) ``{
 	y2milestone("used_fs is ok. Executing file system check !!");
     }
     Storage::SetSubDevParam (
-	Storage::GetSubDevKey (part["maindev"]:"", part["nr"]:0 ),
+	Storage::GetSubDevKey (part["maindev"]:"", part["nr"]:nil),
 	"detected_fs", used_fs );
 
     if ( used_fs != `unknown && used_fs != nil )
