@@ -69,9 +69,8 @@
     // translators: command line help text for repair module
     "help"		: _("System repair module"),
     // help text
-    "custom_help"	: _("Command line interface for the system repair module is not available"),
+    "customhelp"	: _("Command line interface for the system repair module is not available"),
     "guihandler"	: OSRSequence,
   ];
-
-  return OSRSequence ();
+  return OSRMode::Init () ? OSRSequence () : CommandLine::Run (cmdline);
 }
