@@ -172,7 +172,6 @@
 	      // select one of the mountpoints from the list, not important which one of them is chosen
 	      string mountpoint = select(mountpoint_list, 0, "");
 	      
-	      // TODO: is this true? what if booting from cdrom?
 	      integer fstab_size = SCR::Read(.target.size, "" + mountpoint + "/etc/fstab");
 
 	      if (fstab_size == nil)
@@ -196,9 +195,6 @@
 	      sleep(2000);
 	      UI::CloseDialog();
 
-	      // TODO: use real fstab!
-	      //fstab = SCR::Read(.etc.fstab1, ["" + mountpoint + "/etc/fstab"]);
-	      
 	      // Reading fstab and mount all required mount-points to /mnt
 	      fstab = SCR::Read(.etc.fstab);
 
@@ -375,6 +371,63 @@ Check log-file : /var/log/y2log.");
       return swap_partition_list;
   };
 
+  /**
+   *  Umounts all partitions from the specified mountpoint and deeper, e.g. "/mnt", "/mnt/usr", "/mnt/usr/local", ...
+   *
+   *  @param string mountpoint The mountpoint.
+   *  @return boolean True if all partitions were umounted from the specified mountpoint.
+   */
+  global define UmountAllFrom(string mountpoint) ``{
+
+      list    mounted_partitions = [];
+      list    mnt_list           = [];
+      integer counter            = 0;
+      integer counter_max        = 0;
+
+      // returns a list like:
+      // [$["name" : "/dev/hda1", "mountpoint" : "/", "fstype" : "reiserfs", "perm" : "(rw)"], ...]
+      mounted_partitions = GetMountedPartitions();
+
+      // filter the list of partitions that are mounted to "/mnt" or deeper
+      mnt_list = filter(`s, mounted_partitions, ``(substring(lookup(s, "mountpoint", ""), 0, size(mountpoint)) == mountpoint));
+
+      // the repeat loop should only be evaluated as many times as there are mounted partitions in the list
+      counter_max = size(mnt_list);
+
+      if (size(mnt_list) == 0)
+      {
+	  return true;
+      }
+      
+      // umount all partitions from "/mnt" or deeper, as long as there are no more mounted partitions with
+      // mountpoint "/mnt..."
+      repeat
+	  {
+	      // umount these
+	      foreach(`k, mnt_list, ``{
+
+		  SCR::Execute(.target.umount, lookup(k, "mountpoint", ""));
+	      });
+
+   	      // returns a list like:
+	      // [$["name" : "/dev/hda1", "mountpoint" : "/", "fstype" : "reiserfs", "perm" : "(rw)"], ...]
+	      mounted_partitions = GetMountedPartitions();
+
+	      // filter the list of partitions that are mounted to "/mnt" or deeper
+	      mnt_list = filter(`s, mounted_partitions, ``(substring(lookup(s, "mountpoint", ""), 0, size(mountpoint)) == mountpoint));
+
+	      counter = counter + 1;
+
+	  } until ((size(mnt_list) == 0) || (counter > counter_max));
+
+      if (size(mnt_list) == 0)
+      {
+	  return true;
+      }
+
+      return false;
+  };
+  
   /**
    *  Checks if the partition is already mounted to the specified mountpoint.
    *
@@ -860,5 +913,30 @@ be rebooted if file system was mounted\" for partition %1", partition);
       */
       
       return mountpoints;
+  };
+
+ /**
+  *  Get the filesystem type of the specified partition.
+  *
+  *  @param string partition The name of the partition.
+  *  @return string The filesystem type. Possible values are "ext2", "reiserfs", "unknown".
+  */  
+  global define GetFilesystemType(string partition) ``{
+
+      string partition_type = "";
+
+      if (IsExt2fs(partition))
+      {
+	  partition_type = "ext2";
+      }
+      else if (IsReiserfs(partition))
+      {
+	  partition_type = "reiserfs";
+      }
+      else
+      {
+	  partition_type = "unknown";
+      }
+      return partition_type;
   };
 }

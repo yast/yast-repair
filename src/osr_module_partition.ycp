@@ -81,14 +81,16 @@
 
 		   // the values this module will provide
 		   "provides"          : $[
-					   "root_partition"        : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
-					   "valid_root_partitions" : $["type" : "list", "value" : [], "status" : "unknown"],
-					   "target_partition_map"  : $["type" : "map", "value" : $[], "status" : "unknown"],
-					   "target_scrpath_map"    : $["type" : "map", "value" : $[], "status" : "unknown"]
+					   "just_mounted"            : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "root_partition"          : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
+					   "root_mountpoint"         : $["type" : "string", "value" : "/mnt", "status" : "unknown"],
+					   "valid_root_partitions"   : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "target_partition_map"    : $["type" : "map", "value" : $[], "status" : "unknown"],
+					   "target_scrpath_map"      : $["type" : "map", "value" : $[], "status" : "unknown"]
 		   ],
 
 		   // informations for the module progress bar
-		   "progress_file"     : "/tmp/osr_module_partition_progress",
+		   "progress_file"     : OSRGetTmpDir() + "/osr_module_partition_progress",
 		   "progress_expect"   : 1000
       ];
 
@@ -105,31 +107,47 @@
    *  Checks the harddisks. Attention: if there are SCSI disks connected the SCSI kernel module
    *  has to be loaded first (TODO??).
    *
-   *  Requires: %
    *  Provides: map target_partition_map,
-   *            map target_scrpath_map
+   *            map target_scrpath_map,
+   *            list disk_device_list
    *
    *  @return map The result map.
    */
   global define OSRPartitionCheckDisks() ``{
 
-      boolean repair_question = false;
-      string  error_message   = "";
-      string  help_text       = "";
-      string  status          = "";
-      string  module_name     = "osr_module_partition";
-      map     target_map      = $[];
-      map     result_map      = $[];
-      list    disk_list       = [];
+      boolean repair_question    = false;
+      string  error_message      = "";
+      string  help_text          = "";
+      string  status             = "";
+      string  module_name        = "osr_module_partition";
+      map     target_map         = $[];
+      map     result_map         = $[];
+      list    disk_list          = [];
+      string  progress_label     = _("Checking disks");
+      string  progress_file      = "";
+      integer progress_expect    = 100;
+      integer progress_increment = 0;
+
+      progress_file = lookup(module_map, "progress_file", "");
+
+      // setting up the progress bar
+      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
       
       target_map = lookup(user_settings, "targets", $[]);
+
+      // TODO: use the module_progress_bar
 
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
       disk_list = maplist(`k, `v, target_map, ``(k));
 
+      OSRProvideList("disk_device_list", disk_list);
+
+      // compute the increment of the progress bar
+      progress_increment = ((progress_expect / size(disk_list)) / 2);
+
       if ((target_map == $[]) || (target_map == nil))
       {
-	  status = OSRStatusDetectError();
+	  status = OSRStatusExit();
 
 	  OSRSummaryDetectError(
 				module_name,
@@ -137,6 +155,8 @@
 				_("No disks found")
 				);
 
+          // TODO: display: exit the rescue system
+	  
 	  // TODO: if no harddisk was found, exit the rescue system
 	  return $["status" : status];
       }
@@ -147,16 +167,18 @@
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Checking disks"),
-			     sformat(_("Disks found: <code>%1</code>"), mergestring(disk_list, "</code>, <code>"))
+			     sformat(_("Disks found: %1"), mergestring(disk_list, ", "))
 			     );
       }
 
       // check all targets (all disks) for partition entries
       foreach(`target, `values, target_map, ``{
-
+	  
 	  list target_partitions = lookup(values, "partitions", []);
 	  path target_scrpath    = lookup(values, "scrpath", .);
 
+	  OSRModuleProgress::Add(progress_increment);
+	  
 	  OSRProvideMap("target_partition_map", $[target : target_partitions]);
 	  OSRProvideMap("target_scrpath_map", $[target : target_scrpath]);
 	  
@@ -177,11 +199,11 @@ up-to-date system information from a former
 rescue session, insert it in your drive and
 press Repair.
 
-Press Skip, and repair manually, if you have
+Press Skip and repair manually if you have
 a backup of the partition table of disk
 %1.
 
-Press Help, if you want to get to know how to
+Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
@@ -243,8 +265,10 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 		      repeat
 			  {
 			      // mount the floppy to /media/floppy/
-			      boolean mounted = (WFM::Execute(.local.bash,
-							      "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+			      //boolean mounted = (WFM::Execute(.local.bash,
+			      //			      "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+
+			      boolean mounted = (OSRExecuteCommand("/bin/mount " + floppy_device + " /media/floppy -t auto", .local) == 0);
 
 			      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
 			      // correctly!
@@ -265,7 +289,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 
 				      UI::OpenDialog(`opt(`decorated), `Label(_("Reverting old partition table...")));
 
-				      integer revert = WFM::Execute(.local.bash, command);
+				      //integer revert = WFM::Execute(.local.bash, command);
+				      integer revert = OSRExecuteCommand(command, .local);
 
 				      if (revert == 0)
 				      {
@@ -296,7 +321,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 					      user_settings     = add(user_settings, "targets", target_map);
 
 					      // umount the floppy after reading
-					      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					      OSRExecuteCommand("/bin/umount /media/floppy", .local);
   
 					      UI::CloseDialog();
 
@@ -309,7 +335,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 					      y2error("Reverting of the partition table was not successfull.");
 
 					      // umount the floppy after reading
-					      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					      OSRExecuteCommand("/bin/umount /media/floppy", .local);
 
 					      error_message = sformat(_("An old partition table was found for disk %1
 but it could not be reverted successfully.
@@ -319,11 +346,11 @@ up-to-date system information from a former
 rescue session, insert it in your drive and
 press Repair.
 
-Press Skip, and repair manually, if you have
+Press Skip and repair manually if you have
 a backup of the partition table of disk
 %1.
 
-Press Help, if you want to get to know how to
+Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
@@ -337,7 +364,8 @@ and how to revert it."), target);
 					  y2error("Reverting of the partition table was not successfull.");
 
 					  // umount the floppy after reading
-					  WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					  //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+					  OSRExecuteCommand("/bin/umount /media/floppy", .local);
 					  
 					  error_message = sformat(_("An old partition table was found for disk %1
 but it could not be reverted successfully.
@@ -347,11 +375,11 @@ up-to-date system information from a former
 rescue session, insert it in your drive and
 press Repair.
 
-Press Skip, and repair manually, if you have
+Press Skip and repair manually if you have
 a backup of the partition table of disk
 %1.
 
-Press Help, if you want to get to know how to
+Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
@@ -365,7 +393,8 @@ and how to revert it."), target);
 					      "/media/floppy/" + ptbl_name);
 
 				      // umount the floppy after reading
-				      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+				      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+				      OSRExecuteCommand("/bin/umount /media/floppy", .local);
 		      
 				      error_message = sformat(_("It was not possible to find a valid
 partition table for disk %1 on the floppy.
@@ -375,11 +404,11 @@ up-to-date system information from a former
 rescue session, insert it in your drive and
 press Repair.
 
-Press Skip, and repair manually, if you have
+Press Skip and repair manually if you have
 a backup of the partition table of disk
 %1.
 
-Press Help, if you want to get to know how to
+Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
@@ -400,11 +429,11 @@ up-to-date system information from a former
 rescue session, insert it in your drive and
 press Repair.
 
-Press Skip, and repair manually, if you have
+Press Skip and repair manually if you have
 a backup of the partition table of disk
 %1.
 
-Press Help, if you want to get to know how to
+Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
@@ -415,32 +444,59 @@ and how to revert it."), target);
 		      until(!repair_question);
 		      
 		      // umount the floppy after reading
-		      WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+		      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
+		      OSRExecuteCommand("/bin/umount /media/floppy", .local);
   
 		      UI::CloseDialog();
 		  }
-
-		  // TODO: launch gpart, if the partition table could not be reverted
 	      }
 	      else
 	      {
-		  status = OSRStatusRepairOmit();
+		  error_message = sformat(_("Press Repair to start the program gpart to
+guess the primary partition table of your
+harddisk.
 
-		  OSRSummaryRepairOmit(
-				       module_name,
-				       _("Repairing partition table"),
-				       _("partition table not repaired")
-				       );
+Press Skip and repair manually if you have a
+backup of the partition table of disk %1.
+
+Press Help if you want to get to know how to
+make a backup of a partition table manually
+and how to revert it."), target);
+		  
+		  repair_question = OSRPopupRepair(_("Repair the primary partition table with gpart"), error_message, help_text);
+
+		  if (repair_question)
+		  {
+		      // TODO: launch gpart, if the partition table could not be reverted
+		      // get the geometry of the harddisk
+		      // start gpart -C c,s,h partition
+		      // display the result to the user and let him select if the result shall be
+		      // written to the primary partition table
+		      // Frage: gpart ist beta, soll das ueberhaupt eingesetzt werden???
+
+		  }
+		  else
+		  {
+		      status = OSRStatusRepairOmit();
+
+		      OSRSummaryRepairOmit(
+					   module_name,
+					   _("Repairing partition table"),
+					   _("Partition table not repaired")
+					   );
+		  }
 	      }
 	  }
 	  else
 	  {
+	      OSRModuleProgress::Add(progress_increment);
+
 	      status = OSRStatusDetectOK();
 
 	      OSRSummaryDetectOK(
 				 module_name,
 				 _("Checking partition tables"),
-				 sformat(_("Partition tables found for disk <code>%1</code>"), target)
+				 sformat(_("Partition tables found for disk %1"), target)
 				 );
 	  }
       });  // foreach(`target, `values, target_map, ...
@@ -455,7 +511,6 @@ and how to revert it."), target);
    *  Checks the detected partitions for valid filesystems, mounts them and searches for
    *  filesystem tables (/etc/fstab) on the partitions.
    *
-   *  Requires: %
    *  Provides: list valid_root_partitions,
    *            string root_partition
    *
@@ -464,13 +519,12 @@ and how to revert it."), target);
   global define OSRPartitionCheckPartitions() ``{
 
       boolean repair_question           = false;
-      integer progress_expect           = 40;
+      integer progress_expect           = 50;
       string  module_name               = "osr_module_partition";
       string  help_text                 = "";
       string  error_message             = "";
       string  progress_file             = "";
       string  progress_label            = _("Checking the partitions and filesystems");
-      string  log_file                  = "";
       string  status                    = "";
       map     result_map                = $[];
       map     target_map                = $[];
@@ -479,15 +533,23 @@ and how to revert it."), target);
       list    mount_possible_list       = [];
       list    mounted_partitions        = [];
       list    valid_root_partition_list = [];
-
+      
       module_map     = OSRGetModuleMap(module_name);
-      log_file       = OSRLogFile::GetFile();
       progress_file  = lookup(module_map, "progress_file", "");
 
       // set the parameters for the module progress bar
       OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
 
       target_map = lookup(user_settings, "targets", $[]);
+
+      // Umount all partitions from "/mnt" or from deeper directories (e.g. "/mnt/usr", "/mnt/usr/local", ...)
+      // before mounting anything to "/mnt".
+      if (UmountAllFrom("/mnt"))
+      {
+	  y2debug("All partitions were successfully umounted from /mnt...");
+      }
+
+      OSRModuleProgress::Add(10);
 
       /////////////////////////////////////////////////////////
       //
@@ -497,6 +559,8 @@ and how to revert it."), target);
 
       mounted_partitions = GetMountedPartitions();
 
+      OSRModuleProgress::Add(10);
+      
       if (size(mounted_partitions) <= 0)
       {
 	  // no mounted partitions: not implicitly an error!
@@ -512,10 +576,10 @@ and how to revert it."), target);
       {
 	  // create a mount-like output
 	  list mounted_output = maplist(`entry, mounted_partitions,
-					``("<code>" + lookup(entry, "name", "") +
-					   "</code> on <code>" + lookup(entry, "mountpoint", "") +
-					   "</code> type " + lookup(entry, "fstype", "") +
-					   "</code> " + lookup(entry, "perm", "")));
+					``("" + lookup(entry, "name", "") +
+					   " on " + lookup(entry, "mountpoint", "") +
+					   " type " + lookup(entry, "fstype", "") +
+					   " " + lookup(entry, "perm", "")));
 	  
 	  status = OSRStatusDetectOK();
 	  
@@ -535,18 +599,21 @@ and how to revert it."), target);
       // get the partitions with a valid linux partition id from the target_map
       linux_partition_list = GetLinuxPartitions(target_map);
 
+      OSRModuleProgress::Add(10);
+      
       if (size(linux_partition_list) <= 0)
       {
-	  status = OSRStatusDetectError();
+	  status = OSRStatusExit();
 
 	  OSRSummaryDetectError(
 				module_name,
 				_("Searching for valid linux partitions"),
 				_("No valid partition types found")
 				);
+	  
 	  // TODO: display and exit, start installation or partitioning instead
 
-	  //return ($["status" : status]);
+	  return ($["status" : status]);
       }
       else
       {
@@ -555,7 +622,7 @@ and how to revert it."), target);
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Searching for valid linux partitions"),
-			     sformat(_("Valid linux partitions found:<br><code>%1</code>"),
+			     sformat(_("Valid linux partitions found:<br>%1"),
 				     mergestring(linux_partition_list, ", "))
 			     );
       }
@@ -567,8 +634,8 @@ and how to revert it."), target);
       /////////////////////////////////////////////////////////
 
       mount_possible_list = GetMountablePartitions(linux_partition_list);
-            
-      //y2error("mounted_partitions: %1", mounted_partitions);
+
+      OSRModuleProgress::Add(10);
 
       if (size(mount_possible_list) > 0)
       {
@@ -577,13 +644,13 @@ and how to revert it."), target);
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Searching for mountable partitions"),
-			     sformat("Mountable partitions found:<br><code>%1</code>",
+			     sformat("Mountable partitions found:<br>%1",
 				     mergestring(mount_possible_list, ", "))
 			     );
       }
       else
       {
-	  status = OSRStatusDetectError();
+	  status = OSRStatusExit();
 	  
 	  OSRSummaryDetectError(
 				module_name,
@@ -593,7 +660,7 @@ and how to revert it."), target);
 
 	  // TODO: display and exit, start installation or partitioning instead
 	  
-	  //return ($["status" : status]);
+	  return ($["status" : status]);
       }
 
       /////////////////////////////////////////////////////////////////
@@ -603,12 +670,12 @@ and how to revert it."), target);
       /////////////////////////////////////////////////////////////////
 
       valid_root_partition_list = GetValidRootPartitions(mount_possible_list);
-
-      OSRProvideList("valid_root_partitions", valid_root_partition_list);
+      
+      OSRModuleProgress::Add(10);
 
       if (size(valid_root_partition_list) <= 0)
       {
-	  status = OSRStatusDetectError();
+	  status = OSRStatusExit();
 	  
 	  OSRSummaryDetectError(
 				module_name,
@@ -617,11 +684,16 @@ and how to revert it."), target);
 				);
 
 	  // TODO: display and exit, start installation instead
+	  // eventually: if no fstab found search for the /etc/ directory
+	  // -> this has to be the root partition but the fstab is missing,
+	  // probably it is possible to autocreate a new one
 	  
-	  //return ($["status" : status]);
+	  return ($["status" : status]);
       }
       else if (size(valid_root_partition_list) == 1)
       {
+	  OSRProvideList("valid_root_partitions", valid_root_partition_list);
+
 	  root_partition = select(valid_root_partition_list, 0);
 
 	  OSRProvideString("root_partition", root_partition);
@@ -631,18 +703,20 @@ and how to revert it."), target);
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Searching for valid root partitions"),
-			     sformat("One valid partition found: <code>%1</code>", root_partition)
+			     sformat("One valid partition found: %1", root_partition)
 			     );
       }
       else
       {
+	  OSRProvideList("valid_root_partitions", valid_root_partition_list);
+
 	  // several valid root partitions found
 	  status = OSRStatusDetectOK();
 	  
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Searching for valid root partitions"),
-			     sformat("Several valid root partitions found:<br><code>%1</code>",
+			     sformat("Several valid root partitions found:<br>%1",
 				     mergestring(valid_root_partition_list, ", "))
 			     );
 
@@ -659,7 +733,7 @@ You have to select one item in the list."),
 	  
 	  OSRProvideString("root_partition", root_partition);
       }
-      
+
       status = OSRStatusDetectOK();
       
       result_map = $["status" : status];
@@ -677,98 +751,13 @@ You have to select one item in the list."),
    *
    *  Requires: list valid_root_partitions,
    *            string root_partition
-   *  Provides: 
+   *  Provides: list just_mounted,
+   *            string root_mountpoint
    *
    *  @return map The result_map.
    */
   global define OSRPartitionMountRoot() ``{
 
-      string  status                = "";
-      string  module_name           = "osr_module_partition";
-      list    valid_root_partitions = [];
-      string  root_partition        = "";
-      boolean mount_successful      = true;
-      list    fstab                 = [];
-      string  message               = "";
-      map     root_partition_map    = $[];
-      list    mounted_partitions    = [];
-      
-      // get all valid root partitions
-      valid_root_partitions = OSRRequireList("valid_root_partitions");
-
-      // get the selected root partition
-      root_partition = OSRRequireString("root_partition");
-
-      // check the root partition with fsck
-      if (IsExt2fs(root_partition))
-      {
-	  status = OSRStatusDetectOK();
-	  
-	  OSRSummaryDetectOK(
-			     module_name,
-			     sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-			     _("Filesystem type: Ext2fs")
-			     );
-
-	  // CheckExt2fs returns the exit code of the e2fsck command
-	  integer check_ext2fs = CheckExt2fs(root_partition);
-	  
-	  if (check_ext2fs == 0)
-	  {
-	      status = OSRStatusDetectOK();
-	  
-	      OSRSummaryDetectOK(
-				 module_name,
-				 sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-				 _("Filesystem is o.k.")
-				 );
-	  }
-	  else
-	  {
-	      status = OSRStatusDetectError();
-	  
-	      OSRSummaryDetectError(
-				    module_name,
-				    sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-				    _("Filesystem is corrupted")
-				    );
-	  }
-      }
-      else if (IsReiserfs(root_partition))
-      {
-	  status = OSRStatusDetectOK();
-	  
-	  OSRSummaryDetectOK(
-			     module_name,
-			     sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-			     _("Filesystem type: Reiserfs")
-			     );
-
-	  // CheckReiserfs returns the exit code of the reiserfsck command
-	  integer check_reisrfs = CheckReiserfs(root_partition, "");
-	  
-          if (check_reiserfs == 0)
-	  {
-	      status = OSRStatusDetectOK();
-	  
-	      OSRSummaryDetectOK(
-				 module_name,
-				 sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-				 _("Filesystem is o.k.")
-				 );
-	  }
-	  else
-	  {
-	      status = OSRStatusDetectError();
-	  
-	      OSRSummaryDetectError(
-				    module_name,
-				    sformat(_("Checking filesystem of root partition: <code>%1</code>"), root_partition),
-				    _("Filesystem is corrupted")
-				    );
-	  }
-      }
-      
       // if there is one: mount it
       // if there are several: select-popup
       // if there is none: display and exit
@@ -781,33 +770,151 @@ You have to select one item in the list."),
       // check all entries in the fstab with fsck
       // mount all valid entries in the fstab
 
-      //y2milestone("selected partition: %1", partition );
+      string  status                  = "";
+      string  module_name             = "osr_module_partition";
+      list    valid_root_partitions   = [];
+      string  root_partition          = "";
+      boolean mount_successful        = true;
+      list    fstab                   = [];
+      string  message                 = "";
+      map     root_partition_map      = $[];
+      list    mountpoint_list         = [];
+      string  root_partition_type     = "";
+      list    just_mounted            = [];
+      string  root_mountpoint         = "/mnt";
+      string  fstab_standard_path     = "/etc/fstab";
+      string  progress_label          = _("Mounting root and additional partitions");
+      string  progress_file           = "";
+      integer progress_expect         = 200;
 
-      /*
-      root_partition_map = GetMountedRootPartition();
+      progress_file = lookup(module_map, "progress_file", "");
 
-      if (lookup(root_partition_map, "name", "") == partition)
+      // setting up the progress bar
+      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
+
+      // get all valid root partitions
+      valid_root_partitions = OSRRequireList("valid_root_partitions");
+
+      // get the selected root partition
+      root_partition = OSRRequireString("root_partition");
+
+      OSRModuleProgress::Add(10);
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //
+      //  check filesystem type of the root partition
+      //
+      ///////////////////////////////////////////////////////////////////////////////
+
+      // get the fstype: "ext2", "reiserfs", ...
+      root_partition_type = GetFilesystemType(root_partition);
+
+      OSRModuleProgress::Add(10);
+      
+      if (root_partition_type == "unknown")
       {
-	  y2debug("The specified partition \"%1\" is the currently mounted partition: %2", partition, root_partition_map);
-
-	  //return true;
+	  status = OSRStatusDetectError();
+	  
+	  OSRSummaryDetectError(
+				module_name,
+				sformat(_("Checking filesystem of root partition: %1"), root_partition),
+				_("Filesystem type is unknown")
+				);
       }
-      */
+      else
+      {
+	  status = OSRStatusDetectOK();
+	  
+	  OSRSummaryDetectOK(
+			     module_name,
+			     sformat(_("Checking filesystem of root partition: %1"), root_partition),
+			     sformat(_("Filesystem type: %1"), root_partition_type)
+			     );
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //
+      //  check the filesystem of the root partition
+      //
+      ///////////////////////////////////////////////////////////////////////////////
+
+      if (root_partition_type != "unknown")
+      {
+	  list    mountpoint_list = GetMountpoints(root_partition);
+	  integer check_fs        = 0;
+
+	  OSRModuleProgress::Add(10);
+      
+	  // start fsck only if the partition is not currently mounted
+	  if (size(mountpoint_list) == 0)
+	  {  
+	      if (root_partition_type == "ext2")
+	      {
+		  // CheckExt2fs returns the exit code of the e2fsck command
+		  check_fs = CheckExt2fs(root_partition);
+
+		  OSRModuleProgress::Add(10);
+	      }
+	      else if (root_partition_type == "reiserfs")
+	      {
+		  // CheckReiserfs returns the exit code of the reiserfsck command
+		  check_fs = CheckReiserfs(root_partition, "");
+
+		  OSRModuleProgress::Add(10);
+	      }
+
+	      if (check_fs == 0)
+	      {
+		  status = OSRStatusDetectOK();
+
+		  OSRSummaryDetectOK(
+				     module_name,
+				     sformat(_("Checking filesystem of root partition: %1"), root_partition),
+				     _("Filesystem is o.k.")
+				     );
+	      }
+	      else
+	      {
+		  status = OSRStatusDetectError();
+
+		  OSRSummaryDetectError(
+					module_name,
+					sformat(_("Checking filesystem of root partition: %1"), root_partition),
+					sformat(_("Filesystem is corrupted<br>fsck exits with code %1"), check_fs)
+					);
+
+	      }
+	  }
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //
+      //  mount the root partition to /mnt
+      //
+      ///////////////////////////////////////////////////////////////////////////////
 
       // check if the specified partition is already mounted to "/mnt", mount only if it is not already done.
-      if (!IsMountedTo(root_partition, "/mnt"))
+      if (!IsMountedTo(root_partition, root_mountpoint))
       {
+	  OSRModuleProgress::Add(10);
+
 	  // Mount selected partition to /mnt
-	  mount_successful = SCR::Execute(.target.mount, [root_partition,"/mnt"]);
+	  mount_successful = SCR::Execute(.target.mount, [root_partition, root_mountpoint]);
 
 	  if (mount_successful)
 	  {
+	      // add the mounted partition to the list, this has to be known for being able to
+	      // umount all partitions that were mounted by the rescue system
+	      just_mounted = add(just_mounted, $[ "partition" : root_partition, "mountpoint" : root_mountpoint ]);
+
+	      OSRProvideString("root_mountpoint", root_mountpoint);
+	      
 	      status = OSRStatusDetectOK();
 	  
 	      OSRSummaryDetectOK(
 				 module_name,
-				 _("Mounting the root partition"),
-				 _("Root partition successfully mounted to <code>/mnt</code>")
+				 sformat(_("Mounting root partition %1 to %2"), root_partition, root_mountpoint),
+				 _("Root partition successfully mounted")
 				 );
 	  }
 	  else
@@ -816,200 +923,362 @@ You have to select one item in the list."),
 	  
 	      OSRSummaryDetectError(
 				 module_name,
-				 _("Mounting the root partition"),
-				 _("Root partition was not successfully mounted to <code>/mnt</code>")
+				 sformat(_("Mounting root partition %1 to %2"), root_partition, root_mountpoint),
+				 sformat(_("Root partition not successfully mounted to %1"), root_mountpoint)
 				 );
+
+	      // TODO: select another root partition
 	  }
-	  
       }
       else
       {
+	  OSRModuleProgress::Add(10);
+
+	  OSRProvideString("root_mountpoint", root_mountpoint);
+
 	  status = OSRStatusDetectOK();
 	  
 	  OSRSummaryDetectOK(
 			     module_name,
-			     _("Mounting the root partition"),
-			     _("Root partition is already mounted to <code>/mnt</code>")
+			     sformat(_("Mounting root partition %1 to %2"), root_partition, root_mountpoint),
+			     sformat(_("Root partition is already mounted to %1"), root_mountpoint)
 			     );
 
 	  mount_successful = true;
       }
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //
+      //  get the fstab
+      //
+      ///////////////////////////////////////////////////////////////////////////////
       
-      //if ( !test_mode )
-      //{
-          if (mount_successful)
+      if (mount_successful)
+      {
+	  // TODO: is this true? what if booting from cdrom?
+	  integer fstab_size = SCR::Read(.target.size, "" + root_mountpoint + fstab_standard_path);
+
+	  OSRModuleProgress::Add(10);
+
+	  if (fstab_size == nil)
 	  {
-	      // searching for the file /etc/fstab
-	      list mountpoint_list = GetMountpoints(root_partition);
-
-	      // select one of the mountpoints from the list, not important which one of them is chosen
-	      string mountpoint = select(mountpoint_list, 0, "");
-	      
-	      // TODO: is this true? what if booting from cdrom?
-	      integer fstab_size = SCR::Read(.target.size, "" + mountpoint + "/etc/fstab");
-
-	      if (fstab_size == nil)
-	      {
-		  y2error("Agent-error, SCR::Read(.target.size, \"%1\") returns nil", "" + mountpoint + "/etc/fstab");
-	      }
-	      else if (fstab_size < 0)
-	      {
-		  y2error("No fstab found at %1", "" + mountpoint + "/etc/fstab");
-	      }
-	      else if (fstab_size == 0)
-	      {
-		  y2debug("The file %1 exists but is empty??", "" + mountpoint + "/etc/fstab");
-	      }
-	      else
-	      {
-		  y2debug("Fstab found, size of the file %1: %2", "" + mountpoint + "/etc/fstab", fstab_size);
-	      }
-
-	      /*
-	      UI::OpenDialog(`opt(`decorated), `Label(sformat("Searching /etc/fstab\nfile-size: %1", fstab_size)));
-	      sleep(2000);
-	      UI::CloseDialog();
-	      */
-	      
-	      // Reading the fstab from the mounted root partition
-	      fstab = SCR::Read(.etc.fstab1, ["" + mountpoint + "/etc/fstab"]);
-	      
-	      if (fstab == nil)
-	      {
-		  y2error("Something's wrong with the .etc.fstab1-agent");
-		  message = _("No fstab found!!");
-
-		  status = OSRStatusDetectError();
-	  
-		  OSRSummaryDetectError(
-				     module_name,
-				     _("Searching filesystem table"),
-				     _("The fstab agent reported an error")
-				     );
-
-	      }
-	      else if (size(fstab) == 0)
-	      {
-		  y2error("No fstab found !!");
-		  message = _("No fstab found!!");
-
-		  status = OSRStatusDetectError();
-	  
-		  OSRSummaryDetectError(
-					module_name,
-					_("Searching filesystem table"),
-					_("No filesystem table found")
-					);
-
-	      }
-	      else
-	      {
-		  status = OSRStatusDetectOK();
-	  
-		  OSRSummaryDetectOK(
-				     module_name,
-				     _("Searching filesystem table"),
-				     _("Filesystem table found")
-				     );
-	  
-		  y2milestone("fstab :%1 ", fstab );
-
-		  // mount resp. swapon all partitions mentioned in the fstab
-		  foreach( `fstab_entry, fstab, ``{
-		  
-		      string vfstype = lookup(fstab_entry, "vfstype", "");
-		      string mntops  = lookup(fstab_entry, "mntops", "");
-		      string spec    = lookup(fstab_entry, "spec", "");
-		      string file    = lookup(fstab_entry, "file", "");
-
-		      // mounting the "normal" filesystems
-		      // attention: "nfs"-filesystems are not mounted here!
-		      if ((vfstype == "ext" || vfstype == "ext2" || vfstype == "minix" || vfstype == "reiserfs" ||
-			   vfstype == "xiafs" || vfstype == "hpfs" || vfstype == "vfat") &&
-			  (file != "/") && (!issubstring(mntops,"noauto")))
-		      {
-			  if (MountFstabEntry(fstab_entry))
-			  {
-			      status = OSRStatusDetectOK();
-
-			      OSRSummaryDetectOK(
-						 module_name,
-						 sformat(_("Mounting partition %1 to %2"), spec, file),
-						 _("Mounting succeeded")
-						 );
-			  }
-			  else
-			  {
-			      status = OSRStatusDetectError();
-
-			      OSRSummaryDetectError(
-						    module_name,
-						    sformat(_("Mounting partition %1 to %2"), spec, file),
-						    _("Mounting failed")
-						    );
-
-			  }
-		      }
-
-		      // include swap-partitions
-		      if ((vfstype == "swap")  && (file == "swap"))
-		      {
-			  // check if the swap partition is already swapped on
-
-			  // proc_swaps looks like:
-			  // [$["file":"/dev/sda1", "priority":"42", "size":"52200", "type":"partition", "used":"21336"]]
-			  list proc_swaps = SCR::Read(.proc.swaps);
-
-			  // Check if the specified swap-partition is already "swapped", if true don't swapon.
-			  // filter(...) returns a list of all "swapped" partitions where the name equals to the specified partition
-			  if (size(filter(`swap_partition, proc_swaps, ``(lookup(swap_partition, "file", "") == spec))) > 0)
-			  {
-			      y2debug("Swap-partition \"%1\" is already swapped-on!", spec);
-
-			      status = OSRStatusDetectOK();
-
-			      OSRSummaryDetectOK(
-						 module_name,
-						 sformat(_("Adding partition %1 to swap"), spec),
-						 sformat(_("Partition %1 already added to swap"), spec)
-						 );
-			  }
-			  else
-			  {
-			      if (SwaponFstabEntry(fstab_entry))
-			      {
-				  status = OSRStatusDetectOK();
-
-				  OSRSummaryDetectOK(
-						     module_name,
-						     sformat(_("Adding partition %1 to swap"), spec),
-						     _("Swapon succeeded")
-						     );
-			      }
-			      else
-			      {
-				  status = OSRStatusDetectError();
-
-				  OSRSummaryDetectError(
-							module_name,
-							sformat(_("Adding partition %1 to swap"), spec),
-							_("Swapon failed")
-							);
-			      }
-			  }
-		      }
-		  });
-	      }
+	      y2error("Agent-error, SCR::Read(.target.size, \"%1\") returns nil", "" + root_mountpoint + fstab_standard_path);
+	  }
+	  else if (fstab_size < 0)
+	  {
+	      y2error("No fstab found at %1", "" + root_mountpoint + fstab_standard_path);
+	  }
+	  else if (fstab_size == 0)
+	  {
+	      y2debug("The file %1 exists but is empty??", "" + root_mountpoint + fstab_standard_path);
 	  }
 	  else
 	  {
-	      message = _("Partitions could not be mounted.
-Check log-file : /var/log/y2log.");
-	      y2error("Could not mount root-partition to /mnt");
-	  } // end: if (mount_successful)
+	      y2debug("Fstab found, size of the file %1: %2", "" + root_mountpoint + fstab_standard_path, fstab_size);
+	  }
+	      
+	  // Reading the fstab from the mounted root partition
+	  fstab = SCR::Read(.etc.fstab1, ["" + root_mountpoint + fstab_standard_path]);
+
+	  OSRModuleProgress::Add(10);
 	  
-	  //} //end: if (test_mode)
-            
+	  if (fstab == nil)
+	  {
+	      y2error("Something's wrong with the .etc.fstab1-agent");
+
+	      status = OSRStatusDetectError();
+	  
+	      OSRSummaryDetectError(
+				    module_name,
+				    sformat(_("Searching filesystem table %1"), root_mountpoint + fstab_standard_path),
+				    _("The fstab agent reported an error")
+				    );
+
+	  }
+	  else if (size(fstab) == 0)
+	  {
+	      y2error("No fstab found !!");
+
+	      status = OSRStatusDetectError();
+	  
+	      OSRSummaryDetectError(
+				    module_name,
+				    sformat(_("Searching filesystem table %1"), root_mountpoint + fstab_standard_path),
+				    _("No filesystem table found")
+				    );
+
+	  }
+	  else
+	  {
+	      status = OSRStatusDetectOK();
+	  
+	      OSRSummaryDetectOK(
+				 module_name,
+				    sformat(_("Searching filesystem table %1"), root_mountpoint + fstab_standard_path),
+				 _("Filesystem table found")
+				 );
+	  
+	      y2milestone("fstab :%1 ", fstab );
+
+	  }
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //
+      //  foreach entry in the fstab:
+      //  - detect the filesystem type
+      //  - check the filesystem with fsck
+      //  - mount the partition to /mnt/<fstab-value>
+      //  - include the partition as swap if it is of type swap
+      //
+      ///////////////////////////////////////////////////////////////////////////////
+
+      if (size(fstab) > 0)
+      {
+	  // compute the value of the progress increment
+	  integer progress_increment = (((OSRModuleProgress::GetLength() - OSRModuleProgress::GetValue()) / size(fstab)) / 3);
+	  
+	  // mount resp. swapon all partitions mentioned in the fstab
+	  foreach( `fstab_entry, fstab, ``{
+		  
+	      string vfstype     = lookup(fstab_entry, "vfstype", "");
+	      string mntops      = lookup(fstab_entry, "mntops", "");
+	      string spec        = lookup(fstab_entry, "spec", "");
+	      string file        = lookup(fstab_entry, "file", "");
+	      string real_fstype = "";
+
+	      OSRModuleProgress::Add(progress_increment);
+
+	      ///////////////////////////////////////////////////////////////////////////////
+	      //
+	      //  detect the filesystem type
+	      //
+	      ///////////////////////////////////////////////////////////////////////////////
+	      
+	      // mounting the "normal" filesystems
+	      // attention: "nfs"-filesystems are not mounted here!
+	      if ((vfstype == "ext" || vfstype == "ext2" || vfstype == "minix" || vfstype == "reiserfs" ||
+		   vfstype == "xiafs" || vfstype == "hpfs" || vfstype == "vfat") &&
+		  (file != "/") && (!issubstring(mntops,"noauto")))
+	      {
+		  // for checking if the current partition is already mounted because in this case
+		  // it is not possible to fsck it
+		  list mountpoint_list = GetMountpoints(spec);
+
+		  OSRModuleProgress::Add(progress_increment);
+
+		  // detect the filesystem type of the current partition with the tools "dumpreiserfs" and "dumpe2fs"
+		  real_fstype = GetFilesystemType(spec);
+
+		  OSRModuleProgress::Add(progress_increment);
+
+		  // check if the "real" fstype and the entry in the fstab for this partition differ
+		  if (real_fstype != vfstype)
+		  {
+		      // TODO: change entry in the fstab
+		      
+		      y2error("Entry in fstab for fstype of partition %1 and real fstype differ, fstab: %2, real: %3",
+			      spec, vfstype, real_fstype);
+		  }
+
+		  if (real_fstype == "unknown")
+		  {
+		      status = OSRStatusDetectError();
+	  
+		      OSRSummaryDetectError(
+					    module_name,
+					    sformat(_("Checking filesystem of partition: %1"), root_partition),
+					    _("Filesystem type is unknown")
+					    );
+		  }
+		  else
+		  {
+		      status = OSRStatusDetectOK();
+	  
+		      OSRSummaryDetectOK(
+					 module_name,
+					 sformat(_("Checking filesystem of partition: %1"), root_partition),
+					 sformat(_("Filesystem type: %1"), real_fstype)
+					 );
+		  }
+
+		  ///////////////////////////////////////////////////////////////////////////////
+		  //
+		  //  check the filesystem with fsck
+		  //
+		  ///////////////////////////////////////////////////////////////////////////////
+
+		  // start fsck only if the partition is not currently mounted
+		  if (size(mountpoint_list) == 0)
+		  {  
+		      if (real_fstype == "ext2")
+		      {
+			  // CheckExt2fs returns the exit code of the e2fsck command
+			  check_fs = CheckExt2fs(spec);
+		      }
+		      else if (real_fstype == "reiserfs")
+		      {
+			  // CheckReiserfs returns the exit code of the reiserfsck command
+			  check_fs = CheckReiserfs(spec, "");
+		      }
+
+		      OSRModuleProgress::Add(progress_increment);
+
+		      if (check_fs == 0)
+		      {
+			  status = OSRStatusDetectOK();
+
+			  OSRSummaryDetectOK(
+					     module_name,
+					     sformat(_("Checking filesystem of partition: %1"), spec),
+					     _("Filesystem is o.k.")
+					     );
+		      }
+		      else
+		      {
+			  status = OSRStatusDetectError();
+
+			  OSRSummaryDetectError(
+						module_name,
+						sformat(_("Checking filesystem of partition: %1"), spec),
+						sformat(_("Filesystem is corrupted<br>fsck exits with code %1"), check_fs)
+						);
+		      }
+		  }
+		  
+		  ///////////////////////////////////////////////////////////////////////////////
+		  //
+		  //  mount the partition to /mnt/...
+		  //
+		  ///////////////////////////////////////////////////////////////////////////////
+
+		  // if the mount-options contain "ro", it is not possible to mount the specified partition to /mnt/...
+		  if (issubstring(mntops,"ro,") || issubstring(mntops,",ro") || mntops == "ro")
+		  {
+		      status = OSRStatusDetectError();
+
+		      OSRSummaryDetectError(
+					    module_name,
+					    sformat(_("Mounting %1 to %2"), spec, root_mountpoint + file),
+					    sformat(_("Partition %1 is read-only<br>Mounting not proceeded"), spec)
+					    );
+
+                      // TODO: ask the user to change the fstab-entry
+		      
+		      y2error("Mounting %1 on %2 is only possible for permissions \"ro\" after reboot.", spec, root_mountpoint + file);
+		      y2error("Please change /etc/fstab");
+//		      success = false;
+		  }
+		  else
+		  {
+		      // mount current partition to /mnt/...
+		      boolean mount_partition = SCR::Execute(.target.mount, [spec, root_mountpoint + file]);
+
+		      OSRModuleProgress::Add(progress_increment);
+
+		      if (mount_partition == nil)
+		      {
+			  status = OSRStatusDetectError();
+
+			  OSRSummaryDetectError(
+					     module_name,
+					     sformat(_("Mounting %1 to %2"), spec, root_mountpoint + file),
+					     _("Mounting failed")
+					     );
+
+			  y2error("Mounting of %1 to %2 not possible.", spec, root_mountpoint + file);
+//			  success = false;
+		      }
+		      else if (!mount_partition)
+		      {
+			  status = OSRStatusDetectError();
+
+			  OSRSummaryDetectError(
+					     module_name,
+					     sformat(_("Mounting %1 to %2"), spec, root_mountpoint + file),
+					     _("Mounting failed")
+					     );
+
+			  y2error("mounting %1 to %2 failed", spec, root_mountpoint + file);
+//			  success = false;
+		      }
+		      else
+		      {
+			  // add the mountpoint of the mounted partition to the list, this has to be known for being able to
+                          // umount all partitions that were mounted by the rescue system
+			  just_mounted = add(just_mounted, $[ "partition" : spec, "mountpoint" : root_mountpoint + file ]);
+			  
+			  status = OSRStatusDetectOK();
+
+			  OSRSummaryDetectOK(
+					     module_name,
+					     sformat(_("Mounting %1 to %2"), spec, root_mountpoint + file),
+					     _("Mounting succeeded")
+					     );
+
+			  y2milestone("mounting succeeded: %1 to %2", spec, root_mountpoint + file);
+//			  success = true;
+		      }
+		  }
+	      }
+
+	      ///////////////////////////////////////////////////////////////////////////////
+	      //
+	      //  include the partition as swap if it is of type swap
+	      //
+	      ///////////////////////////////////////////////////////////////////////////////
+
+	      if ((vfstype == "swap")  && (file == "swap"))
+	      {
+		  // check if the swap partition is already swapped on, proc_swaps looks like:
+		  // [$["file":"/dev/sda1", "priority":"42", "size":"52200", "type":"partition", "used":"21336"]]
+		  list proc_swaps = SCR::Read(.proc.swaps);
+
+		  OSRModuleProgress::Add(progress_increment);
+		  
+		  // Check if the specified swap-partition is already "swapped", if true don't swapon.
+		  // filter(...) returns a list of all "swapped" partitions where the name equals to the specified partition
+		  if (size(filter(`swap_partition, proc_swaps, ``(lookup(swap_partition, "file", "") == spec))) > 0)
+		  {
+		      y2debug("Swap-partition \"%1\" is already swapped-on!", spec);
+
+		      status = OSRStatusDetectOK();
+
+		      OSRSummaryDetectOK(
+					 module_name,
+					 sformat(_("Adding partition %1 to swap"), spec),
+					 sformat(_("Partition %1 already added to swap"), spec)
+					 );
+		  }
+		  else
+		  {
+		      if (SwaponFstabEntry(fstab_entry))
+		      {
+			  status = OSRStatusDetectOK();
+
+			  OSRSummaryDetectOK(
+					     module_name,
+					     sformat(_("Adding partition %1 to swap"), spec),
+					     _("Swapon succeeded")
+					     );
+		      }
+		      else
+		      {
+			  status = OSRStatusDetectError();
+
+			  OSRSummaryDetectError(
+						module_name,
+						sformat(_("Adding partition %1 to swap"), spec),
+						_("Swapon failed")
+						);
+		      }
+		  }
+	      }
+	  });
+      }
+
+      OSRProvideList("just_mounted", just_mounted);
+      
       status = OSRStatusDetectOK();
       
       result_map = $["status" : status];
@@ -1018,8 +1287,8 @@ Check log-file : /var/log/y2log.");
       OSRModuleProgress::Fill();
       
       return result_map;
-
-  };
+      
+  }; // global define OSRPartitionMountRoot()
   
   //////////////////////////////////////////////////////////////////////
   //
