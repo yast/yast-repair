@@ -92,7 +92,7 @@
 	  WFM::SCRClose ( Installation::scrHandle );
 	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
 	  
-	  if( Installation::scrHandle == -1 )
+	  if( Installation::scrHandle < -1 )
 	  {
 	      y2error("changing root was not successful");
 	      Report::Error(_("
