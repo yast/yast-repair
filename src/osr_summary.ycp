@@ -58,9 +58,23 @@
    */
   global define OSRSummaryItem(string name, string description, string status) ``{
 
-      string  color       = "";
-      string  status_text = "";
-      integer text_width  = 470;
+      string  color          = "";
+      string  status_text    = "";
+      integer text_width     = 0;
+      string  execution_mode = "";
+
+      execution_mode = lookup(osr_map, "execution_mode", "linux");
+
+      // the width of the RichText-widget depends on the execution-mode, it is
+      // expanded in "linux"-mode
+      if (execution_mode == "linux")
+      {
+	  text_width = 380;
+      }
+      else
+      {
+	  text_width = 470;
+      }
 
       // if an error is found the item has to be dislpayed red
       if (status == "detect_ok")
