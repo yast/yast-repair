@@ -22,7 +22,8 @@ include_DATA =				\
 	osr_system.ycp			\
 	osr_api.ycp			\
 	osr_popup.ycp			\
-	osr_summary.ycp#         	\
+	osr_summary.ycp         	\
+	common_filesystem.ycp
 	#osr_global_progress.ycp		\
 	#osr_module_progress.ycp		\
 	#osr_log_file.ycp

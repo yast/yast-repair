@@ -1,0 +1,518 @@
+/**
+ * File:
+ *   common_filesystem.ycp
+ *
+ * Module:
+ *
+ * Summary:
+ *
+ * Author:
+ *   Michael Koehrmann <curry@suse.de>
+ */
+
+{
+  textdomain "common_filesystem";
+
+  include "partitioning/partition_defines.ycp";
+  
+  /**
+   *  Returns the maps of all installed harddisks.
+   *
+   *  @return map ...
+   */
+  global define GetDisks() ``{
+
+      map targets = $[];
+      
+      if ((user_settings != nil) && (user_settings != $[]))
+      {
+	  targets = lookup(user_settings, "targets", $[]);
+      }
+
+      if (targets == $[])
+      {
+	  // TODO: compute the targets-map (y2m_inst/ycp/general/inst_startup.ycp)
+      }
+
+      return targets;
+  };
+
+  /**
+   *  Returns the partitions of the specified harddisk. If the harddisk not
+   *  exists in the system, the empty map "$[]" is returned.
+   *
+   *  @param string disk The device-name of the harddisk. Format: "/dev/sda".
+   *  @return list The list of partitions of the specified harddisk.
+   *  @example list sda_partitions = GetPartitions("/dev/sda");
+   */
+  global define GetPartitions(string disk) ``{
+
+      // kann man sich schenken
+      
+      map targets = $[];
+
+      targets = GetDisks();
+
+      return lookup(lookup(targets, disk, $[]), "partitions", []);
+  };
+
+  /**
+   *  Find the list of valid linux-partitions in the target-map.
+   *
+   *  Requires: function "get_device_name(string disk, any partition)" from
+   *            "include/partitioning/partition_defines.ycp"
+   *
+   *  @param map target_map The map of targets from the global map "user_settings".
+   *  @return list The list of names of valid linux-partitions.
+   */
+  global define GetLinuxPartitions(map target_map) ``{
+
+      list linux_partition_list = [];
+
+      foreach(`device , `description, target_map, ``{
+	  foreach ( `partition, lookup ( description, "partitions", [] ), ``{
+
+	      if ((lookup( partition, "fsid", 0 ) == 131)                 // Linux native partitions
+		  || (lookup( partition, "type", `primary ) == `lvm)      // LVM partitions
+		  || ((lookup( partition, "fsid", 0 ) == 0)               // empty partitions ??
+		      && (lookup( partition, "type", 0 ) == `pdisk)))     // ??
+	      {
+		  string partition_name = get_device_name( device, lookup ( partition, "nr", 0 ) );
+
+		  linux_partition_list = add(linux_partition_list, partition_name);
+	      }
+	  });
+      });
+
+      return linux_partition_list;
+  };
+
+  /**
+   *  Returns true if the specified partition is a valid linux-partition.
+   *
+   *  @param string partition The device-name of the partition.
+   *  @param map target_map The map of targets from the global map "user_settings".
+   *  @return boolean True if the specified partition is a valid linux-partition.
+   */
+  global define IsLinuxPartition(string partition, map target_map) ``{
+
+      // kann man sich schenken
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define MountRoot(string partition) ``{
+
+      boolean success        = true;
+      boolean is_mounted     = true;
+      list    fstab          = [];
+      string  message        = "";
+      
+      y2milestone("selected partition: %1", partition );
+
+      //if ( !test_mode )
+      //{
+	  // Mount selected partition to /mnt
+	  is_mounted = SCR::Execute(.target.mount, [partition,"/mnt"]);
+
+	  if (is_mounted)
+	  {
+	      // Reading fstab and mount all required mount-points to /mnt
+	      fstab = SCR::Read(.etc.fstab);
+
+	      if (fstab == nil)
+	      {
+		  y2error("something's wrong with the .etc.fstab-agent" );
+		  message =  UI(_("No fstab found!!"));
+		  success = false;
+	      }
+	      else if (size(fstab) == 0)
+	      {
+		  y2error("no fstab found !!" );
+		  message =  UI(_("No fstab found!!"));
+		  success = false;
+	      }
+	      else
+	      {
+		  y2milestone("fstab :%1 ", fstab );
+
+		  // mount resp. swapon all partitions mentioned in the fstab
+		  foreach( `fstab_entry, fstab, ``{
+		  
+		      string vfstype = lookup(fstab_entry, "vfstype", "");
+		      string mntops  = lookup(fstab_entry, "mntops", "");
+		      string spec    = lookup(fstab_entry, "spec", "");
+		      string file    = lookup(fstab_entry, "file", "");
+
+		      // mounting the "normal" filesystems
+		      // attention: "nfs"-filesystems are not mounted here!
+		      if ((vfstype == "ext" || vfstype == "ext2" || vfstype == "minix" || vfstype == "reiserfs" ||
+			   vfstype == "xiafs" || vfstype == "hpfs" || vfstype == "vfat") &&
+			  (file != "/") && (!issubstring(mntops,"noauto")))
+		      {
+			  if (MountFstabEntry(fstab_entry))
+			  {
+			      success = true;
+			  }
+		      }
+
+		      // include swap-partitions
+		      if ((vfstype == "swap")  && (file == "swap"))
+		      {
+			  if (Swapon(fstab_entry))
+			  {
+			      success = true;
+			  }
+		      }
+		  });
+	      }
+	  }
+	  else
+	  {
+	      message = _("Partitions could not be mounted.
+Check log-file : /var/log/y2log.");
+	      y2error("Could not mount root-partition to /mnt");
+	      success = false;
+	  } // end: if (is_mounted)
+	  
+	  //} //end: if (test_mode)
+      
+      if (!success)
+      {
+	  UI(`MessagePopup(message));
+      }
+
+      return success;
+
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define GetMountablePartitions(list linux_partition_list) ``{
+
+      list mount_possible_list = [];
+      
+      foreach(`partition_item, linux_partition_list, ``{
+
+	  boolean ret_bool  = true;
+	      
+	  // Mount partition to /mnt
+	  // TODO: demo_mode && test_mode
+	  ret_bool = SCR::Execute(.target.mount, [partition_item, "/mnt"]);
+	  //list fstab = [];
+	  if ( ret_bool )
+	  {
+	      mount_possible_list = add(mount_possible_list, partition_item);
+
+	      // Reading fstab and mount all required mount-points to /mnt
+	      //list fstab = SCR::Read(.etc.fstab);
+	      //fstab = SCR(`Read(.etc.fstab));
+		  
+	      //if ( size ( fstab ) > 0 )
+
+	      if(SCR::Read (.target.size, "/mnt" + "/etc/fstab") > 0)
+	      {
+		  //y2milestone("found fstab :%1", fstab );
+		  partition_list       = add(partition_list, partition_item);
+	      }
+	      SCR::Execute(.target.umount, "/mnt");
+	  }
+      });
+
+      if (mount_possible_list == nil)
+      {
+	  y2error("Error: mount_possible_list == nil");
+      }
+      return mount_possible_list;
+  };
+
+  global define GetSwapPartitions(map target_map) ``{
+
+      list swap_partition_list = [];
+      
+      foreach(`device , `description, target_map, ``{
+	  foreach ( `partition, lookup ( description, "partitions", [] ), ``{
+	      
+	      if (lookup( partition, "fsid", 0 ) == 130)                 // Linux swap partitions
+	      {
+		  string partition_name = get_device_name(device, lookup(partition, "nr", 0));
+
+		  swap_partition_list = add(swap_partition_list, partition_name);
+	      }
+	  });
+      });
+
+      return swap_partition_list;
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define UmountPartition(string partition) ``{
+
+      
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define IsMountable(string partition) ``{
+
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define IsMounted(string partition) ``{
+
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define GetFstab(string partition) ``{
+
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define HasFstab(string partition) ``{
+
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type ext2fs.
+   *
+   *  @param string partition The device-name of the partition.
+   *  @return boolean True if the partition is ext2fs.
+   *  @example boolean is_ext2fs = IsExt2fs("/dev/hda1");
+   */
+  global define IsExt2fs(string partition) ``{
+
+      integer is_ext2fs = 0;
+      
+      is_ext2fs = WFM::Execute(.local.bash, "/sbin/dumpe2fs -h " + partition );
+
+      if (is_ext2fs == 0)
+      {
+	  y2milestone("partition %1 is ext2fs", partition);
+      }
+      else if (is_ext2fs == nil)
+      {
+	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/dumpe2fs -h %1\"", partition);
+      }
+      else
+      {
+	  y2milestone("partition %1 is NOT ext2fs", partition);
+      }
+
+      return (is_ext2fs == 0);
+  };
+
+  /**
+   *  Checks if the specified partition is of filesystem-type reiserfs.
+   *
+   *  @param string partition The device-name of the partition.
+   *  @return boolean True if the partition is reiserfs.
+   *  @example boolean is_reiserfs = IsReiserfs("/dev/hda1");
+   */
+  global define IsReiserfs(string partition) ``{
+
+      integer is_reiserfs = 0;
+      
+      is_reiserfs = WFM::Execute(.local.bash, "/sbin/debugreiserfs " + partition);
+      
+      if (is_reiserfs == 0)
+      {
+	  y2milestone("partition %1 is reiserfs", partition);
+      }
+      else if (is_reiserfs == nil)
+      {
+	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/debugreiserfs %1\"", partition);
+      }
+      else
+      {
+	  y2milestone("partition %1 is NOT reiserfs", partition);
+      }
+
+      return (is_reiserfs == 0);
+  };
+
+  /**
+   *  Checks the specified partition for consistency with "/sbin/e2fsck".
+   *
+   *  @param string partition The device-name of the partition.
+   *  @return boolean True if the partition is consistent.
+   *  @example boolean check_ext2fs = CheckExt2fs("/dev/hda1");
+   */
+  global define CheckExt2fs(string partition) ``{
+
+      integer check_ext2fs = 0;
+      
+      check_ext2fs = WFM::Execute(.local.bash, "/sbin/e2fsck -y " + partition );
+
+      if (check_ext2fs == 0)
+      {
+	  y2milestone("partition %1 is o.k., /sbin/e2fsck reports no errors", partition);
+      }
+      else if (check_ext2fs == nil)
+      {
+	  y2error("CheckExt2fs ERROR: something's wrong with the command \"/sbin/e2fsck -y %1\"", partition);
+      }
+      else
+      {
+	  y2milestone("partition %1 is NOT o.k., /sbin/e2fsck reports errors", partition);
+      }
+      
+      return (check_ext2fs == 0);
+  };
+
+  /**
+   *  
+   *
+   *  @return 
+   */
+  global define CheckReiserfs(string partition) ``{
+
+      // TODO
+  };
+
+  global define Swapon(map fstab_entry) ``{
+
+      string  vfstype       = lookup(fstab_entry, "vfstype", "");
+      string  spec          = lookup(fstab_entry, "spec", "");
+      string  file          = lookup(fstab_entry, "file", "");
+      string  command       = "";
+      integer swapon_result = 0;
+      list    proc_swaps    = [];
+
+      // looks like:
+      // [$["file":"/dev/sda1", "priority":"42", "size":"52200", "type":"partition", "used":"21336"]]
+      proc_swaps = SCR::Read(.proc.swaps);
+
+      // include swap-partitions
+      if ((vfstype == "swap")  && (file == "swap"))
+      {
+	  if (spec != "")
+	  {
+	      //swap-partition
+	      command = "/sbin/swapon " + spec;
+	      
+	      // run /sbin/swapon
+	      swapon_result = WFM::Execute (.local.bash, command);
+
+	      if (swapon_result == nil)
+	      {
+		  y2error("an error occurred during execution of \"%1\"", command);
+	      }
+	      else if (swapon_result == 0)
+	      {
+		  y2milestone("swapon succeeded: \"%1\"", command);
+	      }
+	      else
+	      {
+		  y2error("swapon failed: \"%1\"", command);
+	      }
+	  }
+	  else
+	  {
+	      y2error("not a valid fstab-entry: %1", fstab_entry);
+	  }
+
+      }
+      else
+      {
+	  y2error("not a valid fstab-entry: %1", fstab_entry);
+      }
+  };
+
+  global define MountFstabEntry(map fstab_entry) ``{
+
+      string  vfstype         = lookup(fstab_entry, "vfstype", "");
+      string  mntops          = lookup(fstab_entry, "mntops", "");
+      string  spec            = lookup(fstab_entry, "spec", "");
+      string  file            = lookup(fstab_entry, "file", "");
+      boolean mount_partition = false;
+      boolean success         = false;
+
+      // mounting the "normal" filesystems
+      // attention: "nfs"-filesystems are not mounted here!
+      if ((vfstype == "ext" || vfstype == "ext2" || vfstype == "minix" || vfstype == "reiserfs" ||
+	   vfstype == "xiafs" || vfstype == "hpfs" || vfstype == "vfat") &&
+	  ((file != "/") && (!issubstring(mntops,"noauto"))))
+      {
+	  y2milestone("mounting %1 to /mnt%2", spec, file);
+
+	  if ((vfstype == "ext2") && (IsExt2fs(spec)))
+	  {
+	      if (CheckExt2fs(spec))
+	      {
+		  y2milestone("Partition %1 is a consistent ext2-filesystem", spec);
+	      }
+	      else
+	      {
+		  y2error("Partition %1 is not a consistent ext2-filesystem", spec);
+	      }
+	  }
+
+	  if((vfstype == "reiserfs") && (IsReiserfs(spec)))
+	  {
+	      if (CheckReiserfs(spec))
+	      {
+		  y2milestone("Partition %1 is a consistent reiserfs", spec);
+	      }
+	      else
+	      {
+		  y2error("Partition %1 is not a consistent reiserfs", spec);
+	      }
+	  }
+
+	  if (issubstring(mntops,"ro,") || issubstring(mntops,",ro") || mntops == "ro")
+	  {
+	      y2error("Mounting %1 on %2 is only for ro possible after reboot.", spec, "/mnt"+file);
+	      y2error("Please change /etc/fstab");
+	      success = false;
+	  }
+	  else
+	  {
+	      // mount!
+	      mount_partition = SCR::Execute(.target.mount, [spec, "/mnt"+file]);
+
+	      if (mount_partition == nil)
+	      {
+		  y2error("error: %1", spec, "/mnt"+file);
+		  success = false;
+	      }
+	      else if (!mount_partition)
+	      {
+		  y2error("mounting %1 on %2 failed", spec, "/mnt"+file);
+		  success = false;
+	      }
+	      else
+	      {
+		  y2milestone("mounting succeeded: %1 on %2", spec, "/mnt"+file);
+		  success = true;
+	      }
+	  }
+      }
+      return success;
+  };
+
+}
