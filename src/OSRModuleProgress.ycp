@@ -310,7 +310,15 @@
  */
   global define GetFile() ``{
 
-      return UI::QueryWidget(`id(WFM::module_progress_id), `Filename);
+      if (has_download_progress_widget)
+      {
+	  return UI::QueryWidget(`id(WFM::module_progress_id), `Filename);
+      }
+      else
+      {
+	  return "/tmp/osr_module_progress";
+      }
+
   };
 
 /**
@@ -323,7 +331,14 @@
  */
   global define GetLength() ``{
 
-      return UI::QueryWidget(`id(WFM::module_progress_id), `ExpectedSize);
+      if (has_download_progress_widget)
+      {
+	  return UI::QueryWidget(`id(WFM::module_progress_id), `ExpectedSize);
+      }
+      else
+      {
+	  return 100;
+      }
   };
 
 /**
@@ -336,7 +351,14 @@
  */
   global define GetValue() ``{
 
-      return SCR::Read(.target.size, WFM::file);
+      if (has_download_progress_widget)
+      {
+	  return SCR::Read(.target.size, WFM::file);
+      }
+      else
+      {
+	  return 100;
+      }
   };
 
 /**

@@ -104,6 +104,8 @@
 		     );
       });
 
+      UI::SetFocus(`id(`osr_popup_repair));
+      
       // handling of the user-input
       any ret = UI::UserInput();
 
@@ -121,8 +123,7 @@
       UI::CloseDialog();
 
       return (ret == `osr_popup_repair);
-  }
-
+  };
 
   /**
    *  This method opens a popup window that offers the specified items to the
@@ -142,9 +143,9 @@
    *  @param boolean strict If strict is true, only an OK-pushbutton is displayed,
    *         if strict is false both OK- and Cancel-button are displayed.
    *  @return string The selected item, the default if cancel is pressed.
-   *  @example string result = OSRPopupSelectItem("Test", "This is just a test.", ["a", "b", "c"], "b"); 
+   *  @example string result = OSRPopupRadioButtonGroup("Test", "This is just a test.", ["a", "b", "c"], "b", true); 
    */
-  global define OSRPopupSelectItem(string headline, string message, list item_list, string default, boolean strict) ``{
+  global define OSRPopupRadioButtonGroup(string headline, string message, list item_list, string default, boolean strict) ``{
 
       string result = "";
 
@@ -157,7 +158,7 @@
 
       if (size(item_list) == 0)
       {
-	  y2error("ERROR OSRPopupSelectItem: empty list as parameter: %1", item_list);
+	  y2error("ERROR OSRPopupRadioButtonGroup: empty list as parameter: %1", item_list);
 	  return "";
       }
       
@@ -198,6 +199,8 @@
 	  while (i >= 0 && i < size(WFM::item_list))
 	  {
 	      string item = select(WFM::item_list, i, "");
+
+	      // if the current radio button is the default enable it
 	      rb  = `Left(`RadioButton(`id(i), item, ((item == WFM::default) || ((WFM::default == "") && (i == 0)))));
 	      rbs = add(rbs, rb);
 	      i   = i + 1;
@@ -238,6 +241,8 @@
 		     );
       });
 
+      UI::SetFocus(`id(`osr_popup_ok));
+      
       // handling of the user-input, return the activatet list-item
       any ret = UI::UserInput();
       if (ret == `osr_popup_ok)
@@ -249,7 +254,165 @@
       UI::CloseDialog();
 
       return result;
-  }
+  };
+
+  /**
+   *  This method opens a popup window that offers the specified items to the
+   *  user. The items can be selected in a RadioButtonGroup. A default item has to
+   *  be specified. It is marked as selected from start. If the default is "", the
+   *  first item in the list is marked as selected.
+   *  It provides an OK button and a Cancel button. If OK is pressed the selected
+   *  item is returned as a string, if cancel is pressed, the specified cancel-value
+   *  is returned. Important: This is not an UI function.
+   *
+   *  API function.
+   *
+   *  @param string headline The headline of the popup window.
+   *  @param string message The message text to display in the window.
+   *  @param list item_list The list of items. This has to be a list of strings.
+   *  @param string default The default value to mark as selected.
+   *  @param string cancel The value that will be returned when pressing cancel.
+   *  @param boolean strict If strict is true, only an OK-pushbutton is displayed,
+   *         if strict is false both OK- and Cancel-button are displayed.
+   *  @return string The selected item, the default if cancel is pressed.
+   *  @example string result = OSRPopupRadioButtonGroupText("Test",
+   *                                                  "This is a test.",
+   *						      [["a" , "First choice"], ["b", "Second choice"]],
+   *						      "b",
+   *						      "cancel",
+   *						      true); 
+   */
+  global define OSRPopupRadioButtonGroupText(string headline, string message, list item_list, string default, string cancel, boolean strict) ``{
+
+      string result = "";
+
+      result = default;
+      
+      if (automatic_mode)
+      {
+	  return "";
+      }
+
+      if (size(item_list) == 0)
+      {
+	  y2error("ERROR OSRPopupRadioButtonGroup: empty list as parameter: %1", item_list);
+	  return "";
+      }
+      
+      UI(``{
+	  term ok_button     = `Empty();
+	  term cancel_button = `Empty();
+	  term button_box    = `Empty();
+	  term contents      = `Empty();
+	  term rb_group      = `Empty();
+	  term rb            = `Empty();
+	  term rbs           = `Empty();
+	  
+
+	  if (WFM::strict)
+	  {
+	      ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
+
+	      button_box    = `HBox(
+				    `HWeight(1, ok_button)
+				    );
+	  }
+	  else
+	  {
+	      ok_button     = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
+	      cancel_button = `PushButton(`id(`osr_popup_cancel), _("&Cancel"));
+	      
+	      button_box    = `HBox(
+				    `HWeight(1, ok_button),
+				    `HSpacing(2),
+				    `HWeight(1, cancel_button)
+				    );
+	  }
+	  
+	  rbs = `VBox(`Left(`Label(WFM::message)));
+	  
+	  // create the radio buttons dynamically referring to the item_list
+	  integer i = 0;
+	  while (i >= 0 && i < size(WFM::item_list))
+	  {
+	      // an item looks like ["a", "First choice"]
+	      list   item      = select(WFM::item_list, i, "");
+	      string item_key  = select(item, 0, "");
+	      string item_text = select(item, 1, "");
+
+	      // create a radio button for the current item
+	      // if the current radio button is the default enable it
+	      rb  = `Left(
+			  `RadioButton(
+				       `id(i),                                                         // id number of the current button
+				       item_key + " - " + item_text,                                   // create the displayed text
+				       ((item_key == WFM::default) || ((WFM::default == "") && (i == 0)))  // enable the specified default
+				       )
+			  );
+
+	      // add the current radio button to the radio buttons
+	      rbs = add(rbs, rb);
+
+	      // go to the next item in the list
+	      i   = i + 1;
+	  }
+
+	  // RadioButtonGroup
+	  rb_group      = `RadioButtonGroup(
+					    `id(`rb_group),
+					    rbs
+					    );
+
+	  // window contents alltogether
+	  contents      = `HBox(
+				`HSpacing(1),
+				`HCenter(
+					 `HSquash(
+						  `VBox(
+							`HCenter(
+								 `HSquash(
+									  `VBox(
+										`Left(`Heading(WFM::headline)),
+										`VSpacing(0.2),
+										`HSquash(rb_group)
+										)
+									  )
+								 ),
+							`HSquash(button_box),
+							`VSpacing(0.2)
+							)
+						  )
+					 ),
+				`HSpacing(1)
+				);
+	  
+	  OpenDialog(
+		     `opt(`decorated),
+		     contents
+		     );
+      });
+
+      // set the focus to the OK button
+      UI::SetFocus(`id(`osr_popup_ok));
+      
+      // handling of the user-input, return the activatet list-item
+      any ret = UI::UserInput();
+      if (ret == `osr_popup_ok)
+      {
+	  integer current = UI::QueryWidget(`id(`rb_group), `CurrentButton);
+
+	  // get the chosen item and return its key
+	  result = select(select(item_list, current, ""), 0, "");
+      }
+      else if (ret == `osr_popup_cancel)
+      {
+	  result = cancel;
+      }
+
+      UI::CloseDialog();
+
+      return result;
+  };
 
   /**
    *  Displays a popup window for the specified amount of time. The window
@@ -268,5 +431,74 @@
       sleep(milliseconds);
 
       UI::CloseDialog();
-  }
+  };
+
+  /**
+   *
+   *
+   *  @example OSRLongTextView("Headline", "This text is displayed in the LogView widget", 10, 100);
+   *  @see LogView()
+   */
+  global define OSRPopupLongTextView(string label, string value, integer visible_lines, integer max_lines) ``{
+
+      UI(``{
+	  term contents   = `Empty();
+	  term ok_button  = `Empty();
+	  term log_view   = `Empty();
+	  term button_box = `Empty();
+
+	  ok_button  = `PushButton(`id(`osr_popup_ok), `opt(`default), _("&Ok"));
+
+	  button_box = `VBox(
+			     `HSquash(
+				      `HBox(
+					    `HWeight(1, ok_button)
+					    )
+				      )
+			     );
+
+	  log_view = `LogView(`id(`log), WFM::label, WFM::visible_lines, WFM::max_lines);
+
+	  contents = `HBox(
+			   `VSpacing(WFM::visible_lines),
+			   `VBox (
+				  `HSpacing(60),
+				  log_view,
+				  button_box
+				  )
+			   );
+
+	  OpenDialog(`opt(`decorated), contents);
+
+	  ChangeWidget(`id(`log), `Value, WFM::value);
+
+	  SetFocus(`id(`osr_popup_ok));
+      });
+
+      /*
+      	  OpenDialog( `opt( `decorated ),
+		      `HBox( `VSpacing(vdim),
+			     `VBox (`HSpacing(hdim),
+				    `Left(`Heading( headline )),
+				    `VSpacing(0.2),
+				    richtext,	// scrolled text
+				    `PushButton( `id(`ok), `opt(`default), OKButtonLabel() )
+				    )
+			     )
+		      );
+      */
+
+      // set the focus to the OK button
+      UI::SetFocus(`id(`osr_popup_ok));
+      
+      // handling of the user-input, return the activatet list-item
+      any ret = nil;
+      
+      while (ret != `osr_popup_ok)
+      {
+	  ret = UI::UserInput();
+      }
+
+      return UI::CloseDialog();
+  };
 }

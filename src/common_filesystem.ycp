@@ -530,6 +530,8 @@ Check log-file : /var/log/y2log.");
    */
   global define CheckExt2fs(string partition) ``{
 
+      // TODO: check if the current partition is not mounted to anywhere before starting fsck
+
       integer check_ext2fs = 0;
       string  command      = "/sbin/e2fsck -y " + partition;
       
@@ -594,6 +596,8 @@ be rebooted if file system was mounted\" for partition %1", partition);
    */
   global define CheckReiserfs(string partition, string logfile) ``{
 
+      // TODO: check if the current partition is not mounted to anywhere before starting fsck
+
       integer check_reiserfs = 0;
       string  command        = "";
       string  output         = logfile;
@@ -601,6 +605,10 @@ be rebooted if file system was mounted\" for partition %1", partition);
       // check if a log file was specified
       if (logfile == "")
       {
+	  // [ -x | --fix-fixable ]: have reiserfsck to recover corruptions which can be
+          // fixed w/o --rebuild-tree when it is runnig in check mode. Corruptions which
+	  // can be fixed so far: bad pointers  to data blocks, wrong directory's st_size
+          // and st_blocks, directories entries pointing to nowhere can be deleted
 	  command = sformat("echo Yes | /sbin/reiserfsck -x %1", partition);
       }
       else
@@ -704,25 +712,25 @@ be rebooted if file system was mounted\" for partition %1", partition);
 
 	      if (swapon_result == nil)
 	      {
-		  y2error("an error occurred during execution of \"%1\"", command);
+		  y2warning("an error occurred during execution of \"%1\"", command);
 	      }
 	      else if (swapon_result == 0)
 	      {
-		  y2milestone("swapon succeeded: \"%1\"", command);
+		  y2debug("swapon succeeded: \"%1\"", command);
 	      }
 	      else
 	      {
-		  y2error("swapon failed: \"%1\"", command);
+		  y2debug("swapon failed: \"%1\"", command);
 	      }
 	  }
 	  else
 	  {
-	      y2error("not a valid fstab-entry: %1", fstab_entry);
+	      y2debug("not a valid fstab-entry: %1", fstab_entry);
 	  }
       }
       else
       {
-	  y2error("not a valid fstab-entry: %1", fstab_entry);
+	  y2debug("not a valid fstab-entry: %1", fstab_entry);
       }
 
       /*
@@ -939,4 +947,53 @@ be rebooted if file system was mounted\" for partition %1", partition);
       }
       return partition_type;
   };
+
+  /**
+   *  Returns a list of names of all partitions that can be mounted to the system as swap
+   *  out of the specified list.
+   *
+   *  @param list partition_list A list of partitions out of which
+   *         the "swapable" partitions are to be returned.
+   *  @return list The list of partition-names that were successfully added to the system as swap partitions.
+   */
+  global define GetSwapablePartitions(list partition_list) ``{
+
+      list swap_possible_list = [];
+      list already_swapped_on = [];
+
+      // get the currently used swap partitions, looks like
+      // [$["file":"/dev/hda2", "priority":"41", "size":"313256", "type":"partition", "used":"16088"]]
+      already_swapped_on = SCR::Read(.proc.swaps);
+      
+      foreach(`partition_item, partition_list, ``{
+
+	  if (size(find(`n, already_swapped_on, ``(lookup(n, "file", "") == partition_item))) > 0)
+	  {
+	      // this partition is already swapped on, so it seems to be swapable
+	      swap_possible_list = add(swap_possible_list, partition_item);
+	  }
+	  else
+	  {
+	  
+	      //swap-partition
+	      string command = "/sbin/swapon " + partition_item;
+	      
+	      // run /sbin/swapon
+	      integer swapon_result = WFM::Execute (.local.bash, command);
+
+	      if (swapon_result == 0)
+	      {
+		  swap_possible_list = add(swap_possible_list, partition_item);
+
+		  command = "/sbin/swapoff " + partition_item;
+
+		  // run /sbin/swapoff
+		  swapon_result = WFM::Execute (.local.bash, command);
+	      }
+	  }
+      });
+      
+      return swap_possible_list;
+  };
+
 }

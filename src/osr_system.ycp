@@ -208,7 +208,7 @@
 	      UI(``{
 		  OpenDialog(`opt(`defaultsize),
 			     `VBox(`Image(`suseheader, "SuSE"),
-				   `HBox(`HWeight(30, `RichText(`id(`help), "")),
+				   `HBox(`HWeight(30, `ReplacePoint(`id(`helpSpace), `RichText(`id(`rich_text_info), ""))),
 					 `HWeight(70, `VBox(
 							    `Left(`Heading(`id(`title), `opt(`hstretch),
 									   WFM::header + _("\nInitialization..."))),
@@ -302,5 +302,96 @@
       // ???
       return true;
       */
+  };
+
+
+  global define OSRSetMainWindowContents() ``{
+
+      	  integer osr_module_progress_length = OSRModuleProgress::length;
+	  integer osr_global_progress_length = OSRGlobalProgress::length;
+
+	  // Build window contents
+	  UI(``{
+	      term    download_progress      = `Empty();
+	      term    progress_bar           = `Empty();
+	      term    buttons_right          = `Empty();
+	      term    rich_text              = `Empty();
+	      term    contents               = `Empty();
+	      string  help_text              = "";
+
+	      /*
+		buttons_right = `HSquash(`Top(`VBox(`PushButton(`id(`repair),`opt(`disabled),_("&Repair")),`PushButton(`id(`help_button),
+		`opt(`hstretch),_("&Help")))));
+	      */
+
+	      // only use a DownloadProgress-widget if it is supported by the UI-interpreter
+	      // (e.g. QT: supported, ncurses: NOT supported)
+	      if (HasSpecialWidget(`DownloadProgress))
+	      {
+		  download_progress = `DownloadProgress(
+							`id(`module_progress_bar),
+							_("Module check"),
+							"/tmp/module_progress_bar",
+						        WFM::osr_module_progress_length
+							);
+	      }
+
+	      progress_bar = `ProgressBar(
+					  `id(`global_progress_bar),
+					  _("System check"),
+					  WFM::osr_global_progress_length
+					  );
+
+
+	      /*
+	      // perhaps use a LogView widget instead of RichText
+	      rich_text = `LogView(
+				    `id(`rich_text_info),
+				    "",                     // header
+				    10,                     // number of visible lines
+				    100                     // number of lines to hold in memory
+				    );
+	      */
+	      
+	      rich_text = `RichText(
+				    `id(`rich_text_info),
+				    ""
+				    );
+	      	      
+	      // Contents of the dialog	  
+	      contents = `VBox(
+			       `VSpacing(0.3),
+			       `HBox(
+				     rich_text,
+				     buttons_right
+				     ),
+			       `HBox(
+				     download_progress
+				     ),
+			       `HBox(
+				     progress_bar
+				     ),
+			       `VSpacing(0.5)
+			       );
+
+	      // Help text (HTML-like)
+	      help_text = _("
+<p><b>YaST2 OS Repair</b> now checks your Linux system.</p>
+<p>Depending on the CPU and the amount of memory this can
+take some time.</p>
+<p>Above all the filesystem checks with fsck are very
+time-consuming.</p>
+");
+
+	      SetWizardContents(
+				_("YaST2 OS Repair - System check"),
+				contents,
+				help_text,
+				false,         // have_back_button
+				false          // have_next_button
+				);
+	  });
+	  
+	  return true;
   };
 }

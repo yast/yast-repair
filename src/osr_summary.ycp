@@ -19,6 +19,8 @@
 {
   textdomain "osr";
 
+  import "Installation";
+
   /**
    *  Function that creates the shown text in the RichText widget. "Not detected"
    *  will be returned if the list is empty.
@@ -55,7 +57,7 @@
    *  @param string The name of the item.
    *  @param string Additional description.
    *  @param string The status of the rescue system. Possible values are:
-   *                "detect_ok", "detect_error", "repair_ok", "repair_error", "repair_omit.
+   *                "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error", "repair_omit.
    *  @return string The formatted text.
    */
   global define OSRSummaryItem(string name, string description, string status) ``{
@@ -64,23 +66,17 @@
       string  status_text    = "";
       integer text_width     = 0;
 
-      boolean initial_mode   = false;
-      boolean continue_mode  = false;
-
-      initial_mode  = lookup(osr_map, "initial_mode", false);
-      continue_mode = lookup(osr_map, "continue_mode", false);
-
       // The width of the RichText-widget depends on the execution-mode, it is
       // expanded if the rescue-system is launched from the running Linux-system.
-      if (!initial_mode && !continue_mode)
+      if (!Installation::initial_mode && !Installation::continue_mode)
       {
 	  text_width = 380;
       }
       else
       {
-	  text_width = 470;
+	  text_width = 600;
       }
-
+      
       // if an error is found the item has to be dislpayed red
       if (status == "detect_ok")
       {
@@ -91,6 +87,11 @@
       {
 	  color = "red";
 	  status_text = _("error");
+      }
+      else if (status == "detect_problem")
+      {
+	  color = "red";
+	  status_text = _("problematic");
       }
       else if (status == "repair_ok")
       {
@@ -131,7 +132,7 @@
 			 "<li>%2: <b>%3</b><br>%4</li>",
 			 color,
 			 name,
-			 status,
+			 status_text,
 			 description
 			 );
       }
@@ -233,7 +234,7 @@
    *  @param string The first line of the new text.
    *  @param string The second line of the new text.
    *  @param string The status of the rescue-system, possible values are:
-   *                "detect_ok", "detect_error", "repair_ok", "repair_error" and "repair_omit"
+   *                "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error" and "repair_omit"
    *  @return boolean True if the RichText widget was updated successfully.
    */
   global define OSRSummaryChangeModuleSummary(
@@ -258,6 +259,7 @@
       if (
 	  (status != "detect_ok") &&
 	  (status != "detect_error") &&
+	  (status != "detect_problem") &&
 	  (status != "repair_ok") &&
 	  (status != "repair_error") &&
 	  (status != "repair_omit")
@@ -269,7 +271,7 @@
       //entry      = $["header" : header, "description" : description, "error" : error_detected, "repair" : error_repair];
 
       // possible values for the key "status" are:
-      // "detect_ok", "detect_error", "repair_ok", "repair_error" and "repair_omit"
+      // "detect_ok", "detect_error", "detect_problem", "repair_ok", "repair_error" and "repair_omit"
       entry      = $["header" : header, "description" : description, "status" : status];
       summary    = lookup(module_map, "summary", $[]);
 
@@ -316,6 +318,26 @@
       string status_string = "detect_error";
       
       OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Error" + "\n" + description + "\n");
+      
+      return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
+  }
+
+  /**
+   *  Changes the summary of the specified module in the RichText widget. Shows that
+   *  the rescue system has detected a potential problem. Red font is used for the headline.
+   *
+   *  API function.
+   *
+   *  @param string The name of the module which summary is to be changed.
+   *  @param string The first line of the new text.
+   *  @param string The second line of the new text.
+   *  @return boolean True if the RichText widget was updated successfully.
+   */
+  global define OSRSummaryDetectProblem(string module_name, string header, string description) ``{
+
+      string status_string = "detect_problem";
+      
+      OSRLogFile::Add("Module: " + module_name + "\n" + header + "\t" + "Problem" + "\n" + description + "\n");
       
       return (OSRSummaryChangeModuleSummary(module_name, header, description, status_string));
   }

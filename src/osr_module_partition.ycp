@@ -25,14 +25,20 @@
   integer arg_n = 0;
 
   boolean init_mode = false;
-  
+
   while ( arg_n < arg_c )
   {
-      if ( Args(arg_n) == .init ) init_mode = true;
+      if ( Args(arg_n) == .init )
+      {
+	  init_mode = true;
+
+	  y2milestone("Argument: %1", Args(arg_n));
+      }
       else
       {
 	  y2error("ERROR: unknown option %1", Args(arg_n) );
-	  return `error;
+
+	  return $[];
       }
       arg_n = arg_n + 1;
   }
@@ -75,18 +81,22 @@
 		   // use "yast2 osr .provides" to create the file "/tmp/osr_global_provides" to
 		   // show which values are already provided
 		   "requires"          :  [
-					   //"target_map",
-					   //"disk_device_list"
+					   "has_floppy",
+					   "floppy_device"
 		   ],
 
 		   // the values this module will provide
 		   "provides"          : $[
-					   "just_mounted"            : $["type" : "list", "value" : [], "status" : "unknown"],
-					   "root_partition"          : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
-					   "root_mountpoint"         : $["type" : "string", "value" : "/mnt", "status" : "unknown"],
-					   "valid_root_partitions"   : $["type" : "list", "value" : [], "status" : "unknown"],
-					   "target_partition_map"    : $["type" : "map", "value" : $[], "status" : "unknown"],
-					   "target_scrpath_map"      : $["type" : "map", "value" : $[], "status" : "unknown"]
+					   "just_mounted"          : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "probe_disk_list"       : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "root_partition"        : $["type" : "string", "value" : "/dev/hda1", "status" : "unknown"],
+					   "root_mountpoint"       : $["type" : "string", "value" : "/mnt", "status" : "unknown"],
+					   "valid_root_partitions" : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "target_partition_map"  : $["type" : "map", "value" : $[], "status" : "unknown"],
+					   "target_scrpath_map"    : $["type" : "map", "value" : $[], "status" : "unknown"],
+					   "valid_swap_partitions" : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "valid_target_list"     : $["type" : "list", "value" : [], "status" : "unknown"],
+					   "swapable_partitions"   : $["type" : "list", "value" : [], "status" : "unknown"]
 		   ],
 
 		   // informations for the module progress bar
@@ -109,7 +119,12 @@
    *
    *  Provides: map target_partition_map,
    *            map target_scrpath_map,
-   *            list disk_device_list
+   *            list disk_device_list,
+   *            list probe_disk_list,
+   *            list valid_target_list
+   *
+   *  Requires: string floppy_device,
+   *            boolean has_floppy
    *
    *  @return map The result map.
    */
@@ -119,14 +134,16 @@
       string  error_message      = "";
       string  help_text          = "";
       string  status             = "";
+      string  severity           = "";
       string  module_name        = "osr_module_partition";
       map     target_map         = $[];
       map     result_map         = $[];
       list    disk_list          = [];
       string  progress_label     = _("Checking disks");
       string  progress_file      = "";
-      integer progress_expect    = 100;
+      integer progress_expect    = 120;
       integer progress_increment = 0;
+      list    valid_target_list  = [];
 
       progress_file = lookup(module_map, "progress_file", "");
 
@@ -145,42 +162,104 @@
       // compute the increment of the progress bar
       progress_increment = ((progress_expect / size(disk_list)) / 2);
 
-      if ((target_map == $[]) || (target_map == nil))
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      //  Check all disks for entries in their map
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+      
+      if ((size(target_map) == 0) || (target_map == nil))
       {
-	  status = OSRStatusExit();
+	  status   = OSRStatusDetectError();
+	  severity = OSRErrorSeverityBlocking();
 
 	  OSRSummaryDetectError(
 				module_name,
-				_("Checking disks"),
-				_("No disks found")
+				_("Searching for harddisks"),
+				_("No harddisks detected")
 				);
 
-          // TODO: display: exit the rescue system
+	  error_message = _("YaST2 OS Repair could not detect any harddisks
+in your system. Probably you have to load the
+correct kernel modules.
+
+YaST2 OS Repair halts now.");
+
+	  // display the error message, only a OK pushbutton
+	  UI::MessagePopup(error_message);
 	  
-	  // TODO: if no harddisk was found, exit the rescue system
-	  return $["status" : status];
+	  // if no harddisk was found, exit the rescue system
+	  return $[
+		   "status"        : status,
+		   "severity"      : severity
+	  ];
       }
-      else
+      else if (size(target_map) == 1)
       {
 	  status = OSRStatusDetectOK();
 
 	  OSRSummaryDetectOK(
 			     module_name,
-			     _("Checking disks"),
-			     sformat(_("Disks found: %1"), mergestring(disk_list, ", "))
+			     _("Searching for harddisks"),
+			     // "%1": will be replaced with a string like "/dev/hda" or "/dev/sda"
+			     sformat(_("One harddisk detected: %1"), select(disk_list, 0))
 			     );
       }
+      else if (size(target_map) > 1)
+      {
+	  status = OSRStatusDetectOK();
+
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Searching for harddisks"),
+			     // "%1": will be replaced with a string like "/dev/hda, /dev/hdb, /dev/sda"
+			     sformat(_("Several harddisks detected: %1"), mergestring(disk_list, ", "))
+			     );
+
+	  /*
+	  // TODO: let the user select which ones of the harddisks to be used
+	  list selected_target_list = [];
+
+	  while (size(selected_target_list) = 0)
+	  {
+	      selected_target_list = OSRPopupCheckBoxGroup(_(), _(), );
+
+	  }
+	  */
+      }
+
+      // probe all harddisks save the list
+      list probe_disk_list = SCR::Read(.probe.disk);
+
+      if ((probe_disk_list != nil) && (probe_disk_list != []))
+      {
+	  OSRProvideList("probe_disk_list", probe_disk_list);
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      //  Iterate all harddisks, check for partitions
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
 
       // check all targets (all disks) for partition entries
       foreach(`target, `values, target_map, ``{
 	  
-	  list target_partitions = lookup(values, "partitions", []);
-	  path target_scrpath    = lookup(values, "scrpath", .);
+	  list    target_partitions = lookup(values, "partitions", []);
+	  path    target_scrpath    = lookup(values, "scrpath", .);
+	  boolean repair_succeeded  = false;
 
 	  OSRModuleProgress::Add(progress_increment);
-	  
-	  OSRProvideMap("target_partition_map", $[target : target_partitions]);
-	  OSRProvideMap("target_scrpath_map", $[target : target_scrpath]);
+
+	  if (size(target_partitions) > 0)
+	  {
+	      OSRProvideMap("target_partition_map", $[target : target_partitions]);
+	  }
+
+	  if (target_scrpath != .)
+	  {
+	      OSRProvideMap("target_scrpath_map", $[target : target_scrpath]);
+	  }
 	  
       	  if (size(target_partitions) == 0)
 	  {
@@ -189,9 +268,11 @@
 	      OSRSummaryDetectError(
 				    module_name,
 				    _("Checking partition tables"),
+				    // "%1": will be replaced with "/dev/hda", "/dev/sda", ...
 				    sformat(_("No partition table found for disk %1"), target)
 				    );
 
+	      // "%1"; will be replaced with "/dev/hda", "/dev/sda", ...
 	      error_message = sformat(_("No partition table found for disk %1.
 
 If you have a YaST2 OS Repair floppy with some
@@ -246,158 +327,123 @@ job, never believe its output without any plausability
 checks. It can be easily right in its guesswork but it can
 also be terribly wrong. You have been warned.\"</p>"), target);
 
-	      repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
+	      ///////////////////////////////////////////////////////////////////////////////////
+	      //
+	      //  Repair partition table with backup from floppy
+	      //
+	      ///////////////////////////////////////////////////////////////////////////////////
 
-	      if (repair_question)
+	      repair_question  = OSRPopupRepair(_("Error detected"), error_message, help_text);
+	      repair_succeeded = false;
+
+	      // repair
+	      while (repair_question && !repair_succeeded)
 	      {
+		  // e.g. if target = "/dev/hda": disk_name = "hda"
 		  string  disk_name     = select(splitstring(target, "/"), (size(splitstring(target, "/"))-1));
-		  string  ptbl_name     = "" + disk_name + ".ptbl";
-		  boolean has_floppy    = lookup(user_settings, "has_floppy", true);
-		  string  floppy_device = lookup(user_settings, "floppy_device", "/dev/fd0");
+
+		  // the name of the primary partition table saved to floppy, e.g. "hda.ptbl"
+		  string  ptbl_name     = disk_name + ".ptbl";
+
+		  string  floppy_device = OSRRequireString("floppy_device");
+		  boolean has_floppy    = OSRRequireBoolean("has_floppy");
 
 		  if (has_floppy)
 		  {
-		      y2milestone("Has floppy.");
-		      
-		      UI::OpenDialog(`opt(`decorated), `Label(_("Loading system information...")));
+		      // Umount everything from "/media/floppy" or from deeper directories
+		      // before mounting the floppy.
+/*
+		      if (UmountAllFrom("/media/floppy"))
+		      {
+			  y2milestone("All devices were successfully umounted from /media/floppy.");
+		      }
+*/
+		      // mount the floppy to /media/floppy/
+		      boolean mounted = (OSRExecuteCommand(.local.bash,
+							   "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
 
-                      // loop: read the partition table from floppy
-		      repeat
-			  {
-			      // mount the floppy to /media/floppy/
-			      //boolean mounted = (WFM::Execute(.local.bash,
-			      //			      "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
-
-			      boolean mounted = (OSRExecuteCommand("/bin/mount " + floppy_device + " /media/floppy -t auto", .local) == 0);
-
-			      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
-			      // correctly!
-			      if (mounted)
-			      {
-				  y2milestone("Mount of floppy was successful.");
+		      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
+		      // correctly!
+		      if (mounted)
+		      {
+			  y2milestone("Mount of floppy was successful.");
 				  
-				  integer ptbl_check = SCR::Read(.target.size, "/media/floppy/" + ptbl_name);
+			  integer ptbl_check = SCR::Read(.target.size, "/media/floppy/" + ptbl_name);
 
-				  if (ptbl_check == 512)
-				  {
-				      y2milestone("Partition table exists and its size is 512 bytes.");
+			  if (ptbl_check == 512)
+			  {
+			      y2milestone("Partition table exists and its size is 512 bytes.");
 				      
+			      UI::OpenDialog(`opt(`decorated), `Label(_("Reverting old partition table...")));
+
+			      // copy the backup of the primary partition table to the target device
+			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446",
+						       ptbl_name, target);
+			      integer revert = OSRExecuteCommand(.local.bash, command);
+
+			      if (revert == 0)
+			      {
+				  y2milestone("Reverting the partition table was successful.");
+					  
+				  // read the partition table for checking if it is o.k.
+				  string partition_path  = ".disk" + target_scrpath + ".partitions";
+				  list   partition_table = SCR::Read(topath(partition_path));
+
+				  if ((partition_table != nil) && (partition_table != []))
+				  {
+				      // o.k., partition table successfully reverted.
+				      y2milestone("Reading the new partition table was successful.");
+
+				      repair_succeeded = true;
+
+				      status = OSRStatusRepairOK();
+
+				      OSRSummaryRepairOK(
+							 module_name,
+							 sformat(_("Repairing partition table of disk %1"), target),
+							 _("Reverted old partition table")
+							 );
+
+				      OSRProvideMap("target_partition_map", $[target : partition_table]);
+
+			      	      // add the name of the current harddisk to the list of valid targets
+				      valid_target_list = add(valid_target_list, target);
+
+				      // construct an updated "targets" map and store it in the global map "user_settings"
+				      map partition_map = $["partitions" : partition_table];
+				      target_map        = add(target_map, target, partition_map);
+				      user_settings     = add(user_settings, "targets", target_map);
+
+				      // umount everything from "/media/floppy" or from deeper directories after reading
+				      if (UmountAllFrom("/media/floppy"))
+				      {
+					  y2milestone("All devices were successfully umounted from /media/floppy.");
+				      }
+
 				      UI::CloseDialog();
 
-				      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446",
-							       ptbl_name, target);
+				      OSRModuleProgress::Fill();
 
-				      UI::OpenDialog(`opt(`decorated), `Label(_("Reverting old partition table...")));
-
-				      //integer revert = WFM::Execute(.local.bash, command);
-				      integer revert = OSRExecuteCommand(command, .local);
-
-				      if (revert == 0)
-				      {
-					  y2milestone("Reverting the partition table was successful.");
-					  
-					  // read the partition table
-					  string partition_path  = ".disk" + target_scrpath + ".partitions";
-					  list   partition_table = SCR::Read(topath(partition_path));
-
-					  if ((partition_table != nil) && (partition_table != []))
-					  {
-					      // o.k., partition table successfully reverted.
-					      y2milestone("Reading the new partition table was successful.");
-
-					      status = OSRStatusRepairOK();
-
-					      OSRSummaryRepairOK(
-								 module_name,
-								 _("Repairing partition table"),
-								 _("Reverted old partition table")
-								 );
-
-					      OSRProvideMap("target_partition_map", $[target : partition_table]);
-
-					      // construct an updated "targets" map and store it in the global map "user_settings"
-					      map partition_map = $["partitions" : partition_table];
-					      target_map        = add(target_map, target, partition_map);
-					      user_settings     = add(user_settings, "targets", target_map);
-
-					      // umount the floppy after reading
-					      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-					      OSRExecuteCommand("/bin/umount /media/floppy", .local);
-  
-					      UI::CloseDialog();
-
-					      OSRModuleProgressFill();
-
-					      return $["status" : status];
-					  }
-					  else
-					  {
-					      y2error("Reverting of the partition table was not successfull.");
-
-					      // umount the floppy after reading
-					      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-					      OSRExecuteCommand("/bin/umount /media/floppy", .local);
-
-					      error_message = sformat(_("An old partition table was found for disk %1
-but it could not be reverted successfully.
-
-If you have a YaST2 OS Repair floppy with some
-up-to-date system information from a former
-rescue session, insert it in your drive and
-press Repair.
-
-Press Skip and repair manually if you have
-a backup of the partition table of disk
-%1.
-
-Press Help if you want to get to know how to
-make a backup of a partition table manually
-and how to revert it."), target);
-
-					      repair_question = OSRPopupRepair(_("Reverting of the partition table not successful"),
-									       error_message, help_text);
-					  }  // if ((partition_table != nil) && (partition_table != []))
-
-				      }
-				      else
-				      {
-					  y2error("Reverting of the partition table was not successfull.");
-
-					  // umount the floppy after reading
-					  //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-					  OSRExecuteCommand("/bin/umount /media/floppy", .local);
-					  
-					  error_message = sformat(_("An old partition table was found for disk %1
-but it could not be reverted successfully.
-
-If you have a YaST2 OS Repair floppy with some
-up-to-date system information from a former
-rescue session, insert it in your drive and
-press Repair.
-
-Press Skip and repair manually if you have
-a backup of the partition table of disk
-%1.
-
-Press Help if you want to get to know how to
-make a backup of a partition table manually
-and how to revert it."), target);
-
-					  repair_question = OSRPopupRepair(_("Reverting of the partition table not successful"),
-									   error_message, help_text);
-				      }  // if (revert == 0)
+				      return $[
+					       "status" : status
+				      ];
 				  }
-				  else
-				  {
-				      y2error("file %1 does not exist or is not of the correct size of 512 bytes.",
-					      "/media/floppy/" + ptbl_name);
+					  
+			      }  // if (revert == 0)
 
-				      // umount the floppy after reading
-				      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-				      OSRExecuteCommand("/bin/umount /media/floppy", .local);
-		      
-				      error_message = sformat(_("It was not possible to find a valid
-partition table for disk %1 on the floppy.
+			      UI::CloseDialog();
+				      
+			  }  // if (ptbl_check == 512)
+		  
+			  if (!repair_succeeded)
+			  {
+			      y2error("Reverting the primary partition table was not successfull.");
+
+			      // umount the floppy after reading
+			      OSRExecuteCommand(.local.bash, "/bin/umount /media/floppy");
+
+			      error_message = sformat(_("An old partition table was found for disk %1
+but it could not be reverted successfully.
 
 If you have a YaST2 OS Repair floppy with some
 up-to-date system information from a former
@@ -412,15 +458,16 @@ Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
-				      repair_question = OSRPopupRepair(_("No valid partition table found on floppy"),
-								       error_message, help_text);
-				  }  // if (ptbl_check == 512)
-			      }
-			      else
-			      {
-				  y2error("Floppy could not be mounted.");
+			      repair_question = OSRPopupRepair(_("Reverting the primary partition table not successful"),
+							       error_message, help_text);
+			  }
+				  
+		      }  // if (mounted)
+		      else
+		      {
+			  y2error("Floppy could not be mounted.");
 
-				  error_message = sformat(_("Either no floppy disk was inserted into
+			  error_message = sformat(_("Either no floppy disk was inserted into
 the drive or the inserted floppy is not
 correctly formatted.
 
@@ -437,69 +484,392 @@ Press Help if you want to get to know how to
 make a backup of a partition table manually
 and how to revert it."), target);
 
-				  repair_question = OSRPopupRepair(_("Floppy could not be mounted"), error_message, help_text);
-
-			      }  // if (mounted)
-			  }
-		      until(!repair_question);
+			  // ask again
+			  repair_question  = OSRPopupRepair(_("Error detected"), error_message, help_text);
+		      }
 		      
-		      // umount the floppy after reading
-		      //WFM::Execute(.local.bash, "/bin/umount /media/floppy");
-		      OSRExecuteCommand("/bin/umount /media/floppy", .local);
-  
-		      UI::CloseDialog();
-		  }
-	      }
-	      else
-	      {
-		  error_message = sformat(_("Press Repair to start the program gpart to
-guess the primary partition table of your
-harddisk.
-
-Press Skip and repair manually if you have a
-backup of the partition table of disk %1.
-
-Press Help if you want to get to know how to
-make a backup of a partition table manually
-and how to revert it."), target);
-		  
-		  repair_question = OSRPopupRepair(_("Repair the primary partition table with gpart"), error_message, help_text);
-
-		  if (repair_question)
-		  {
-		      // TODO: launch gpart, if the partition table could not be reverted
-		      // get the geometry of the harddisk
-		      // start gpart -C c,s,h partition
-		      // display the result to the user and let him select if the result shall be
-		      // written to the primary partition table
-		      // Frage: gpart ist beta, soll das ueberhaupt eingesetzt werden???
-
-		  }
+		  }  // if (has_floppy)
 		  else
 		  {
+		      // this can't be repaired without a floppy drive, so the user must not be asked again
+		      // to repair via floppy
+		      // TODO: read from other medium than floppy (later)
+		      repair_question  = false;
+		      repair_succeeded = false;
+
+		      // TODO: display that no floppy drive was detected
+
+		      MessagePopup(_("YaST2 OS Repair could not detect a floppy
+drive in your system. A backup copy of the
+primary partition table could not be read."));
+		  }
+
+	      }	 // while(repair_question && !repair_succeeded)
+		  
+
+	      if (!repair_question && !repair_succeeded)
+	      {
+		  // repair omitted
+
+		  status = OSRStatusRepairOmit();
+
+		  OSRSummaryRepairOmit(
+				       module_name,
+				       sformat(_("Repairing partition table of disk %1"), target),
+				       _("Partition table not repaired")
+				       );
+		  
+	      }
+
+              ///////////////////////////////////////////////////////////////////////////////////
+	      //
+	      //  Repair partition table with gpart
+	      //
+	      ///////////////////////////////////////////////////////////////////////////////////
+
+	      if (!repair_succeeded)
+	      {
+		  
+		  // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
+		  error_message = sformat(_("The primary partition table of disk %1
+is still not repaired. If you want to
+let gpart guess your partition table
+press Repair.
+
+Press Skip to avoid repairing the
+partition table with gpart."), target);
+
+		  help_text = _("Blabla");
+	      
+		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
+
+		  // repair
+		  while (repair_question && !repair_succeeded)
+		  {
+		      /*
+		      // search for the geometry of the defect harddisk:
+		      // 1. the actual geometry (can be broken if the partition table is)
+		      // 2. an old geometry saved in osr_map.ycp on floppy if the harddisks were not exchanged
+
+		      // if one geometry was found: start gpart -C c,s,h <harddisk>, display the result and ask for writing
+		      // if several geometries were found, execute gpart on everyone of them, display the results, let the user select
+		      // if no geometries were found: start gpart <harddisk>, display the result and ask for writing
+
+		      // get the result from SCR::Read(.probe.disk) to get the harddisk geometry
+		      list probe_disk_list = OSRRequireList("probe_disk_list");
+
+		      // select the map of the defective harddisk from the list, should look like this map:
+		      // $[
+		      //   "bus":"SCSI", "class_id":262, "dev_name":"/dev/sda", "device":"LIGHTNING 730S",
+		      //   "resource":$["disk_log_geo":[$["cylinders":699, "heads":64, "sectors":32]],
+		      //   "size":[$["unit":"sectors", "x":1431760, "y":512]]], "rev":"241E", "sub_class_id":0,
+		      //   "unique_key":"4t_9.3y87AyIJK4C", "vendor":"QUANTUM"
+		      //  ]
+		      map  target_disk_map = find(`k, probe_disk_list, ``(lookup(k, "dev_name", "") == target));
+		      list disk_log_geo    = lookup(lookup(target_disk_map, "resource", $[]), "disk_log_geo", []);
+		      map  geometry        = select(disk_log_geo, 0, $[]);
+		      */
+		      
+		      // start gpart, display to the user
+		      // ask the user which one of the detected partitions should be activated (1-4): OSRPopupRadioButtonGroup()
+		      // start gpart -W ...
+		      // check again with SCR::Read(.disk.sda.partitions)
+
+		      string gpart_command = "gpart " + target;
+		      map    gpart_result  = OSRExecuteCommandOutput(.target.bash_output, gpart_command);
+
+		      if (lookup(gpart_result, "exit", -1) == 0)
+		      {
+			  // display the results in a window
+			  OSRPopupLongTextView(_("Gpart output"), lookup(gpart_result, "stdout", ""), 20, 100);
+
+			  // parse the gpart result
+			  string gpart_out      = lookup(gpart_result, "stdout", "");
+			  string partitions_out = substring(gpart_out,
+							    find(gpart_out, "\nPrimary partition(1)"),
+							    (size(gpart_out) - find(gpart_out, "\nPrimary partition(1)")));
+
+			  string partition1 = substring(partitions_out,
+							find(partitions_out, "\nPrimary partition(1)"),
+							(find(partitions_out, "\nPrimary partition(2)") -
+							 find(partitions_out, "\nPrimary partition(1)")));
+
+			  string partition2 = substring(partitions_out,
+							find(partitions_out, "\nPrimary partition(2)"),
+							(find(partitions_out, "\nPrimary partition(3)") -
+							 find(partitions_out, "\nPrimary partition(2)")));
+
+			  string partition3 = substring(partitions_out,
+							find(partitions_out, "\nPrimary partition(3)"),
+							(find(partitions_out, "\nPrimary partition(4)") -
+							 find(partitions_out, "\nPrimary partition(3)")));
+
+			  string partition4 = substring(partitions_out,
+							find(partitions_out, "\nPrimary partition(4)"),
+							(size(partitions_out) -
+							 find(partitions_out, "\nPrimary partition(4)")));
+
+			  list gpart_partitions = [partition1, partition2, partition3, partition4];
+
+			  // the list of partitions that can be activated
+			  list activatable_partitions = [];
+
+			  // this list holds the strings for the OSRPopupRadioButtonGroupText window
+			  list selection_display = [];
+			  
+			  integer index = 0;
+			  while ((index >= 0) && (index < size(gpart_partitions)))
+			  {
+			      string p = select(gpart_partitions, index, "");
+
+			      // split the output for each partition at the newlines
+			      list p_list = splitstring(p, "\n");
+
+			      string item_text = "";
+			      
+			      foreach(`line, p_list, ``{
+
+				  if (issubstring(line, "type: "))
+				  {
+				      integer size_of_line = size(sformat("%1", line));
+				      integer directly_after_type = find(line, "type: ") + size("type: ");
+				      integer to_the_end = size_of_line - (find(line, "type: "));
+
+				      item_text = substring(line, directly_after_type, to_the_end);
+				  }
+			      });
+
+			      //string item_text = substring(p, find(p, "type: ") + size("type: "), find(p, ")));
+
+			      list item_list = [sformat("%1", index + 1), item_text];
+
+			      //y2error("%1", item_list);
+
+			      selection_display = add(selection_display, item_list);
+			      
+			      // TODO: which partitions should not be activated??
+			      // add all partitions to the list of activatable partitions that are not swap (0x82), unused (0x00),...
+			      if (!issubstring(p, "(0x82)") && !issubstring(p, "(0x00)"))
+			      {
+				  activatable_partitions = add(activatable_partitions, sformat("%1", (index + 1)));
+			      }
+			      index = index + 1;
+			  }
+
+			  // create the string for the proposal which one of the partitions should be activated.
+			  string proposal_string  = "";
+			  string default_proposal = "";
+			  if (size(activatable_partitions) == 0)
+			  {
+			      // no proposals
+			      proposal_string = _("YaST2 OS Repair proposes no partition to be
+activated.");
+			  }
+			  else if (size(activatable_partitions) == 1)
+			  {
+			      proposal_string = sformat(_("YaST2 OS Repair proposes partition number %1
+to be activated."), select(activatable_partitions, 0, ""));
+
+			      default_proposal = select(activatable_partitions, 0, "");
+			  }
+			  else if (size(activatable_partitions) == 0)
+			  {
+			      proposal_string = sformat(_("YaST2 OS Repair proposes one of the partitions
+%1 to be activated."), mergestring(activatable_partitions, ", "));
+
+			      default_proposal = select(activatable_partitions, 0, "");
+			  }
+
+			  // let the user select which partition to be activated
+			  string active_partition = OSRPopupRadioButtonGroupText(
+									   _("Gpart: Select the active partition"),
+									   sformat(_("The program gpart will mark the selected partition
+as active.
+
+%1
+
+Press Cancel if gpart should not write the guessed
+result to the primary partition table.
+"), proposal_string),
+									   selection_display,
+									   /*
+									   [
+									    
+									    ["1", _("First primary partition")],
+									    ["2", _("Second primary partition")],
+									    ["3", _("Third primary partition")],
+									    ["4", _("Fourth primary partition")]
+									    ],
+									   */
+									   default_proposal,
+									   "cancel",
+									   false
+									   );
+
+			  // check if the user pressed cancel -> don't start gpart
+			  if (active_partition == "cancel")
+			  {
+			      OSRPopupDisplayQuick(_("Gpart was not started"), 1000);
+			  }
+			  else
+			  {
+			      // should look like this: echo n\n2\ny | gpart -W /dev/sda /dev/sda
+			      gpart_command = sformat("echo n\n%1\ny | gpart -W %2 %2", active_partition, target);
+
+			      // execute gpart
+			      gpart_result  = OSRExecuteCommandOutput(.target.bash_output, gpart_command);
+
+			      if (lookup(gpart_result, "exit", -1) == 0)
+			      {
+				  y2milestone("Reverting the partition table was successful.");
+
+				  repair_succeeded = true;
+					  
+				  // read the partition table for checking if it is o.k.
+				  string partition_path  = ".disk" + target_scrpath + ".partitions";
+				  list   partition_table = SCR::Read(topath(partition_path));
+
+				  if ((partition_table != nil) && (partition_table != []))
+				  {
+				      // o.k., partition table successfully reverted.
+				      y2milestone("Reading the new partition table was successful.");
+
+				      repair_succeeded = true;
+
+				      status = OSRStatusRepairOK();
+
+				      OSRSummaryRepairOK(
+							 module_name,
+							 sformat(_("Repairing partition table of disk %1"), target),
+							 _("Reverted old partition table")
+							 );
+
+				      // add the name of the current harddisk to the list of valid targets
+				      valid_target_list = add(valid_target_list, target);
+
+				      OSRProvideMap("target_partition_map", $[target : partition_table]);
+
+				      // construct an updated "targets" map and store it in the global map "user_settings"
+				      map partition_map = $["partitions" : partition_table];
+				      target_map        = add(target_map, target, partition_map);
+				      user_settings     = add(user_settings, "targets", target_map);
+
+				      OSRModuleProgress::Fill();
+
+				      return $[
+					       "status" : status
+				      ];
+				  }
+
+			      }
+			  }
+		      }
+		  
+		      if (!repair_succeeded)
+		      {
+			  /*
+			  status = OSRStatusRepairError();
+
+			  OSRSummaryRepairError(
+					     module_name,
+					     sformat(_("Repair partition table of disk %1"), target),
+					     _("Partition table not repaired")
+					     );
+			  */
+			  repair_question  = OSRPopupRepair(_("Error detected"), error_message, help_text);
+		      }
+		  
+		  }   // while (repair_question && !repair_succeeded)
+
+		  if (!repair_question)
+		  {
+		      // repair omitted
 		      status = OSRStatusRepairOmit();
 
 		      OSRSummaryRepairOmit(
 					   module_name,
-					   _("Repairing partition table"),
+					   sformat(_("Repairing partition table of disk %1"), target),
 					   _("Partition table not repaired")
 					   );
+
 		  }
-	      }
+	      
+	      }  // if (!repair_succeeded)	      
 	  }
 	  else
 	  {
+	      // everything is o.k.
+	      
 	      OSRModuleProgress::Add(progress_increment);
 
-	      status = OSRStatusDetectOK();
-
-	      OSRSummaryDetectOK(
-				 module_name,
-				 _("Checking partition tables"),
-				 sformat(_("Partition tables found for disk %1"), target)
-				 );
+	      // add the name of the current harddisk to the list of valid targets
+	      valid_target_list = add(valid_target_list, target);
 	  }
       });  // foreach(`target, `values, target_map, ...
+
+      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      //  Check if at least one harddisk with a valid partition table exists
+      //
+      ///////////////////////////////////////////////////////////////////////////////////
+
+      if (size(valid_target_list) == 0)
+      {
+	  status   = OSRStatusDetectError();
+	  severity = OSRErrorSeverityBlocking();
+
+	  OSRSummaryDetectError(
+				module_name,
+				_("Checking harddisks"),
+				_("No disk contains valid primary partition table")
+				);
+
+	  error_message = _("YaST2 OS Repair could not detect any hard
+disks that contain a valid primary partition
+table in your system.
+
+YaST2 OS Repair halts now.");
+
+	  // display the error message, only a OK pushbutton
+	  UI::MessagePopup(error_message);
+	  
+	  // if no harddisk was found, exit the rescue system
+	  return $[
+		   "status"        : status,
+		   "severity"      : severity
+	  ];
+
+      }
+      else if (size(valid_target_list) == 1)
+      {
+	  // at least one valid target found
+	  y2milestone("Valid targets: %1", valid_target_list);
+
+	  status = OSRStatusDetectOK();
+
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Checking partition tables"),
+			     sformat(_("Partition tables found for disk %1"), select(valid_target_list, 0, ""))
+			     );
+	  
+      }
+      else if (size(valid_target_list) > 0)
+      {
+	  // at least one valid target found
+	  y2milestone("Valid targets: %1", valid_target_list);
+	  
+	  status = OSRStatusDetectOK();
+
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Checking partition tables"),
+			     sformat(_("Partition tables found for the disks %1"), mergestring(valid_target_list, ", "))
+			     );
+
+      }
+      
+      OSRProvideList("valid_target_list", valid_target_list);
       
       // set the value of the module progress bar to 100%
       OSRModuleProgress::Fill();
@@ -512,14 +882,16 @@ and how to revert it."), target);
    *  filesystem tables (/etc/fstab) on the partitions.
    *
    *  Provides: list valid_root_partitions,
-   *            string root_partition
+   *            string root_partition,
+   *            list valid_swap_partitions,
+   *            list swapable_partitions
    *
    *  @return map The result_map.
    */
   global define OSRPartitionCheckPartitions() ``{
 
       boolean repair_question           = false;
-      integer progress_expect           = 50;
+      integer progress_expect           = 60;
       string  module_name               = "osr_module_partition";
       string  help_text                 = "";
       string  error_message             = "";
@@ -549,6 +921,82 @@ and how to revert it."), target);
 	  y2debug("All partitions were successfully umounted from /mnt...");
       }
 
+      OSRModuleProgress::Add(10);
+
+      /////////////////////////////////////////////////////////
+      //
+      // install available kernel modules for the filesystems
+      //
+      /////////////////////////////////////////////////////////
+
+      list fs_kernel_modules = ["reiserfs", "ext3", "jfs", "jbd", "xor", "raid0", "raid1", "raid5"];
+
+      map  loaded_kernel_modules = OSRExecuteCommandOutput(.target.bash, "/sbin/lsmod");
+
+      list already_installed_modules      = [];
+      list successfully_installed_modules = [];
+      list not_installed_modules          = [];
+
+      list loaded_modules_list = splitstring(lookup(loaded_kernel_modules, "stdout", ""), "\n");
+
+      // iterate all listed kernel modules
+      foreach(`fs_module, fs_kernel_modules, ``{
+
+	  boolean is_substring = false;
+	  
+	  foreach(`line, loaded_modules_list, ``{
+
+	      if (issubstring(line, fs_module))
+	      {
+		  is_substring = true;
+	      }
+	  });
+
+	  // check if the current module is already loaded
+	  if (is_substring)
+	  {
+	      already_installed_modules = add(already_installed_modules, fs_module);
+	  }
+	  else
+	  {
+	      if (SCR::Execute(.target.insmod, fs_module, ""))
+	      {
+		  successfully_installed_modules = add(successfully_installed_modules, fs_module);
+	      }
+	      else
+	      {
+		  not_installed_modules = add(not_installed_modules, fs_module);
+	      }
+	  }
+      });
+
+      if (size(already_installed_modules) > 0)
+      {
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Installing kernel modules for filesystem support"),
+			     sformat(_("Kernel modules already installed: %1"), mergestring(already_installed_modules, ", "))
+			     );
+      }
+
+      if (size(successfully_installed_modules) > 0)
+      {
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Installing kernel modules for filesystem support"),
+			     sformat(_("Kernel modules sucessfully installed: %1"), mergestring(successfully_installed_modules, ", "))
+			     );
+      }
+
+      if (size(not_installed_modules) > 0)
+      {
+	  OSRSummaryDetectProblem(
+			     module_name,
+			     _("Installing kernel modules for filesystem support"),
+			     sformat(_("Not successfully installed kernel modules: %1"), mergestring(not_installed_modules, ", "))
+			     );
+      }
+      
       OSRModuleProgress::Add(10);
 
       /////////////////////////////////////////////////////////
@@ -603,7 +1051,8 @@ and how to revert it."), target);
       
       if (size(linux_partition_list) <= 0)
       {
-	  status = OSRStatusExit();
+	  status = OSRStatusDetectError();
+	  severity = OSRErrorSeverityBlocking();
 
 	  OSRSummaryDetectError(
 				module_name,
@@ -613,7 +1062,10 @@ and how to revert it."), target);
 	  
 	  // TODO: display and exit, start installation or partitioning instead
 
-	  return ($["status" : status]);
+	  return $[
+		   "status" : status,
+		   "severity" : severity
+	  ];
       }
       else
       {
@@ -650,7 +1102,8 @@ and how to revert it."), target);
       }
       else
       {
-	  status = OSRStatusExit();
+	  status = OSRStatusDetectError();
+	  severity = OSRErrorSeverityBlocking();
 	  
 	  OSRSummaryDetectError(
 				module_name,
@@ -660,7 +1113,10 @@ and how to revert it."), target);
 
 	  // TODO: display and exit, start installation or partitioning instead
 	  
-	  return ($["status" : status]);
+	  return $[
+		   "status" : status,
+		   "severity" : severity
+	  ];
       }
 
       /////////////////////////////////////////////////////////////////
@@ -675,7 +1131,8 @@ and how to revert it."), target);
 
       if (size(valid_root_partition_list) <= 0)
       {
-	  status = OSRStatusExit();
+	  status = OSRStatusDetectError();
+	  severity = OSRErrorSeverityBlocking();
 	  
 	  OSRSummaryDetectError(
 				module_name,
@@ -688,7 +1145,10 @@ and how to revert it."), target);
 	  // -> this has to be the root partition but the fstab is missing,
 	  // probably it is possible to autocreate a new one
 	  
-	  return ($["status" : status]);
+	  return $[
+		   "status" : status,
+		   "severity" : severity
+	  ];
       }
       else if (size(valid_root_partition_list) == 1)
       {
@@ -722,7 +1182,7 @@ and how to revert it."), target);
 
 	  // launch a popup with a RadioButtonGroup - one button for each item in the list -
 	  // and let the user select the root partition
-	  root_partition = OSRPopupSelectItem(
+	  root_partition = OSRPopupRadioButtonGroup(
 					      _("Select root partition"),
 					      _("There exist several valid root partitions in your system.
 You have to select one item in the list."),
@@ -734,9 +1194,80 @@ You have to select one item in the list."),
 	  OSRProvideString("root_partition", root_partition);
       }
 
+      /////////////////////////////////////////////////////////////////
+      //
+      // search for valid swap partitions
+      //
+      /////////////////////////////////////////////////////////////////
+
+      list swap_partition_list = GetSwapPartitions(target_map);
+
+      OSRModuleProgress::Add(10);
+      
+      if (size(swap_partition_list) <= 0)
+      {
+	  status = OSRStatusDetectProblem();
+
+	  OSRSummaryDetectProblem(
+				module_name,
+				_("Searching for valid swap partitions"),
+				_("No valid partition types found")
+				);
+      }
+      else
+      {
+	  status = OSRStatusDetectOK();
+	      
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Searching for valid swap partitions"),
+			     sformat(_("Valid swap partitions found:<br>%1"),
+				     mergestring(swap_partition_list, ", "))
+			     );
+
+	  OSRProvideList("valid_swap_partitions", swap_partition_list);
+      }
+
+      /////////////////////////////////////////////////////////////////
+      //
+      // search for "swap-able" partitions
+      //
+      /////////////////////////////////////////////////////////////////
+
+      list swapable_partition_list = GetSwapablePartitions(swap_partition_list);
+
+      OSRModuleProgress::Add(10);
+      
+      if (size(swapable_partition_list) <= 0)
+      {
+	  status = OSRStatusDetectProblem();
+
+	  OSRSummaryDetectProblem(
+				module_name,
+				_("Searching for swap-able partitions"),
+				_("No swap-able partitions found")
+				);
+      }
+      else
+      {
+	  status = OSRStatusDetectOK();
+	      
+	  OSRSummaryDetectOK(
+			     module_name,
+			     _("Searching for swap-able partitions"),
+			     sformat(_("Swap-able partitions found:<br>%1"),
+				     mergestring(swapable_partition_list, ", "))
+			     );
+
+	  OSRProvideList("swapable_partitions", swapable_partition_list);
+      }
+
       status = OSRStatusDetectOK();
       
-      result_map = $["status" : status];
+      result_map = $[
+		     "status" : status,
+		     "severity" : severity
+      ];
 
       // set the value of the module progress bar to 100%
       OSRModuleProgress::Fill();
@@ -771,6 +1302,7 @@ You have to select one item in the list."),
       // mount all valid entries in the fstab
 
       string  status                  = "";
+      string  severity                = "";
       string  module_name             = "osr_module_partition";
       list    valid_root_partitions   = [];
       string  root_partition          = "";
@@ -813,11 +1345,11 @@ You have to select one item in the list."),
       
       if (root_partition_type == "unknown")
       {
-	  status = OSRStatusDetectError();
+	  status = OSRStatusDetectProblem();
 	  
-	  OSRSummaryDetectError(
+	  OSRSummaryDetectProblem(
 				module_name,
-				sformat(_("Checking filesystem of root partition: %1"), root_partition),
+				sformat(_("Detecting filesystem type of root partition %1"), root_partition),
 				_("Filesystem type is unknown")
 				);
       }
@@ -827,7 +1359,7 @@ You have to select one item in the list."),
 	  
 	  OSRSummaryDetectOK(
 			     module_name,
-			     sformat(_("Checking filesystem of root partition: %1"), root_partition),
+			     sformat(_("Detecting filesystem type of root partition %1"), root_partition),
 			     sformat(_("Filesystem type: %1"), root_partition_type)
 			     );
       }
@@ -869,20 +1401,22 @@ You have to select one item in the list."),
 
 		  OSRSummaryDetectOK(
 				     module_name,
-				     sformat(_("Checking filesystem of root partition: %1"), root_partition),
+				     sformat(_("Checking filesystem of root partition %1"), root_partition),
 				     _("Filesystem is o.k.")
 				     );
 	      }
 	      else
 	      {
-		  status = OSRStatusDetectError();
+		  status = OSRStatusDetectProblem();
 
-		  OSRSummaryDetectError(
+		  OSRSummaryDetectProblem(
 					module_name,
-					sformat(_("Checking filesystem of root partition: %1"), root_partition),
+					sformat(_("Checking filesystem of root partition %1"), root_partition),
 					sformat(_("Filesystem is corrupted<br>fsck exits with code %1"), check_fs)
 					);
 
+		  // TODO: fsck reports an error but the partition is mountable, as we know???
+		  // go on and try to mount the root partition
 	      }
 	  }
       }
@@ -1083,11 +1617,11 @@ You have to select one item in the list."),
 
 		  if (real_fstype == "unknown")
 		  {
-		      status = OSRStatusDetectError();
+		      status = OSRStatusDetectProblem();
 	  
-		      OSRSummaryDetectError(
+		      OSRSummaryDetectProblem(
 					    module_name,
-					    sformat(_("Checking filesystem of partition: %1"), root_partition),
+					    sformat(_("Detecting filesystem type of partition %1"), spec),
 					    _("Filesystem type is unknown")
 					    );
 		  }
@@ -1097,7 +1631,7 @@ You have to select one item in the list."),
 	  
 		      OSRSummaryDetectOK(
 					 module_name,
-					 sformat(_("Checking filesystem of partition: %1"), root_partition),
+					 sformat(_("Detecting filesystem type of partition %1"), spec),
 					 sformat(_("Filesystem type: %1"), real_fstype)
 					 );
 		  }
@@ -1130,7 +1664,7 @@ You have to select one item in the list."),
 
 			  OSRSummaryDetectOK(
 					     module_name,
-					     sformat(_("Checking filesystem of partition: %1"), spec),
+					     sformat(_("Checking filesystem of partition %1"), spec),
 					     _("Filesystem is o.k.")
 					     );
 		      }
@@ -1140,7 +1674,7 @@ You have to select one item in the list."),
 
 			  OSRSummaryDetectError(
 						module_name,
-						sformat(_("Checking filesystem of partition: %1"), spec),
+						sformat(_("Checking filesystem of partition %1"), spec),
 						sformat(_("Filesystem is corrupted<br>fsck exits with code %1"), check_fs)
 						);
 		      }

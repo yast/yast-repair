@@ -27,6 +27,7 @@
 
   include "ui/common_popups.ycp";
   include "ui/wizard_dialog.ycp";
+  include "installation_ui.ycp";
 
   include "osr/osr_system.ycp";
   include "osr/osr_api.ycp";
@@ -38,6 +39,7 @@
   import "osr/OSRLogFile";
 
   import "Installation";
+//  import "Arch";
 
   ////////////////////////////////////////////////////////////////////////////////
   //
@@ -51,7 +53,7 @@
   // Set the global log file, if it not succeeds, exit the rescue system.
   if (!OSRLogFile::SetFile(log_file))
   {
-      y2error("YaST2 OS Repair exits now!");
+      y2error("Setup of the log file failed. YaST2 OS Repair exits now!");
 
       return false;
   }
@@ -104,11 +106,8 @@ YaST2 OS Repair halts now."));
   }
   else
   {
-      y2error("Something's wrong: initial_mode == %1 and continue_mode == %2",
+      y2warning("Something's wrong: initial_mode == %1 and continue_mode == %2, but cannot both be true!",
 	      Installation::initial_mode, Installation::continue_mode);
-
-      OSRLogFile::Add(sformat("Something's wrong: initial_mode == %1 and continue_mode == %2\n",
-	      Installation::initial_mode, Installation::continue_mode));
   }
       
   osr_map = $[
@@ -127,10 +126,13 @@ YaST2 OS Repair halts now."));
   }
   else
   {
-      // write the actual user settings for later use
-      SCR::Write(.target.ycp, "/var/lib/YaST2/user_settings", user_settings);
+      if (Installation::initial_mode && !Installation::continue_mode)
+      {
+	  // write the actual user settings for later use
+	  SCR::Write(.target.ycp, "/var/lib/YaST2/user_settings", user_settings);
       
-      OSRLogFile::Add("map user_settings:\n%1\n" + user_settings);
+	  OSRLogFile::Add(sformat("map user_settings:\n%1\n", user_settings));
+      }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -158,7 +160,9 @@ YaST2 OS Repair halts now."));
   }
   else if ( size(Args()) > 1 )
   {
-      y2error("ERROR: too many arguments: %1, no more than one allowed.", size(Args()) );
+      y2error("ERROR: too many arguments: size(%1) == %2, no more than one allowed. YaST2 OS Repair halts now!",
+	      Args(), size(Args()) );
+
       return `error;
   }
   else
@@ -215,7 +219,8 @@ YaST2 OS Repair halts now."));
 	  }
 	  else
 	  {
-	      y2error("ERROR: unknown option %1", Args(arg_n) );
+	      y2error("ERROR: unknown option %1. YaST2 OS Repair halts now!", Args(arg_n) );
+
 	      return `error;
 	  }
 	  arg_n = arg_n + 1;
@@ -280,12 +285,9 @@ YaST2 OS Repair halts now."));
 
       if ((osr_module_list == nil) || (size(osr_module_list) == 0))
       {
-	  y2error("OSRInit Error: something's wrong with the file \"osr_module_list.ycp\"");
+	  y2error("OSRInit Error: something's wrong with the file \"osr_module_list.ycp\". YaST2 OS Repair halts now!");
 
-	  OSRLogFile::Add("OSRInit Error: something's wrong with the file \"osr_module_list.ycp\"");
-
-	  OSRPopupDisplayQuick(_("Error: the file osr_module_list.ycp
-is not a valid YCP-file.
+	  OSRPopupDisplayQuick(_("Error during initialization.
 
 YaST2 OS Repair halts now."), 2000);
 	  
@@ -318,7 +320,7 @@ of the init-functions of module: %1
 
 YaST2 OS Repair halts now."), select(osr_module_list, index)), 2000);
 	      
-	      y2error("An error occurred during execution of the init-functions of module: %1",
+	      y2error("An error occurred during execution of the init-functions of module: %1. YaST2 OS Repair halts now!",
 		      select(osr_module_list, index));
 	      
 	      return false;
@@ -364,7 +366,7 @@ YaST2 OS Repair halts now."), select(osr_module_list, index)), 2000);
       }
       else
       {
-	  y2error("ERROR OSRInit: not all dependencies between the modules successfully solved!");
+	  y2error("ERROR OSRInit: not all dependencies between the modules successfully solved. YaST2 OS Repair halts now!");
 
 	  OSRLogFile::Add("Not all dependencies between the modules successfully solved.");
 
@@ -381,90 +383,17 @@ YaST2 OS Repair halts now."));
       
       if (!script_mode)
       {
+	  UI::ChangeWidget(`id(`next), `Label, _("&Next"));
+
+	  //UI::ChangeWidget(`id(`back), `Enabled, false);
+	  //UI::ChangeWidget(`id(`abort), `Enabled, false);
+	  //UI::ChangeWidget(`id(`next), `Enabled, false);
+
 	  UI::ChangeWidget(`id(`title), `Value, header + _("\nInitialization succeeded"));
+
+	  // display the main window
+	  OSRSetMainWindowContents();
 	  
-	  integer osr_module_progress_length = OSRModuleProgress::length;
-	  integer osr_global_progress_length = OSRGlobalProgress::length;
-
-	  // Build window contents
-	  UI(``{
-	      term    download_progress      = `Empty();
-	      term    progress_bar           = `Empty();
-	      term    buttons_right          = `Empty();
-	      term    rich_text              = `Empty();
-	      term    contents               = `Empty();
-	      string  help_text              = "";
-
-	      /*
-		buttons_right = `HSquash(`Top(`VBox(`PushButton(`id(`repair),`opt(`disabled),_("&Repair")),`PushButton(`id(`help_button),
-		`opt(`hstretch),_("&Help")))));
-	      */
-
-	      // only use a DownloadProgress-widget if it is supported by the UI-interpreter
-	      // (e.g. QT: supported, ncurses: NOT supported)
-	      if (HasSpecialWidget(`DownloadProgress))
-	      {
-		  download_progress = `DownloadProgress(
-							`id(`module_progress_bar),
-							_("Module check"),
-							"/tmp/module_progress_bar",
-						        WFM::osr_module_progress_length
-							);
-	      }
-
-	      progress_bar = `ProgressBar(
-					  `id(`global_progress_bar),
-					  _("System check"),
-					  WFM::osr_global_progress_length
-					  );
-
-
-	      /*
-	      // perhaps use a LogView widget instead of RichText
-	      rich_text = `LogView(
-				    `id(`rich_text_info),
-				    "",                     // header
-				    10,                     // number of visible lines
-				    100                     // number of lines to hold in memory
-				    );
-	      */
-	      
-	      rich_text = `RichText(
-				    `id(`rich_text_info),
-				    ""
-				    );
-	      	      
-	      // Contents of the dialog	  
-	      contents = `VBox(
-			       `VSpacing(0.3),
-			       `HBox(
-				     rich_text,
-				     buttons_right
-				     ),
-			       `HBox(
-				     download_progress
-				     ),
-			       `HBox(
-				     progress_bar
-				     ),
-			       `VSpacing(0.5)
-			       );
-
-	      // Help text (HTML-like) START
-	      help_text = _("
-<p><b>YaST2 OS Repair</b> now checks your Linux system.</p>
-<p>Depending on the CPU and the amount of memory this can
-take some time.</p>");
-
-	      SetWizardContents(
-				_("YaST2 OS Repair - System check"),
-				contents,
-				help_text,
-				false,         // have_back_button
-				false          // have_next_button
-				);
-	  });
-
 	  // set the increment value for the global progress bar
 	  OSRGlobalProgress::ComputeIncrement(lookup(osr_map, "module_sequence", []), osr_detect_method_map);
       }
@@ -488,7 +417,7 @@ take some time.</p>");
       
       if ( size(module_sequence) <= 0 )
       {
-	  y2error("OSRDetect ERROR: list module_sequence is empty: %1", module_sequence);
+	  y2error("OSRDetect ERROR: list module_sequence is empty: %1. YaST2 OS Repair halts now!", module_sequence);
 
 	  OSRLogFile::Add("No sequence of modules.");
 	  
@@ -509,7 +438,8 @@ take some time.</p>");
 	  integer index_detect  = 0;
 	  map     result_map    = $[];
 	  string  status        = "";
-	      
+	  string  severity      = "";
+
 	  // execute all detect-functions of the specified module
 	  while((index_detect >= 0) && (index_detect < size(detect_methods)))
 	  {
@@ -518,6 +448,7 @@ take some time.</p>");
 
 	      // get some information from the result_map
 	      status          = lookup(result_map, "status", "");
+	      severity        = lookup(result_map, "severity", "");
 	      
 	      if (status == "detect_ok")
 	      {
@@ -525,31 +456,104 @@ take some time.</p>");
 		  OSRGlobalProgress::Increase();
 		  index_detect = index_detect + 1;
 	      }
+	      else if ((status == "detect_error") && (severity == "blocking"))
+	      {
+		  // if a blocking error was detected but no repair method started
+		  // halt the rescue system
+
+		  OSRGlobalProgress::Fill();
+		  return false;
+	      }
+	      else if ((status == "detect_error") && (severity == "module_blocking"))
+	      {
+		  // if a module-blocking error was detected but no repair method started
+		  // execute no further detection methods from the current module and jump
+		  // to the next detection module
+
+		  // adjust the value of the global progress bar
+		  while (index_detect < size(detect_methods))
+		  {
+		      OSRGlobalProgress::Increase();
+		      index_detect = index_detect + 1;
+		  }
+	      }
 	      else if (status == "detect_error")
 	      {
-		  // if an error was detected but no repair method started
+		  // if a "normal" error was detected but no repair method started
 		  // restart the current detection method
+	      }
+	      else if (status == "detect_problem")
+	      {
+		  // if a potential problem was detected and no repair method started
+		  // go to the next detection method
+		  OSRGlobalProgress::Increase();
+		  index_detect = index_detect + 1;
 	      }
 	      else if (status == "repair_ok")
 	      {
 		  // if all detected errors were repaired restart the current
 		  // detection method
 	      }
+	      else if ((status == "repair_error") && (severity == "blocking"))
+	      {
+		  // if a blocking error was detected but the repair method failed
+		  // halt the rescue system
+
+		  OSRGlobalProgress::Fill();
+		  return false;
+	      }
+	      else if ((status == "repair_error") && (severity == "module_blocking"))
+	      {
+		  // if a module-blocking error was detected but the repair method failed
+		  // execute no further detection methods from the current module and jump
+		  // to the next detection module
+
+		  // adjust the value of the global progress bar
+		  while (index_detect < size(detect_methods))
+		  {
+		      OSRGlobalProgress::Increase();
+		      index_detect = index_detect + 1;
+		  }
+	      }
 	      else if (status == "repair_error")
 	      {
 		  // if the repair-method was not successfull restart the current
 		  // detection method
 	      }
+	      else if ((status == "repair_omit") && (severity == "blocking"))
+	      {
+		  // if a blocking error was detected but the user omitted repairing
+		  // halt the rescue system
+
+		  OSRGlobalProgress::Fill();
+		  return false;
+	      }
+	      else if ((status == "repair_omit") && (severity == "module_blocking"))
+	      {
+		  // if the user omitted repairing a module-blocking error
+		  // go to the next module
+
+		  // adjust the value of the global progress bar
+		  while (index_detect < size(detect_methods))
+		  {
+		      OSRGlobalProgress::Increase();
+		      index_detect = index_detect + 1;
+		  }
+	      }
 	      else if (status == "repair_omit")
 	      {
-		  // if the user omitted repairing go to the next detection method
+		  // if the user omitted repairing a "normal" error go to
+		  // the next detection method
+		  
 		  OSRGlobalProgress::Increase();
 		  index_detect = index_detect + 1;
 	      }
 	      else if (status == "exit")
 	      {
 		  // if a blocking error was detected exit the rescue system, e.g. if no harddisks were detected
-		  y2error("A blocking error was detected, the rescue system is exiting now.");
+		  y2milestone("A blocking error was detected. YaST2 OS Repair halts now!");
+
+		  OSRGlobalProgress::Fill();
 		  return false;
 	      }
 	      else
@@ -564,9 +568,14 @@ take some time.</p>");
 	  index_modules = index_modules + 1;
       }
 
-      // fill up the global-progress-bar to 100%, this can be neccessary because of
+      // fill up the global-progress-bar to 100%, this can be necessary because of
       // arithmetic rounding problems
       OSRGlobalProgress::Fill();
+
+      UI::ChangeWidget(`id(`next), `Enabled, true);
+      UI::ChangeWidget(`id(`abort), `Enabled, true);
+      UI::ChangeWidget(`id(`back), `Enabled, true);
+      UI::SetFocus(`id(`next));
       
       return true;
   };
@@ -623,7 +632,7 @@ take some time.</p>");
   }
 
   // Check the user-name, only root has access to the rescue-system.
-  // If the rescue-system was started via cdrom or nfs this test is not neccessary.
+  // If the rescue-system was started via cdrom or nfs this test is not necessary.
   if ((!demo_mode) && (!Installation::initial_mode) && (!Installation::continue_mode))
   {
       if (!OSRAmIRoot())
@@ -663,11 +672,15 @@ YaST2 OS Repair halts now."));
 
   any user_input = nil;
 
+  //OSRSetMainWindowContents();
+  
   // the main-loop
   repeat
       {
+	  UI::ChangeWidget(`id(`next), `Label, _("&Start"));
+
 	  // Ask the user for reading an old osr_map from a previos YaST2 OS Repair-session.
-	  // The map has to be stored in a file "osr_map.ycp" on a floppy-disk.
+	  // The map is stored in a file "osr_map.ycp" on a floppy-disk.
 	  any returned_user_input = OSRReadFloppy();
 
 	  if (returned_user_input == `back)
@@ -685,11 +698,13 @@ YaST2 OS Repair halts now."));
 	      return UI::CloseDialog();
 	  }
 
+	  /*
 	  UI::ChangeWidget(`id(`next), `Enabled, true);
 	  UI::ChangeWidget(`id(`abort), `Enabled, true);
 	  UI::ChangeWidget(`id(`back), `Enabled, true);
 	  UI::SetFocus(`id(`next));
-
+	  */
+	  
 	  // start the detection-methods from the modules
 	  if (!OSRDetect())
 	  {
@@ -699,6 +714,8 @@ YaST2 OS Repair halts now."));
       }
   until (user_input != `back);
 
+  UI::ChangeWidget(`id(`next), `Label, _("&Finish"));
+  
   // Ask the user to store the whole osr_map and the partition-tables of all detected harddisks
   // to floppy-disk for later YaST2 OS Repair-sessions.
   OSRWriteFloppy();

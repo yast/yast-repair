@@ -23,14 +23,20 @@
   integer arg_n = 0;
 
   boolean init_mode = false;
-  
+
   while ( arg_n < arg_c )
   {
-      if ( Args(arg_n) == .init ) init_mode = true;
+      if ( Args(arg_n) == .init )
+      {
+	  init_mode = true;
+
+	  y2milestone("Argument: %1", Args(arg_n));
+      }
       else
       {
 	  y2error("ERROR: unknown option %1", Args(arg_n) );
-	  return `error;
+
+	  return $[];
       }
       arg_n = arg_n + 1;
   }
@@ -118,9 +124,9 @@
 	      }
 	      else
 	      {
-		  status = OSRStatusDetectError();
+		  status = OSRStatusDetectProblem();
 
-		  OSRSummaryDetectError(
+		  OSRSummaryDetectProblem(
 					module_name,
 					sformat(_("Umounting partition %1 from %2"), partition, mountpoint),
 					_("Umount failed")
