@@ -31,11 +31,11 @@
   /**
    *  Tests if the specified logfile exists, is readable, writable, ...
    *  If the specified file not exists, it will be created with the correct
-   *  file-permissions.
+   *  file permissions.
    *
    *  For internal use only.
    *
-   *  @param string new_file Name of the log-file.
+   *  @param string new_file Name of the log file.
    *  @return boolean True if the specified logfile was created/set up successfully.
    */
   global define SetFile(string new_file) ``{
@@ -43,61 +43,73 @@
       integer result    = 0;
       integer file_size = 0;
       string  command   = "";
-      string  tmpdir    = "";
 
-      // TODO: get the global temp-directory
-      tmpdir = SCR::Read(.target.tmpdir);
+      // set the class attribute file to the specified file name
+      file = new_file;
 	  
-      file = tmpdir + "/" + new_file;
-
-      // remove the old logfile
-      command = sformat("rm -f %1", file);
+      // remove the old logfile if it exists
+      command = sformat("rm -f %1 2> /dev/null", new_file);
       SCR::Execute(.target.bash, command);
 
-      // write the actual date to the log-file
-      //command = "date";
-      //result = OSRExecuteCommand(command, file);
-      command = sformat("date >> %1", file);
+      // write the actual date to the log file
+      command = sformat("date >> %1; echo >> %1", new_file);
       result  = SCR::Execute(.target.bash, command);
 
       if (result == 0)
       {
 	  // check if the new file is written correctly
-	  file_size = SCR::Read(.target.size, file);
+	  file_size = SCR::Read(.target.size, new_file);
 
-	  return (file_size > 0);
+	  if (file_size > 0)
+	  {
+	      y2milestone("The log file was set up correctly: %1", new_file);
+	      
+	      return true;
+	  }
       }
+      y2error("The log file was not set up correctly: %1", new_file);
       
       return false;
   };
   
   /**
-   *  This function returns the name of the global log-file.
+   *  This function returns the name of the global log file.
    *
    *  API function.
    *
-   *  @return string The name of the global log-file.
+   *  @return string The name of the global log file.
    */
   global define GetFile() ``{
 
       return file;
   };
-
+  
   /**
-   *  Sets the name of the global log-file to the specified
-   *  file name.
+   *  Writes the specified string to the end of the log file.
    *
-   *  For internal use only.
+   *  API function.
    *
-   *  @param string new_file The name of the new log-file.
-   *  @return boolean True if the addition function succeeded.
+   *  @param string the_string The string that should be written to the end of the log file.
+   *  @return boolean True if the specified string was successfully written to the log file.
    */
-  /*
-  global define SetFile(string new_file) ``{
+  global define Add(string the_string) ``{
 
-      file = new_file;
+      string  command = "";
+      integer result  = 0;
       
-      return (file == new_file);
+      command = sformat("echo \'%1\' >> %2", the_string, file);
+	  
+      result = SCR::Execute(.target.bash, command);
+
+      if (result == 0)
+      {
+	  y2debug("String %1 successfully written to log file %2", the_string, file);
+      }
+      else
+      {
+	  y2error("String %1 not written to log file %2", the_string, file);
+      }
+
+      return (result == 0);
   };
-  */
 }
