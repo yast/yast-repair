@@ -243,7 +243,8 @@ Check your hardware.
 
       if( ! OSRMode::script ) {
 	  Wizard::EnableNextButton();
-	  UI::ChangeWidget(`id(`abort), `Enabled, true );
+//	  UI::ChangeWidget(`id(`abort), `Enabled, true );
+	  Wizard::EnableAbortButton();
 	  Wizard::EnableBackButton();
 
 	  Wizard::SetFocusToNextButton();
