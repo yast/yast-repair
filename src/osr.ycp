@@ -75,7 +75,7 @@
   //     "osr_module_lilo"      : [ ... ] ]
   map osr_detect_method_map = $[];
 
-  // get the execution-mode
+  // get the execution-mode, description:
   // Installation::initial_mode  == true -> Initial boot per CD-Rom or NFS
   // Installation::continue_mode == true -> Continue installation
   // (Installation::initial_mode == false) && (Installation::continue_mode == false) -> Running Linux-system
@@ -115,9 +115,8 @@ YaST2 OS Repair halts now."));
 	      "continue_mode" : Installation::continue_mode
   ];
   
-  // if YaST2 OS Repair runs
-  // - from CD-ROM or per NFS, get the user_settings from installation.ycp
-  // - the installed Linux-system, get the user_settings from file
+  // get the user_settings from the initial YaST2 installation client module
+  // y2m_inst/ycp/general/inst_startup.ycp
   map user_settings = user_settings;
 
   if ((size(user_settings) == nil) || (size(user_settings) == 0))
@@ -248,7 +247,7 @@ YaST2 OS Repair halts now."));
 
   /**
    *  This method initializes the YaST2 OS Repair system. It is started at first and
-   *  builds the main window, the global osr_map and a lot of other data.
+   *  builds the main window, initializes the global osr_map and a lot of other data.
    *
    *  For internal use only.
    *
@@ -265,7 +264,8 @@ YaST2 OS Repair halts now."));
 		  "read_old_osr_map"             : false,            // boolean, old osr_map is already read from floppy
 		  "osr_map_stored"               : false             // boolean, osr_map is already stored to floppy
       ];
-            
+
+      // create the header of the main window
       header = _("YaST2 OS Repair");
 
       if (demo_mode)
@@ -279,7 +279,7 @@ YaST2 OS Repair halts now."));
 
       // get the list of modules from the client osr_module_list.ycp,
       // the returned list has to look like this:
-      // [`osr_module_init(), `osr_module_partition, `osr_module_lilo()]
+      // [`osr_module_init(), `osr_module_partition(), `osr_module_lilo(), `osr_module_finish()]
       list osr_module_list = [];
       osr_module_list      = CallFunction(`osr_module_list());
 
@@ -295,12 +295,12 @@ YaST2 OS Repair halts now."), 2000);
       }
       OSRLogFile::Add(sformat("List of modules:\n%1\n", osr_module_list));
       
-      // add .init to the symbols: `osr_module_init() -> `osr_module_init(.init)
+      // add .init to the symbols, e.g.: `osr_module_init() -> `osr_module_init(.init)
       list temp_list = [];
       foreach(`n, osr_module_list, ``{temp_list = add(temp_list, add(n, .init));});
       osr_module_list = temp_list;
 
-      integer index    = 0;
+      integer index = 0;
 
       // execute the init-functions of all modules in the module-list
       while((index >= 0) && (index < size(osr_module_list)))
@@ -572,6 +572,7 @@ YaST2 OS Repair halts now."));
       // arithmetic rounding problems
       OSRGlobalProgress::Fill();
 
+      // enable the pushbuttons from the main window
       UI::ChangeWidget(`id(`next), `Enabled, true);
       UI::ChangeWidget(`id(`abort), `Enabled, true);
       UI::ChangeWidget(`id(`back), `Enabled, true);
@@ -582,7 +583,7 @@ YaST2 OS Repair halts now."));
 
   ////////////////////////////////////////////////////////////////////////////////
   //
-  //  MAIN
+  //  provides_mode
   //
   ////////////////////////////////////////////////////////////////////////////////
 
@@ -628,8 +629,16 @@ YaST2 OS Repair halts now."));
       // save the global-provides-map to the /tmp-directory
       SCR::Write(.dumpto.tmp.osr_global_provides, global_provides_map);
 
+      // exit the rescue system
       return;
-  }
+      
+  }  // end: provides_mode
+
+  ////////////////////////////////////////////////////////////////////////////////
+  //
+  //  MAIN
+  //
+  ////////////////////////////////////////////////////////////////////////////////
 
   // Check the user-name, only root has access to the rescue-system.
   // If the rescue-system was started via cdrom or nfs this test is not necessary.
@@ -654,14 +663,14 @@ YaST2 OS Repair halts now."));
   }
 
   // Start the client "inst_startup.ycp" if the rescue-system is launched from
-  // a running Linux-system.
+  // a running Linux-system, else the module inst_startup.ycp was already launched.
   if (!Installation::initial_mode && !Installation::continue_mode)
   {
       OSRLogFile::Add("Calling client module inst_startup.\n");
       
       CallFunction(`inst_startup());
 
-      // write the actual user settings for later use (e.g. CallFunction(`lilo()) needs it)
+      // write the actual user settings for later use (e.g. CallFunction(`osr_module_lilo()) needs it)
       SCR::Write(.target.ycp, "/var/lib/YaST2/user_settings", user_settings);
 
       UI::ChangeWidget(`id(`next), `Enabled, true);
