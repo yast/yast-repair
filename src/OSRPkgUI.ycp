@@ -10,9 +10,11 @@
  */
 {
     module "OSRPkgUI";
-    
+
     import "HTML";
     import "Report";
+    import "Label";
+    import "Popup";
 
     import "OSRSystem";
     import "OSRExecute";
@@ -22,9 +24,6 @@
     import "OSRPkgVerify";
     import "OSRPopup";
 
-    import "Label";
-    import "Popup";
-    
     textdomain "repair";
 
     ////////////////////////////////////////////////////////
@@ -41,51 +40,52 @@
     string mode_key		 = "mode";
     string mode_replace_point_key = "replace_point";
 
-    /**
-     * Labels for Pause/Continue buttons.
-     */
+    // buttons label
     string pause_label		= _("&Pause");
+    // buttons label
     string continue_label	= _("&Continue");
 
     /**
      * All allowed rpm test options with description.
      */
-    list modes =  [["S",	_("The File Size")			],
-		   ["M",	_("The File Mode")			],
-		   ["5",	_("The MD5 Checksum of the File")	],
-		   ["D",	_("The File Major and Minor Number")	],
-		   ["L",	_("The File Symbolic Link Content")	],
-		   ["U",	_("The Owner of the File")		],
-		   ["G",	_("The File Group")			],
-		   ["T",	_("The Last Modification Time")		]
+    list<list> modes = [
+	// 'rpm -V <package>' output flag
+	["S",	_("The File Size")			],
+	["M",	_("The File Mode")			],
+	["5",	_("The MD5 Checksum of the File")	],
+	["D",	_("The File Major and Minor Number")	],
+	["L",	_("The File Symbolic Link Content")	],
+	["U",	_("The Owner of the File")		],
+	["G",	_("The File Group")			],
+	["T",	_("The Last Modification Time")		]
     ];
 
     /** TODO write the help
      */
-    list modes_help = [ //[ _("File Ownership") ,  _("TODO")],
-		       [_("File Group") ,
-			_("TODO")],
-		       [_("File Mode") ,
-			_("TODO")],
-		       [_("MD5 Checksum") ,
-			_("TODO")],
-		       [_("File Size") ,
-			_("TODO") ],
-		       [_("Major and Minor Number") ,
-			_("TODO")],
-		       [_("Symbolic Link") ,
-			_("TODO") ],
-		       [_("Modification Time") ,
-			_("Linux keeps track of the date and time that a file was last modified.
-YaST2 compares the date of the file with the saved one in the package database. If the two dates differ, the file was
-modified.
-")]
+    list<list> modes_help = [
+	[_("File Group") ,
+	 _("The file is owned by the different group.")],
+	[_("File Mode") ,
+	 _("TODO")],
+	[_("MD5 Checksum") ,
+	 _("TODO")],
+	[_("File Size") ,
+	 _("TODO") ],
+	[_("Major and Minor Number") ,
+	 _("TODO")],
+	[_("Symbolic Link") ,
+	 _("TODO") ],
+	[_("Modification Time") ,
+	// help text for 'Modification Time' help text
+	_("Linux keeps track of the date and time that a file was last modified.
+YaST2 compares the date of the file with the saved one in the package database. If the two dates differ, the file was modified.")
+	]
     ];
-	 
+
     ////////////////////////////////////////////////////////
     // Not static
     ////////////////////////////////////////////////////////
-    
+
     /**
      * True if the user have paused the verifying process.
      */
@@ -99,7 +99,7 @@ modified.
     /**
      * Summary text of all passed and not passed packages.
      */
-    string verified_text_ok 	 = "";
+    string verified_text_ok	 = "";
 
     /**
      * Summary text of the not passed packages only.
@@ -114,7 +114,7 @@ modified.
     /**
      * Dialogs for expert and normal mode.
      */
-    list dialogs 		 =  []; 
+    list dialogs		 =  [];
 
     /**
      * If expert is activated.
@@ -122,10 +122,19 @@ modified.
     global boolean expert_mode	 = false;
 
     /**
-     * 
+     * packages that should be reinstalled after verification
+     * (only helper structure, for showing list in dialogs)
+     */
+    list packages_to_reinstall	= [];
+
+
+    //-----------------------------------------------------------------
+
+    /**
+     *
      */
     boolean protocol_mode	= false;
-   
+
     define void set_verify_text_header()``{
 	string header        = "";
 	string hr            = "";
@@ -133,9 +142,9 @@ modified.
 
 	// Build headers for the tables in qt-mode
 	if (UI::HasSpecialWidget(`DownloadProgress))
-	{	
+	{
 	    special = [ "width=400", "align=right"];
-	   
+
 	    header = "<table %5><tr> <th>%1</th>
                                  <th>%2</th>
                                  <th>%3</th>
@@ -169,20 +178,20 @@ modified.
      * Reset all (not static)  module settings.
      */
     global define void Reset()``{
-	
+
 	// Reset values
-	show_ok         	= false;
+	show_ok			= false;
 	pause			= false;
 	package_count		= 0;
 	expert_mode		= false;
 	dialogs			= [];
 	protocol_mode		= false;
-	verified_text	 	= "";
-	verified_text_ok 	= "";
+	verified_text		= "";
+	verified_text_ok	= "";
+	packages_to_reinstall	= [];
 
 	OSRProgress::Reset();
 	set_verify_text_header();
-	
     }
 
     /**
@@ -192,10 +201,6 @@ modified.
 	Reset();
     }
 
-
-
-    
-    
     /**
      * Fill a string with the specified character.
      * Used in ncurses mode for formatting.
@@ -206,12 +211,11 @@ modified.
 	return str;
     }
 
-   
     /**
      * Return the current dialog ( expert or normal dialog).
      */
     define term get_verify_dialog()``{
-	
+
 	integer pos =  0;
 	if (protocol_mode ) pos = 3;
 	else {
@@ -219,7 +223,7 @@ modified.
 	}
 	return dialogs[ pos ]:`Empty();
     }
-    
+
     /**
      * Repaint the displayed text depending on the show_ok value (CheckBox Show all).
      */
@@ -230,10 +234,10 @@ modified.
 	    string table = "</table>";
 
 	    if (! UI::HasSpecialWidget(`DownloadProgress))
-	    {	
+	    {
 		table = "";
 	    }
-	    
+
 	    if (show_ok && UI::WidgetExists(`id(package_widget )))
 	    {
 		return UI::ChangeWidget(`id( package_widget), `Value,  verified_text_ok + table );
@@ -244,7 +248,7 @@ modified.
 	}
 	return false;
     }
-  
+
     /**
      * Switch between expert and normal mode.
      */
@@ -261,19 +265,20 @@ modified.
 	    UI::RecalcLayout();
 	    repaint();
 	}
-	
+
 	if (UI::WidgetExists(`id( package_progress_bar )))
 	{
 	    UI::ChangeWidget(`id( package_progress_bar), `Value, size( OSRPkgVerify::verified_packages));
 	}
     }
 
-   
+
     /**
      * Build string: Checking package: (43/234)
      */
     define string check_string()``{
-	return sformat(_("Checking package: (%1/%2)"), size(OSRPkgVerify::verified_packages), package_count);  
+	// current action label; %1 is current package number, %2 all packages
+	return sformat(_("Checking package: (%1/%2)"), size(OSRPkgVerify::verified_packages), package_count);
     }
 
     /**
@@ -451,7 +456,7 @@ YaST verifies packages now."))),
 	else {
 	    string n1    = HTML::Bold(_("Package:"));
 	    string n2    = HTML::Bold( (pkg_data == $[])? "": _("Files:")) + "<br>";
-	    line_sf 	 = "<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
+	    line_sf	 = "<br><br>" + n1 +"<li><b>%1</b> <b>%2</b></li>" + n2 + "%3%4";
 	    fill_c       = ".";
 	    tab_pkg_name = tab_pkg_name + fill("", 70 - size(pkg_name), fill_c );
 	}
@@ -472,15 +477,15 @@ YaST verifies packages now."))),
 	verified_text		 = "";
 	set_verify_text_header();
 
-	foreach (string pkg_name, map pkg_data, (map<string,map<any,any> >) OSRPkgVerify::verified_packages,
+	foreach (string pkg_name, map pkg_data, (map<string,map>) OSRPkgVerify::verified_packages,
 	``{
-	    update( pkg_name, pkg_data, false );
+	    update (pkg_name, pkg_data, false);
 	});
 	return repaint();
     }
 
     /**
-     *
+     * popup with the summary of the package
      */
     define symbol show_package_details (string pkg_name)``{
 	// popup headline
@@ -489,21 +494,19 @@ YaST verifies packages now."))),
 	    [ [ pkg_name,
 		// checkbox label
 		_("Reinstall the Package"),
-		contains (OSRPkgVerify::not_successful_verified, pkg_name)
+		contains (packages_to_reinstall, pkg_name)
 	    ] ]
 	);
 	foreach (string pkg, boolean reinstall, (map<string,boolean>) ret , ``{
 
 	    if (reinstall)
 	    {
-		OSRPkgVerify::not_successful_verified = (list<string>) union (
-		    OSRPkgVerify::not_successful_verified,
-		    [ pkg ]);
+		packages_to_reinstall = union (packages_to_reinstall, [ pkg ]);
 	    }
 	    else
 	    {
-		OSRPkgVerify::not_successful_verified = filter (string name,
-		    OSRPkgVerify::not_successful_verified, ``( name != pkg ));
+		packages_to_reinstall = filter (string name,
+		    (list<string>) packages_to_reinstall, ``( name != pkg ));
 	    }
 	});
 	rebuild_protocol_text();
@@ -525,7 +528,7 @@ YaST verifies packages now."))),
 	    }
 	    else
 	    {
-		UI::ChangeWidget(`id(pause_key), `Label,  continue_label  ); 
+		UI::ChangeWidget(`id(pause_key), `Label,  continue_label  );
 		return `pause;
 	    }
 	}
@@ -543,14 +546,13 @@ YaST verifies packages now."))),
      *		                               file":"/proc",
      *					       "status":".M......"]]
      */
-    define symbol show_verify_details(string pkg_name, map pkg_data)``{
+    define symbol show_verify_details (string pkg_name, map pkg_data)``{
 
 	string status		= pkg_data["status"]:"";
 
 	if (status == OSRPkgVerify::missing )
 	{
 	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
-	    // TODO write more
 	    Popup::AnyMessage(sformat(_("The file %1 is missing."), pkg_data["file"]:""),
 sformat(_("The file %1 is part of the
 package %2, but was not found.
@@ -560,7 +562,6 @@ package %2, but was not found.
 	else if (status == OSRPkgVerify::unsatisfied )
 	{
 	    //rpm output e.g.: unsatisfied dependencies for SDL_mixer-1.2.4-55: libvorbisfile.so.3
-	    // TODO write more
 	    Popup::AnyMessage(_("Unsatisfied Dependencies:"),
 sformat("
 %1
@@ -571,7 +572,7 @@ the unsatisfied dependencies.
 ", pkg_data["file"]:""));
 
 	}
-	else if (status != "" )
+	else if (status != "")
 	{
 	    list<string> special = [];
 	    string header = "";
@@ -594,6 +595,7 @@ the unsatisfied dependencies.
 	    }
 	    string  body		= "";
 	    list    not_passed		= [];
+// FIXME: this (and also helptext) is never shown!!! should be?
 	    term    config_term		= `Label(_("YaST suggests reinstalling this package."));
 	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
 
@@ -603,7 +605,6 @@ the unsatisfied dependencies.
 		y2milestone("green status of the package %1", green_status );
 		string message = OSRPkgVerify::unimportant2help [green_status]:"";
 		y2milestone("message : %1" ,message );
-		// FIXME: this is never shown!!! check it!!
 		config_term = `Label( message );
 	    }
 
@@ -621,9 +622,9 @@ the unsatisfied dependencies.
 		}
 		status = substring(status, 1);
 	    }
-	    
-	    foreach(list t, (list<list<any> >)modes, ``{
-	
+
+	    foreach (list t, modes, ``{
+
 		if (contains(not_passed, t[0]:"" ))
 		{
 		    body     = body + sformat(line, t[0]:"", t[1]:"", HTML::Colorize(_("Test not passed"), problem_color),
@@ -636,45 +637,51 @@ the unsatisfied dependencies.
 	    });
 
 	    string help_text = "";
-	    foreach(list d,  (list<list<any> >)modes_help, ``{
+	    foreach(list d, modes_help, ``{
 		help_text = help_text  + "<P><B><BIG>" + d[0]:"" + "</BIG></B></P>" + "<P>" +d[1]:"" +"</P>";
 	    });
-	    string headline = sformat(_("Overview of the Executed Tests for the Package:  %1."),pkg_name);
+	    // headline (package details popup) %1 is package name
+	    string headline = sformat(_("Overview of the Executed Tests for the Package %1"),pkg_name);
 
-	    //get the minimal length of the headline and add blanks for the layout.
+	    //get the minimal length of headline and add blanks for the layout.
 	    integer minimal_size = 0;
-	    foreach(list mode, (list<list<any> >)modes, ``{ minimal_size = ( minimal_size < size(mode[1]:"")) ? size(mode[1]:"") : minimal_size;});
+	    foreach (list mode, modes, ``{
+		minimal_size = ( minimal_size < size(mode[1]:"")) ?
+		    size(mode[1]:"") : minimal_size;
+	    });
 	    minimal_size = minimal_size *2 - size(headline);
-	    y2milestone("minimal size %1", minimal_size);
+	    y2debug("minimal size %1", minimal_size);
 	    while( minimal_size > 0 )
 	    {
 		headline = headline +" ";
 		minimal_size = minimal_size -1;
 	    }
-	    
-	    
-	    UI::OpenDialog(`HBox(//`HWeight(30, `RichText(`id(`help_text), help_text)),
-			   //	 `HSpacing(1),
-			   //	 `HWeight(70,
-				 `HSpacing(3),
-				 `VSpacing(20),
-				 `VBox(
-				      `VWeight(10,`Heading(headline)),
-		 		      `VSpacing(1),
-				      `VWeight(10, `VBox(`Left(`Label(_("Corresponding File of the Package:"))),
-							 `Left(`Label(`opt(`outputField),  pkg_data["file"]:""))
-							 )
-					       ),
-				      //`VSpacing(0.2),
-				      //`VWeight(10,`Left(config_term)),
-				      `VSpacing(0.5),
-				      `VWeight(60, `RichText( header + body  + end )),
-				      `VSpacing(0.5),
-				      `PushButton(`id(`ok), Label::OKButton())
-				      ),
-				 `HSpacing(3)
-				 ));
 
+	    UI::OpenDialog (`HBox (
+		//`HWeight(30, `RichText(`id(`help_text), help_text)),
+		//	 `HSpacing(1),
+		//	 `HWeight(70,
+		    `HSpacing(3),
+		    `VSpacing(20),
+		    `VBox(
+			`VWeight(10,`Heading(headline)),
+			`VSpacing(1),
+			`VWeight(10, `VBox (`Left(
+			    // label (show file name of some package)
+			    `Label(_("Corresponding File of the Package:"))),
+			    `Left(
+			    `Label(`opt(`outputField),pkg_data["file"]:""))
+			    )
+			),
+			//`VSpacing(0.2),
+			//`VWeight(10,`Left(config_term)),
+			`VSpacing(0.5),
+			`VWeight(60, `RichText( header + body  + end )),
+			`VSpacing(0.5),
+			`PushButton(`id(`ok), Label::OKButton())
+		    ),
+		    `HSpacing(3)
+	    ));
 
 	    UI::UserInput();
 	    UI::CloseDialog();
@@ -696,8 +703,8 @@ the unsatisfied dependencies.
 	    // want really cancel.
 	    if (package_count > size(OSRPkgVerify::verified_packages )  && ! protocol_mode )
 	    {
-		if (! Popup::YesNo(_("\nReally cancel package verification?
-")))
+		// popup question
+		if (!Popup::YesNo(_("Really cancel package verification?")))
 		{
 		    return `again;
 		}
@@ -777,14 +784,19 @@ Verifying the packages %1 was successful.
 	    rret = (string) UI::UserInput();
 	    y2milestone(" user input in protocol dialogs : %1", rret);
 	    ret  = EvalUserInput (rret);
-	} until ( ret == `abort || ret == `cancel  );
+	} until (ret == `abort || ret == `cancel);
 
 	UI::CloseDialog();
 	protocol_mode = false;
 
 	list<list> item_list = [];
-	foreach (string item, OSRPkgVerify::not_successful_verified , ``{
-	    item_list = add (item_list, [item, true]);
+	foreach (string item, OSRPkgVerify::not_successful_verified , {
+	    boolean checked = contains (packages_to_reinstall, item);
+	    item_list = add (item_list, [item, checked]);
+	});
+	foreach (string item, (list<string>) packages_to_reinstall, {
+	    if (!contains (OSRPkgVerify::not_successful_verified, item))
+		item_list = add (item_list, [item, true]);
 	});
 	return item_list;
     }

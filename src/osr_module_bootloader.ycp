@@ -596,7 +596,9 @@ press \"Repair\".
       y2milestone("boot_device_1 %1", OSRBoot::boot_device);
       // patch storage entries for Boot::Set!!
       map subdevkeys    = Storage::GetDiskPartition(OSRBoot::root_device );
-      string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+      any subdevindex	= subdevkeys["nr"]:nil;
+      if (subdevindex == nil) subdevindex = "";
+      string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevindex);
 
       map part = Storage::GetSubDev( subdevkey );
       part["mount"] = "/";
@@ -661,7 +663,7 @@ press \"Repair\".
    */
   define map OSRBootloaderInit() ``{
 
-      y2milestone("OSRBootloaderInit");
+      y2milestone ("OSRBootloaderInit");
 
       return  $[
           "name"              :  "osr_module_bootloader",
@@ -820,28 +822,4 @@ install a new boot loader.
       ];
   }
 
-
-
-  /*
-  integer arg_n = 0;
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  MAIN
-  //
-  //////////////////////////////////////////////////////////////////////
-  while ( arg_n <  size(WFM::Args()) )
-  {
-      if ( WFM::Args(arg_n) == .init )
-      {
-	y2milestone("Argument: %1", WFM::Args(arg_n));
-	return  OSRBootloaderInit();
-      }
-      else
-      {
-	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
-	return $[];
-      }
-      arg_n = arg_n + 1;
-  }
-  */
 }//EOF

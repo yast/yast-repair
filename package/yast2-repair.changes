@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 22 20:16:29 CEST 2004 - jsuchome@suse.cz
+
+- fixed direct call of bootloader repair (#40223)
+- changed helptext and default behaviour for package reinstalltion
+- code cleanup
+
+-------------------------------------------------------------------
 Fri Jun 11 15:17:50 CEST 2004 - jsuchome@suse.cz
 
 - added some documentation

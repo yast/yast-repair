@@ -541,10 +541,10 @@
 	      ret_list = (list<string>)
 		UI::QueryWidget(`id(`selection_box), `SelectedItems );
 
-	      if( size( ret_list ) < size( item_list ) )
+	      if( size (ret_list) < size (item_list) )
 	      {
-		  if (! Popup::YesNo(_("
-Some suggested items are not selected.
+		  // popup question (after selection from the list
+		  if (! Popup::YesNo(_("Some suggested items are not selected.
 Really continue?
 ")))
 		  {

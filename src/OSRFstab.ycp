@@ -2258,20 +2258,10 @@ and select all scan options.
     list<map> lines = (list<map>) maplist (integer lnr, map linedata,
 	fstab["l"]:$[], ``(linedata));
 
-    // FIXME sort doesn't work this way?
-    /*
-    lines           = sort (map n, map m, lines,
-	``( size (splitstring (n["fields",1]:"", "/")) >
-	    size (splitstring (m["fields",1]:"", "/")))
-    );
-    y2milestone(" sorted fstab lines %1", lines);
-    */
-
     foreach (map linedata, lines, ``{
 
 	list<string> line	= linedata["fields"]:[];
 	map part		= line2part (line);
-
 	// not mounted
 	if ((part["found"]:"" == "dev") &&
 	    (!contains (["/dev/cdrecorder", "/dev/cdrom", "/dev/dvd",

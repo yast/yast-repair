@@ -275,15 +275,6 @@
     // set repair mode (used e.g. from Bootloader)
     Mode::repair = true;
 
-    // Build a list of all detection and repair modules of the
-    // rescue system.
-    // Get the list of modules from the client osr_module_list.ycp
-    /*
-    list<string> module_function_list	= (list<string>)
-	WFM::CallFunction ("osr_module_list");
-    FIXME this is not functional now, because of passing function refenreces
-    -> let's do it static way:
-    */
     list<string> module_function_list	= [
 	"osr_module_init",
 	"osr_module_partition",
@@ -324,11 +315,7 @@ Error during initialization.
 	map result_map = $[];
 	if (module_function_list [index]:"" != "")
 	{
-	    /*
-	    result_map = (map)
-		WFM::CallFunction (module_function_list[index]:"", [ .init ]);
-	    */
-	    // FIXME call Init functions from all clients...
+	    // call Init functions from all includes...
 	    map () f = init_functions [module_function_list[index]:""]:OSRCommon::EmptyMap;
 	    result_map = f ();
 	}
@@ -336,7 +323,7 @@ Error during initialization.
 	  if ((result_map == nil) || (result_map == $[]))
 	  {
 	      Report::Error(sformat(
-// popup text: %1 is tool name, %2 is "YaST System Repair" (translated)
+// popup text: %1 is function name, %2 is "YaST System Repair" (translated)
 _("An error occurred during execution
 of the init functions of module: %1
 
@@ -436,13 +423,13 @@ modules were successfully solved.
 
     // Add init groups ("mode" == "forall" )  to OSRCommon::detect_group_list
     return (list<string>) maplist (string m, map vv,
-	filter (string k, map<string,any> v, (map<string,map<string,any> >)OSRCommon::global_entries, ``(
+	filter (string k, map v, (map<string,map>)OSRCommon::global_entries, ``(
 	    v["mode"]:"" == "forall" )),
 	``( m ));
   }
 
   /**
-   * Returns if all detection groups are selected for detection. 
+   * Returns if all detection groups are selected for detection.
    */
   define boolean all_groups_selected()``{
       return (size( OSRCommon::detect_group_list ) == (size(OSRCommon::global_entries) - size( forall_groups_names())));
@@ -465,11 +452,11 @@ modules were successfully solved.
   define boolean requires_in_detection_group(list<string> requires )``{
 
     boolean req_not_in_detection_group = false;
-    foreach (string module_name, list<map<string,any> > module_detect_list,
-	    (map<string,list<map<string,any> > >)module_detection_methods,``{
+    foreach (string module_name, list module_detect_list,
+	    (map<string,list>) module_detection_methods,``{
 
 	list<map> required_module_detection_methods = (list<map>)
-	    filter (map<string,any> detect_method, module_detect_list, ``(
+	    filter (map detect_method, (list<map>) module_detect_list, ``(
 		size (union (detect_method["provides"]:[], requires)) <
 		size (merge (detect_method["provides"]:[], requires)))
 	    );
@@ -706,10 +693,10 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	    OSRCommon::current_detect_map =  detect_methods[index_detect]:$[];
 	    y2milestone("The name of the current detect method is: %1",
 		OSRCommon::current_detect_map["name"]:"");
-if (OSRCommon::current_detect_map["name"]:"" == "")
-{
-y2warning ("detect map: %1", OSRCommon::current_detect_map);
-}
+	    if (OSRCommon::current_detect_map["name"]:"" == "")
+	    {
+		y2warning ("detect map: %1", OSRCommon::current_detect_map);
+	    }
 
 	    // check call count - no endless loop
 	    if (index_detect != last_index_detect )
@@ -913,24 +900,10 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
   }
 
   /**
-   * Count of detection methods of the specified group
-   */
-  global define integer CountGroupDetectMethodes( string group ) ``{
-      integer counter = 0;
-
-      foreach(any module_name, list<map<string,any> > detect_maps, (map<any,list<map<string,any> > >) module_detection_methods, ``{
-	  foreach(map<string,any> detect_map, detect_maps, ``{
-	      if( detect_map["group"]:"" == group ) counter = counter +1;
-	  });
-      });
-      return counter;
-  }
-
-  /**
    * Sort the sequence of all detection methods of the
    * specified group.
    */
-  define list<map> SortGroupSequence( map groups )``{
+  define list<map> SortGroupSequence (map groups) ``{
 
       list<map> ret		= [];
       list<string> g_list	= [];
@@ -967,12 +940,13 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 
   /**
    * Build item list with all group items.
+   * @param mode if all entries should be checked ('Select all')
    */
   global define list<term> GroupItems(boolean mode)``{
 
     list<term> entries      = [];
 
-    foreach(map d, SortGroupSequence( OSRCommon::global_entries ), ``{
+    foreach (map d, SortGroupSequence( OSRCommon::global_entries ), ``{
 	if (OSRCommon::detect_group_list != nil &&
 	    size (OSRCommon::detect_group_list) != 0)
 	{
@@ -991,15 +965,6 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
     return entries;
   }
 
-
-  /**
-   * Return all founded group key's.
-   */
-  global define list<string> GroupKeys()``{
-
-    return (list<string>)
-	maplist(string k, map<any,any> v, (map<string,map<any,any> >)OSRCommon::global_entries, ``( k ));
-  }
 
   /**
    * ...
