@@ -347,6 +347,9 @@
    */
   global define boolean Init() ``{
 
+      // set repair mode (used e.g. from Bootloader)
+      Mode::repair = true;
+
       // Build a list of all detection and repair modules of the
       // rescue system.
       // Get the list of modules from the client osr_module_list.ycp,
