@@ -9,32 +9,33 @@ bindir     = $(YAST2DIR)/bin
 scrdir     = $(YAST2DIR)/scrconf
 yast2dir   = $(YAST2DIR)
 
-clients_DATA =			\
-	osr.ycp			\
-	osr_module_init.ycp	\
+clients_DATA =				\
+	osr.ycp				\
+	osr_module_init.ycp		\
+	osr_module_partition.ycp	\
 	osr_module_lilo.ycp
 
-include_DATA =			\
-	osr_system.ycp		\
-	osr_api.ycp		\
-	osr_global_progress.ycp	\
-	osr_module_progress.ycp	\
-	osr_popup.ycp		\
-	osr_summary.ycp         \
+include_DATA =				\
+	osr_system.ycp			\
+	osr_api.ycp			\
+	osr_global_progress.ycp		\
+	osr_module_progress.ycp		\
+	osr_popup.ycp			\
+	osr_summary.ycp         	\
 	osr_log_file.ycp
 
-menu_DATA = 			\
+menu_DATA = 				\
 	menuentry_osr.ycp
 
-scr_DATA =			\
+scr_DATA =				\
 	etc_liloconf1.scr
 
-yast2_DATA =			\
+yast2_DATA =				\
 	osr_module_list.ycp
 
-EXTRA_DIST = 			\
-	$(clients_DATA) 	\
-	$(include_DATA) 	\
-	$(menu_DATA) 		\
-	$(scr_DATA)		\
+EXTRA_DIST = 				\
+	$(clients_DATA) 		\
+	$(include_DATA) 		\
+	$(menu_DATA) 			\
+	$(scr_DATA)			\
 	$(yast2_DATA)
