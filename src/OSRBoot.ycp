@@ -1239,7 +1239,7 @@ is bootable press the cancel button.
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
 	    // Boot::Save(); included in Write
-	    boolean g_ret = Boot::Write(); // what about the progress?
+	    boolean g_ret = Bootloader::Write(); // what about the progress?
 
 	    UI::CloseDialog();
 	    if ( g_ret ) {
