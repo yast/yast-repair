@@ -161,7 +161,7 @@
     // was already launched.
     if (! Mode::test)
     {
-	if (!(Arch::s390 || Arch::board_iseries))
+	if (!(Arch::s390 () || Arch::board_iseries ()))
 	{
 	    // give user feedback what's happening
 	    StorageDevices::FloppyReady ();
@@ -225,7 +225,7 @@ Check your hardware.
 	    }
 	}
 
-	if (!(Arch::s390 || Arch::board_iseries))
+	if (!(Arch::s390 () || Arch::board_iseries ()))
 	{
 	    Hotplug::StartUSB ();
 	    if (! OSRMode::script )
