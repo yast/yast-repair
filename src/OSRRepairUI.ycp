@@ -193,8 +193,7 @@ Check your hardware.
 	    }
 
 	    StorageControllers::Initialize();
-	    ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM",
-		Mode::manual, true);
+//FIXME	    ModuleLoading::Load ("lvm-mod", "", "Linux", "LVM", Mode::manual, true);
 	    if (! OSRMode::script )
 	    {
 		Progress::NextStage();
@@ -205,7 +204,6 @@ Check your hardware.
 	    //				  Hard disks
 	    // --------------------------------------------------------------
 
-//	    map targetMap = $[1:2];//FIXME StorageDevices::Probe (true);
 	    map targetMap = StorageDevices::Probe (true);
 	    if (size (targetMap) == 0)
 	    {
@@ -243,7 +241,6 @@ Check your hardware.
 
       if( ! OSRMode::script ) {
 	  Wizard::EnableNextButton();
-//	  UI::ChangeWidget(`id(`abort), `Enabled, true );
 	  Wizard::EnableAbortButton();
 	  Wizard::EnableBackButton();
 
