@@ -627,8 +627,8 @@ press \"Yes\".
 
       if (ret == $[] || ret == nil)
       {
-	ret = (map) select (maplist (`n,`m,
-	    filter (`k, map e, StorageDevices::ZipDrives,
+	ret = (map) select (maplist (string n, map m,
+	    filter (string k, map e, StorageDevices::ZipDrives,
 		``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)), ``(m)),
 	    0, $[]);
 	if (ret != $[] && ret != nil) ret["found"] = "zip";
@@ -2244,11 +2244,14 @@ and select all scan options.
     list<map> lines = (list<map>) maplist (integer lnr, map linedata,
 	fstab["l"]:$[], ``(linedata));
 
+    // FIXME sort doesn't work this way?
+    /*
     lines           = sort (map n, map m, lines,
-	``( size (splitstring (n[1]:"", "/")) >
-	    size (splitstring (m[1]:"", "/")))
+	``( size (splitstring (n["fields",1]:"", "/")) >
+	    size (splitstring (m["fields",1]:"", "/")))
     );
     y2milestone(" sorted fstab lines %1", lines);
+    */
 
     foreach (map linedata, lines, ``{
 

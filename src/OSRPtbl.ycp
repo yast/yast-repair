@@ -951,10 +951,10 @@ and recover %1.
 
 			  foreach(map  delpart, overlap_part["overlap"]:[], ``{
 			      delpart["delete"] = true;
-			      delpart = filter(string key, `d, delpart, ``(key != "overlap"));
+			      delpart = filter(string key, any d, delpart, ``(key != "overlap"));
 			      recover = (list<map>) union (recover, [delpart]);
 			  });
-			  overlap_part = filter(string key, `d, overlap_part, ``(key != "overlap"));
+			  overlap_part = filter(string key, any d, overlap_part, ``(key != "overlap"));
 			  recover = add(recover, overlap_part );
 		      }
 		      else {
