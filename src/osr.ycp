@@ -45,6 +45,8 @@
   // the osr_map is written to a file.
   map osr_map              = $[];
 
+  // This map contains the old informations from a previous session. The old value has to
+  // be saved to a floppy-device and can be loaded at the beginning of each session.
   map old_osr_map          = $[];
 
   // A map with all lists of detect-methods. The function-names have to be enclosed in
@@ -52,9 +54,19 @@
   // osr_detect_method_map = $[
   //     "osr_module_init"      : [ ``(OSRInitConvertUserSettings()), ``(OSRInitCheckFstab()) ],
   //     "osr_module_partition" : [ ``(OSRPartitionCheck()), ``(OSRPartitionCheckDisks()) ],
-  //     "osr_module_lilo"      : [ ... ]
-  // ]
+  //     "osr_module_lilo"      : [ ... ] ]
   map osr_detect_method_map = $[];
+
+  // if YaST2 OS Repair runs
+  // - from CD-ROM or per NFS, get the user_settings from installation.ycp
+  // - the installed Linux-system, get the user_settings from file
+  map user_settings = user_settings;
+  
+  if ((size(user_settings) == nil) || (size(user_settings) == 0))
+  {
+      // TODO: compute the user_settings (like installation.ycp)
+      user_settings = SCR::Read(.target.ycp, "/var/lib/YaST2/user_settings");
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   //
@@ -128,9 +140,15 @@
    */
   define OSRInit() ``{
 
-      UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      // TODO: specify if the rescue-system is executed from CD-ROM, NFS, from a running Linux-system, ...
+      //SCR::Read(.proc.mounts);
+
+
+      // TODO: get the execution-mode
+      string execution_mode = "linux";
       
       osr_map = $[
+		  "execution_mode"               : execution_mode,
 		  "module_sequence"              : [],               // sequence of execution of the detection-modules
 		  "module_list"                  : [],               // the whole list of detection-modules
 		  "log_file"                     : "/tmp/osr.log",   // default log-file-path
@@ -140,7 +158,40 @@
       ];
       
       string log_file = "";
+
+      string header = "";
+      
+      header = _("YaST2 OS Repair");
+
+      if (demo_mode)
+      {
+	  header = _("YaST2 OS Repair: demo mode");
+      }
+      else if (automatic_mode)
+      {
+	  header = _("YaST2 OS Repair: automatic mode");
+      }
+
+      
+      /*
       string header   = "";
+      
+      if (execution_mode == "linux")
+      {
+
+      }
+      else if (execution_mode == "cdrom")
+      {
+      UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      }
+      else if (execution_mode == "nfs")
+      {
+      UI::ChangeWidget(`id(`abort), `Label, _("&Abort"));
+      }
+      else
+      {
+	  y2error("unknown execution_mode: %1", execution_mode);
+      }
 
       if (!script_mode)
       {
@@ -156,38 +207,41 @@
 	  }
       
 	  // display the main window to indicate progress
-	  /*
-	  UI(``{
-	      OpenDialog(`opt(`defaultsize),
-			 `VBox(`Image(`suseheader, "SuSE"),
-			       `HBox(`HWeight(30, `RichText(`id(`help), "")),
-				     `HWeight(70, `VBox(
-							`Left(`Heading(`id(`title), `opt(`hstretch), WFM::header + _("\nInitialization..."))),
-							`HVCenter(`ReplacePoint(`id(`contents),     `Empty())),
-							`HBox(
-							      // back pushbutton: the user input is ignored and the last dialog is called
-							      `PushButton(`id(`back), `opt(`disabled), _("&Back")),
-							      `HStretch(),
 
-							      // Skip pushbutton
-							      `PushButton(`id(`skip), `opt(`disabled), _("&Skip")),
-							      `HStretch(),
+	  if (execution_mode == "linux")
+	  {
+	      UI(``{
+		  OpenDialog(`opt(`defaultsize),
+			     `VBox(`Image(`suseheader, "SuSE"),
+				   `HBox(`HWeight(30, `RichText(`id(`help), "")),
+					 `HWeight(70, `VBox(
+							    `Left(`Heading(`id(`title), `opt(`hstretch),
+									   WFM::header + _("\nInitialization..."))),
+							    `HVCenter(`ReplacePoint(`id(`contents), `Empty())),
+							    `HBox(
+								  // Back pushbutton: the user input is ignored and the last dialog is called
+								  `PushButton(`id(`back), `opt(`disabled), _("&Back")),
+								  `HStretch(),
 
-							      // Abort pushbutton
-							      `PushButton(`id(`abort), `opt(`disabled), _("&Abort")),
-							      `HStretch(),
+								  // Skip pushbutton
+								  //`PushButton(`id(`skip), `opt(`disabled), _("&Skip")),
+								  //`HStretch(),
 
-							      // next pushbutton: finish the configuration
-							      `PushButton(`id(`next), `opt(`disabled), _("&Next"))
-							      )
-							)
-					      )
-				     )
-			       )
-			 );
-	      ChangeWidget(`id(`abort), `Enabled, false);
-	  });
-	  */
+								  // Abort pushbutton
+								  `PushButton(`id(`abort), `opt(`disabled), _("&Abort")),
+								  `HStretch(),
+
+								  // Next pushbutton
+								  `PushButton(`id(`next), `opt(`disabled), _("&Next"))
+								  )
+							    )
+						  )
+					 )
+				   )
+			     );
+		  ChangeWidget(`id(`abort), `Enabled, false);
+	      });
+	  }
 
 	  if (!UI::HasSpecialWidget(`DownloadProgress))
 	  {
@@ -195,13 +249,14 @@
 
 	      if (!automatic_mode)
 	      {
-		  // show error message and close the main window
+		  // show error message
 		  UI::ErrorPopup(_("Some special widgets are not available."));
 
 		  return false;
 	      }
 	  }
       }
+      */
 
       // get the list of modules from the client osr_module_list.ycp,
       // the returned list has to look like this:
@@ -621,6 +676,11 @@ YaST2 OS Repair halts now."));
 	  return;
       }
       */
+  }
+
+  if (!OSROpenMainWindow())
+  {
+      return UI::CloseDialog();
   }
 
   // ask the user for reading an old osr_map from a previos
