@@ -18,7 +18,7 @@ in the directory \verb+y2m_os_repair/src/+\\
 \verb+osr_summary.ycp+  & \verb+osr_module_list.ycp+\\\\
 \end{tabular}
 
-Module files are\\
+Module files so far are\\
 
 \begin{tabular}{p{5cm}p{5cm}}
 \verb+osr_module_init.ycp+ & \verb+osr_module_lilo.ycp+\\
@@ -79,7 +79,6 @@ RichText-widget of the main window.
 \begin{boxitpara}{box 0.7 setgray fill}
 {\footnotesize \begin{verbatim}
 map osr_module_lilo = $[
-     // has to be the name of the file
      "name"                  :  "osr_module_lilo",
      "headline"              :  UI(_("LILO")),
 \end{verbatim}}%$
@@ -143,7 +142,8 @@ occur. E.g. module $A$ requires date $a$ and provides date $b$, module
 $B$ requires date $b$ and provides date $a$. This situation can only be
 solved if another module $C$ exists that requires only available data
 and provides date $a$ respectively date $b$ so that all dependencies
-are solved. See the code example \ref{example}.\\
+are solved. The sequence of execution will be $\left\{ C, A, B \right\}$.
+See the code example \ref{example}.\\
 
 \begin{program}[h!]
 \begin{boxitpara}{box 0.7 setgray fill}
