@@ -15,6 +15,8 @@
 {
   module "OSRProgress";
 
+  textdomain "repair";
+
 
   /**
    * The length of a ProgressBar
@@ -26,42 +28,23 @@
    */
   map progresses	= $[];
 
-  
-  textdomain "repair";
-
-  
-  /**
-   *  Constructor.
-   *
-   *  For internal use only.
-   */
-  global define OSRProgress() ``{
-      progresses = $[];
-  };
-
   /**
    * Reset module settings.
    */
   global define void Reset()``{
-      /*
-      foreach(`key, `entry , progresses, ``{
-	  if( haskey(entry, "current")) {
-	      entry["current"] = 0 ;
-	  }
-      });
-      */
       progresses = $[];
-  }	
+  }
 
-  global define term CreateProgressBar(symbol id, string label, integer real_steps )``{
-      if( ! haskey( progresses, id ) )
-      {
-	 progresses = add( progresses, id , $[ "type"     : "ProgressBar",
-					       "current"  : 0,
-					       "increment": 1,
-					       "label"	  : label ]);
-      }
-      return `ProgressBar( `id( id ), progresses[id, "label"]:"" ,  real_steps );
+  global define term CreateProgressBar (symbol id, string label,
+					integer real_steps ) ``{
+    if( ! haskey( progresses, id ) )
+    {
+	progresses = add( progresses, id , $[ "type"		: "ProgressBar",
+					      "current"		: 0,
+					      "increment"	: 1,
+					      "label"		: label ]);
+    }
+    return `ProgressBar( `id( id ), progresses[id, "label"]:"" ,  real_steps );
   }
 
   /**
@@ -74,10 +57,12 @@
 
 	  if( ! haskey( progresses , id ))
 	  {
-	      progresses = add( progresses, id , $[ "type"     : "ProgressBar",
-						    "current"  : 0,
-						    "increment": tointeger( length / steps ),
-						    "label"    : label ]);
+	    progresses = add( progresses, id , $[
+		"type"     : "ProgressBar",
+		"current"  : 0,
+		"increment": tointeger( length / steps ),
+		"label"    : label ]
+	    );
 	  }
 	  return `ProgressBar(
 			      `id( id ),
@@ -96,7 +81,6 @@
       }
   }
 
-  
   global define void Update()``{
       y2milestone(" progresses data %1" ,progresses);
       foreach( symbol id, map p_data , progresses, ``{
@@ -104,12 +88,10 @@
 	  {
 	      UI::ChangeWidget(`id(id), `Value, p_data["current"]:length);
 	      UI::ChangeWidget(`id(id), `Label, p_data["label"]:"");
-	      
 	  }
       });
   }
-  
-  
+
   /**
    * Set the Steps of a normal ProgressBar Widget.
    */
@@ -126,12 +108,50 @@
       }
   }
 
-  
+  /**
+   *  This method is called after one detection function is successfully
+   *  executed. It shows the continuous progress to the user with the global
+   *  progress bar.
+   *
+   *  For internal use only.
+   *
+   *  @return boolean True if the progress value was increased successfully.
+   */
+  global define boolean Increase(symbol id ) ``{
+      map progress		= progresses[id]:$[];
+
+      if ( progress["type"]:"" == "ProgressBar" ) {
+	  integer new_current = progress["current"]:length +
+	    progress["increment"]:0;
+
+	  if ( new_current <= length )
+	  {
+	      progresses[id, "current"]	= new_current;
+
+	      return (UI::ChangeWidget( `id(id), `Value, new_current ));
+	  }
+      }
+      return false;
+  };
+
+  global define boolean DownloadIncrease(symbol id, string new_label ) ``{
+      map progress		= progresses[id]:$[];
+
+      if ( progress["type"]:"" == "DownloadProgress" ) {
+
+	    return ((integer) WFM::Execute (.local.bash,
+		sformat ("/bin/echo  \"%1\" >> %2", new_label,
+		    UI::QueryWidget(`id(id), `Filename) )) == 0);
+      }
+      return false;
+  }
+
+
  /**
    *  Set the label of a progress-bar to the specified one.
    *  @param string new_label The new label.
    *  @return boolen True if the label was set correctly.
-   */ 
+   */
   global define boolean SetLabel(symbol id, string new_label) ``{
       if( UI::QueryWidget(`id(id), `Label) != new_label )
       {
@@ -142,19 +162,15 @@
 	      // save label
 	      progresses[id, "label"] = new_label;
 	  }
-	  
 	  if ( progresses[id, "type"]:"" == "ProgressBar" ) 
 	      return (Increase(id));
-	  
 	  else {
 	      return DownloadIncrease(id, new_label);
 	  }
-      }	
+      }
       return false;
   };
 
-  
-  
   /**
    *  Fills the global-progress-bar with 100%.
    *  @return boolean True if the progress value was increased successfully.
@@ -169,8 +185,8 @@
 	  return (UI::ChangeWidget(`id(id), `Value, length));
       }
       else {
-	  string  file     = UI::QueryWidget(`id(id), `Filename);
-	  integer current  = WFM::Read(.local.size, file);
+	  string  file     = (string) UI::QueryWidget(`id(id), `Filename);
+	  integer current  = (integer) WFM::Read(.local.size, file);
 	  integer diff     = 0;
 	  integer result   = 0;
 
@@ -179,7 +195,7 @@
 	      current = 0;
 	  }
 
-	  diff = UI::QueryWidget(`id(id), `ExpectedSize) - current;
+	  diff = (integer) UI::QueryWidget(`id(id), `ExpectedSize) - current;
 
 	  if (diff >= 0)
 	  {
@@ -191,8 +207,8 @@
 		      fill = fill + fill;
 		  }
 		  string command = sformat("/bin/echo \"%1\" >> %2", fill, file);
-		  result  = WFM::Execute(.local.bash, command);
-		  current = WFM::Read(.local.size, file);
+		  result  = (integer) WFM::Execute(.local.bash, command);
+		  current = (integer) WFM::Read(.local.size, file);
 	      }
 	      return (result == 0);
 	  }
@@ -203,68 +219,23 @@
       }
   };
 
-  
-  /**
-   *  This method is called after one detection function is successfully executed.
-   *  It shows the continuous progress to the user with the global progress bar.
-   *
-   *  For internal use only.
-   *
-   *  @return boolean True if the progress value was increased successfully.
-   */
-  global define boolean Increase(symbol id ) ``{
-      
-      map progress		= progresses[id]:$[];
-
-      if ( progress["type"]:"" == "ProgressBar" ) {
-	  integer new_current 	= progress["current"]:length + progress["increment"]:0;
-
-	  
-	  if ( new_current <= length )
-	  {
-	      progresses[id, "current"]	= new_current;
-
-	      return (UI::ChangeWidget(
-				       `id(id),
-				       `Value,
-				       new_current
-				       ));
-	  }
-      }
-      
-      return false;
-  };
-
-  
-  global define boolean DownloadIncrease(symbol id, string new_label ) ``{
-      map progress		= progresses[id]:$[];
-
-      if ( progress["type"]:"" == "DownloadProgress" ) {
-
-	  return WFM::Execute(.local.bash, sformat("/bin/echo  \"%1\" >> %2", new_label, UI::QueryWidget(`id(id), `Filename) ));
-      }
-      return false;
-  }
-
   /**
    * Only for DownloadProgress !!
    * Delete the progress file.
-   */ 
+   */
   global define boolean DeleteFile(string file ) ``{
 
       if( file == "" || file == nil ) return false;
-      
-      string command  =  sformat("if /usr/bin/test -f %1; then /bin/rm %1; fi", file);
-	 
+
+      string cmd = sformat("if /usr/bin/test -f %1; then /bin/rm %1; fi", file);
       // delete the old progress_file, if it exists
-      if (  WFM::Execute(.local.bash, command) != 0 ) {
+      if (  WFM::Execute(.local.bash, cmd) != 0 ) {
 	  y2error("The file %1 could not be deleted.", file);
 	  return false;
       }
       return true;
   }
 
-     
   /**
    *  Specifies a new filename for the DownloadProgress widget.
    *  @param string file Filename as a string.
@@ -272,12 +243,10 @@
    */
   global define boolean SetFile(symbol id, string new_file) ``{
       map progress		= progresses[id]:$[];
-      
-      if ( progress["type"]:"" == "DownloadProgress" ) {
-	  DeleteFile(UI::QueryWidget(`id(id), `Filename));
 
+      if ( progress["type"]:"" == "DownloadProgress" ) {
+	  DeleteFile ((string) UI::QueryWidget(`id(id), `Filename));
 	  progresses[id, "file"] = new_file;
-	  
 	  return UI::ChangeWidget(`id(id), `Filename,     new_file   );
       }
       return false;
@@ -288,38 +257,8 @@
    */
   global define boolean SetLength(symbol id, integer new_length) ``{
       map progress		= progresses[id]:$[];
-      if ( progress["type"]:"" == "DownloadProgress" ) 
+      if ( progress["type"]:"" == "DownloadProgress" )
 	  return UI::ChangeWidget(`id(id), `ExpectedSize, new_length);
       return false;
   };
-
-
-  
-  /**
-   *  This method is called after an error is found. It sets the global progress
-   *  bar back to the value where the error was detected.
-   *
-   *  For internal use only.
-   *
-   *  @return boolean True if the progress value was decreased successfully.
-   */
-  /*
-  global define boolean Decrease(symbol id) ``{
-
-      integer new_current =  lookup( progresses[id]:$[], "current", length ) - lookup( progresses[id]:$[], "increment", 0  );
-      
-      if (new_current >= 0 )
-      { 
-	  return (UI::ChangeWidget(
-				   `id(id),
-				   `Value,
-				   new_current
-				   ));
-      }
-      else
-      {
-	  return false;
-      }
-  };
-  */
 }

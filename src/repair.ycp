@@ -3,11 +3,11 @@
  *    repair.ycp
  *
  *  Module:
- *    YaST2 system repair tool - automatic error detection and repair tool for Linux.
+ *    YaST2 system repair tool - automatic error detection and repair tool
  *
  *  Summary:
  *    This file provides the framework of the YaST2 system repair tool.
- *    It contains the main function that starts the scan and repair process. 
+ *    It contains the main function that starts the scan and repair process.
  *
  *  Author:
  *    Johannes Buchhold <jbuch@suse.de>
@@ -15,36 +15,25 @@
  * $Id$
  */
 {
- 
-  import "Popup";
-  
+
   import "Wizard";
   import "Mode";
-  import "Progress";
-  import "Report";
 
   import "OSRRepairUI";
-  import "OSRLogFile";
   import "OSRModuleLoading";
-  import "OSR";
   import "OSRMode";
-  import "OSRProgress";
-  import "OSRExecute";
-  import "OSRRepairUI";
-  
-  textdomain "repair";
-  
+
   // check the special osr modes
   if( ! OSRMode::IsValid() ) return `error;
 
   // write verify output to tmp directory.
   // OSRMode::save = true;
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   //
   //  MAIN
   //
-  ////////////////////////////////////////////////////////////////////////////////
-  
+  //////////////////////////////////////////////////////////////////////////////
+
   // ===== Open UI ==================================================
   if( (! Mode::cont) && (! Mode::initial))
   {
@@ -61,13 +50,12 @@
 
   // ==== Try to unload all loaded modules =========================
   OSRModuleLoading::UnloadAll();
-  
+
   // ==== Close the dialog =========================================
   if( (! Mode::cont) && (! Mode::initial))
   {
       UI::CloseDialog();
   }
-  
-  return ret;    
-}
 
+  return ret;
+}

@@ -1,7 +1,7 @@
 /**
  * File:	OSRSystem.ycp
  * Module:	repair
- * Summary:	
+ * Summary:
  * Authors:	Johannes Buchhold <jbuch@suse.de>
  *
  * $Id$
@@ -10,12 +10,10 @@
  */
 
 {
-  
     module "OSRSystem";
 
     import "Installation";
     import "Report";
-    import "FileSystems";
 
     import "OSRStatus";
 
@@ -30,20 +28,61 @@
      * The target system root mount point.
      */
     string target_root = "/mnt";
-    
+
     /**
      * The base root mount point.
      */
     string org_root    = "/";
-    
-  
+
+    /**
+     * Change the root environment.
+     * @param root The new root environment.
+     */
+    global define boolean ChangeRoot(string new_root )``{
+
+      if( new_root != root )
+      {
+	  y2milestone("changing root environment to %1", new_root );
+
+	  WFM::SCRClose ( Installation::scrHandle );
+	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
+
+	  if( Installation::scrHandle < 0 )
+	  {
+	      y2error("changing root was not successful");
+	      Report::Error(_("
+Changing environment to target
+system was not successful."));
+
+	      OSRStatus::ErrorSeverityBlocking();
+	      root = "";
+	      return false;
+	  }
+	  else {
+	      WFM::SCRSetDefault (Installation::scrHandle);
+	      SCR::Read (.target.tmpdir);
+
+	      root = new_root;
+	      y2milestone("changing root was successful");
+	  }
+      }
+      return true;
+    }
+
+    global define void SetOrgRoot()``{
+
+      if( ChangeRoot( org_root) )
+      {
+	  root = org_root;
+      }
+    }
+
     global define void Reset()``{
 	target_root = "/mnt";
 	org_root    = "/";
 	SetOrgRoot();
     }
 
-    
     /**
      * Change root to target root mount point.
      */
@@ -53,19 +92,7 @@
       {
 	  root = target_root;
       }
-    }	
-
-
-    /**
-     * 
-     */
-    global define void SetOrgRoot()``{
-
-      if( ChangeRoot( org_root) )
-      {
-	  root = org_root;
-      }
-    }	
+    }
 
     global define string Root()``{
 	return root;
@@ -78,48 +105,11 @@
     global define string OrgRoot()``{
 	return org_root;
     }
-  
+
+
   /**
-   * Change the root environment.
-   * @param root The new root environment.
-   */
-  global define boolean ChangeRoot(string new_root )``{
-
-      if( new_root != root )
-      {
-	  y2milestone("changing root environment to %1", new_root );
-  
-	  WFM::SCRClose ( Installation::scrHandle );
-	  Installation::scrHandle = WFM::SCROpen ("chroot="+ new_root +":scr", false );
-	  
-	  if( Installation::scrHandle < -1 )
-	  {
-	      y2error("changing root was not successful");
-	      Report::Error(_("
-Changing environment to target
-system was not successful."));
-
-	      OSRStatus::ErrorSeverityBlocking(); 
-	      root = "";    
-	      return false;
-	  }
-	  else {
-	      WFM::SCRSetDefault (Installation::scrHandle);
-	      SCR::Read (.target.tmpdir);
-
-	      root = new_root;
-	      y2milestone("changing root was successful");
-	  }
-      }
-      return true;
-  }
-
-
-
-    
-    /**
-   *  Checks if the first specified list (of strings) is a subset of the second one. The sequence
-   *  of entries in the lists is nonrelevant.
+   *  Checks if the first specified list (of strings) is a subset of
+   *  the second one. The sequence of entries in the lists is nonrelevant.
    *
    *  For internal use only.
    *  See the testsuite.
@@ -130,7 +120,7 @@ system was not successful."));
    *  @example OSRIsSubSet(["a", "b", "c"], ["a", "b"]) -> false;
    *  @param list The first list.
    *  @param list The second list.
-   *  @return boolean True if all elements of l1 are contained in l2 or if l1 is empty.
+   *  @return True if all elements of l1 are contained in l2 or if l1 is empty.
    */
   global define boolean IsSubSet(list l1, list l2) ``{
 
@@ -146,7 +136,7 @@ system was not successful."));
       else if (size(l1) > size(l2))  return false;
 
       else if ((size(l1) == 0)) return true;
-      
+
       else if (size(l1) <= size(l2))
       {
 	  // this is the main subset-checker
@@ -165,5 +155,4 @@ system was not successful."));
 	  return false;
       }
   };
-
 }

@@ -4,15 +4,17 @@
  *
  *  Module:
  *     Read/Write files from floppy with dialog support.
- * 
+ *
  *  Summary:
  *      How to use OSRFloppy module:
  *	1. OSRFloppy::Open( with ui support, count of files to read/wirte );
  *
  *      2. optional: OSRFloppy::NextStep(_(Copy the file ..  ));
- *         WFM::Execute(.local.bash, "/bin/cp ... "); or OSRFloppy::ReadMap( .. ) or OSRFloppy::SaveMap( .. )
+ *		WFM::Execute(.local.bash, "/bin/cp ... "); or
+ *		OSRFloppy::ReadMap( .. ) or
+ *		OSRFloppy::SaveMap( .. )
  *
- * 	3. OSRFloppy::Close();
+ *	3. OSRFloppy::Close();
  *
  *  Author:
  *    Johannes Buchhold <jbuch@suse.de>
@@ -25,11 +27,11 @@
   textdomain "repair";
 
   import "StorageDevices";
-  import "Report";
-  import "OSRModuleLoading";
   import "Partitions";
+  import "Report";
   import "Label";
 
+  import "OSRModuleLoading";
 
   /**
    * Default mount point
@@ -41,31 +43,28 @@
    */
   global string floppy_device	       = StorageDevices::FloppyDevice;
 
- 
   /**
    * Supported file systems
    */
-  list(string) needed_fs_kernel_modules        = ["fat", "vfat" ];
-  
+  list<string> needed_fs_kernel_modules        = ["fat", "vfat" ];
+
   /**
    * Only for internal use.
    */
   boolean dialog_open	        = false;
   boolean use_ui		= true;
   integer step			= 0;
-  global boolean opened 	= false;
+  global boolean opened		= false;
 
 
-  
   /**
-   * Reset the internal values. 
+   * Reset the internal values.
    */
   define void Reset(boolean local_use_ui)``{
       use_ui = local_use_ui;
       step  = 0;
       mount_point = "/media/floppy";
   }
-  
 
   /**
    * Check if a floppy device exists.
@@ -90,20 +89,20 @@ file from a removable device is not possible.
       }
       return true;
   }
- 
 
   /**
    * Load needed fs modules.
    */
   define boolean LoadFsModules()``{
       boolean error = false;
-      
-      foreach( `module_name, needed_fs_kernel_modules, ``{
 
-	  if ( ! error ) {
+      foreach (string module_name, needed_fs_kernel_modules, ``{
 
-	      if ( ! OSRModuleLoading::Load( module_name,"","","",false, true ) )	{
-		  //TODO check english
+	  if ( !error ) {
+
+	      if ( !OSRModuleLoading::Load (module_name,"","","",false, true ))
+	      {
+		  // error popup, %1 is name of kernel module (driver)
 		  string message = sformat(_("
 An error occurred while loading the %1 kernel
 module. Mounting the floppy device is not possible.
@@ -111,17 +110,14 @@ System information cannot be read.
 
 "), "");
 		  if ( use_ui )
-		  {
 		      Report::Error(message);
-		  }
-		  else {
+		  else
 		      y2error(message );
-		  }
 		  error = true;
 	      }
 	  }
       });
-      return ! error;
+      return !error;
   }
 
   /**
@@ -134,29 +130,26 @@ System information cannot be read.
 
       if (  WFM::Execute(.local.bash, command) != 0 )  {
 
-	  //TODO check english
-	  string message = _("
-The default floppy mount point \"/media/floppy\"
+	  // error popup (%1 is mount point, e.g. /media/floppy)
+	  string message = sformat (_("
+The default floppy mount point \"%1\"
 does not exist and cannot be created.
-");
-	  
-	  if ( WFM::Execute(.local.bash, sformat("if /usr/bin/test -d %1; then /bin/mkdir %1; fi", "/media" ) ))
+"), mount_point);
+
+	  if ((integer) WFM::Execute (.local.bash, sformat("if /usr/bin/test -d %1; then /bin/mkdir %1; fi", "/media" )) == 0)
 	  {
-	      if ( WFM::Execute(.local.bash, sformat("if /usr/bin/test -d %1; then /bin/mkdir %1; fi", "/media/floppy" ) ))
+	      if ((integer) WFM::Execute (.local.bash, sformat("if /usr/bin/test -d %1; then /bin/mkdir %1; fi", "/media/floppy" )) == 0)
 	      {
 		  return true;
-	      }	
+	      }
 	  }
-	  
-	  if ( use_ui ) {
+	  if ( use_ui )
 	      Report::Error(message);
-	  }
-	  else {
+	  else
 	      y2error(message);
-	  }
 	  return false;
       }
-      return true;	
+      return true;
   }
 
 
@@ -176,73 +169,53 @@ does not exist and cannot be created.
 
       if ( WFM::Execute(.local.bash, "/bin/mount " + floppy_device + " "+mount_point+ " -t auto" ) != 0 )
       {
-	    //TODO check english
-	  string message = _("\nAn error occurred while mounting the floppy.
-");
-
-	  if ( use_ui )
-	  {
-	      Report::Error(message);
-	  }
-	  else {
-	      y2error(message );
-	  }
-	  
-	  return  false;
+	// error popup
+	string message = _("\nAn error occurred while mounting the floppy.");
+	if ( use_ui )
+	    Report::Error(message);
+	else
+	    y2error(message );
+	return  false;
       }
       return true;
   }
 
 
-  
   /**
    * Unmount floppy device
    */
   define boolean Umount()``{
-      
-      if( Partitions::MountedOn( floppy_device, Partitions::CurMounted() ) == "" )
+      if( Partitions::MountedOn (floppy_device, Partitions::CurMounted()) == "")
 	  return true;
-      
-      if (  WFM::Execute(.local.bash, "/bin/umount " +mount_point ) != 0 )
+      if ((integer)WFM::Execute(.local.bash, "/bin/umount "+ mount_point) != 0)
       {
-	    //TODO check english
-	  string message = _("An error occurred while unmounting the floppy.");
+	// error popup
+	string message = _("An error occurred while unmounting the floppy.");
 
-	  if ( use_ui )
-	  {
-	      Report::Error(message);
-	  }
-	  else {
-	      y2error(message );
-	  }
-	  
-	  return  false;
+	if ( use_ui )
+	    Report::Error(message);
+	else
+	    y2error(message );
+	return  false;
       }
       return true;
   }
-
-  
 
   /**
    * Open the floppy dialog
    */
   define boolean OpenFloppyDialog(string label, integer steps)``{
-      
-      if ( UI::OpenDialog(
-		 `VBox(
-		       `ProgressBar(`id(`progress), label, steps, 0),
-		       `VSpacing(0.4),
-		       `PushButton(`id(`cancel ) , Label::CancelButton() )
-                     )
-		 ) )
-      {
-	  UI::SetFocus(`id(`cancel ));
-	  dialog_open = true;
-	  return true;
-      }
-      
-      y2error("Floppy Dialog could not be opened.");
-      return false;
+
+    UI::OpenDialog (
+	`VBox(
+	    `ProgressBar (`id(`progress), label, steps, 0),
+	    `VSpacing(0.4),
+	    `PushButton(`id(`cancel ) , Label::CancelButton() )
+        )
+    );
+    UI::SetFocus(`id(`cancel ));
+    dialog_open = true;
+    return true;
   }
 
   /**
@@ -293,17 +266,19 @@ CloseFloppy(...) to close floppy device.");
 
       if  ( use_ui ) OpenFloppyDialog( _("Checking floppy device..."), count_io_files + 4 );
       if ( ! CheckPresent()) return false;
-     
+
+      // label text
       NextStep(_("Loading file system modules...") );
       if ( ! LoadFsModules()) return false;
 
+      // label text
       NextStep(_("Checking mount point..."));
       if ( ! CheckMountPoint()) return false;
 
-      NextStep(_("Mounting floppy...")); 
+      // label text
+      NextStep(_("Mounting floppy..."));
       if ( ! Mount()) return false;
 
-    
       return true;
   }
 
@@ -317,49 +292,43 @@ CloseFloppy(...) to close floppy device.");
 	  y2error("Floppy is not opend. Could not close floppy device.");
 	  return false;
       }
-      
       boolean error = false;
-      NextStep(_("Unmounting floppy...")); 
-      if ( ! Umount())  error = true;
+      // label text
+      NextStep(_("Unmounting floppy..."));
+      if ( !Umount())	error = true;
 
-      if ( use_ui ) CloseFloppyDialog();
+      if ( use_ui )	CloseFloppyDialog();
 
       opened = false;
       return ! error;
   }
-  
 
-  
   /**
    * Read file from mounted floppy device.
    * You must call OSRFloppy::Open( ) before and afterwards OSRFloppy::Close().
    */
   global define map ReadMap(string filename, string text )``{
 
-      if( ! opened ) {
+      if( !opened ) {
 	  y2error("Floppy is not opend. Could not read map.
 Please use OpenFloppy(...) to open floppy device.");
 	  return $[];
       }
 
       NextStep(text);
-      map return_map = WFM::Read(.local.ycp, mount_point + "/" + filename  );
+      map return_map = (map)WFM::Read(.local.ycp, mount_point + "/" + filename);
 
       if ( return_map == nil  ||  size(return_map) == 0  )
-      {  
-	  //TODO check english
-	  string message = sformat(_("\nThe file %1 cannot be read from %2.
-"),filename, floppy_device  );
+      {
+	// erro popup (%1 is file name, %2 device)
+	string message = sformat(_("\nThe file %1 cannot be read from %2."),
+	    filename, floppy_device  );
 
-	  if ( use_ui )
-	  {
-	      Report::Error(message);
-	  }
-	  else {
-	      y2error(message );
-	  }
-	  error = true;
-	  return  $[];
+	if ( use_ui )
+	    Report::Error(message);
+	else
+	    y2error(message );
+	return  $[];
       }
       return return_map;
   }
@@ -376,25 +345,20 @@ Please use OpenFloppy(...) to open floppy device.");
 	  return false;
       }
 
-      NextStep( text);
-      boolean file_write = WFM::Write(.local.ycp, mount_point + "/"+ filename ,file );
+      NextStep (text);
 
-      if ( ! file_write  )
-      {  
-	  //TODO check english
-	  string message = sformat(_("The file %1 cannot be saved to %2."),filename, floppy_device  );
-	  if ( use_ui )
-	  {
-	      Report::Error(message);
-	  }
-	  else {
-	      y2error(message );
-	  }
-	  
-	  return  false;
+      if (!WFM::Write(.local.ycp, mount_point + "/"+ filename ,file))
+      {
+	// error popup (%1 is file name, %2 is device)
+	string message = sformat(_("The file %1 cannot be saved to %2."),
+	    filename, floppy_device  );
+	if ( use_ui )
+	    Report::Error(message);
+	else
+	    y2error(message );
+	return  false;
       }
       return true;
-      
   }
-    
-}
+
+}//EOF

@@ -16,7 +16,6 @@
 
 {
 
-  import "Storage";
   import "StorageDevices";
   import "Mode";
 
@@ -32,6 +31,88 @@
    */
   integer arg_n = 0;
 
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  DETECTION METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   */
+  global define boolean OSRInitSelectFloppy() ``{
+
+      /////////////////////////////////////////////////////////////////////////
+      //
+      //  Check Floppy
+      //
+      /////////////////////////////////////////////////////////////////////////
+
+      if  ( size( StorageDevices::FloppyDrives) == 1 )
+      {
+        // summary text, %1 is floppy device
+        OSRSummary::DetectOK("",sformat(_("Floppy device found on %1"),
+             OSRFloppy::floppy_device ));
+
+        OSR::ProvideBoolean("has_floppy", true);
+      }
+      else if ( size( StorageDevices::FloppyDrives)  > 1 )
+      {
+	list drives = maplist (map floppy, StorageDevices::FloppyDrives, ``{
+	    return floppy["dev_name"]:"";
+	});
+
+        OSRSummary::DetectOK("",
+            // summary text, %1 are floppy devices
+            sformat(_("Several floppy devices found<br>%1"),
+            mergestring (drives, " ,")));
+
+
+        // let the user select the floppy device to use
+        OSRFloppy::floppy_device = OSRPopup::RadioButtonGroup(
+	    // popup headline
+	    _("Select one of the floppy devices"),
+	    // radibutton group description
+            _("Select one of the floppy
+devices for later use."),
+	    drives,
+            "",
+            true);
+
+        OSRSummary::DetectOK("",
+            // summary text, %1 is floppy device
+            sformat(_("Selected floppy device %1"), OSRFloppy::floppy_device));
+
+        OSR::ProvideBoolean("has_floppy", true);
+      }
+      else
+      {
+        // summary text
+        OSRSummary::NotFound("",  _("No floppy device found"));
+        OSR::ProvideBoolean("has_floppy", false );
+        return false;
+      }
+      return true;
+  }
+
+  global define boolean OSRInitTarget()``{
+//FIXME: value of "repair_target" is not used anywhere!!
+
+      // summary text
+      OSRSummary::DetectOK("", _("Target system initialized."));
+
+      // if the rescue-system is launched from a running Linux-system
+      // the target-directory is empty, else "/mnt"
+      if (!Mode::initial && !Mode::cont)
+      {
+        OSR::ProvideString("repair_target", "") ;
+      }
+      else
+      {
+        OSR::ProvideString("repair_target", "/mnt") ;
+      }
+
+      return true;
+  }
   //////////////////////////////////////////////////////////////////////
   //
   //  METHODS
@@ -66,7 +147,8 @@
         "detect_methods" :  [
                             // module method progress label
             $[ "summary"  : _("Probing floppy..."),
-               "method"   : ``(OSRInitSelectFloppy()) ,
+//               "method"   : ``(OSRInitSelectFloppy()) ,
+               "method"   : OSRInitSelectFloppy,
                "requires" : [],
                "provides" : [ "has_floppy"],
                "group"    : "init",
@@ -74,7 +156,8 @@
             ],
                             // module method progress label
             $[ "summary"  : _("Initialize Target System"),
-               "method"   : ``(OSRInitTarget()),
+//               "method"   : ``(OSRInitTarget()), FIXME pointer
+               "method"   : OSRInitTarget,
                "requires" : [],
                "provides" : ["repair_target"],
                "group"    : "init",
@@ -85,82 +168,6 @@
   }
 
 
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  DETECTION METHODS
-  //
-  //////////////////////////////////////////////////////////////////////
-
-  /**
-   */
-  global define boolean OSRInitSelectFloppy() ``{
-
-      /////////////////////////////////////////////////////////////////////////
-      //
-      //  Check Floppy
-      //
-      /////////////////////////////////////////////////////////////////////////
-
-      if  ( size( StorageDevices::FloppyDrives) == 1 )
-      {
-        // summary text, %1 is floppy device
-        OSRSummary::DetectOK("",sformat(_("Floppy device found on %1"),
-             OSRFloppy::floppy_device ));
-
-        OSR::ProvideBoolean("has_floppy", true);
-      }
-      else if ( size( StorageDevices::FloppyDrives)  > 1 )
-      {
-        OSRSummary::DetectOK("",
-            // summary text, %1 are floppy devices
-            sformat(_("Several floppy devices found<br>%1"),
-            mergestring(StorageDevices::FloppyDrives, " ,")));
-
-
-        // let the user select the floppy device to use
-        OSRFloppy::floppy_device = OSRPopup::RadioButtonGroup(
-                         _("Select one of the floppy devices"),
-                         _("Select one of the floppy
-devices for later use.
-"),
-                         StorageDevices::FloppyDrives,
-                         "",
-                         true
-                         );
-
-        OSRSummary::DetectOK("",
-            // summary text, %1 is floppy device
-            sformat(_("Selected floppy device %1"), OSRFloppy::floppy_device));
-
-        OSR::ProvideBoolean("has_floppy", true);
-      }
-      else
-      {
-        // summary text
-        OSRSummary::NotFound("",  _("No floppy device found"));
-        OSR::ProvideBoolean("has_floppy", false );
-        return false;
-      }
-      return true;
-  }
-
-  global define boolean OSRInitTarget()``{
-//FIXME: value of "repair_target" is not used anywhere!!
-      // summary text
-      OSRSummary::DetectOK("", _("Target system initialized."));
-
-      // if the rescue-system is launched from a running Linux-system the target-directory is empty, else "/mnt"
-      if (!Mode::initial && !Mode::cont)
-      {
-        OSR::ProvideString("repair_target", "") ;
-      }
-      else
-      {
-        OSR::ProvideString("repair_target", "/mnt") ;
-      }
-
-      return true;
-  }
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -168,18 +175,18 @@ devices for later use.
   //
   //////////////////////////////////////////////////////////////////////
 
-  while ( arg_n <  size(Args()) )
+  while ( arg_n <  size(WFM::Args()) )
   {
-      if ( Args(arg_n) == .init )
+      if ( WFM::Args(arg_n) == .init )
       {
-      y2milestone("Argument: %1", Args(arg_n));
-      return  OSRInitInit();
+	y2milestone("Argument: %1", WFM::Args(arg_n));
+	return OSRInitInit();
       }
       else
       {
-      y2error("ERROR: unknown option %1", Args(arg_n) );
-      return $[];
+	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
+	return $[];
       }
       arg_n = arg_n + 1;
   }
-}
+}//EOF

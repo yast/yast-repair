@@ -24,14 +24,14 @@
     import "OSRSystem";
     import "OSRExecute";
     import "OSRLogFile";
-    import "OSRPkgUI";
     import "OSRPopup";
+    import "OSRPkgUI";
     import "OSRPkgVerify";
 
     /**
      * Package database files
      */
-    list(string) rpm3_db_files = [
+    list<string> rpm3_db_files = [
 				 "/var/lib/rpm/conflictsindex.rpm",
 				 "/var/lib/rpm/fileindex.rpm",
 				 "/var/lib/rpm/groupindex.rpm",
@@ -45,7 +45,7 @@
     /**
      * Package database files (version >=4)
      */
-    list(string) rpm4_db_files = [
+    list<string> rpm4_db_files = [
 	"/var/lib/rpm/Basenames",
 	"/var/lib/rpm/Conflictname",
 	"/var/lib/rpm/Dirnames",
@@ -63,6 +63,11 @@
 	"/var/lib/rpm/Sigmd5",
 	"/var/lib/rpm/Triggername"
     ];
+
+    /**
+     * Current package database files
+     */
+    list<string> rpm_db_files	= rpm3_db_files;
 
     /**
      * if a backup (YaST) of the package  database was
@@ -94,17 +99,17 @@
     /**
      * Missing packages database files.
      */
-    global list (string) not_found_files  = [];
+    global list <string> not_found_files  = [];
 
     /**
      * Not installed base packages or damaged packages.
      */
-    global list (string) missing_packages = [];
+    global list <string> missing_packages = [];
 
     /**
      * All new installed packages.
      */
-    list (string) reinstalled_packages    = [];
+    list <string> reinstalled_packages    = [];
 
     /**
      * This will be local when converted to a Module::
@@ -128,12 +133,13 @@
     boolean package_db_repaired = false;
 
 
-    list(string) architecture_packages = [];
+    list<string> architecture_packages = [];
 
     // list of packages in minimal selection (read it just after pkg target is
     // initialized to avoid bug #30423)
     list minimal_selection = [];
 
+    // general help text about package database
     string default_package_help  = _("
 <p>The package database administers all
 information of the installed software packages.
@@ -144,12 +150,12 @@ package to the target and registers the package in
 the package database.</P>
 ");
 
+    // general help text about damaged package database
     string damaged_package_help = _("
 <P>If the package database is damaged, installing
 and removing packages or updating the system
 is not possible.</P>
 ");
-
 
     /**
      * Reset the module settings.
@@ -162,12 +168,12 @@ is not possible.</P>
 	root_mountpoint		= "";
 	missing_packages	= [];
 
-	architecture_packages = [];
-	package_db_repaired = false;
+	architecture_packages	= [];
+	package_db_repaired	= false;
 	reinstalled_packages    = [];
 	install_missing_dialog_data = [];
 
-	if( target_initialized )
+	if (target_initialized )
 	{
 	    target_initialized = ! Pkg::TargetFinish ();
 	}
@@ -180,8 +186,15 @@ is not possible.</P>
     /**
      * Constructor.
      */
-    global define OSRPkg()``{
+    global define void OSRPkg()``{
 	Reset();
+    }
+
+    define list get_minimal_selection () ``{
+
+	if (minimal_selection == [] || minimal_selection == nil)
+	    minimal_selection = Pkg::SelectionContent("Minimal", false, "");
+	return minimal_selection;
     }
 
     /**
@@ -190,16 +203,17 @@ is not possible.</P>
     global define boolean OpenPkg( string root )``{
 
 	y2milestone("Open pkg database with target system  -%1-", root );
-	if( root != "" && root != nil ) root_mountpoint = root;
+	if (root != "" && root != nil ) root_mountpoint = root;
 
 	// open the package source
-	if( ! Mode::initial )
+	if (! Mode::initial )
 	{
-	    source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
+	    source_initialized = source_initialized ||
+		Pkg::SourceStartCache (true) != [];
 	}
 	else
 	{
-	    if ( ! source_initialized  )
+	    if (! source_initialized  )
 	    {
 		y2milestone("Calling package module");
 
@@ -207,10 +221,11 @@ is not possible.</P>
 		OSRSystem::SetOrgRoot();
 
 		import "Packages";
-		Packages::Init( true );
+		Packages::Init (true);
 
 		architecture_packages = Packages::ComputeSystemPackageList();
-		y2milestone("Add architecture packages %1", architecture_packages );
+		y2milestone("Add architecture packages %1",
+		    architecture_packages );
 
 		//reset root environment
 		OSRSystem::ChangeRoot(root);
@@ -233,7 +248,7 @@ is not possible.</P>
 	}
 
 	// something failed
-	if( ! target_initialized || ! source_initialized )
+	if (! target_initialized || ! source_initialized )
 	{
 	    y2error("Opening the package database failed. ");
 	    y2error("Target is initialised: %1", target_initialized);
@@ -241,6 +256,7 @@ is not possible.</P>
 
 	    // build help and error text for following repair dialog
 	    help_text  = default_package_help + damaged_package_help;
+	    // error popup
 	    error_text = _("
 YaST cannot open the package database.
 Try rebuilding the package
@@ -254,25 +270,26 @@ database or reverting a backup.
      * Return false if db files are missing.
      * Save missing files in the list not_found_files.
      */
-    global define boolean CheckDB(string root )``{
+    global define boolean CheckDB (string root )``{
 
-	if( root != "" && root != nil ) root_mountpoint = root;
+	if (root != "" && root != nil ) root_mountpoint = root;
 	not_found_files = [];
 
-	list rpm_db_files = rpm3_db_files;
+	// Now the version of pkg databse is checked
+	rpm_db_files = rpm3_db_files;
 	if (OSRExecute::Command (.local.bash, sformat("/usr/bin/test -f %1",
 	    root_mountpoint + "/var/lib/rpm/Packages")))
 	    rpm_db_files = rpm4_db_files;
 
 	// check all database files
 	foreach(string file, rpm_db_files, ``{
-	    if ( !OSRExecute::Command (.local.bash,
+	    if (!OSRExecute::Command (.local.bash,
 		    sformat("/usr/bin/test -f %1", root_mountpoint + file)))
 		not_found_files = add(not_found_files, file);
 	});
 
 	// if files are missing
-	if( size( not_found_files ) > 0 )
+	if (size( not_found_files ) > 0 )
 	{
 	    help_text  = default_package_help + damaged_package_help;
 	    // error message: files (%1) not found
@@ -302,13 +319,8 @@ that belong to the package database.
 
 	// only create one package at the
 	// first call of backup_package_db
-	if( backup_created ) return true;
-	list(boolean) ret = [];
-
-	list rpm_db_files = rpm3_db_files;
-	if (OSRExecute::Command (.local.bash, sformat("/usr/bin/test -f %1",
-	    root_mountpoint + "/var/lib/rpm/Packages")))
-	    rpm_db_files = rpm4_db_files;
+	if (backup_created ) return true;
+	list<boolean> ret = [];
 
 	foreach(string file, rpm_db_files, ``{
 	    string f = root_mountpoint  + file;
@@ -318,7 +330,7 @@ that belong to the package database.
 	});
 
 	// if not error was found
-	if( size(filter(boolean r, ret, ``( r != true ))) == 0 )
+	if (size(filter(boolean r, ret, ``( r != true ))) == 0 )
 	{
 	    backup_created = true;
 	}
@@ -329,21 +341,21 @@ that belong to the package database.
      * Revert the YaST backup of the package database.
      */
     define boolean revert_packages_backup()``{
-	if ( ! backup_created ) return false;
-	
-	list(boolean) ret = [];
-	foreach(string file, rpm_db_files, ``{
+	if (! backup_created ) return false;
+
+	list<boolean> ret = [];
+	foreach (string file, rpm_db_files, ``{
 	    string f = root_mountpoint  + file;
 
 	    //if orginal file exists
-	    if( ! contains( not_found_files , file))
+	    if (! contains( not_found_files , file))
 	    {
 		ret = add( ret , OSRExecute::Command(.local.bash, sformat("/bin/cp %1.old %1",f)));
 	    }
 	});
 
 	// if not error was occurred
-	if( size(filter(boolean r, ret, ``( r != true ))) == 0 )
+	if (size(filter(boolean r, ret, ``( r != true ))) == 0 )
 	{
 	    Report::Message(_("\nReverting to the backup was successful.
 "));
@@ -351,46 +363,50 @@ that belong to the package database.
 	}
 	else
 	{
+	    // error popup
 	    Report::Error(_("
 Reverting to the backup was not
 successful. Select another
 backup or try to rebuild
 the package database.
-")); 
+"));
 	    return false;
 	}
     };
-
-
 
     /**
      * Rebuild the package database.
      */
     define boolean rebuild_package_db( boolean show_message )``{
+
 	boolean ret = true;
 
+	UI::OpenDialog (`VBox (
+	    `VSpacing(1),
+	    // wait popup label
+	    `Label(_("Rebuilding the package database. Please wait...")),
+	    `VSpacing(1)
+	));
 
-	UI::OpenDialog(`VBox(`VSpacing(1),
-			   `Label(_("Rebuilding the package database. Please wait...")),
-			   `VSpacing(1)));
-	
-	if( backup_created || size(not_found_files ) > 0 )
+	if (backup_created || size(not_found_files ) > 0 )
 	{
 	    // some package database files are missing
-	    if( (! Mode::test)  && size( not_found_files ) > 0 )
+	    if ((! Mode::test)  && size( not_found_files ) > 0 )
 	    {
-		ret = WFM::Execute(.local.bash, sformat("/bin/rpm --root %1 --initdb",root_mountpoint)) == 0;
+		ret = WFM::Execute (.local.bash,
+		    sformat("/bin/rpm --root %1 --initdb",root_mountpoint))== 0;
 	    }
 
 	    // rebuild package database
-	    ret = ret &&  WFM::Execute(.local.bash, sformat("/bin/rpm --root %1 --rebuilddb" ,root_mountpoint)) == 0;
+	    ret = ret && WFM::Execute (.local.bash,
+		sformat("/bin/rpm --root %1 --rebuilddb",root_mountpoint)) == 0;
 
 	    package_db_repaired = true;
 
 	    UI::CloseDialog();
-	    if( show_message )
+	    if (show_message )
 	    {
-		if( ret )
+		if (ret )
 		{
 		    Report::Message(_("
 YaST successfully rebuilt the package
@@ -422,31 +438,34 @@ the package database.
      */
     define boolean revert_daily_backup()``{
 
-	boolean ret = false;
-	if( ! backup_created && size(not_found_files) == 0 ) return false;
-	
-	string backup_path = SCR::Read(.sysconfig.backup.RPMDB_BACKUP_DIR );
-	string file_path   = "packages.rpm";
-	if ( backup_path == "" || backup_path == nil )
+	if (!backup_created && size(not_found_files) == 0 )
+	    return false;
+
+	boolean ret		= false;
+	string file_path	= "packages.rpm";
+	string backup_path	= (string)
+	    SCR::Read(.sysconfig.backup.RPMDB_BACKUP_DIR);
+
+	if (backup_path == "" || backup_path == nil )
 	{
-	    y2error("No sysconfig backup path found. Use default /var/adm/backup/rpmdb");
+	    y2error ("No sysconfig backup path found. Use default /var/adm/backup/rpmdb");
 	    backup_path = "/var/adm/backup/rpmdb";
 	}
 
-	list(string) files = SCR::Read(.target.dir, backup_path );
+	list<string> files = (list<string>) SCR::Read(.target.dir, backup_path);
 	files = filter(string f, files, ``(substring(f, 0, size(file_path)) == file_path ));
 	y2milestone("Found files for backup: %1", files );
 
 	//packages.rpm-20021105.gz
-	list(string) dates = maplist(string f, files, ``(substring(f, size(file_path)+1 , 8)));
+	list<string> dates = maplist(string f, files, ``(substring(f, size(file_path)+1 , 8)));
 	dates 	   = sort(string f, string ff, dates, ``( f >= ff ));
 	dates      = maplist(string f, dates, ``(sformat("%1.%2.%3", substring( f,0,4),
 							 substring(f,4,2),
 							 substring(f,6,2))));
-	list(list) items = maplist(string f, dates, ``([f,""]));
+	list<list> items = maplist(string f, dates, ``([f,""]));
 
 	// no backup was found
-	if( size(items ) == 0 )
+	if (size(items ) == 0 )
 	{
 	    Report::Error(sformat(_("
 YaST could not find any package database
@@ -472,16 +491,16 @@ to revert.
 
 	y2milestone("The selected item %1", selected);
 
-	if(selected != "" )
+	if (selected != "" )
 	{
 	    selected = find(string f, files, ``(issubstring(f, mergestring(splitstring(selected, "."),"") )));
 	    selected = backup_path + "/"+selected;
-	    if( OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %2/%1", selected, root_mountpoint )))
+	    if (OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %2/%1", selected, root_mountpoint )))
 	    {
-		if( ! Mode::test && WFM::Execute(.local.bash, sformat("/bin/gunzip < %2/%1  \
+		if (! Mode::test && WFM::Execute(.local.bash, sformat("/bin/gunzip < %2/%1  \
 > %2/var/lib/rpm/packages.rpm", selected ,root_mountpoint )) == 0   )
 		{
-		    if ( rebuild_package_db(false) ) 
+		    if (rebuild_package_db(false) ) 
 		    {
 			Report::Message(_("
 Reverting to the backup of the package
@@ -517,10 +536,10 @@ database was not successful.
 
 	string repair_header = _("Repair Package Database");
 	
-	if ( ! backup_package_db())
+	if (! backup_package_db())
 	{
 	    y2error("Creating backup of package db was not successful");
-	    if ( size(not_found_files ) == 0 ) return `error;
+	    if (size(not_found_files ) == 0 ) return `error;
 	    
 	}
 
@@ -532,7 +551,7 @@ database was not successful.
 	
 	term last_entry = `RadioButton(`id(`revert ));
 
-	if ( ! package_db_repaired )
+	if (! package_db_repaired )
 	    last_entry = add( last_entry , `opt(`disabled ));
 	
 	last_entry = add( last_entry,  _("Revert to Orginal Package Database (saved by YaST)"));
@@ -540,34 +559,39 @@ database was not successful.
 	r_options  = add( r_options, last_entry);
 
 	
-	if ( ! OSRPopup::OpenMainRepairDialog( repair_header , error_text, r_options ))
+	if (! OSRPopup::OpenMainRepairDialog( repair_header , error_text, r_options ))
 	{
 	    y2error("Could not open main dialog for repairing package database.");
 	    return `error;
-	}   
+	}
 
-	symbol ret     = `ok;
-	repeat {
-	    ret             = UI::UserInput();
-	    symbol selected = UI::QueryWidget(`id(`rb), `CurrentButton);
-	
-	    if( ret == `help )
+	symbol ret = `ok;
+	repeat
+	{
+	    ret             = (symbol)UI::UserInput();
+	    symbol selected = (symbol)UI::QueryWidget(`id(`rb), `CurrentButton);
+
+	    if (ret == `help )
 	    {
 		Popup::LongText( OSRPopup::help_headline , `RichText( help_text ), 50, 20);
 	    }
-	    else if ( ret == `ok )
+	    else if (ret == `ok )
 	    {
 		UI::CloseDialog();
 
 		boolean rret = false;
-		//execute selected repair mehtod 	
-		if(       selected == `rebuild ) rret = rebuild_package_db(true);
-		else if ( selected == `daily   ) rret = revert_daily_backup();
-		else if ( selected == `revert  ) rret = revert_packages_backup();
-	      
-		if ( ! rret  )
+		// execute selected repair method
+		if (selected == `rebuild)
+		    rret = rebuild_package_db(true);
+		else if (selected == `daily)
+		    rret = revert_daily_backup();
+		else if (selected == `revert)
+		    rret = revert_packages_backup();
+
+		if (!rret)
 		{
-		    if ( ! OSRPopup::OpenMainRepairDialog(repair_header , error_text, r_options ))
+		    if (!OSRPopup::OpenMainRepairDialog (repair_header,
+			error_text, r_options))
 		    {
 			y2error("Could not open main dialog");
 			return `error;
@@ -575,10 +599,43 @@ database was not successful.
 		    ret = `again;
 		}
 	    }
-	} until( ret == `cancel || ret == `abort || ret == `ok );	      
-    
-	if( ret != `ok )  UI::CloseDialog();
+	} until( ret == `cancel || ret == `abort || ret == `ok );
 
+	if (ret != `ok )  UI::CloseDialog();
+
+	return ret;
+    }
+
+    /**
+     * Return all packages which should be verified
+     */
+    define list<string> get_verify_packages(string what ) ``{
+
+	list<string>  ret = [];
+
+	// return all packages
+	if (what == "all" )
+	{
+	    ret = Pkg::GetPackages(`installed, true);
+	}
+	// return base packages only
+	else if (what == "base")
+	{
+	    list<string> minimal = get_minimal_selection ();
+	    list<string> special = [];
+
+	    minimal	= filter (string p, minimal, ``( Pkg::IsAvailable(p)));
+	    ret		= (list<string>) union (minimal, special) ;
+	}
+	else
+	{
+	    y2error("Parameter what not valid. Only all or base are allowed.");
+	    ret =  nil;
+	}
+	if (ret != nil )
+	{
+	    ret = (list<string>) union (ret, architecture_packages );
+	}
 	return ret;
     }
 
@@ -591,7 +648,7 @@ database was not successful.
 	// reset missing package
 	missing_packages = [];
 
-	if( root != "" && root != nil ) root_mountpoint = root;
+	if (root != "" && root != nil ) root_mountpoint = root;
 
 	if (! OpenPkg( root_mountpoint ))
 	{
@@ -600,8 +657,8 @@ database was not successful.
 	    return false;
 	}
 
-	list(string) installed_packages = Pkg::GetPackages(`installed, true);
-	list(string) minimal_packages   = get_verify_packages( "base" );
+	list<string> installed_packages = Pkg::GetPackages(`installed, true);
+	list<string> minimal_packages   = get_verify_packages( "base" );
 
 	missing_packages = filter(string pkg_name, minimal_packages, ``( ! contains(installed_packages, pkg_name )));
 
@@ -649,45 +706,6 @@ install the missing packages.</P>
 
     };
 
-    define list get_minimal_selection () ``{
-
-	if (minimal_selection == [] || minimal_selection == nil)
-	    minimal_selection = Pkg::SelectionContent("Minimal", false, "");
-	return minimal_selection;
-    }
-
-    /**
-     * Return all packages which should be verified
-     */
-    define list(string) get_verify_packages(string what ) ``{
-
-	list(string)  ret = [];
-
-	// return all packages
-	if(what == "all" )
-	{
-	    ret = Pkg::GetPackages(`installed, true);
-	}
-	// return base packages only
-	else if ( what == "base")
-	{
-	    list(string) minimal = get_minimal_selection ();
-	    list(string) special = [];
-
-	    minimal = filter (`p, minimal, ``( Pkg::IsAvailable(p)) );
-	    ret = union (minimal, special) ;
-	}
-	else {
-	    y2error("Parameter what not valid. Only all or base are allowed.");
-	    ret =  nil;
-	}
-	if (ret != nil )
-	{
-	    ret = union (ret, architecture_packages );
-	}
-	return ret;
-    }
-
     /**
      * Verify all specified packages.
      * @param root The mount point where the target system is mounted.
@@ -697,27 +715,27 @@ install the missing packages.</P>
      */
     global define symbol VerifyPackages(string root, string what , boolean expert_mode, boolean reset )``{
 
-	if( root != "" && root != nil )
+	if (root != "" && root != nil )
 	{
 	    root_mountpoint = root;
 	}
 
-	if( reset )
+	if (reset )
 	{
 	    missing_packages = [];
 	}
 
 	// open package database
-	if( ! OpenPkg(root_mountpoint) )
+	if (! OpenPkg(root_mountpoint) )
 	{
 	    y2error("Opening the package database failed. Verify package not possible");
 	    return `error;
 	}
 
-	list(string) check_packages = toset(get_verify_packages(what));
+	list<string> check_packages = toset(get_verify_packages(what));
 
 	
-	if( check_packages == nil ||  size(check_packages) == 0 )
+	if (check_packages == nil ||  size(check_packages) == 0 )
 	{
 	    y2error("No packages to verify found. Stop verify and return error.");
 	    return `error;
@@ -726,7 +744,7 @@ install the missing packages.</P>
 	string headline = ( what != "all" ) ? _("Verifying base packages...") : _("Verifying all installed packages...");
 	
 	// open dialog
-	if ( ! OSRPkgUI::OpenVerifyDialog( size(check_packages), headline , expert_mode) )
+	if (! OSRPkgUI::OpenVerifyDialog( size(check_packages), headline , expert_mode) )
 	{
 	    y2error("Verify Dialog can not be opened");
 	    return `error;
@@ -734,47 +752,60 @@ install the missing packages.</P>
 
 	symbol ret  = `again;
 	string rret = "";
-	repeat {
+	repeat
+	{
 	    // verify all selected packages
 	    foreach(string p, check_packages, ``{
 
-		if( ret != `abort ) {
-		    rret = UI::PollInput();
+		if (ret != `abort )
+		{
+		    rret = (string) UI::PollInput();
 
-		    if( ! (rret == "" || rret == nil ))
+		    if (! (rret == "" || rret == nil ))
 		    {
 			ret = OSRPkgUI::EvalUserInput(rret );
-			if ( ret == `abort ) return `abort;
-			if ( ret == `pause )
+			if (ret == `abort ) return `abort;
+			if (ret == `pause )
 			{
-			    repeat {
+			    repeat
+			    {
 				y2milestone("Starting pause loop");
-				rret = UI::UserInput();
-				ret  = OSRPkgUI::EvalUserInput( rret );
-				if ( ret == `abort ) return `abort;
-			    } until( ret == `continue || ret == `abort || ret == `cancel );
-			} 
+				rret = (string) UI::UserInput();
+				ret  = OSRPkgUI::EvalUserInput (rret);
+				if (ret == `abort )
+				    return `abort;
+			    } until (ret == `continue || ret == `abort ||
+				     ret == `cancel);
+			}
 		    }
 
 		    if (! haskey(OSRPkgVerify::verified_packages, p ) && ret != `abort && ret != `cancel)
 		    {
-			if ( ! OSRPkgVerify::Verify( p ) )
+			/* FIXME - check if it works
+			if (!OSRPkgVerify::Verify (p, root_mountpoint) )
 			{
 			    missing_packages = add(missing_packages, p );
 			}
+			*/
+			boolean ver = OSRPkgVerify::Verify (p, root_mountpoint);
+			OSRPkgUI::AddPackageSummary (
+			    p, OSRPkgVerify::verified_packages [p]:$[] );
+			if (!ver )
+			{
+			    missing_packages = add (missing_packages, p );
+			}
 		    }
-		
 		}
 	    });
 	    OSRPkgUI::Finish();
 
 	    // finish verified wait for user input in expert mode.
-	    if ( ret != `abort && OSRPkgUI::expert_mode )
+	    if (ret != `abort && OSRPkgUI::expert_mode )
 	    {
 		check_packages = [];
-		rret = UI::UserInput();
+		rret = (string) UI::UserInput();
 		y2milestone(" user input get signal %1", rret);
-		if( ret != nil  )  // e.g.: get a `cancel or `abort
+		if (ret != nil  )  // e.g.: get a `cancel or `abort
 		{
 		    ret = OSRPkgUI::EvalUserInput( rret );
 		}
@@ -783,20 +814,19 @@ install the missing packages.</P>
 		}
 
 		// all packages verified.
-		if( ret == `abort || ret == `cancel ) ret = `next;
+		if (ret == `abort || ret == `cancel ) ret = `next;
 	    }
 	    // close dialog in normal mode
 	    else {
 		ret = `next;
 	    }
-	    
 	} until ( ret == `next || ret == `abort || ret == `cancel );
 	UI::CloseDialog();
 
 	missing_packages = OSRPkgVerify::not_successful_verified;
 	OSRPkgVerify::WriteVerifiedPackages( check_packages, false);
 
-	if( size( missing_packages ) > 0 )
+	if (size( missing_packages ) > 0 )
 	{
 	    string protocol_label = _("Show Log");
 	    OSRPkgUI::expert_mode = true;
@@ -839,9 +869,9 @@ package.</P>
 
 	symbol ret = `ok;
 
-	if( size(missing_packages) > 0 )
+	if (size(missing_packages) > 0 )
 	{
-	    list(list) item_list = [];
+	    list<list> item_list = [];
 	    foreach(string item, missing_packages, ``{
 		item_list = add( item_list, [item, true]);
 	    });
@@ -859,7 +889,7 @@ package.</P>
 		    install_missing_dialog_data[5]:[]);
 	    }
 
-	   if( missing_packages == [] )
+	   if (missing_packages == [] )
 	   {
 	       y2milestone("No packages to install. User skiped reinstall.");
 	       ret = `cancel;
@@ -867,13 +897,13 @@ package.</P>
 	   else
 	   {
 		y2milestone("Install missing or damaged packages %1", missing_packages );
-		if ( OpenPkg(root_mountpoint ))
+		if (OpenPkg(root_mountpoint ))
 		{
 		    boolean ok = true;
 
 		    foreach (string p, missing_packages , ``{
 			ok = ok && Pkg::PkgInstall (p);
-			if( ! ok )
+			if (! ok )
 			{
 			    y2error("Change the state to install for package %1 failed", p );
 			}
@@ -888,11 +918,11 @@ package.</P>
 
 		    ok = ok && result[1]:nil == [] && result[2]:nil == [];
 		    Wizard::CreateDialog ();
-		    WFM::CallModule ("inst_suseconfig", [false, false]);
+		    WFM::CallFunction ("inst_suseconfig", [false, false]);
 
 		    Wizard::CloseDialog ();
 
-		    if ( ok )
+		    if (ok )
 		    {
 			reinstalled_packages = missing_packages;
 			y2milestone("All reinstalled_packages: %1", reinstalled_packages );
@@ -913,6 +943,4 @@ package.</P>
 	return ret;
     }
 
-}
-
-
+}//EOF

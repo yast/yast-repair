@@ -20,7 +20,6 @@
   import "Mode";
   import "Bootloader";
   import "Storage";
-  import "Partitions";
   import "Label";
   import "Popup";
 
@@ -34,180 +33,6 @@
   import "OSRDirect";
 
   integer arg_n = 0;
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  METHODS
-  //
-  //////////////////////////////////////////////////////////////////////
-
-  /**
-   *  Initialization of the module map that contains all important information
-   *  for this module.
-   *
-   *  @return map The map that contains all information about the module osr_module_init.
-   */
-  define map OSRBootloaderInit() ``{
-
-      y2milestone("OSRBootloaderInit");
-
-      return  $[
-          "name"              :  "osr_module_bootloader",
-                                 // module headline
-          "headline"          :  _("Boot Loader"),
-
-          "global_entries"    : $[
-                      "boot_check" :
-                                  // module action label
-                      $[ "text" : _("Check Boot Loader Configuration"),
-                                  // bootloader module helptext
-                         "help" : _("
-<p><B>What is a boot loader?</B><BR>
-The boot loader is the first thing
-you should see after you turned
-on a computer with a Linux installion.
-Starting a Linux system without
-a boot loader is not possible.</P>
-")+
- 
-_("<P>If you have installed more than
-one operating system on a computer,
-the boot loader allows you to select
-which system to start.</P>
-") +
-
-_("<P><B>Check Boot Loader Configuration</B><BR>
-YaST tries to detect the installed boot
-loader. Afterwards, the configuration
-files of the found boot loader will be
-checked. If no boot loader or an error
-in the configuration is detected, you
-have the possibility to install a new
-boot loader. 
-</P>
-"),
-                         "requires" : [ "fstab_check" ]
-                      ]
-          ],
-          "static_provides" : $[],
-          "reset_methods"      : [
-                                      // module reset label
-                      $["summary"   : _("Reset Boot Loader Settings"),
-                        "method"    : ``(OSRBootloaderReset()),
-                        "provides"  : 10
-                      ]
-          ],
-          // the sequence of the detection methods of this module
-          "detect_methods"    :  [
-                      $[ "name"   : "find_config_files",
-                                      // module method progress label
-                         "summary"  : _("Searching configuration files..."),
-                         "method"   : ``(OSRBootloaderSysconfigFiles()),
-                         "requires" :  ["valid_target", "root_mounted" ],
-                         "provides" :  ["config_files"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name"   : "find_bootloader_type",
-                                      // module method progress label
-                         "summary"  : _("Searching for boot loader..."),
-                         "method"   : ``(OSRBootloaderType()),
-                         "requires" :  ["config_files"],
-                         "provides" :  ["bootloader_type"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                     $[ "name"    : "find_boot_root",
-                         "summary"  : "",
-                         "method"   : ``(OSRBootloaderBootRoot()),
-                         "requires" :  ["bootloader_type"],
-                         "provides" :  ["boot_device", "root_device"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name"   : "bootloader_package_installed",
-                                      // module method progress label
-                         "summary"  : _("Searching for packages"),
-                         "method"   : ``(OSRBootloaderPackagesInstalled()),
-                         "requires" :  ["bootloader_type", "boot_device", "root_device"],
-                         "provides" :  ["bootloader_packages_installed"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name" : "verify_bootloader_package",
-                                      // module method progress label
-                         "summary"  : _("Verifying packages..."),
-                         "method"   : ``(OSRBootloaderPackagesVerified()),
-                         "requires" :  ["bootloader_packages_installed"],
-                         "provides" :  ["bootloader_packages_vertified"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name" : "bootloader_package_version",
-                                      // module method progress label
-                         "summary"  : _("Checking versions..."),
-                         "method"   : ``(OSRBootloaderPackagesVersion()),
-                         "requires" :  ["bootloader_packages_vertified"],
-                         "provides" :  ["bootloader_packages_version"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                       $[ "name"    : "bootloader_initrd_modules",
-                                      // module method progress label
-                         "summary"  : _("Checking initrd modules..."),
-                         "method"   : ``(OSRBootloaderCheckInitrd()),
-                         "requires" :  ["bootloader_packages_version"],
-                         "provides" :  ["bootloader_initrd_valid"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name" : "bootloader_conf_exists",
-                                      // module method progress label
-                         "summary"  : _("Searching boot loader configuration file..."),
-                         "method"   : ``(OSRBootloaderConfExists()),
-                         "requires" :  ["bootloader_initrd_valid"],
-                         "provides" :  ["bootloader_conf_exists"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name" : "bootloader_conf_check",
-                                      // module method progress label
-                         "summary"  : _("Checking boot loader configuration file..."),
-                         "method"   : ``(OSRBootloaderCheckConf()),
-                         "requires" :  ["bootloader_conf_exists"],
-                         "provides" :  ["bootloader_conf_check"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ],
-                      $[ "name" : "bootloader_ask_user",
-                         "summary"  : "",
-                         "method"   : ``(OSRBootloaderAskUser()),
-                         "requires" :  ["bootloader_conf_check"],
-                         "provides" :  ["bootloader_ask_user"],
-                         "group"    : "boot_check",
-                         "progress" : 10
-                      ]
-          ],
-          "direct_methods"  : [
-                       $[
-                         "name"     : "direct_methods_booloader",
-                                          // module method action label
-                         "button_text"  : _("Install New Boot Loader"),
-                         "method"       : ``(OSRDirectBootloader()),
-                         "initial_only" : false,
-                         "description"  : _("
-If you do not see a boot menu after
-turning on your computer or after
-restarting, press this button to
-install a new boot loader.
-"),
-                         "visible"      : true,
-                         "initial_root" : true
-                       ]
-          ]
-      ];
-  }
-
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -250,7 +75,7 @@ install a new boot loader.
         OSRSummary::DetectOK("",
             // summary text, %1 are file names
             sformat(_("Configuration files were found:<br>%1"),
-            mergestring(maplist(string k, string file,
+            mergestring ((list<string>) maplist(string k, string file,
                 OSRBoot::needed_config_files, ``(file)), "<br>")));
         OSR::ProvideBoolean("config_files", true );
       }
@@ -301,7 +126,7 @@ install a new boot loader.
       // Searching for root and boot partition  ...
       //
       /////////////////////////////////////////////////////////////////////////
-      list(string) not_found    = [];
+      list<string> not_found    = [];
 
       // Set boot and root device
       OSRBoot::root_device = OSR::RequireString("root_partition");
@@ -428,8 +253,8 @@ the system and start a new installation.
       if( ! OSRFstab::ReadedSuccessfully())
           OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
-      list(map) mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());
-      list(map) success      = filter(map mpe , mounted, ``(mpe["status"]:false == true));
+      list<map> mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());
+      list<map> success      = filter(map mpe , mounted, ``(mpe["status"]:false == true));
 
       OSR::ProvideBoolean("mounted_all", true );
       OSR::ProvideList("just_mounted", union( OSR::RequireList("just_mounted"), success));
@@ -793,24 +618,8 @@ press \"Repair\".
       y2milestone("root_device_2 %1", OSRBoot::root_device);
       y2milestone("boot_device_2 %1", OSRBoot::boot_device);
 
-      //Change root back to / for Boot::Set()
-//      Boot::Set();
       Bootloader::Propose();
-      // Fstab was already readed.
 
-      /*
-      // compare expected with actual boot, root device
-      if( Boot::BootPartitionDevice != OSRBoot::boot_device )
-      {
-      y2error(" boot_device and Boot::BootPartitionDevice differ");
-      Boot::BootPartitionDevice = OSRBoot::boot_device;
-      } 
-      if( Boot::RootPartitionDevice != OSRBoot::root_device )
-      {
-      y2error(" boot_device and Boot::RootPartitionDevice differ");
-      Boot::RootPartitionDevice = OSRBoot::root_device;
-      }
-      */
       // compare expected with actual boot, root device
       if(  Bootloader::getBootDevice() != OSRBoot::boot_device )
       {
@@ -837,24 +646,210 @@ press \"Repair\".
       return `next;
   }
 
+  //////////////////////////////////////////////////////////////////////
+  //
+  //  METHODS
+  //
+  //////////////////////////////////////////////////////////////////////
+
+  /**
+   *  Initialization of the module map that contains all important information
+   *  for this module.
+   *
+   *  @return map The map that contains all information about the module osr_module_init.
+   */
+  define map OSRBootloaderInit() ``{
+
+      y2milestone("OSRBootloaderInit");
+
+      return  $[
+          "name"              :  "osr_module_bootloader",
+                                 // module headline
+          "headline"          :  _("Boot Loader"),
+
+          "global_entries"    : $[
+                      "boot_check" :
+                                  // module action label
+                      $[ "text" : _("Check Boot Loader Configuration"),
+                                  // bootloader module helptext
+                         "help" : _("
+<p><B>What is a boot loader?</B><BR>
+The boot loader is the first thing
+you should see after you turned
+on a computer with a Linux installion.
+Starting a Linux system without
+a boot loader is not possible.</P>
+")+
+ 
+_("<P>If you have installed more than
+one operating system on a computer,
+the boot loader allows you to select
+which system to start.</P>
+") +
+
+_("<P><B>Check Boot Loader Configuration</B><BR>
+YaST tries to detect the installed boot
+loader. Afterwards, the configuration
+files of the found boot loader will be
+checked. If no boot loader or an error
+in the configuration is detected, you
+have the possibility to install a new
+boot loader. 
+</P>
+"),
+                         "requires" : [ "fstab_check" ]
+                      ]
+          ],
+          "static_provides" : $[],
+          "reset_methods"      : [
+                                      // module reset label
+                      $["summary"   : _("Reset Boot Loader Settings"),
+//                        "method"    : ``(OSRBootloaderReset()), FIXME
+                        "method"    : OSRBootloaderReset,
+                        "provides"  : 10
+                      ]
+          ],
+          // the sequence of the detection methods of this module
+          "detect_methods"    :  [
+                      $[ "name"   : "find_config_files",
+                                      // module method progress label
+                         "summary"  : _("Searching configuration files..."),
+//                         "method"   : ``(OSRBootloaderSysconfigFiles()),
+                         "method"   : OSRBootloaderSysconfigFiles,
+                         "requires" :  ["valid_target", "root_mounted" ],
+                         "provides" :  ["config_files"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name"   : "find_bootloader_type",
+                                      // module method progress label
+                         "summary"  : _("Searching for boot loader..."),
+//                         "method"   : ``(OSRBootloaderType()),
+                         "method"   : OSRBootloaderType,
+                         "requires" :  ["config_files"],
+                         "provides" :  ["bootloader_type"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                     $[ "name"    : "find_boot_root",
+                         "summary"  : "",
+//                         "method"   : ``(OSRBootloaderBootRoot()),
+                         "method"   : OSRBootloaderBootRoot,
+                         "requires" :  ["bootloader_type"],
+                         "provides" :  ["boot_device", "root_device"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name"   : "bootloader_package_installed",
+                                      // module method progress label
+                         "summary"  : _("Searching for packages"),
+//                         "method"   : ``(OSRBootloaderPackagesInstalled()),
+                         "method"   : OSRBootloaderPackagesInstalled,
+                         "requires" :  ["bootloader_type", "boot_device", "root_device"],
+                         "provides" :  ["bootloader_packages_installed"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "verify_bootloader_package",
+                                      // module method progress label
+                         "summary"  : _("Verifying packages..."),
+//                         "method"   : ``(OSRBootloaderPackagesVerified()),
+                         "method"   : OSRBootloaderPackagesVerified,
+                         "requires" :  ["bootloader_packages_installed"],
+                         "provides" :  ["bootloader_packages_vertified"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "bootloader_package_version",
+                                      // module method progress label
+                         "summary"  : _("Checking versions..."),
+//                         "method"   : ``(OSRBootloaderPackagesVersion()),
+                         "method"   : OSRBootloaderPackagesVersion,
+                         "requires" :  ["bootloader_packages_vertified"],
+                         "provides" :  ["bootloader_packages_version"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                       $[ "name"    : "bootloader_initrd_modules",
+                                      // module method progress label
+                         "summary"  : _("Checking initrd modules..."),
+//                         "method"   : ``(OSRBootloaderCheckInitrd()),
+                         "method"   : OSRBootloaderCheckInitrd,
+                         "requires" :  ["bootloader_packages_version"],
+                         "provides" :  ["bootloader_initrd_valid"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "bootloader_conf_exists",
+                                      // module method progress label
+                         "summary"  : _("Searching boot loader configuration file..."),
+//                         "method"   : ``(OSRBootloaderConfExists()),
+                         "method"   : OSRBootloaderConfExists,
+                         "requires" :  ["bootloader_initrd_valid"],
+                         "provides" :  ["bootloader_conf_exists"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "bootloader_conf_check",
+                                      // module method progress label
+                         "summary"  : _("Checking boot loader configuration file..."),
+//                         "method"   : ``(OSRBootloaderCheckConf()),
+                         "method"   : OSRBootloaderCheckConf,
+                         "requires" :  ["bootloader_conf_exists"],
+                         "provides" :  ["bootloader_conf_check"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "bootloader_ask_user",
+                         "summary"  : "",
+//                         "method"   : ``(OSRBootloaderAskUser()),
+                         "method"   : OSRBootloaderAskUser,
+                         "requires" :  ["bootloader_conf_check"],
+                         "provides" :  ["bootloader_ask_user"],
+                         "group"    : "boot_check",
+                         "progress" : 10
+                      ]
+          ],
+          "direct_methods"  : [
+                       $[
+                         "name"     : "direct_methods_booloader",
+                                          // module method action label
+                         "button_text"  : _("Install New Boot Loader"),
+//                         "method"       : ``(OSRDirectBootloader()),
+                         "method"       : OSRDirectBootloader,
+                         "initial_only" : false,
+                         "description"  : _("
+If you do not see a boot menu after
+turning on your computer or after
+restarting, press this button to
+install a new boot loader.
+"),
+                         "visible"      : true,
+                         "initial_root" : true
+                       ]
+          ]
+      ];
+  }
+
+
 
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
   //
   //////////////////////////////////////////////////////////////////////
-  while ( arg_n <  size(Args()) )
+  while ( arg_n <  size(WFM::Args()) )
   {
-      if ( Args(arg_n) == .init )
+      if ( WFM::Args(arg_n) == .init )
       {
-      y2milestone("Argument: %1", Args(arg_n));
-      return  OSRBootloaderInit();
+	y2milestone("Argument: %1", WFM::Args(arg_n));
+	return  OSRBootloaderInit();
       }
       else
       {
-      y2error("ERROR: unknown option %1", Args(arg_n) );
-      return $[];
+	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
+	return $[];
       }
       arg_n = arg_n + 1;
   }
-}
+}//EOF

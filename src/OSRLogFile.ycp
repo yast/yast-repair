@@ -22,33 +22,17 @@
    */
   string file = "";
 
-  
   /**
-   *  Constructor.
-   *
-   *  For internal use only.
-   */
-  global define OSRLogFile() ``{
-
-      if (! SetFile( GetTmpDir() + "/osr_log" ))
-      {
-	  y2error("Setup of the log file failed.");
-      }
-  };
-
-  
-  /**
-   *  Returns the path of the global temporary directory, e.g. "/tmp/YaST2-02274".
-   *
+   *  Returns the path of the global temporary directory, e.g.
+   *  "/tmp/YaST2-02274".
    *  @return string The path of the temporary directory.
    *  @example string tmpdir = GetTmpDir();
    */
   global define string GetTmpDir() ``{
-
-      return (WFM::Read(.local.tmpdir));
+//      return (string) WFM::Read(.local.tmpdir, nil); FIXME: what is 2nd arg?
+      return (string) WFM::Read (.local.tmpdir, "");
   };
-  
-   
+
   /**
    *  Tests if the specified logfile exists, is readable, writable, ...
    *  If the specified file not exists, it will be created with the correct
@@ -57,7 +41,7 @@
    *  For internal use only.
    *
    *  @param string new_file Name of the log file.
-   *  @return boolean True if the specified logfile was created/set up successfully.
+   *  @return True if the specified logfile was created/set up successfully.
    */
   define boolean SetFile(string new_file) ``{
 
@@ -65,7 +49,8 @@
       file = new_file;
 
       // write the actual date to the log file
-      if ( WFM::Execute(.local.bash,  sformat("/bin/date >> %1; echo >> %1", new_file))  == 0 )
+      if (WFM::Execute(.local.bash,
+	    sformat("/bin/date >> %1; echo >> %1", new_file))  == 0 )
       {
 	  // check if the new file is written correctly
 	  if ( WFM::Execute(.local.bash, "/usr/bin/test -f " + new_file) == 0)
@@ -77,7 +62,20 @@
       y2error("The log file was not set up correctly: %1", new_file);
       return false;
   };
-  
+
+  /**
+   *  Constructor.
+   *
+   *  For internal use only.
+   */
+  global define void OSRLogFile() ``{
+
+      if (! SetFile( GetTmpDir() + "/osr_log" ))
+      {
+	  y2error("Setup of the log file failed.");
+      }
+  };
+
   /**
    *  This function returns the name of the global log file.
    *  @return string The name of the global log file.
@@ -85,18 +83,21 @@
   global define string GetLogFileName() ``{
       return file;
   };
-  
+
   /**
    *  Writes the specified string to the end of the log file.
    *
-   *  @param string the_string The string that should be written to the end of the log file.
-   *  @return boolean True if the specified string was successfully written to the log file.
+   *  @param string the_string The string that should be written
+   *	to the end of the log file.
+   *  @return True if the specified string was successfully written
    */
   global define boolean Add(string the_string) ``{
-      
-      if ( WFM::Execute(.local.bash, sformat("/bin/echo \'%1\' >> %2", the_string, file) ) == 0 )
+
+      if (WFM::Execute(.local.bash,
+	    sformat("/bin/echo \'%1\' >> %2", the_string, file) ) == 0 )
       {
-	  y2milestone("String %1 successfully written to log file %2", the_string, file);
+	  y2milestone("String %1 successfully written to log file %2",
+	    the_string, file);
 	  return true;
       }
       else
@@ -105,5 +106,4 @@
 	  return false;
       }
   };
-  
 }

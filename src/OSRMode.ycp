@@ -10,41 +10,41 @@
  */
 
 {
-     module "OSRMode";
+    module "OSRMode";
 
     import "OSRLogFile";
     import "Report";
     import "Mode";
 
     textdomain "repair";
-    
+
     /**
      * Automatic detection and repair, no user-interaction but GUI.
      */
-    global boolean automatic 	= false;
+    global boolean automatic	= false;
 
     /**
      * No real error-detection or repair, only demonstration, GUI.
      */
-    global boolean demo		= false;    
+    global boolean demo		= false;
 
     /**
      *  Only detection, no repair, GUI.
      */
-    global boolean detection	= false;      
+    global boolean detection	= false;
 
     /**
      *  No GUI, no user-interaction, input-values come from a map.
      */
-    global boolean script	 = false;     
+    global boolean script	= false;
 
     /**
      * Prints the values provided by the detection-modules to the
      */
-    global boolean provides	  = false;    
+    global boolean provides	  = false;
 
     global boolean save		  = false;
-    
+
     /**
      * Get the execution-mode, description:
      * Mode::initial  == true -> Initial boot per CD-Rom or NFS
@@ -68,44 +68,41 @@
 	    y2milestone("NOT starting the rescue-system! Continue installation first!");
 	    OSRLogFile::Add("NOT starting the rescue-system! Continue installation first!\n");
 
+	    // error popup
 	    Report::Error(_("
 Finish installation before
 starting the YaST2 repair system.
 
 YaST2 halts now.
 "));
-	  
 	    return false;
 	}
 	else
-	{	
+	{
 	    y2warning("Something's wrong: initial_mode == %1 and continue_mode == %2, but cannot both be true!",
 		      Mode::initial, Mode::cont);
 	}
 	return true;
     }
 
-	
     //---------------------------------------------------------------
     // constructor
-    global define OSRMode () ``{
+    global define void OSRMode () ``{
 
-	
 	integer arg_count = size(WFM::Args());
 	integer arg_no = 0;
 
-
-	if ( size(Args()) > 1 )
+	if ( size(WFM::Args()) > 1 )
 	{
 	    y2error("Too many arguments: size(%1) == %2, no more than one allowed.",
-		    Args(), size(Args()) );
+		    WFM::Args(), size(WFM::Args()) );
 	}
 	else
 	{
-	    while ( arg_no < size(Args()) )
+	    while ( arg_no < size(WFM::Args()) )
 	    {
 		y2debug("option #%1: %2", arg_no, WFM::Args(arg_no) );
-		
+
 		if ( WFM::Args(arg_no) == "automatic" )
 		{
 		    automatic = true;
@@ -120,7 +117,7 @@ YaST2 halts now.
 		{
 		    detection = true;
 		    OSRLogFile::Add("Running in detection mode.\n");
-		}	
+		}
 		else if ( WFM::Args(arg_no) == "script" )
 		{
 		    script   = true;
@@ -133,12 +130,10 @@ YaST2 halts now.
 		}
 		else
 		{
-		    y2error("Unknown option %1.", Args(arg_no) );
+		    y2error("Unknown option %1.", WFM::Args(arg_no) );
 		}
-	 
 		arg_no = arg_no + 1;
 	    }
 	}
     }
-	    
 }
