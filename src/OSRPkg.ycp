@@ -10,12 +10,8 @@
  */
 
 {
-  
     module "OSRPkg";
 
-    
-    import "Popup";
-    
     textdomain "repair";
 
     import "Kernel";
@@ -23,6 +19,7 @@
     import "Mode";
     import "Report";
     import "Wizard";
+    import "Popup";
 
     import "OSRSystem";
     import "OSRExecute";
@@ -31,11 +28,10 @@
     import "OSRPopup";
     import "OSRPkgVerify";
 
-    
     /**
      * Package database files
      */
-    list(string) rpm_db_files = [
+    list(string) rpm3_db_files = [
 				 "/var/lib/rpm/conflictsindex.rpm",
 				 "/var/lib/rpm/fileindex.rpm",
 				 "/var/lib/rpm/groupindex.rpm",
@@ -45,14 +41,36 @@
 				 "/var/lib/rpm/requiredby.rpm",
 				 "/var/lib/rpm/triggerindex.rpm"
     ];
-    
+
+    /**
+     * Package database files (version >=4)
+     */
+    list(string) rpm4_db_files = [
+	"/var/lib/rpm/Basenames",
+	"/var/lib/rpm/Conflictname",
+	"/var/lib/rpm/Dirnames",
+	"/var/lib/rpm/Filemd5s",
+	"/var/lib/rpm/Group",
+	"/var/lib/rpm/Installtid",
+	"/var/lib/rpm/Name",
+	"/var/lib/rpm/Packages",
+	"/var/lib/rpm/Providename",
+	"/var/lib/rpm/Provideversion",
+	"/var/lib/rpm/Pubkeys",
+	"/var/lib/rpm/Requirename",
+	"/var/lib/rpm/Requireversion",
+	"/var/lib/rpm/Sha1header",
+	"/var/lib/rpm/Sigmd5",
+	"/var/lib/rpm/Triggername"
+    ];
+
     /**
      * if a backup (YaST) of the package  database was
      * created.
-     * Save rpm_db_files[X] -> rpm_db_files[X].old
+     * Save rpm?_db_files[X] -> rpm?_db_files[X].old
      */
     boolean backup_created = false;
-    
+
     /**
      * Mount point where the target system is mounted.
      */
@@ -64,7 +82,7 @@
     global string help_text	   = "";
 
     /**
-     * Error text. 
+     * Error text.
      */
     global string error_text	   = "";
 
@@ -72,7 +90,7 @@
      * Dialog description for the install missing or damaged packages.
      */
     global list install_missing_dialog_data = [];
- 
+
     /**
      * Missing packages database files.
      */
@@ -217,23 +235,27 @@ database or reverting a backup.
      * Save missing files in the list not_found_files.
      */
     global define boolean CheckDB(string root )``{
+
 	if( root != "" && root != nil ) root_mountpoint = root;
-	
 	not_found_files = [];
+
+	list rpm_db_files = rpm3_db_files;
+	if (OSRExecute::Command (.local.bash, sformat("/usr/bin/test -f %1",
+	    root_mountpoint + "/var/lib/rpm/Packages")))
+	    rpm_db_files = rpm4_db_files;
 
 	// check all database files
 	foreach(string file, rpm_db_files, ``{
-	    if ( ! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -f %1", root_mountpoint + file)))
-	    {
+	    if ( !OSRExecute::Command (.local.bash,
+		    sformat("/usr/bin/test -f %1", root_mountpoint + file)))
 		not_found_files = add(not_found_files, file);
-	    }
 	});
 
 	// if files are missing
 	if( size( not_found_files ) > 0 )
 	{
 	    help_text  = default_package_help + damaged_package_help;
-	    
+	    // error message: files (%1) not found
 	    error_text = sformat(_("
 YaST checked the package database and
 did not find the following files
@@ -244,16 +266,14 @@ that belong to the package database.
 
 	}
 	else
-	{ 
+	{
 	    // try to open the database.
 	    // if open fails OpenPkg set help and error text
 	    return OpenPkg( root_mountpoint );
 	}
-	
 	return size( not_found_files ) == 0;
     }
 
-    
     /**
      * Make a backup of the package database
      * files.
@@ -263,15 +283,18 @@ that belong to the package database.
 	// only create one package at the
 	// first call of backup_package_db
 	if( backup_created ) return true;
-
 	list(boolean) ret = [];
-	
+
+	list rpm_db_files = rpm3_db_files;
+	if (OSRExecute::Command (.local.bash, sformat("/usr/bin/test -f %1",
+	    root_mountpoint + "/var/lib/rpm/Packages")))
+	    rpm_db_files = rpm4_db_files;
+
 	foreach(string file, rpm_db_files, ``{
 	    string f = root_mountpoint  + file;
-	    if( ! contains( not_found_files , file))
-	    {
-		ret = add( ret , OSRExecute::Command(.local.bash, sformat("/bin/cp %1 %1.old",f)));
-	    }
+	    if (!contains (not_found_files , file))
+		ret = add (ret, OSRExecute::Command (.local.bash,
+		    sformat("/bin/cp %1 %1.old",f)));
 	});
 
 	// if not error was found

@@ -615,7 +615,6 @@ press \"Yes\".
       if ( ret == $[] || ret == nil ) {
 	  ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
 	  if ( ret != $[] && ret != nil ) ret["found"] = "floppy";
-	  
       }
       else {
 	  ret["found"] = "cdrom";
@@ -1799,7 +1798,6 @@ be changed.</P>
 if you press \"Save\".</P>
 ");
 
-      
       symbol ret = `next;
       repeat {
 	  ret = UI::UserInput();
@@ -1814,52 +1812,46 @@ if you press \"Save\".</P>
   }
 
 
-  
   /**
    * Repair the fstab. Call sub dialogs.
-   * @param step = 1 -> first step, repair root entry 
+   * @param step = 1 -> first step, repair root entry
    */
   global define symbol Repair(integer step)``{
 
-      list(symbol) ret = [];
-      
-      if ( size( missing_devs ) > 0 ) {
-	  ret = add(ret, SuggestMissingEntriesDialog());
-      }
+    list(symbol) ret = [];
 
-      
-y2internal ("-------------- not-valid: %1", not_valid_lines);
-      if( size( not_valid_lines ) > 0 ) {
-	  ret = add( ret, SuggestCreateMp());
-	  ret = add( ret, SuggestRemoveSpecDialog());
-	  ret = add( ret, SuggestModifyDialog());
-      }
+    if ( size( missing_devs ) > 0 ) {
+	y2milestone ("-------------- missing devices: %1", missing_devs);
+	ret = add(ret, SuggestMissingEntriesDialog());
+    }
 
-      // only show written file in step 2 - repairing
-      // all entries without root.
-      // step 1 repair root partition.
-      if( Mode::test ) return `ok;
-      y2milestone("ret repair list %1" ,ret);
-      
-      if((size( filter(symbol r, ret, ``( r == `ok ))) > 0) ) // &&
-	 //(step == 1 || ( step == 2 && really_write_fstab( step == 2 ))))
-      {
-	  AsciiFile::RewriteFile( fstab, root_mountpoint + tabpath );
-	  ResetSettings();
-	  ReadFstab(root_mountpoint, true );
-      }
-      else
-      {
-	  y2milestone("new fstab was not written");
-	  return `cancel;
-      }
+    if( size( not_valid_lines ) > 0 ) {
+	y2milestone ("-------------- not valid lines: %1", not_valid_lines);
+	ret = add( ret, SuggestCreateMp());
+	ret = add( ret, SuggestRemoveSpecDialog());
+	ret = add( ret, SuggestModifyDialog());
+    }
 
-      return ret_worst_symbol(ret);
+    // only show written file in step 2 - repairing
+    // all entries without root.
+    // step 1 repair root partition.
+    if( Mode::test ) return `ok;
+    y2milestone("ret repair list %1" ,ret);
+
+    if ((size( filter(symbol r, ret, ``( r == `ok ))) > 0) )
+    {
+	AsciiFile::RewriteFile( fstab, root_mountpoint + tabpath );
+	ResetSettings();
+	ReadFstab(root_mountpoint, true );
+    }
+    else
+    {
+	y2milestone("new fstab was not written");
+	return `cancel;
+    }
+    return ret_worst_symbol(ret);
   }
 
-  
-  
-  
   global define boolean CheckRootEntry(string dev_name , list(string) tswapable_partition_list,
 				      list(string) tchecked_partitions )``{
 
