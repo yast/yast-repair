@@ -38,6 +38,7 @@
   if( (! Mode::cont) && (! Mode::initial))
   {
       Wizard::CreateDialog();
+      Wizard::SetDesktopIcon("repair");
   }
 
   // ===== Init the Rescue System =================================
