@@ -32,7 +32,7 @@ modules_DATA =				\
 	OSRLogFile.ycp
 
 menu_DATA = 				\
-	menuentry_osr.ycp
+	menuentry_osr.y2cc
 
 scr_DATA =				\
 	etc_liloconf1.scr		\
