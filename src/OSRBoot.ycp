@@ -812,7 +812,7 @@ contains no errors press the cancel button.
     define boolean check_grub_addr( string addr  )``{
 	if( addr == "" )
 	{
-	    addr = bootloader_config_check[bootloader, "menu"]:"";
+	    addr = bootloader_config_check[bootloader, "menu"]:"";// FIXME:menu???
 	    y2milestone("adrr not set - use default addr");
 	}
 	
@@ -1071,13 +1071,14 @@ contains no errors press the cancel button.
 	boolean grub_device_map = check_grub_device_map();
 	if ( ! grub_device_map ) { y2error("grub decide map contains errors2");		grub_device_map = false; }
 	
-	// systax of grub_conf
-	//  $["addr":"0x8000",  "device":"(hd0)", "discswitch":true, "menu":"(hd0,2)/boot/grub/menu.lst",
-	//    "root":"(hd0,2)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/boot/grub/stage1",
-	//    "stage2":"/boot/grub/stage2"]
-//	map grub_conf 		= parseGrubConfFrom(bootloader_config_check[bootloader, "config_file"]:"" );
-	map grub_conf = BootGRUB::parseGrubConf(
-        bootloader_config_check[bootloader, "config_file"]:"" );
+	/* systax of grub_conf
+	  $["addr":"0x8000",  "device":"(hd0)", "discswitch":true, "menu":"(hd0,2)/boot/grub/menu.lst",
+	    "root":"(hd0,2)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/boot/grub/stage1",
+	    "stage2":"/boot/grub/stage2"]
+    */
+    string conf_file_contens = SCR::Read(.target.string,
+        bootloader_config_check[bootloader, "config_file"]:"");
+	map grub_conf = BootGRUB::parseGrubConf(conf_file_contens);
 	boolean grub_device 	= check_grub_device(grub_conf["device"]:"" );
 	boolean grub_root   	= check_grub_root(grub_conf["root"]:"" );
 	boolean grub_addr   	= check_grub_addr(grub_conf["addr"]:"" );
