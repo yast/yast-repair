@@ -8,7 +8,7 @@
 [Y2Module repair]
 
 ; name of the entry, shown in y2cc
-Name = _("YaST2 System Repair")
+Name = _("System Repair")
 
 ; "raw" group name to which this module belongs
 ; see /usr/lib/YaST2/etc/y2controlcentericons.y2cc for valid values
@@ -18,7 +18,7 @@ Group = System
 Icon = default.png
 
 ; *one* *short* descriptive line for y2cc
-Helptext = _("YaST2 System Repair")
+Helptext = _("System Repair")
 
 ; arguments, seperated by space
 Arguments = 

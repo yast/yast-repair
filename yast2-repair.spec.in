@@ -1,5 +1,4 @@
 @HEADER-COMMENT@
-
 # neededforbuild  yast2-devel-packages
 
 @HEADER@
@@ -7,7 +6,7 @@ Requires:	yast2
 
 BuildArchitectures:	noarch
 
-Summary:	YaST2 Repair
+Summary:	System Repair
 
 %description
 -
