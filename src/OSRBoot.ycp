@@ -543,19 +543,19 @@ Press Repair to install these packages.
 	{
 	    help_text = _("
 The variable INITRD_MODULES contains the list of modules
-to add to the initial ramdisk by calling the script \"mkinitrd\"
+to add to the initial RAM disk by calling the script \"mkinitrd\"
 Examples are drivers for SCSI controllers and LVM or reiserfs.
 ");
 	    error_message = sformat(_("
 The file %1 contains a list
 of modules to add to the initial
-ramdisk by calling the script \"mkinitrd\".
+RAM disk by calling the script \"mkinitrd\".
 YaST is missing the following modules:
 
 %2
 
 Press \"Repair\" to add the missing
-modules to the initial ramdisk.
+modules to the initial RAM disk.
 "), needed_config_files["initrd"]:"", mergestring( missing , "\n" ));
 
 
