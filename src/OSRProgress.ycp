@@ -83,7 +83,7 @@
 
   global define void Update()``{
       y2milestone(" progresses data %1" ,progresses);
-      foreach( symbol id, map p_data , progresses, ``{
+      foreach( symbol id, map p_data , (map<symbol,map<string,any> >)progresses, ``{
 	  if ( UI::WidgetExists(`id(id)))
 	  {
 	      UI::ChangeWidget(`id(id), `Value, p_data["current"]:length);

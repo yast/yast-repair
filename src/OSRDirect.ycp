@@ -61,7 +61,7 @@
 //    global define void AddEntries(list new_entries, term client ) ``{
     global define void AddEntries(list new_entries, string client ) ``{
 
-	foreach (map p, new_entries, ``{
+	foreach (map p, (list<map<string,any> >)new_entries, ``{
 	    if (!( !Mode::initial && p["initial_only"]:false ))
 	    {
 		p["client"] = client;
@@ -84,7 +84,7 @@
 	// layout with buttons
 	if (size (direct_methods) <= max_direct_push_buttons)
 	{
-	    foreach (string key, map data, direct_methods , ``{
+	    foreach (string key, map<string,any> data, (map<string,map<string,any> >)direct_methods , ``{
 		direct_items = add (direct_items, `HBox (
 		    `HSpacing(1),
 		    `HWeight (40, `Left (`PushButton (`id(key),`opt(`hstretch),
@@ -101,7 +101,7 @@
 	else
 	{
 	    string text = "";
-	    foreach (string key, map data, direct_methods , ``{
+	    foreach (string key, map<string,any> data, (map<string,map<string,any> >)direct_methods , ``{
 
 		string item = "";
 		if (UI::HasSpecialWidget(`DownloadProgress))

@@ -84,14 +84,14 @@ repair.</p>
   global define list<string> Partitions() ``{
 
     list<string> ret = [];
-    foreach (string dev, map disk, Storage::GetTargetMap(), ``{
+    foreach (string dev, map disk, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
 	if( !disk["is_lvm_vg"]:false && dev != "/dev/md" )
 	{
 	    list l = filter (map p, disk["partitions"]:[], ``(
 		!p["delete"]:false && p["fsid"]:0 == Partitions::fsid_swap)
 	    );
 
-	    ret = (list<string>) union (ret, maplist (map p, l,
+	    ret = (list<string>) union (ret, maplist (map p, (list<map<string,any> >)l,
 		``(Storage::GetDeviceName (dev,p["nr"]:0))));
 	}
     });

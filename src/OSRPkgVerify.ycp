@@ -122,7 +122,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	string kernel_package = Kernel::kernel_packages[0]:"k_deflt";
 	map new_entry = $[];
 
-	foreach (string k, map v, initial_verified_packages, ``{
+	foreach (string k, map<string,map<string,any> > v, (map<string,map<string,map<string,any> > >) initial_verified_packages, ``{
 	    if (k == "k_deflt")
 	    {
 		map out = (map) SCR::Execute (.target.bash_output, "uname -r");
@@ -277,11 +277,11 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	boolean found = false;
 
 	map you_installed = filter (string you_installed_pkg,
-	  list<string> allowed_erros, update_problems_map,
+	  list<string> allowed_erros, (map<string,list<string> >)update_problems_map,
 	    ``(substring (you_installed_pkg,0, size( pkg_name)) == pkg_name));
 
 	foreach (string you_installed_pkg, list<string> allowed_erros,
-	  you_installed, ``{
+	  (map<string,list<string> >) you_installed, ``{
 
 	    if( check_allowed( allowed_erros, status ))
 	    {
@@ -298,7 +298,7 @@ _("The test failure seems to be caused by an incorrectly built package.")
     define string build_problems( string pkg_name, map pkg_data )``{
 
 	map org_data = initial_verified_packages[pkg_name]:$[];
-	if (size (filter(string key, map d, org_data,``( d == pkg_data ))) > 0)
+	if (size (filter(string key, map d, (map<string,map<any,any> >)org_data,``( d == pkg_data ))) > 0)
 	{
 	    return "build_problems";
 	}
@@ -468,14 +468,14 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	    y2milestone("Try to save data of all verified packages");
 	    // not ok packages
 	    map t_verified_packages = filter(string pkg_name, map data,
-		verified_packages, ``( data != $[] ));
+		(map<string,map<any,any> >)verified_packages, ``( data != $[] ));
 
 	    // write as text file!!
-	    foreach (string pkg_name, map pkg_data, t_verified_packages, ``{
+	    foreach (string pkg_name, map<string,map<string,any> > pkg_data, (map<string, map<string,map<string,any> > >) t_verified_packages, ``{
 
 		WFM::Execute(.local.bash,
 		    sformat("/bin/echo %1 >> %2", pkg_name, spath));
-		foreach (string key, map file_data, pkg_data, ``{
+		foreach (string key, map file_data,  pkg_data, ``{
 
 		    WFM::Execute (.local.bash,
 			sformat("/bin/echo \"  %1  %2  %3\" >> %4",

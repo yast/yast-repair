@@ -337,8 +337,8 @@
       // iterate the splitted version-numbers
       while(index < max)
       {
-	  n_1 = tointeger(select(v_1, index, 0));
-	  n_2 = tointeger(select(v_2, index, 0));
+	  n_1 = tointeger(select(v_1, index, "0"));
+	  n_2 = tointeger(select(v_2, index, "0"));
 
 	  if (n_1 > n_2)
 	  {
@@ -527,13 +527,13 @@ Press Repair to install these packages.
 	y2milestone(" found initrd modules %1",storage_initrd );
 
 	//add found modules to Boot::initrdModules
-	foreach(string m, storage_initrd, ``{
+	foreach(string m, (list<string>) storage_initrd, ``{
         Initrd::AddModule (m, "");
 	});
 
 	list listed_modules = Initrd::ListModules();
 	y2milestone("needed initrd_modules in Boot %1", listed_modules );
-	list<string> missing = (list<string>) filter(string s, listed_modules,
+	list<string> missing = (list<string>) filter(string s, (list<string>)listed_modules,
 	    ``( !contains(current_initrd_modules, s)));
 
 	if( Mode::test ) missing = add(missing, "reiserfs");
@@ -879,7 +879,7 @@ contains no errors, press \"Skip\".
      */
     define boolean check_grub_menu_entry_map(map entries)``{
 	boolean error_found = false;
-	foreach(string key, string value, entries ,``{
+	foreach(string key, string value, (map<string,string>)entries ,``{
 	    if( ! contains(valid_grub_menu_enties, key ))
 	    {
 		y2error("key -%1- not found - no valid key", key);
@@ -913,7 +913,7 @@ contains no errors, press \"Skip\".
     define boolean check_grub_menu_entries(list entries )``{
 	valid_grub_menu_enties = union( grub_menu, grub_menu_only);
 	boolean error_found = false;
-	foreach(map menu, entries, ``{
+	foreach(map menu, (list<map<any,any> >)entries, ``{
 	    error_found = ! (check_grub_menu_entry_map(menu) == false ) ? false : !error_found;
 	});
 	return ! error_found;
@@ -941,13 +941,13 @@ contains no errors, press \"Skip\".
 
 	if (type == "")
 	{
-	    optlist = filter(string e, optlist, ``(e != "sections"));
+	    optlist = filter(string e, (list<string>) optlist, ``(e != "sections"));
 	}
 
 	any value   = "";
 	map retval  = $[ ];
 
-	foreach (string e, optlist, ``{
+	foreach (string e, (list<string>) optlist, ``{
 	    value = BootCommon::mod2ui (SCR::Read(add(p, e)));
 	    if (BootCommon::isSpecial(e))
 	    {
@@ -1002,7 +1002,7 @@ contains no errors, press \"Skip\".
 	    list sects         = SCR::Dir(.grub.sections);
 	    list sections      = [];
 
-	    foreach(string e, sects, ``{ sections = add(sections, sectOptions2Map("grub", "sections", e)); });
+	    foreach(string e, (list<string>) sects, ``{ sections = add(sections, sectOptions2Map("grub", "sections", e)); });
 
 	    // debug grub menu file
 	    y2milestone("options  : %1", global_options );
@@ -1046,12 +1046,12 @@ contains no errors, press \"Skip\".
 	}
 
 	list maps = filter (string e, splitstring (dev_map, "\n"), ``(e != ""));
-	maps      = maplist (string e, maps, ``{
+	maps      = maplist (string e, (list<string>) maps, ``{
 	    return filter (string f, splitstring (e, " \t"), ``(f != ""));
 	});
 
 	boolean error_found = false;
-	foreach (list e, maps, ``{
+	foreach (list e, (list<list<any> >)maps, ``{
 	    if ( ! error_found )
 	    {
 		error_found = ! exists_grub_device( e[0]:"");

@@ -37,7 +37,7 @@
    */
   global define void OSRModuleLoading()``{
     startup_loaded_modules = (list<string>)
-	maplist (string key, any v, (map)SCR::Read(.proc.modules), ``(key));
+	maplist (string key, any v, (map<string,any>)SCR::Read(.proc.modules), ``(key));
 
     y2milestone ("module loaded at start: %1", startup_loaded_modules);
   }
@@ -118,7 +118,7 @@
 
       // unload all with other code loaded modules
       list<string> end_loaded_modules = (list<string>)
-	maplist (string key, any v, (map) SCR::Read(.proc.modules), ``(key));
+	maplist (string key, any v, (map<string,any>) SCR::Read(.proc.modules), ``(key));
 
       list<string> unload_modules	= (list<string>)
 	filter (string key, end_loaded_modules,

@@ -30,7 +30,7 @@
   import "Label";
   import "Popup";
 
-  include "partitioning/partition_defines.ycp";
+//  include "partitioning/partition_defines.ycp"; FIXME
 
   textdomain "repair";
 
@@ -121,7 +121,7 @@
     {
 	// filter floppy repair methode
 	y2milestone("filter floppy repair methode. No floppy found");
-	repair_methods = filter (symbol r, map d, repair_methods, ``(
+	repair_methods = filter (symbol r, map<any,any> d, (map<symbol,map<any,any> >)repair_methods, ``(
 	    r != `floppy ));
     }
   }
@@ -316,6 +316,7 @@ Partition table was not successfully repaired.
    */
   define list<map> FoundPtblDialog( list<map> partitions, string dev, string repair_tool, boolean whole_mbr )``{
 
+      /* FIXME include!
       y2milestone("Found partitions for recovering %1", partitions );
 
       string label_status = _("Status");
@@ -471,6 +472,8 @@ in the table and press \"Recover\".
 
     UI::CloseDialog();
     return recover;
+    */
+    return [];
   }
 
 
@@ -602,7 +605,7 @@ have gpart suggest the partition table.
 
 		  if (! haskey( to_recover[0]:$[], "whole_mbr") ) {
 		      list<map> new_to_recover = [];
-		      foreach(map p, to_recover, ``{
+		      foreach(map<string,any> p, (list<map<string,any> >)to_recover, ``{
 			  p["create"] = true;
 			  new_to_recover = add(new_to_recover, p);
 		      });
@@ -758,7 +761,7 @@ quite a while if this option is given. Be patient.</P>
 	if (ret == `ok ) {
 
 	    //build expert options
-	    foreach (symbol key, string option, symbol_2_option, ``{
+	    foreach (symbol key, string option, (map<symbol,string>)symbol_2_option, ``{
 		gpart_expert_options = gpart_expert_options +
 		    ((boolean)UI::QueryWidget(`id(key), `Value)
 			? " " + option + " " : "");
@@ -828,11 +831,13 @@ quite a while if this option is given. Be patient.</P>
   }
 
   define string partition_info(map part , string dev )``{
+      /* FIXME include!
       return sformat(_("cylinders %1-%2, "), part["region", 0]:0 , part["region",0]:0 + part["region",1]:0 -1) +
 	  sformat(_("ID %1, "),  part["fsid"]:131) +
 	  sformat(_("size %1"), ByteToHumanString( part["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  )); 
-  }
-  
+	  */
+	return "";
+    }
 
   /** 
    * Compare an existing partition table with the gpart output
@@ -840,7 +845,7 @@ quite a while if this option is given. Be patient.</P>
   define list<map> ComparePtblDialog( map compared, string target , string repair_tool  )``{
       
       term part_items = `VBox();
-      list part_list  = [];
+      list<list<any> > part_list  = [];
       
       list found_free_parts = compared["free"]:[];
 
@@ -850,7 +855,7 @@ quite a while if this option is given. Be patient.</P>
 			   3 : _("Third Found Partition"),
 			   4 : _("Fourth Found Partition")];
       
-    foreach( map free_part, found_free_parts, ``{
+    foreach( map<string,any> free_part, (list<map<string,any> >)found_free_parts, ``{
 
 	integer nr = free_part["nr"]:0;
 
@@ -866,7 +871,7 @@ quite a while if this option is given. Be patient.</P>
       });
 
       list overlap_parts = compared["overlap"]:[];
-      foreach( map overlap_part, overlap_parts, ``{
+      foreach( map<string,any> overlap_part, (list<map<string,any> >)overlap_parts, ``{
 	  integer nr = overlap_part["nr"]:0;
 	  list<string> del_text_parts = maplist(map e_part, overlap_part["overlap"]:[],
 					``(sformat(_("Partition %1 must be deleted to recover cylinders %2-%3."), e_part["device"]:"",
@@ -882,7 +887,7 @@ quite a while if this option is given. Be patient.</P>
       });
 
       part_list = sort(list l, list q, part_list, ``( l[0]:0 < q[0]:0 ));
-      foreach( list part, part_list , ``{
+      foreach( list<any> part, (list<list<any> >) part_list , ``{
 	  part_items = add(part_items, part[1]:`Empty());
 	  part_items = add(part_items, `VSpacing(2));
       });
@@ -928,14 +933,14 @@ be deleted to recover another partition.</P>
 
 	  if ( ret == `ok ) {
 
-	      foreach( map free_part, found_free_parts, ``{
+	      foreach( map<string,any> free_part, (list<map<string,any> >) found_free_parts, ``{
 		  if ((boolean)
 		      UI::QueryWidget(`id(free_part["device"]:""), `Value ) )
 		  {
 		      recover = add(recover, free_part );
 		  }
 	      });
-	      foreach( map overlap_part, overlap_parts, ``{
+	      foreach( map<string,any> overlap_part, (list<map<string,any> >) overlap_parts, ``{
 		  if ((boolean)
 		      UI::QueryWidget(`id(overlap_part["device"]:""), `Value))
 		  {
@@ -951,10 +956,10 @@ and recover %1.
 
 			  foreach(map  delpart, overlap_part["overlap"]:[], ``{
 			      delpart["delete"] = true;
-			      delpart = filter(string key, any d, delpart, ``(key != "overlap"));
+			      delpart = filter(string key, any d, (map<string,any>) delpart, ``(key != "overlap"));
 			      recover = (list<map>) union (recover, [delpart]);
 			  });
-			  overlap_part = filter(string key, any d, overlap_part, ``(key != "overlap"));
+			  overlap_part = filter(string key, any d, (map<string,any>)overlap_part, ``(key != "overlap"));
 			  recover = add(recover, overlap_part );
 		      }
 		      else {
@@ -966,15 +971,17 @@ and recover %1.
 	    });
 	    list existing_partitions	= compared["existing"]:[];
 	    list<integer> used_nrs	= (list<integer>) maplist (
-		map ep, existing_partitions, ``( ep["nr"]:0 ));
+		map ep, (list<map<string,any> >)existing_partitions, ``( ep["nr"]:0 ));
 
 	    list<integer> delete_nrs	= (list<integer>) maplist (
-		map dpp, filter (map dp, recover, ``(
+		map dpp, filter (map<string,any> dp, (list<map<string,any> >)recover, ``(
 		    dp["delete"]:false == true)),
 		``( dpp["nr"]:0));
 
-	    used_nrs			= filter (integer nr, used_nrs, ``(
+	    /* FIXME FIXME strange contains!
+	    used_nrs	= filter (integer nr, (list<integer>) used_nrs, ``(
 		!contains(delete_nrs, used_nrs )));
+	    */
 	    list<integer> primary_pos  = [1,2,3,4];
 	    list<integer> free_primary = filter (integer nr, primary_pos, ``(
 		!contains( used_nrs, nr )));
@@ -1293,7 +1300,7 @@ partition table of %2 with the backup.
       
       term r_options = `VBox(`Left(`Label(_("Select a repair method or skip repairing."))),`VSpacing(0.5));
       
-      foreach(symbol ro, map rd, repair_methods, ``{
+      foreach(symbol ro, map<string,any> rd, (map<symbol,map<string,any> >)repair_methods, ``{
 	  term r_button = `RadioButton(`id( ro ));
 	  if (! rd["enabled"]:true ) r_button = add( r_button , `opt(`disabled));
 	  r_button      = add( r_button ,   rd["header"]:"");
