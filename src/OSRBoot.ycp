@@ -18,7 +18,6 @@
     import "Report";
     import "Installation";
     import "Mode";
-    import "Progress";
     import "Popup";
     import "Wizard";
 
