@@ -57,3 +57,4 @@ Name[sl]=Prikaži zagonski dnevnik
 GenericName[sl]=Ta modul prikaže zagonski dnevnik (/var/log/boot.msg).
 Name[tr]=Açılış kayıtlarını gör
 GenericName[tr]=Bu modül açılış kayıtlarını gösterir (/var/log/boot.msg)
+X-KDE-SubstituteUID=true

@@ -57,3 +57,4 @@ Name[sl]=Prikaži sistemski dnevnik
 GenericName[sl]=Ta modul prikaže sistemski dnevnik (/var/log/messages).
 Name[tr]=Sistem kayıtlarını gör
 GenericName[tr]=Bu modül sistem kayıtlarını gösterir (/var/log/messages)
+X-KDE-SubstituteUID=true
