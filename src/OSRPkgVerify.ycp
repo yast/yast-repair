@@ -10,16 +10,17 @@
  */
 
 {
-  
     module "OSRPkgVerify";
 
     textdomain "repair";
 
-    
     import "OSRPkgUI";
     import "OSRPkg";
-    
-        
+    import "OSRExecute";
+    import "OSRLogFile";
+    import "OSRMode";
+
+
     /**
      * Missing key. For parsing rpm output.
      */

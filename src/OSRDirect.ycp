@@ -16,10 +16,12 @@
 
     import "Storage";
     import "HTML";
+    import "Mode";
 
     import "OSR";
     import "OSRSystem";
-    
+    import "OSRFstab";
+    import "OSRFsck";
 
     /**
      * Max entries for button layout.

@@ -18,7 +18,8 @@
   import "Storage";
   import "FileSystems";
 
-  include "ui/common_popups.ycp";
+  import "Label";
+  import "Popup";
 
   import "Report";
   import "Misc";
@@ -26,6 +27,7 @@
 
   import "OSR";
   import "OSRSummary";
+  import "OSRSystem";
   import "OSRStatus";
   import "OSRFloppy";
   import "OSRExecute";
@@ -35,6 +37,7 @@
   import "OSRLogFile";
   import "OSRFstab";
   import "OSRPopup";
+  import "OSRModuleLoading";
 
   textdomain "repair";
 
@@ -610,7 +613,7 @@ YaST halts now.
       else
       {
         // popup label (%1 is partition)
-        if( ! UI::YesNoHeadlinePopup(sformat(_("Activate Swap Partition %1"), swap),
+        if( ! Popup::YesNoHeadline(sformat(_("Activate Swap Partition %1"), swap),
             // popup text
             sformat(_("
 The partition %1 has the file system ID 130 and
@@ -863,7 +866,7 @@ partition %1"), part)
         // summary text
         OSRSummary::DetectError("", _("No valid partition types were found."));
         // popup label
-        if( UI::AnyQuestionPopup(_("No valid Linux partitions were found"),
+        if( Popup::AnyQuestion(_("No valid Linux partitions were found"),
             // popup text
             _("YaST could not detect any valid Linux partitions
 in your system. There probably is no valid
@@ -875,7 +878,7 @@ installation.
 "),
             // button label
             _("&Retry Scanning"),
-            CancelButtonLabel(),
+            Label::CancelButton(),
             `focus_yes) )
         {
             OSRStatus::RestartScan("find_harddisks");
@@ -932,7 +935,7 @@ installation.
         // summary text
         OSRSummary::DetectError("", _("No mountable partitions were found"));
         // popup label
-        if( UI::AnyQuestionPopup(_("No mountable partitions were found"),
+        if( Popup::AnyQuestion(_("No mountable partitions were found"),
             // popup text
             _("
 YaST could not detect any mountable partitions
@@ -944,7 +947,7 @@ the system and start a new installation.
 "),
             // button label
             _("&Retry Scanning"),
-            CancelButtonLabel(),
+            Label::CancelButton(),
             `focus_yes ) )
         {
             OSRStatus::RestartScan("find_harddisks");
@@ -1028,7 +1031,7 @@ the system and start a new installation.
         // summary text
         OSRSummary::DetectError("", _("No valid root partition was found"));
         // popup label
-        if( UI::AnyQuestionPopup(_("No valid root partition was found"),
+        if( Popup::AnyQuestion(_("No valid root partition was found"),
             // popup text
             _("
 YaST could not detect any valid root partition
@@ -1040,7 +1043,7 @@ start a new installation.
 "),
             // button label
             _("&Retry Scanning"),
-            CancelButtonLabel(),
+            Label::CancelButton(),
             `focus_yes ) )
         {
           OSRStatus::RestartScan("find_harddisks");
@@ -1099,7 +1102,7 @@ start a new installation.
                 OSRSystem::TargetRoot() ));
         if( size( OSR::RequireList("valid_root_partitions")) > 1 ){
 
-        if( UI::AnyQuestionPopup(
+        if( Popup::AnyQuestion(
             // popup label
             sformat(_("Root partition was not successfully mounted to %1"),
                 OSRSystem::TargetRoot() ),
@@ -1111,7 +1114,7 @@ root partition or cancel scanning the system.
 "),root_partition),
                 // button label
                 _("&Restart Scanning"),
-                CancelButtonLabel(),
+                Label::CancelButton(),
                 `focus_yes ))
           {
               OSRStatus::RestartScan("find_valid_root_partitions");
@@ -1167,7 +1170,7 @@ root partition or cancel scanning the system.
 
         if( size( OSR::RequireList("valid_root_partitions")) > 1 ) {
             // popup label
-            if( UI::AnyQuestionPopup(_("fstab was not successfully read."),
+            if( Popup::AnyQuestion(_("fstab was not successfully read."),
                 // popup text
                 _("
 YaST could not read fstab.
@@ -1176,7 +1179,7 @@ root partition or cancel scanning the system.
 "),
                 // button label
                 _("&Restart Scanning"),
-                CancelButtonLabel(),
+                Label::CancelButton(),
                 `focus_yes ))
           {
               OSRStatus::RestartScan("find_valid_root_partitions");
@@ -1486,7 +1489,7 @@ try executing the file system check again.
           else
           {
             // popup label
-            if (! UI::YesNoHeadlinePopup(_("Partition mounted"),
+            if (! Popup::YesNoHeadline(_("Partition mounted"),
                 // popup text
                 sformat(_("
 The selected partition %1 is 
@@ -1611,7 +1614,7 @@ possible.
       return `error;
       }
       // popup text
-      if (! UI::ContinueCancelPopup(_("
+      if (! Popup::ContinueCancel(_("
 Insert a formatted disk
 in your floppy drive and press
 Continue.

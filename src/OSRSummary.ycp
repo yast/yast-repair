@@ -20,6 +20,7 @@
 {
   module "OSRSummary";
   import "Mode";
+  import "HTML";
 
   import "OSRLogFile";
   import "OSRStatus";

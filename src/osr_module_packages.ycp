@@ -18,13 +18,16 @@
   textdomain "repair";
 
   import "Mode";
+  import "Report";
 
   import "OSRPkg";
+  import "OSRPkgVerify";
   import "OSRSummary";
   import "OSRStatus";
   import "OSRSystem";
   import "OSRFstab";
   import "OSRPopup";
+  import "OSR";
 
   integer arg_n = 0;
 

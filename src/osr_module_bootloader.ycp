@@ -21,11 +21,17 @@
   import "Bootloader";
   import "Storage";
   import "Partitions";
+  import "Label";
+  import "Popup";
 
+  import "OSR";
   import "OSRBoot";
   import "OSRSummary";
   import "OSRStatus";
   import "OSRSystem";
+  import "OSRFstab";
+  import "OSRFsck";
+  import "OSRDirect";
 
   integer arg_n = 0;
 
@@ -398,9 +404,9 @@ sure you installed a Linux system, press
 \"Retry Scanning\". Otherwise, skip scanning
 the system and start a new installation.");
         }
-        if( UI::AnyQuestionPopup(header, text,
+        if( Popup::AnyQuestion(header, text,
             // button label
-            _("&Retry Scanning"), CancelButtonLabel(), `focus_yes ) )
+            _("&Retry Scanning"), Label::CancelButton(), `focus_yes ) )
         {
             OSRStatus::RestartScan("find_harddisks");
             return true;
@@ -481,7 +487,7 @@ system.
         OSRSummary::DetectError("", _("Cannot initialize package database."));
 
         // popup header
-        if( UI::AnyQuestionPopup(_("YaST cannot initialize the package database."),
+        if( Popup::AnyQuestion(_("YaST cannot initialize the package database."),
             // popup text
             _("
 YaST could not initialize the package database.
@@ -492,7 +498,7 @@ press \"Retry Scanning\".
 Otherwise press \"Cancel\" and continue with other tests.
 "),
             // button label
-            _("&Retry Scanning"), CancelButtonLabel(), `focus_yes) )
+            _("&Retry Scanning"), Label::CancelButton(), `focus_yes) )
         {
           OSRStatus::RestartScan("check_package_database");
           return true;
@@ -699,7 +705,7 @@ these packages.
       if( ! OSRBoot::bootloader_error_found )
       {
         // popup header
-        if ( UI::AnyQuestionPopup(_("YaST Boot Loader Check"),
+        if ( Popup::AnyQuestion(_("YaST Boot Loader Check"),
             // popup text
             _("
 YaST has checked the boot loader settings
@@ -719,7 +725,7 @@ press \"Repair\".
 "),
             // button label
             _("&Repair"),
-            ContinueButtonLabel(),
+            Label::ContinueButton(),
             `focus_no
             ))
       {

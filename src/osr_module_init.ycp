@@ -17,6 +17,7 @@
 {
 
   import "Storage";
+  import "StorageDevices";
   import "Mode";
 
   import "OSR";

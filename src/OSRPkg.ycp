@@ -14,12 +14,15 @@
     module "OSRPkg";
 
     
-    include "ui/common_popups.ycp";
+    import "Popup";
     
     textdomain "repair";
 
     import "Kernel";
     import "PackageCallbacks";
+    import "Mode";
+    import "Report";
+    import "Wizard";
 
     import "OSRSystem";
     import "OSRExecute";
@@ -507,7 +510,7 @@ database was not successful.
 	
 	    if( ret == `help )
 	    {
-		UI::LongTextPopup( OSRPopup::help_headline , `RichText( help_text ), 50, 20);
+		Popup::LongText( OSRPopup::help_headline , `RichText( help_text ), 50, 20);
 	    }
 	    else if ( ret == `ok )
 	    {

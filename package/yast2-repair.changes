@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 10 18:19:39 CEST 2003 - jsuchome@suse.de
+
+- used Popup and Label interface
+
+-------------------------------------------------------------------
 Mon Jun  9 15:38:12 CEST 2003 - jsuchome@suse.de
 
 - fix: package database check is required for verifying

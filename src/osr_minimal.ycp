@@ -1,3 +1,7 @@
+/**
+ * Author:	Johannes Buchhold <jbuch@suse.de>
+ * $Id$
+ */
 {
 // obtained by rpm -qa from installed system...
 return ( [

@@ -14,7 +14,8 @@
 {
   module "OSRPopup";
 
-  include "ui/common_popups.ycp";
+  import "Label";
+  import "Popup";
 
   textdomain "repair";
 
@@ -25,7 +26,7 @@
   global string skip_label	    =  _("&Skip");
   // pushbutton label
   global string repair_label	=  _("&Repair");
-  global string help_label	=  HelpButtonLabel();
+  global string help_label	=  Label::HelpButton();
   // pushbutton label
   global string recover_label   =  _("&Recover");
   // pushbutton label
@@ -68,11 +69,11 @@
       // enable the help-button if a help-text is specified
       if ( help_text != "" && help_text != "TODO" )
       {
-	  help_button   = `PushButton(`id(`osr_popup_help), HelpButtonLabel() );
+	  help_button   = `PushButton(`id(`osr_popup_help), Label::HelpButton() );
       }
       else
       {
-	  help_button   = `PushButton(`id(`osr_popup_help), `opt(`disabled), HelpButtonLabel());
+	  help_button   = `PushButton(`id(`osr_popup_help), `opt(`disabled), Label::HelpButton());
       }
 
       term button_box    = `HBox(
@@ -100,14 +101,14 @@
 	  
       if ( strict )
       {
-	  button_box    = `HBox(`HWeight(1, `PushButton(`id(`osr_popup_ok), `opt(`default), OKButtonLabel())));
+	  button_box    = `HBox(`HWeight(1, `PushButton(`id(`osr_popup_ok), `opt(`default), Label::OKButton())));
       }
       else
       {
 	  button_box    = `HBox(
-				`HWeight(1, `PushButton(`id(`osr_popup_ok), `opt(`default), OKButtonLabel())),
+				`HWeight(1, `PushButton(`id(`osr_popup_ok), `opt(`default), Label::OKButton())),
 				`HSpacing(2),
-				`HWeight(1, `PushButton(`id(`osr_popup_cancel), CancelButtonLabel()))
+				`HWeight(1, `PushButton(`id(`osr_popup_cancel), Label::CancelButton()))
 				);
       }	
 
@@ -142,7 +143,7 @@
 					    `RadioButtonGroup(`id(`rb), r_options),
 					    `VSpacing(1),
 					    `Bottom( `HSquash(`HBox(
-							  `PushButton(`id(`ok), `opt(`default ), OKButtonLabel()),
+							  `PushButton(`id(`ok), `opt(`default ), Label::OKButton()),
 							  `PushButton(`id(`cancel), skip_label),
 							  `HSpacing(2),
 							  `Right(`PushButton(`id(`help), help_label ))
@@ -189,7 +190,7 @@
 						      `Bottom(`HBox(
 								    `PushButton(`id(`ok),     repair_label ),
 								    `HSpacing(2),
-								    `PushButton(`id(`cancel), CancelButtonLabel())
+								    `PushButton(`id(`cancel), Label::CancelButton())
 								    ))))
 				    )),
 		`HWeight( 1, `HSpacing(1))
@@ -209,9 +210,9 @@
 		     `VBox( 
 			   `TextEntry(`id(`text) , description,org_value),
 			   `VSpacing(1),
-			   `HBox( `PushButton(`id(`ok),     OKButtonLabel()),
+			   `HBox( `PushButton(`id(`ok),     Label::OKButton()),
 				  `HSpacing(2),
-				  `PushButton(`id(`cancel), CancelButtonLabel())
+				  `PushButton(`id(`cancel), Label::CancelButton())
 				  )
 			   ));
 
@@ -265,7 +266,7 @@
 	  if (ret == `osr_popup_help)
 	  {
 	      // launch text-popup to display help-text
-	      UI::LongTextPopup(help_headline , `RichText(help_text), 50, 20);
+	      Popup::LongText(help_headline , `RichText(help_text), 50, 20);
 	  }
       }
 
@@ -546,7 +547,7 @@
 	  if (ret == `osr_popup_help)
 	  {
 	      // launch text-popup to display help-text
-	      UI::LongTextPopup( help_headline , `RichText(help_text), 50, 20);
+	      Popup::LongText( help_headline , `RichText(help_text), 50, 20);
 	  }
 	  else if ( ret == `osr_popup_repair )
 	  {
@@ -554,7 +555,7 @@
 
 	      if( size( ret_list ) < size( item_list ) )
 	      {
-		  if (! UI::YesNoPopup(_("
+		  if (! Popup::YesNo(_("
 Some suggested items are not selected.
 Really continue?
 ")))

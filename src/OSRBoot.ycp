@@ -17,6 +17,9 @@
     import "StorageDevices";
     import "Report";
     import "Installation";
+    import "Mode";
+    import "Progress";
+    import "Popup";
 
     import "Bootloader";
     import "Initrd";
@@ -584,7 +587,7 @@ modules to the initial ramdisk.
             any retAsk = UI::AskShowLog();
             if ( retAsk )
             {
-                UI::ShowFilePopup( _("The Output of the Script mk_initrd:"), "/var/log/YaST2/y2logmk_initrd" );
+                Popup::ShowFile( _("The Output of the Script mk_initrd:"), "/var/log/YaST2/y2logmk_initrd" );
             }
         }
 	if( ret ) return `ok;

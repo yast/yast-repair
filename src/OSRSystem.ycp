@@ -17,6 +17,8 @@
     import "Report";
     import "FileSystems";
 
+    import "OSRStatus";
+
     textdomain "repair";
 
     /**

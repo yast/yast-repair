@@ -16,7 +16,7 @@
  */
 {
  
-  include "ui/common_popups.ycp";
+  import "Popup";
   
   import "Wizard";
   import "Mode";

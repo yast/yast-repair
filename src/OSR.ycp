@@ -17,7 +17,9 @@
   module "OSR";
 
   import "Report";
-  
+  import "Mode";
+  import "Misc";
+
   import "OSRMode";
   import "OSRProgress";
   import "OSRSummary";
@@ -26,7 +28,8 @@
   import "OSRSystem";
   import "OSRDirect";
   import "OSRRepairUI";
- 
+
+
 
   textdomain "repair";
 
