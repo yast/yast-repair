@@ -84,41 +84,14 @@
   global string fstabpath	= "/etc/fstab";
 
   /**
-   * The default fstab entries for proc, usb, ...
+   * The default fstab entries (as maps) -> set in constructor
    */
-  map<string, list <string> > defs = $[
-    "pts":	["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
-    "proc":	["proc", "/proc", "proc", "defaults", "0", "0"],
-    "usb":	["usbfs", "/proc/bus/usb", "usbfs", "noauto", "0", "0"],
-    "swap":	["", "swap", "swap", "pri=42", "0", "0"],
-    "cdrom":	["", "", "subfs", "fs=cdfss,ro,procuid,nosuid,nodev,exec", "0", "0"],
-    "floppy":	["", "", "subfs", "fs=floppyfss,procuid,nodev,nosuid,sync", "0", "0"],
-
-    "root":	["", "", "auto", "defaults", "1", "1"],
-    "zip":	["", "", "auto", "noauto,user", "0", "0"],
-    "dev":	["", "", "auto", "noauto,user", "0", "0"],
-    "nfs":	["", "", "nfs", "defaults", "0", "0"],
-    "sys":      ["sysfs", "/sys", "sysfs", "noauto", "0", "0"]
-    ];
-
-  /**
-   * All allowed mount options
-   * There are not sufficient e.g. for NTFS partitions, see hacking
-   * in check_fs_mntops()
-   */
-  list<string> mn_opts = [
-    "async","atime","auto","defaults","dev","exec", "noatime","noauto","nodev",
-    "noexec", "nosuid","nouser","remount","ro","rw", "suid","sync","dirsync",
-    "user","users",
-    "acl", "user_xattr", "iocharset=utf8",
-    "procuid", "fs=floppyfss", "fs=cdfss"
-     ];
+  map <string,map> fstab_defaults	= $[];
 
   /**
    * All digits
    */
   string digits          = "0123456789";
-
 
   /**
    * Line position to sense
@@ -144,28 +117,41 @@
   /**
     @example of map describing /etc/fstab:
 
-    $["comment":"^[ \t]*#.*",
-    "delim":" \t",
-
-    "l":$[1:$["fields":["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"],
-    "line":"/dev/hda6            /                    reiserfs   defaults              1 1"],
-    2:$["fields":["/dev/hda3", "/data1", "reiserfs", "defaults", "1", "2"],
-    "line":"/dev/hda3            /data1               reiserfs   defaults              1 2"],
-    3:$["fields":["/dev/hda2", "swap", "swap", "pri=42", "0", "0"],
-    "line":"/dev/hda2            swap                 swap       pri=42                0 0"],
-    4:$["fields":["/dev/hda5", "swap", "swap", "pri=42", "0", "0"],
-    "line":"/dev/hda5            swap                 swap       pri=42                0 0"],
-    5:$["fields":["devpts", "/dev/pts", "devpts", "mode=0620,gid=5", "0", "0"],
-    "line":"devpts               /dev/pts             devpts     mode=0620,gid=5       0 0"],
-    6:$["fields":["proc", "/proc", "proc", "defaults", "0", "0"],
-    "line":"proc                 /proc                proc       defaults              0 0"],
-    7:$["fields":["usbfs", "/proc/bus/usb", "usbfs", "noauto", "0", "0"],
-    "line":"usbfs             /proc/bus/usb        usbfs   noauto                0 0"],
-    8:$["fields":["/dev/cdrom", "/media/cdrom", "auto", "ro,noauto,user,exec", "0", "0"],
-    "line":"/dev/cdrom           /media/cdrom         auto       ro,noauto,user,exec   0 0"],
-    9:$["fields":["/dev/fd0", "/media/floppy", "auto", "noauto,user,sync", "0", "0"],
-    "line":"/dev/fd0             /media/floppy        auto       noauto,user,sync      0 0"]],
-    "widths":[20, 20, 10, 21, 1, 1]]
+    $[
+	"comment"	: "^[ \t]*#.*",
+	"delim"		: " \t",
+	"l"		: $[
+	    1	: $[
+		"fields" : ["/dev/hda2", "/", "reiserfs", "defaults", "1", "1"],
+		"line"	 :"/dev/hda2\t/\treiserfs\tdefaults 1 1"
+	    ],
+	    2	: $[
+		"fields" : [
+		    "/dev/hda3", "/local", "reiserfs", "defaults", "1", "2"],
+		"line"	 : "/dev/hda3\t/local\treiserfs\tdefaults 1 2"
+	    ],
+	    3	: $[
+		"fields" : [ "/dev/hda1", "swap", "swap", "pri=42", "0", "0"],
+		"line"	 : "/dev/hda1\tswap\tswap\tpri=42 0 0"
+	    ],
+	    4	: $[
+		"fields" : [
+		    "devpts", "/dev/pts", "devpts", "mode=0620,gid=5","0", "0"],
+		"line"	 : "devpts\t/dev/pts\tdevpts\tmode=0620,gid=5 0 0"
+	    ],
+	    ...
+	    14	: $[
+		"fields" : [
+		    "nfs.suse.cz:/home", "/home", "nfs", "defaults", "0", "0"],
+		"line"	 : "nfs.suse.cz:/home\t/home\tnfs\tdefaults 0 0"
+	    ],
+	    15	: $[
+		"comment":true,
+		"line":"#blah"
+	    ]
+	],
+	"widths"	: [20, 20, 10, 21, 1, 1]
+    ]
   */
   map fstab				= $[];
 
@@ -192,13 +178,26 @@
    */
   list<string> missing_devs		= [];
 
-  define void ResetSettings()``{
+  /**
+   * Constructor: initialize data structures with default values
+   */
+  global define void OSRFstab () {
+
+    foreach (string type, [
+	"pts", "proc", "usb", "swap", "cdrom", "floppy",
+	"root", "zip", "dev", "nfs", "sys" ],
+    {
+	fstab_defaults [type]	= FileSystems::GetFstabDefaultMap (type);
+    });
+  }
+
+  define void ResetSettings() {
       missing_devs	= [];
       valid_lines	= [];
       not_valid_lines   = $[];
   }
 
-  global define void Reset()``{
+  global define void Reset() {
       ResetSettings();
       root_mountpoint		= "";
       fstab			= $[];
@@ -206,18 +205,16 @@
       checked_partitions	= [];
   }
 
-   /**
-   * e.g.: pos = 1 && retpos = 0 -> ret = ["devpts", "usbfs", "proc" ]
-   * //second position in defs exist -> return first entry
-   * e.g.: pos = 0 && retpos = 1 -> ret = ["/dev/pts", "/proc", "/proc/bus/usb"]
-   * e.g.: pos = 0 && retpos = -1 -> return the keys ->
-   *	ret = ["pts", "proc", "usb" ]
+  /**
+   * @param key		values of which key should be returned
+   * @param exists	restrict the returned set only to the types with
+   * nonempty values of key 'exists'
    */
-  define list<string> defs_pos_exist(integer pos , integer retpos)``{
-    return (list<string>) maplist (string n, list m,
-	filter (string k, list d, defs, ``( d[pos]:"" != "")),
-	``( (retpos != -1) ? m[retpos]:"" : n)
-   );
+  define list<string> fstab_default_exist (string exists, string key)
+  {
+    map <string,map> existing	= filter (
+	string type, map desc, fstab_defaults, ``(desc[exists]:"" != ""));
+    return (list<string>) maplist (string type, map d, existing, ``(d[key]:""));
   }
 
 
@@ -226,7 +223,7 @@
    * list: ["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"]
    * map : $[ "spec":"/dev/hda6", "file":"/" ... ]
    */
-  define map fstabline2map(list<string> line)``{
+  define map fstabline2map (list<string> line)``{
 
     map ret	= $[];
     integer pos	= 0;
@@ -250,7 +247,7 @@
     // e.g.: ["/dev/hda1", "/dev/hdb2"]
     list<string> linux_partition_list		= [];
 
-    foreach (string device , map description, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
+    foreach (string device , map description, Storage::GetTargetMap(), {
 
 	foreach (map partition, description["partitions"]:[], ``{
 
@@ -437,7 +434,7 @@ press \"Yes\".
     }
     else
     {
-	y2milestone("fstab :%1 ", fstab);
+	y2milestone ("fstab :%1 ", fstab);
 	return true;
     }
   }
@@ -520,38 +517,18 @@ press \"Yes\".
   }
 
   /**
-   * Check the existence of special fstab options (used for dos/windows FS).
-   * For options list, see Storage::AddMountPointsForWinParts()
-   * @param o option of the fstab line
-   * TODO better solution?
-   */
-  define boolean doswindows_options (string o) ``{
-
-    return (
-	issubstring (o, "iocharset=") || issubstring (o, "gid=") ||
-        issubstring (o, "umask=") || issubstring (o, "nls=") ||
-        issubstring (o, "code="));
-  }
-
-  /**
    * Check the mount options (fourth) entry in a fstab line.
    */
-  define boolean check_fs_mntops(list<string> line) ``{
-      if (line[3]:"" == nil || line[3]:"" == "") return false;
+  define boolean check_fs_mntops(list<string> line) {
 
-      list<string> opts  = splitstring (remove_blanks(line[3]:""), ",");
-      list unsupported = filter (string o, opts, ``{
-            if (contains (mn_opts, o))
-                 return false;
-	    else if (doswindows_options (o))
-		return false;
-            else
-                return true;
-      });
-      boolean ret = size (unsupported) == 0;
-      if (! ret) y2error("mount options are not supported: %1", unsupported);
-      return ret;
+    if (line[3]:"" == nil || line[3]:"" == "") return false;
 
+    map checked = FileSystems::CheckFstabOptions (remove_blanks(line[3]:""));
+    if (!checked["all_known"]:true)
+    {
+	y2error ("unknown mount options: %1",checked["unknown_options"]:"");
+    }
+    return checked["all_known"]:true;
   }
 
   /**
@@ -747,8 +724,9 @@ press \"Yes\".
    * Return the partition map for a fstab line.
    */
   define map line2part(list<string> line) ``{
-      //if (substring (line[0]:"", 0,1) != "/") return $[];
-      if (contains (defs_pos_exist( 0, 0), line[0]:"")) return $[];
+
+      if (contains (fstab_default_exist ("spec", "spec"), line[0]:""))
+	  return $[];
 
       map ret = devname2part(line[0]:"");
       if (ret == nil || ret == $[])
@@ -758,7 +736,7 @@ press \"Yes\".
 	      ret = uuid2part (uuidstring);
 	  if (ret == nil || ret == $[])
 	  {
- 	      string labelstring = label_string(line);
+	      string labelstring = label_string(line);
 	      if (labelstring != "")
 		  ret = label2part( labelstring);
 	  }
@@ -801,61 +779,63 @@ press \"Yes\".
 
     if (part == nil || part == $[] || size (part)<=0)
     {
-	if (line[0]:"" == defs["usb",0]:"!" )
+	if (line[0]:"" == fstab_defaults["usb","spec"]:"!")
 	{
 	    if (Hotplug::haveUSB)
 	    {
-		type = "usb";
-		fs_spec = true;
-		fs_file = line[1]:"" == defs[type ,1]:"!";
-		fs_vfstype = ( line[2]:"" == defs[type ,2]:"!");
-		fs_mntops  = check_fs_mntops(line);
+		type	= "usb";
+		fs_spec	= true;
+		fs_file	= (line[1]:"" == fstab_defaults[type,"mount"]:"!");
+		fs_vfstype = (line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
+		fs_mntops  = check_fs_mntops (line);
 	    }
 	    else
 	    {
 		y2error("usb line in fstab but no usb found");
-		type = "usb";
-		fs_spec = false;
-		fs_file = true;
-		fs_vfstype = true;
-		fs_mntops =true;
+		type		= "usb";
+		fs_spec		= false;
+		fs_file		= true;
+		fs_vfstype	= true;
+		fs_mntops	= true;
 	    }
 	}
 	else if (issubstring (line[0]:"", ":/"))
 	{
 	    // nfs
-	    type = "nfs";
-	    fs_spec = true; // no check
-	    fs_file = check_fs_file(line);
-	    fs_vfstype = true; // no check
-	    fs_mntops  = true; // no check
+	    type	= "nfs";
+	    fs_spec	= true; // no check
+	    fs_file	= check_fs_file (line);
+	    fs_vfstype	= true; // no check
+	    fs_mntops	= true; // no check
 	}
-	else if (line[0]:"" == defs["pts",0]:"!")
+	else if (line[0]:"" == fstab_defaults["pts","spec"]:"!")
 	{
-	    type = "pts";
-	    fs_spec  =true;
-	    fs_file  = check_fs_file(line);
-	    fs_vfstype = ( line[2]:"" == defs[type, 2]:"!");
-	    fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "");
+	    type	= "pts";
+	    fs_spec	= true;
+	    fs_file	= check_fs_file (line);
+	    fs_vfstype	= ( line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
+	    fs_mntops	= ( line[3]:"" != nil && line[3]:"" != "");
 	}
-	else if (line[0]:"" == defs["proc",0]:"!")
+	else if (line[0]:"" == fstab_defaults["proc","spec"]:"!")
 	{
-	    type = "proc";
-	    fs_spec  =true;
-	    fs_file  = line[1]:"" == defs[type,1]:"!";
-	    fs_vfstype = ( line[2]:"" == defs[type,2]:"!");
-	    fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "");
+	    type	= "proc";
+	    fs_spec	= true;
+	    fs_file	= ( line[1]:"" == fstab_defaults[type,"mount"]:"!");
+	    fs_vfstype	= ( line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
+	    fs_mntops	= ( line[3]:"" != nil && line[3]:"" != "");
 	}
-	else if (line[0]:"" == defs["sys",0]:"!")
+	else if (line[0]:"" == fstab_defaults["sys","spec"]:"!")
 	{
-	    type = "sys";
-	    fs_spec  =true;
-	    fs_file  = line[1]:"" == defs[type,1]:"!";
-	    fs_vfstype = ( line[2]:"" == defs[type,2]:"!");
-	    fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "");
+	    type	= "sys";
+	    fs_spec	= true;
+	    fs_file	= ( line[1]:"" == fstab_defaults[type,"mount"]:"!");
+	    fs_vfstype	= ( line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
+	    fs_mntops	= ( line[3]:"" != nil && line[3]:"" != "");
 	}
-	fs_freq    = check_fs_freq (line, [defs[ type , 4]:""]);
-	fs_passno  = check_fs_passno (line, [ defs[ type , 5]:"" ]);
+	fs_freq		= check_fs_freq (
+	    line, [ tostring (fstab_defaults [type, "freq"]:0) ]);
+	fs_passno	= check_fs_passno (
+	    line, [ tostring (fstab_defaults [type, "passno"]:0) ]);
     }
     else
     {
@@ -921,10 +901,10 @@ press \"Yes\".
 	if (type != "" &&
 	    contains (["dev", "swap","floppy", "zip", "cdrom"], type))
 	{
-	    fs_freq    = check_fs_freq (line,
-		(list<string>) union ( [defs[type,4]:""], special_freq));
+	    fs_freq	= check_fs_freq (line,
+		add (special_freq, tostring (fstab_defaults [type, "freq"]:0)));
 	    fs_passno  = check_fs_passno (line,
-		(list<string>) union ( [defs[type,5]:""], special_passno));
+		add (special_passno,tostring(fstab_defaults[type,"passno"]:0)));
 	}
     }
     if (! fs_spec)
@@ -974,7 +954,11 @@ press \"Yes\".
       list<string> dev2check = (list<string>)
 	union (
 	    union (checked_partitions, swapable_partition_list),
-	    [defs["usb", 0]:"",defs["proc", 0]:"", defs["pts", 0]:""]
+	    [
+		fstab_defaults ["usb", "spec"]:"",
+		fstab_defaults ["proc", "spec"]:"",
+		fstab_defaults ["pts", "spec"]:""
+	    ]
 	);
 
       dev2check = (list<string>) union (dev2check,
@@ -1066,7 +1050,7 @@ press \"Yes\".
 
     missing_devs = sort (string d1, string d2, missing_devs , ``( d1 < d2));
 
-    foreach (string dev, missing_devs,``{
+    foreach (string dev, missing_devs, {
 
 	map part      = devname2part(dev);
 	if (part != nil && part != $[] &&
@@ -1093,27 +1077,27 @@ press \"Yes\".
 		new_entries[dev] =  fstabentry;
 	    }
 	}
-	else if (contains (defs_pos_exist(0,0), dev))
+	else if (contains (fstab_default_exist ("spec", "spec"), dev))
 	{
-	    //   map<string, list <string> > defs 
-
-	    list<string> line = (list<string>) select (
-		maplist (string m, list<string> n,
-		    filter (string k, list<string> v, defs, ``( v[0]:"" == dev)), ``(n)
-		), 0, []
-	   );
-	    new_entries[dev]	= fstabline2map (line);
+	    string type	= "";
+	    foreach (string key, map descr, fstab_defaults, {
+		if (descr["spec"]:"" == dev)
+		    type	= key;
+	    });
+	    new_entries[dev]	= fstabline2map ((list<string>)
+		FileSystems::GetFstabDefaultList (type));
 	}
 	else if (contains (["zip", "floppy"], part["found"]:""))
 	{
-	    map fstline		= fstabline2map (defs[part["found"]:""]:[]);
+	    map fstline		= fstabline2map ((list<string>)
+		FileSystems::GetFstabDefaultList (part["found"]:""));
 	    fstline["spec"]	= part["dev_orig"]:(part["dev_name"]:"");
-	    fstline["mount"]	= find_next_media_file(part["found"]:"");
+	    fstline["mount"]	= find_next_media_file (part["found"]:"");
 	    new_entries[dev]	= fstline;
 	}
 	else if ("cdrom" == part["found"]:"")
 	{
-	    map ret		= Storage::MakeCdromFstabEntry( part);
+	    map ret		= Storage::MakeCdromFstabEntry (part);
 	    new_entries[dev]	= ret;
 	}
 	else {
@@ -1330,12 +1314,14 @@ Really continue?
     // found fstab line without valid mount point, e.g. (not_valid_lines):
     // $[4: ["dev", false, true, true ,true ,true ,true ]], //spec error
     list<integer> cmpl =  maplist (integer kk, list vv,
-	filter (integer k, list v, (map<integer,list<any> >)not_valid_lines, ``(
+	filter (integer k, list v, (map<integer,list>) not_valid_lines,
+	{
+	    return
 		v[1]:true == true	&&
 		v[2]:true == false	&&
 		substring (fstab [4, "fields", 1]:"", 0, 1) == "/"  &&
-		(!contains (defs_pos_exist(1,-1) ,v[0]:"") || v[0]:"" == "pts")
-	)),
+		(fstab_defaults[v[0]:"","mount"]:"" == "" || v[0]:"" == "pts");
+	}),
 	``(kk)
     );
 
@@ -1607,23 +1593,28 @@ change the status.
   define map suggest_modify()``{
 
     y2milestone("starting modify suggestion");
+/*
     map modify_entries = filter (integer k, list<any> v, (map<integer,list<any> >)not_valid_lines,
 	``( v[1]:false == true));
+    */
+    map modify_entries = filter (integer k, list v,
+	(map<integer,list>) not_valid_lines,``( v[1]:false == true));
 
     if (size (modify_entries) == 0) return $[];
 
     map nlines  = $[];
-    foreach (integer lnr, list opts,  (map<integer,list<any> >)modify_entries, ``{
+    foreach (integer lnr, list opts,  (map<integer,list>) modify_entries,
+    {
 	list<string> line = lookup(AsciiFile::GetLine (fstab, lnr),"fields",[]);
 	list<string> nline	= [line[0]:""];
 	map part		= line2part(line);
 	string type		= opts[0]:"";
-
+	list default_line	= FileSystems::GetFstabDefaultList (type);
 	if (opts[2]:true == false)
 	{
-	    if (contains (defs_pos_exist(1,-1) ,type) && type != "pts")
+	    if (fstab_defaults [type,"mount"]:"" != "" && type != "pts")
 	    {
-		nline = add (nline, defs[type,1]:"");
+		nline = add (nline, fstab_defaults[type,"mount"]:"");
 	    }
 	    else
 	    {
@@ -1655,7 +1646,7 @@ change the status.
 	    else
 	    {
 		// proc, usb, pts
-		string fs = defs[type,2]:"";
+		string fs = fstab_defaults[type,"vfstype"]:"";
 		if (fs != "")
 		    nline = add (nline, fs);
 		else
@@ -1675,7 +1666,7 @@ change the status.
 	    // invalid ops
 	    if (opts[i]:true == false)
 	    {
-		string str = defs[type,i-1]:"";
+		string str = default_line[i-1]:"";
 		if (str != "")
 		    nline = add (nline, str);
 		else
@@ -1975,10 +1966,12 @@ lines, press \"Yes\".
 	list<string> root_line = root_lines [root_line_key, "fields"]:[];
 	string type = "root";
 
-	boolean fs_vfstype = check_fs_vfstype(root_line, root_part);
-	boolean fs_mntops  = check_fs_mntops(root_line);
-	boolean fs_freq    = check_fs_freq(root_line, [defs[type,4]:""]);
-	boolean fs_passno  = check_fs_passno(root_line, [defs[type,5]:""]);
+	boolean fs_vfstype	= check_fs_vfstype (root_line, root_part);
+	boolean fs_mntops	= check_fs_mntops (root_line);
+	boolean fs_freq		= check_fs_freq (root_line,
+		[ tostring (fstab_defaults [type, "freq"]:0) ]);
+	boolean fs_passno	= check_fs_passno (root_line,
+		[ tostring (fstab_defaults [type, "passno"]:0) ]);
 
 	if (! fs_vfstype)
 	{
