@@ -13,7 +13,15 @@
  */
 
 {
-  textdomain "osr";
+  module "osr_module_progress";
+
+  boolean has_download_progress_widget = false;
+  string  label                        = "";
+  string  filename                     = "";
+  integer expected_size                = 1000;
+  integer current_size                 = 0;
+  
+  //textdomain "osr";
 
   /**
    *  With this method the parameters for the DownloadProgress widget can be

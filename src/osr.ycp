@@ -168,6 +168,7 @@
 				     )
 			       )
 			 );
+	      ChangeWidget(`id(`abort), `Enabled, false);
 	  });
       
 	  if (!UI(`HasSpecialWidget(`DownloadProgress)))
@@ -312,7 +313,7 @@
 				_("YaST2 OS Repair - System check"),
 				contents,
 				help_text,
-				false,        // have_back_button
+				false,         // have_back_button
 				false          // have_next_button
 				);
 	  });
@@ -395,8 +396,7 @@
 	      result_map      = eval(select(detect_methods, index_detect));
 
 	      // get some information from the result_map
-	      status          = lookup(result_map, "status",         "");
-
+	      status          = lookup(result_map, "status", "");
 	      
 	      if (status == "detect_ok")
 	      {
@@ -434,6 +434,8 @@
 	  //module_map = add(module_map, "result_map", result_map);
 	  //osr_map    = add(osr_map, module_name, module_map);
 
+	  OSRModuleProgressFill();
+	  
 	  // go to the next module
 	  index_modules = index_modules + 1;
       }
