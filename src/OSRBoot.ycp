@@ -581,7 +581,7 @@ modules to the initial ramdisk.
 	    string destproc = "/proc";
 	    SCR::Execute (.target.mkdir, destproc, 0755);
 	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
-	    ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd"));
+	    ret = (0 == SCR::Execute(.target.bash, "/sbin/mkinitrd >> /var/log/YaST2/y2logmkinitrd 2>> /var/log/YaST2/y2logmkinitrd"));
 	    SCR::Execute (.target.umount, destproc );
 	}
 	
