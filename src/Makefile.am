@@ -30,22 +30,25 @@ module_DATA =			\
 
 
 client_DATA = 			\
+	view_anymsg.ycp		\
 	inst_repair.ycp		\
 	repair.ycp		\
 	osr_module_list.ycp	\
 	osr_verified_packages.ycp
-#	osr_module_init.ycp	\
-#	osr_module_packages.ycp	\
-#	osr_module_partition.ycp\
-#	osr_module_bootloader.ycp
 
 ynclude_DATA =          		\
 	osr_module_init.ycp		\
 	osr_module_packages.ycp		\
 	osr_module_partition.ycp	\
 	osr_module_bootloader.ycp
+
+
+desktop_DATA =			\
+	messages.desktop	\
+	bootmsg.desktop
+		
 	
-EXTRA_DIST = $(client_DATA) $(module_DATA) $(ynclude_DATA)
+EXTRA_DIST = $(client_DATA) $(module_DATA) $(ynclude_DATA) $(desktop_DATA)
 
 repair:
 	ln -sf . repair

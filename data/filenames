@@ -1,0 +1,16 @@
+# sorted list of filenames for file viewer, '*' marks the default
+/proc/cpuinfo
+/proc/dma
+/proc/interrupts
+/proc/iomem
+/proc/ioports
+/proc/meminfo
+/proc/modules
+/proc/mounts
+/proc/partitions
+/proc/version
+/var/log/boot.msg
+*/var/log/messages
+/var/log/faillog
+/var/log/warn
+/var/log/YaST2/y2log
