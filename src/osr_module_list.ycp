@@ -2,6 +2,14 @@
  *  File:
  *    osr_module_list.ycp
  *
+ *  Module:
+ *    YaST2 OS Repair finish module.
+ *
+ *  Summary:
+ *    This file contains the list of all detection and repair modules of the
+ *    rescue system. This file has to be executed by CallFunction(`osr_module_list)
+ *    and returns the list of detection and repair modules.
+ *
  *  Author:
  *    Michael Koehrmann <curry@suse.de>
  *
@@ -12,6 +20,7 @@
   return [
 	  `osr_module_init(),
 	  `osr_module_partition(),
-	  `osr_module_lilo()
+	  `osr_module_lilo(),
+	  `osr_module_finish()
   ];
 }

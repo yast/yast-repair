@@ -17,6 +17,7 @@ clients_DATA =				\
 	osr_module_init.ycp		\
 	osr_module_partition.ycp	\
 	osr_module_lilo.ycp		\
+	osr_module_finish.ycp		\
 	osr_confirm_abort.ycp
 
 include_DATA =				\
@@ -25,9 +26,6 @@ include_DATA =				\
 	osr_popup.ycp			\
 	osr_summary.ycp         	\
 	common_filesystem.ycp
-	#osr_global_progress.ycp		\
-	#osr_module_progress.ycp		\
-	#osr_log_file.ycp
 
 modules_DATA =				\
 	OSRModuleProgress.ycp		\
