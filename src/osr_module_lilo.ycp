@@ -604,7 +604,7 @@ file.");
 	      }
 	      else
 	      {
-		  // TODO: use a better agent for parsing the lilo configuration file
+		  // TODO (later): use a better agent for parsing the lilo configuration file
 		  lilo_conf_list = SCR::Read(.etc.liloconf1, [root_mountpoint + lilo_conf_path]);
 		  boot_device    = lookup(find(`n, lilo_conf_list, ``(lookup(n, "key", "") == "boot")), "value", "");
 	      }
@@ -833,7 +833,6 @@ configuration file.");
       // should be "/mnt"
       root_mountpoint = OSRRequireString("root_mountpoint");
       
-      // TODO: check if this is true if running from CD-Rom
       command = sformat("cp %1 %2", root_mountpoint + lilo_conf_path, OSRGetTmpDir() + "/lilo.conf");
       integer copy_result = OSRExecuteCommand(.target.bash, command);
 
@@ -871,7 +870,6 @@ configuration file.");
 
       root_mountpoint = OSRRequireString("root_mountpoint");
 
-      // TODO: check if this is true if running from CD-Rom
       command = sformat("cp %1 %2", OSRGetTmpDir() + "/lilo.conf", root_mountpoint + lilo_conf_path);
       integer copy_result = OSRExecuteCommand(.target.bash, command);
 

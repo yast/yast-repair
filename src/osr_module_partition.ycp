@@ -16,8 +16,10 @@
 
 {
   textdomain "osr";
-
+  
   include "osr/common_filesystem.ycp";
+
+  import  "Installation";
 
   // begin argument handling: in the initial phase the framework calls each module
   // with the argument ".init", don't delete!
@@ -152,8 +154,6 @@
       
       target_map = lookup(user_settings, "targets", $[]);
 
-      // TODO: use the module_progress_bar
-
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
       disk_list = maplist(`k, `v, target_map, ``(k));
 
@@ -187,6 +187,14 @@ YaST2 OS Repair halts now.");
 
 	  // display the error message, only a OK pushbutton
 	  UI::MessagePopup(error_message);
+
+	  if (Installation::initial_mode)
+	  {
+	      // make a hard reboot, from y2m_inst/ycp/update/inst_finish_update.ycp
+	      SCR::Write(.yast2.inf.rootpart, "reboot");
+	      user_settings = add (user_settings, "made_reboot", true);
+	      y2milestone ( "Make a hard reboot" );
+	  }
 	  
 	  // if no harddisk was found, exit the rescue system
 	  return $[
@@ -217,7 +225,8 @@ YaST2 OS Repair halts now.");
 			     );
 
 	  /*
-	  // TODO: let the user select which ones of the harddisks to be used
+	  // eventually TODO: let the user select which ones of the harddisks to be used (later),
+          // now: as less user interaction as possible!
 	  list selected_target_list = [];
 
 	  while (size(selected_target_list) = 0)
@@ -273,16 +282,14 @@ YaST2 OS Repair halts now.");
 				    );
 
 	      // "%1"; will be replaced with "/dev/hda", "/dev/sda", ...
-	      error_message = sformat(_("No partition table found for disk %1.
+	      error_message = sformat(_("No primary partition table found for disk %1.
 
 If you have a YaST2 OS Repair floppy with some
-up-to-date system information from a former
-rescue session, insert it in your drive and
-press Repair.
+up-to-date system information from a former rescue
+session, insert it in your drive and press Repair.
 
-Press Skip and repair manually if you have
-a backup of the partition table of disk
-%1.
+Press Skip and repair manually if you have a
+backup of the partition table of disk %1.
 
 Press Help if you want to get to know how to
 make a backup of a partition table manually
@@ -295,7 +302,7 @@ and how to revert it."), target);
 on the inserted floppy disk. If YaST2 OS Repair can't find
 one it will start the program gpart to guess the lost
 partition table. You can decide if the information gpart
-finds is valid or not...</p>
+finds is valid for your system.</p>
 
 <p>\"gpart may be of some help when the primary partition table
 was lost or destroyed but it can under no circumstances
@@ -340,7 +347,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 	      while (repair_question && !repair_succeeded)
 	      {
 		  // e.g. if target = "/dev/hda": disk_name = "hda"
-		  // TODO: use another function: get_device_name()     partition_defines.ycp
+		  // TODO: use another function: get_device_name() from y2m_inst/ycp/partition/partition_defines.ycp
+		  // string disk_name = substring( get_device_name( disk, lookup( part, "nr", 0) ), 5);
 		  string  disk_name     = select(splitstring(target, "/"), (size(splitstring(target, "/"))-1));
 
 		  // the name of the primary partition table saved to floppy, e.g. "hda.ptbl"
@@ -360,8 +368,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 		      }
 */
 		      // mount the floppy to /media/floppy/
-		      boolean mounted = (OSRExecuteCommand(.local.bash,
-							   "/bin/mount " + floppy_device + " /media/floppy -t auto") == 0);
+		      string  mount_command = sformat("/bin/mount %1 /media/floppy -t auto", floppy_device);
+		      boolean mounted       = (OSRExecuteCommand(.local.bash, mount_command) == 0);
 
 		      // be careful: only read the file /media/floppy/osr_map.ycp if the floppy was mounted
 		      // correctly!
@@ -381,6 +389,11 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 			      string command = sformat("dd if=/media/floppy/%1 of=%2 bs=1 count=64 skip=446 seek=446",
 						       ptbl_name, target);
 			      integer revert = OSRExecuteCommand(.local.bash, command);
+
+			      // call block device ioctls: reread the partition table (important after having
+			      // changed the partition table!)
+			      string blockdev_command = sformat("blockdev --rereadpt %1", target);
+			      OSRExecuteCommand(.target.bash, blockdev_command);
 
 			      if (revert == 0)
 			      {
@@ -494,12 +507,11 @@ and how to revert it."), target);
 		  {
 		      // this can't be repaired without a floppy drive, so the user must not be asked again
 		      // to repair via floppy
-		      // TODO: read from other medium than floppy (later)
+		      // TODO: read from other medium than floppy, eventually from y2c_backup (later)
 		      repair_question  = false;
 		      repair_succeeded = false;
 
-		      // TODO: display that no floppy drive was detected
-
+		      // display that no floppy drive was detected
 		      MessagePopup(_("YaST2 OS Repair could not detect a floppy
 drive in your system. A backup copy of the
 primary partition table could not be read."));
@@ -532,17 +544,51 @@ primary partition table could not be read."));
 	      {
 		  
 		  // "%1": will be replaced with "/dev/hda" or "/dev/sda" ...
-		  error_message = sformat(_("The primary partition table of disk %1
-is still not repaired. If you want to
-let gpart guess your partition table
-press Repair.
+		  error_message = sformat(_("
+The primary partition table of disk %1
+is still not repaired. If you want to let
+gpart guess your partition table press
+Repair.
 
 Press Skip to avoid repairing the
 partition table with gpart."), target);
 
-		  // TODO
-		  help_text = _("");
-	      
+		  help_text = sformat(_("
+<h3>No partition table found for harddisk %1.</h3>
+
+<p>Repair will start gpart to guess the primary partition
+table of disk %1.</p>
+
+<p>\"gpart may be of some help when the primary partition table
+was lost or destroyed but it can under no circumstances
+replace proper disk/partition table backups. To save the
+master boot record (MBR) including the primary partition
+table to the file /tmp/hda.mbr type
+
+<pre>
+$ dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
+</pre>
+
+exchanging /dev/hda with the block device name of the disk
+in question. This should be done for all disks in the system.
+To restore the primary partition table without overwriting
+the MBR type
+
+<pre>
+$ dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
+</pre></p>
+
+<p>Warning: make sure that all parameters are typed as shown
+and that the disk device is correct. Failing to do so may
+result in severe filesystem corruption. The saved file
+should be stored in a safe place like a floppy disk.\"<p>
+
+<p>From the manual page of gpart:<br>
+\"It should be stressed that gpart does a very heuristic
+job, never believe its output without any plausability
+checks. It can be easily right in its guesswork but it can
+also be terribly wrong. You have been warned.\"</p>"), target);
+
 		  repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
 
 		  // repair
@@ -553,8 +599,10 @@ partition table with gpart."), target);
 		      // 1. the actual geometry (can be broken if the partition table is)
 		      // 2. an old geometry saved in osr_map.ycp on floppy if the harddisks were not exchanged
 
-		      // if one geometry was found: start gpart -C c,s,h <harddisk>, display the result and ask for writing
-		      // if several geometries were found, execute gpart on everyone of them, display the results, let the user select
+		      // if one geometry was found: start gpart -C c,s,h <harddisk>, display the result and ask
+		      //    for writing
+		      // if several geometries were found, execute gpart on everyone of them, display the results,
+		      //    let the user select
 		      // if no geometries were found: start gpart <harddisk>, display the result and ask for writing
 
 		      // get the result from SCR::Read(.probe.disk) to get the harddisk geometry
@@ -573,7 +621,8 @@ partition table with gpart."), target);
 		      */
 		      
 		      // start gpart, display to the user
-		      // ask the user which one of the detected partitions should be activated (1-4): OSRPopupRadioButtonGroup()
+		      // ask the user which one of the detected partitions should be activated (1-4):
+		      // OSRPopupRadioButtonGroup()
 		      // start gpart -W ...
 		      // check again with SCR::Read(.disk.sda.partitions)
 
@@ -649,9 +698,10 @@ partition table with gpart."), target);
 
 			      selection_display = add(selection_display, item_list);
 			      
-			      // TODO: which partitions should not be activated?? 0x05 0x0f
-			      // add all partitions to the list of activatable partitions that are not swap (0x82), unused (0x00),...
-			      if (!issubstring(p, "(0x82)") && !issubstring(p, "(0x00)"))
+			      // add all partitions to the list of activatable partitions that are not
+			      // swap (0x82), unused (0x00), Extended (0x05), Win95 Ext. (0x0f)
+			      if (!issubstring(p, "(0x82)") && !issubstring(p, "(0x00)") &&
+				  !issubstring(p, "(0x05)") && !issubstring(p, "(0x0f)"))
 			      {
 				  activatable_partitions = add(activatable_partitions, sformat("%1", (index + 1)));
 			      }
@@ -720,6 +770,11 @@ result to the primary partition table.
 
 			      // execute gpart
 			      gpart_result  = OSRExecuteCommandOutput(.target.bash_output, gpart_command);
+
+			      // call block device ioctls: reread the partition table (important after having
+			      // changed the partition table!)
+			      string blockdev_command = sformat("blockdev --rereadpt %1", target);
+			      OSRExecuteCommand(.target.bash, blockdev_command);
 
 			      if (lookup(gpart_result, "exit", -1) == 0)
 			      {
@@ -834,6 +889,14 @@ YaST2 OS Repair halts now.");
 
 	  // display the error message, only a OK pushbutton
 	  UI::MessagePopup(error_message);
+
+	  if (Installation::initial_mode)
+	  {
+	      // make a hard reboot, from y2m_inst/ycp/update/inst_finish_update.ycp
+	      SCR::Write(.yast2.inf.rootpart, "reboot");
+	      user_settings = add (user_settings, "made_reboot", true);
+	      y2milestone ( "Make a hard reboot" );
+	  }
 	  
 	  // if no harddisk was found, exit the rescue system
 	  return $[
@@ -877,9 +940,6 @@ YaST2 OS Repair halts now.");
       OSRModuleProgress::Fill();
       
       return $["status" : status];
-
-
-      // TODO: blockdev --rereadpt /dev/sda nachdem eine ptbl neu angelegt wurde!
   };
 
   /**
@@ -898,7 +958,7 @@ YaST2 OS Repair halts now.");
       boolean repair_question           = false;
       integer progress_expect           = 60;
       string  module_name               = "osr_module_partition";
-      string  help_text                 = "";
+      //string  help_text                 = "";
       string  error_message             = "";
       string  progress_file             = "";
       string  progress_label            = _("Checking the partitions and filesystems");
@@ -989,7 +1049,10 @@ YaST2 OS Repair halts now.");
 	  OSRSummaryDetectOK(
 			     module_name,
 			     _("Installing kernel modules for filesystem support"),
-			     sformat(_("Kernel modules sucessfully installed: %1"), mergestring(successfully_installed_modules, ", "))
+			     sformat(
+				     _("Kernel modules sucessfully installed: %1"),
+				     mergestring(successfully_installed_modules, ", ")
+				     )
 			     );
       }
 
@@ -998,7 +1061,10 @@ YaST2 OS Repair halts now.");
 	  OSRSummaryDetectProblem(
 			     module_name,
 			     _("Installing kernel modules for filesystem support"),
-			     sformat(_("Not successfully installed kernel modules: %1"), mergestring(not_installed_modules, ", "))
+			     sformat(
+				     _("Not successfully installed kernel modules: %1"),
+				     mergestring(not_installed_modules, ", ")
+				     )
 			     );
       }
       
@@ -1065,8 +1131,26 @@ YaST2 OS Repair halts now.");
 				_("No valid partition types found")
 				);
 	  
-	  // TODO: display and exit, start installation or partitioning instead
+	  // display and exit, start installation instead
+	  error_message = _("YaST2 OS Repair could not detect any valid root
+partitions in your system. Probably there exists
+no valid Linux system on this machine. You should
+start the installation workflow from the YaST2
+installation menu.
 
+YaST2 OS Repair halts now.");
+
+	  // display the error message, only a OK pushbutton
+	  UI::MessagePopup(error_message);
+
+	  if (Installation::initial_mode)
+	  {
+	      // make a hard reboot, from y2m_inst/ycp/update/inst_finish_update.ycp
+	      SCR::Write(.yast2.inf.rootpart, "reboot");
+	      user_settings = add (user_settings, "made_reboot", true);
+	      y2milestone ( "Make a hard reboot" );
+	  }
+	  
 	  return $[
 		   "status" : status,
 		   "severity" : severity
@@ -1116,7 +1200,25 @@ YaST2 OS Repair halts now.");
 				_("No mountable partitions found")
 				);
 
-	  // TODO: display and exit, start installation or partitioning instead
+	  // display and exit, start installation instead
+	  error_message = _("YaST2 OS Repair could not detect any mountable
+partitions in your system. Probably there exists
+no valid Linux system on this machine. You should
+start the installation workflow from the YaST2
+installation menu.
+
+YaST2 OS Repair halts now.");
+
+	  // display the error message, only a OK pushbutton
+	  UI::MessagePopup(error_message);
+
+	  if (Installation::initial_mode)
+	  {
+	      // make a hard reboot, from y2m_inst/ycp/update/inst_finish_update.ycp
+	      SCR::Write(.yast2.inf.rootpart, "reboot");
+	      user_settings = add (user_settings, "made_reboot", true);
+	      y2milestone ( "Make a hard reboot" );
+	  }
 	  
 	  return $[
 		   "status" : status,
@@ -1145,8 +1247,28 @@ YaST2 OS Repair halts now.");
 				_("No valid root partition found")
 				);
 
-	  // TODO: display and exit, start installation instead
-	  // eventually: if no fstab found search for the /etc/ directory
+	  // display and exit, start installation instead
+	  error_message = _("YaST2 OS Repair could not detect any valid root
+partitions in your system. Probably there exists
+no valid Linux system on this machine. You should
+start the installation workflow from the YaST2
+installation menu.
+
+YaST2 OS Repair halts now.");
+
+	  // display the error message, only a OK pushbutton
+	  UI::MessagePopup(error_message);
+
+	  if (Installation::initial_mode)
+	  {
+	      // make a hard reboot, from y2m_inst/ycp/update/inst_finish_update.ycp
+	      SCR::Write(.yast2.inf.rootpart, "reboot");
+	      user_settings = add (user_settings, "made_reboot", true);
+	      y2milestone ( "Make a hard reboot" );
+	  }
+	  
+	  // display and exit, start installation instead
+	  // eventually TODO: if no fstab found search for the /etc/ directory (later)
 	  // -> this has to be the root partition but the fstab is missing,
 	  // probably it is possible to autocreate a new one
 
@@ -1403,7 +1525,7 @@ You have to select one item in the list."),
 		  OSRModuleProgress::Add(10);
 	      }
 
-	      // TODO: check ext3, jfs, xfs
+	      // TODO: check ext3, jfs, xfs (later)
 
 	      if (check_fs == 0)
 	      {
@@ -1538,7 +1660,7 @@ You have to select one item in the list."),
 				    sformat(_("Searching filesystem table %1"), root_mountpoint + fstab_standard_path),
 				    _("The fstab agent reported an error")
 				    );
-	      // TODO: fstab repair, not-fstab
+	      // TODO: fstab repair, create a trouble-fstab
 	  }
 	  else if (size(fstab) == 0)
 	  {
@@ -1552,7 +1674,7 @@ You have to select one item in the list."),
 				    _("No filesystem table found")
 				    );
 
-	      // TODO: fstab repair, not-fstab
+	      // TODO: fstab repair, create a trouble-fstab
 	  }
 	  else
 	  {
@@ -1603,7 +1725,8 @@ You have to select one item in the list."),
 
               // TODO: problem with mounting an entry
 
-	      // TODO: wenn es nicht /var, (/opt), /usr, ist, dann von "default" auf "noauto" setzen, falls es hier Probleme gibt
+	      // TODO: wenn es nicht /var, (/opt), /usr, ist, dann von "default" auf "noauto"
+	      // setzen, falls es hier Probleme gibt
 	      
 	      // mounting the "normal" filesystems
 	      // attention: "nfs"-filesystems are not mounted here!
@@ -1710,6 +1833,13 @@ You have to select one item in the list."),
 
 		      // TODO: mount it readonly, this is not an error, (if it is /var, change entry in fstab to rw)
 
+		      /*
+		      if (file == "/var")
+		      {
+
+		      }
+		      */
+		      
 		      /*
 		      status = OSRStatusDetectError();
 
