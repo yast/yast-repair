@@ -268,7 +268,7 @@ is very time consuming.
 	else
 	{
 	    Report::Message (sformat(_("YaST verified %1 packages successfully.
-"), size(OSRPkgVerify::verified_packages )));
+"), OSRPkgVerify::VerifiedSize ()));
 
 	}
       }
