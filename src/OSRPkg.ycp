@@ -110,7 +110,7 @@
      * This will be local when converted to a Module::
      * Has Pkg::TargetInit run?
      */
-    boolean target_initialized = false;
+    boolean target_initialized = true;//FIXME initialized in bootloader
 
     /**
      * This will be local when converted to a Module::
@@ -156,24 +156,25 @@ is not possible.</P>
 	reinstalled_packages    = [];
 	install_missing_dialog_data = [];
 
-	
+y2internal ("----------------- reseting (ti=%1)", target_initialized);
 	if( target_initialized )
 	{
 	    target_initialized = ! Pkg::TargetFinish ();
+y2internal ("----------------- reset (ti=%1)", target_initialized);
 	}
 	// don't reset source_initialized
 	// don't reset reinstalled_packages
 	OSRPkgUI::Reset();
 	OSRPkgVerify::Reset();
     }
-    
+
     /**
      * Constructor.
      */
     global define OSRPkg()``{
 	Reset();
     }
-        
+
     /**
      * Open the package database.
      */
@@ -182,12 +183,12 @@ is not possible.</P>
 	y2milestone("Open pkg database with target system  -%1-", root );
 	if( root != "" && root != nil ) root_mountpoint = root;
 
-	// open the package source 
+	// open the package source
 	if( ! Mode::initial )
 	{
 	    source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
 	}
-	else 
+	else
 	{
 	    if ( ! source_initialized  )
 	    {
@@ -210,7 +211,12 @@ is not possible.</P>
 	}
 
 	// open target system for Pkg access
-	target_initialized = target_initialized || Pkg::TargetInit ( root, false);
+y2internal ("----------------- ti=%1", target_initialized);
+	if (!target_initialized)
+	{
+	    target_initialized = Pkg::TargetInit ( root, false);
+y2internal ("----------------- ti=%1", target_initialized);
+	}
 
 	// something failed
 	if( ! target_initialized || ! source_initialized )
@@ -581,7 +587,9 @@ database was not successful.
 	}
 
 	list(string) installed_packages = Pkg::GetPackages(`installed, true);
+y2milestone ("installed: %1", installed_packages);
 	list(string) minimal_packages   = get_verify_packages( "base" );
+y2warning ("minimal: %1", minimal_packages);
 
 	missing_packages = filter(string pkg_name, minimal_packages, ``( ! contains(installed_packages, pkg_name )));
 
@@ -763,14 +771,11 @@ install the missing packages.</P>
 	    }
 	    
 	} until ( ret == `next || ret == `abort || ret == `cancel );
-	
 	UI::CloseDialog();
 
-	
 	missing_packages = OSRPkgVerify::not_successful_verified;
-	
 	OSRPkgVerify::WriteVerifiedPackages( check_packages, false);
-	
+
 	if( size( missing_packages ) > 0 )
 	{
 	    string protocol_label = _("Show Log");
@@ -876,6 +881,10 @@ package.</P>
 			ret = `ok;
 		    }
 		    else ret = `error;
+		    // close pkg database, so the changes
+		    // (=new installed packages) can be remembered
+		    if (missing_packages != [])
+			target_initialized = ! Pkg::TargetFinish ();
 		}
 		else {
 		    y2error("Opening the ppackage database failed");

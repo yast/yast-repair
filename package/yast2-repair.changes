@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 15 17:21:18 CEST 2003 - jsuchome@suse.cz
+
+- prevent the fall in the bootloader check (switched bootloader
+  and packages check functions) - #30272
+
+-------------------------------------------------------------------
 Wed Sep 10 14:13:18 CEST 2003 - jsuchome@suse.cz
 
 - updated list of packages for which 'rpm -V' complains (#30381)
