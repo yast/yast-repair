@@ -16,6 +16,7 @@
 
 {
   textdomain "osr";
+  import "Storage";
   
   include "osr/common_filesystem.ycp";
 
@@ -151,7 +152,7 @@
       // setting up the progress bar
       OSRModuleProgress::SetParams(_("Checking harddisks"), progress_file, progress_expect);
       
-      target_map = lookup(user_settings, "targets", $[]);
+      target_map = Storage::GetTargetMap();
 
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
       disk_list = maplist(`k, `v, target_map, ``(k));
@@ -425,7 +426,8 @@ also be terribly wrong. You have been warned.\"</p>"), target);
 				      // construct an updated "targets" map and store it in the global map "user_settings"
 				      map partition_map = $["partitions" : partition_table];
 				      target_map        = add(target_map, target, partition_map);
-				      user_settings     = add(user_settings, "targets", target_map);
+
+				      Storage::SetTargetMap( target_map);
 
 				      // umount everything from "/media/floppy" or from deeper directories after reading
 				      if (UmountAllFrom("/media/floppy"))
@@ -823,7 +825,7 @@ result to the primary partition table.
 				      // construct an updated "targets" map and store it in the global map "user_settings"
 				      map partition_map = $["partitions" : partition_table];
 				      target_map        = add(target_map, target, partition_map);
-				      user_settings     = add(user_settings, "targets", target_map);
+				      Storage::SetTargetMap( target_map);
 
 
 				      
@@ -992,7 +994,7 @@ YaST2 OS Repair halts now.");
       // set the parameters for the module progress bar
       OSRModuleProgress::SetParams(_("Checking the partitions and filesystems"), progress_file, progress_expect);
 
-      target_map = lookup(user_settings, "targets", $[]);
+      target_map = Storage::GetTargetMap();
 
       // Umount all partitions from "/mnt" or from deeper directories (e.g. "/mnt/usr", "/mnt/usr/local", ...)
       // before mounting anything to "/mnt".
