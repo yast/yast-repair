@@ -113,7 +113,6 @@
       boolean repair_question  = false;
       boolean error_detected   = false;
       integer progress_expect  = 40;
-      integer result           = 0;
       string  minimum_version  = "21.6";
       string  module_name      = "osr_module_lilo";
       string  command          = "";
@@ -135,12 +134,10 @@
 
       string  update_target    = "";
 
-      //integer result = 0;
-      
       module_map      = OSRGetModuleMap(module_name);
       log_file        = OSRLogFile::GetFile();
       
-      progress_file   = lookup(module_map, "progress_file");
+      progress_file   = lookup(module_map, "progress_file", "");
 
       update_target = OSRRequireString("update_target");
 
@@ -171,7 +168,6 @@
       // increase the value of the module-progress-bar
       OSRModuleProgress::Add(10);
 
-	  //if (result != 0)
       if (lookup(return_map, "exit", 1) != 0)
       {
 	  // rpm -q lilo reported an error -> lilo.rpm is not installed
@@ -268,7 +264,7 @@ Should be version number <code>%2</code> or later"),
 	      if (demo_mode)
 	      {
 		  // demo-value
-		  result = 0;
+		  return_map = $["exit" : 0, "stdout" : "", "stderr" : ""];
 	      }
 	      else
 	      {
@@ -367,7 +363,7 @@ Package is o.k.")
 		      return_map = OSRExecuteCommandOutput(command, log_file, .target);
 		  }
 
-		  if ( result != 0 )
+		  if (lookup(return_map, "exit", 1) != 0)
 		  {
 		      // TODO: make a copy of /etc/lilo.conf
 		      //command = sformat("cp %1 /tmp/lilo.conf.orig", lilo_conf_path);
