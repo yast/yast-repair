@@ -40,7 +40,7 @@
      * Configuration files needed by every boot loader
      */
     global map needed_config_files = $[
-	    "modules"		: "/etc/modules.conf",
+	    "modules"		: "/etc/modprobe.conf",
 	    "initrd"		: "/etc/sysconfig/kernel",
 	    "bootleader"	: "/etc/sysconfig/bootloader"
     ];
@@ -1334,11 +1334,11 @@ which system to start.</P>
 	if( contains ( not_valid_files, needed_config_files["modules"]:"") )
 	{
 	    y2error("repairing %1 is not possible", needed_config_files["modules"]:"");
-	    Report::Error("
+	    Report::Error(sformat (_("
 The file %1 was not found.
 YaST can not recover this
 file.
-");
+"), needed_config_files["modules"]:""));
 	    return `error;
 	}
 

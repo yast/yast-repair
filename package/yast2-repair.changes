@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr  2 13:50:00 CEST 2004 - jsuchome@suse.cz
+
+- fix: check /etc/modprobe.conf existence, not /etc/modules.conf
+  (in case of missing /etc/modules.conf, bootlader check wasn't done)
+- 2.9.9
+
+-------------------------------------------------------------------
 Wed Mar 31 14:10:27 CEST 2004 - jsuchome@suse.cz
 
 - fix: get minimal package selection (#37133)
