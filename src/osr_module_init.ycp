@@ -60,13 +60,11 @@
 		   "summary"           :  [],
 		   "test_mode_summary" :  [
 					   $["header" : "Init1", "description" : "o.k.", "error" : false],
-					   $["header" : "Init2", "description" : "o.k.", "error" : false]
 		   ],
 		   "detect_methods"    :  [
 					   ``(OSRInitHWProbe()),
-					   ``(OSRInitCheckFstab()),
-					   ``(OSRInit1()),
-					   ``(OSRInit2())
+					   ``(OSRInitCheckFstab())
+					   //,``(OSRInit1())
 		   ],
 		   "provides"          : $[
 					   "disk_device_list"   : $[ "type" : "list",   "value" : ["/dev/hda"],  "status" : "unknown" ],
@@ -111,6 +109,7 @@
       string  progress_file    = "";
       string  progress_label   = "";
       string  module_name      = "osr_module_init";
+      string  status           = "";
 
       // setup the module-progress-bar, it is the upper one of the two progress bars in the
       // main window, it displays the progress of the current method
@@ -131,7 +130,7 @@
 
       list disk_list = SCR(`Read(.probe.disk));
 
-      SCR(`Write(.dumpto.tmp.disk_list, disk_list));
+      //SCR(`Write(.dumpto.tmp.disk_list, disk_list));
 
       error_detected = false;
       
@@ -139,17 +138,25 @@
       
       if (!error_detected)
       {
-	  //result_text = OSRSummaryItem(UI(_("Probing hardware")), UI(_("O.k.")), false);
-	  OSRSummaryOK(module_name, UI(_("Probing hardware")), UI(_("O.k.")));
+ 	  status = OSRStatusDetectOK();
+
+	  string summary_text = "";
+	  foreach(`m, disk_list, ``{
+	      summary_text = summary_text + sformat("<br><code>%1</code>: o.k.", lookup(m, "dev_name", ""));
+	  });
+
+	  OSRSummaryOK(module_name, UI(_("Probing hardware")), sformat(UI(_("Getting information for all disk-devices%1")), summary_text));
       }
       else
       {
+ 	  status = OSRStatusDetectError();
+
 	  // set the error message that is displayed in the popup OSRRepairPopup
 	  error_message   = UI( _("An error was detected.\nPress Repair to fix the error.") );
 
 	  // set the help-text to be displayed in the left RichText-widget of the main window
-	  help_text       = UI( _("<p>The TEMPLATE package is not installed on your system.</p>"));
-	  help_text       = help_text + UI( _("<p>This package is one of the basic packages for your system.</p>") );
+	  help_text       = UI( _("<p>ERROR.</p>"));
+	  help_text       = help_text + UI( _("<p>Press <b>Repair</b>.</p>") );
 
 	  // display the help-text
 	  //OSRDisplayHelpText(help_text);
@@ -164,15 +171,27 @@
 	  // if the user selected Repair set the sequence of repair methods
   	  if (repair_question)
 	  {
-	      if (OSRTemplateRepair1() &&
-		  OSRTemplateRepair2())
+	    if (!OSRTemplateRepair1())
 	      {
-		  y2debug("All repair methods were successfully executed.");
+		status = OSRStatusRepairError();
 	      }
-	      else
+	    else
 	      {
-		  y2debug("NOT all repair methods were successfully executed.");
+		status = OSRStatusRepairOK();
 	      }
+
+	    if (!OSRTemplateRepair2())
+	      {
+		status = OSRStatusRepairError();
+	      }
+	    else
+	      {
+		status = OSRStatusRepairOK();
+	      }
+	  }
+	  else
+	  {
+	    status = OSRStatusRepairOmit();
 	  }
       }
       
@@ -180,6 +199,7 @@
       // signifies if this detection method has found an error or not and the result
       // text to be displayed in the RichText-widget
       result_map = $[
+		     "status"         : status,
 		     "error_detected" : error_detected,
 		     "error_repair"   : repair_question
       ];
@@ -223,12 +243,15 @@
       string  root_path             = "";
       string  root_partition        = "";
       string  module_name           = "osr_module_init";
+      string  status                = "";
       list    fstab_list            = [];
       list    all_disks             = [];
       list    disk_device_list      = [];
       map     root_partition_map    = $[];
       map     result_map            = $[];
       
+      status = OSRStatusDetectOK();
+
       OSRModuleProgressSetParams(UI(_("Checking /etc/fstab")), "/tmp/osr_module_init_progress", 10);
 
       OSRModuleProgressAdd(1);
@@ -274,9 +297,14 @@
       
       //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
       
-      OSRSummaryOK(module_name, UI(_("OSRInitCheckFstab")), UI(_("Is o.k.")));
+      OSRSummaryOK(
+		   module_name,
+		   UI(_("Checking filesystem table")),
+		   sformat(UI(_("<code>/etc/fstab</code> is o.k.<br>Root partition is: <code>%1</code>")), root_partition)
+		   );
 
       result_map = $[
+		     "status"         : status,
 		     "error_detected" : error_detected,
 		     "error_repair"   : repair_question
       ];
@@ -296,8 +324,11 @@
       integer result          = 1;
       string  command         = "";
       map     result_map      = $[];
-      string  module_name      = "osr_module_init";
+      string  module_name     = "osr_module_init";
+      string  status          = "";
       
+      status = OSRStatusDetectOK();
+
       y2debug("OSRInit1");
 
       OSRModuleProgressSetParams(UI(_("Checking OSRInit1")), "/tmp/osr_module_init_progress", 10);
@@ -307,40 +338,13 @@
       OSRSummaryOK(module_name, UI(_("OSRInit1")), UI(_("Is o.k.")));
 			     
       result_map = $[
+		     "status"         : status,
 		     "error_detected" : error_detected,
 		     "error_repair"   : repair_question
       ];
 
       OSRModuleProgressFill();
       
-      return result_map;
-  }
-
-  /**
-   *  @return 
-   */
-  global define OSRInit2() ``{
-
-      boolean error_detected  = false;
-      boolean repair_question = false;
-      integer result          = 1;
-      string  command         = "";
-      map     result_map      = $[];
-      string  module_name      = "osr_module_init";
-      
-      y2debug("OSRInit2");
-
-      OSRModuleProgressSetParams(UI(_("Checking OSRInit2")), "/tmp/osr_module_init_progress", 10);
-
-      OSRSummaryOK(module_name, UI(_("OSRInit2")), UI(_("Is o.k.")));
-      
-      result_map = $[
-		     "error_detected" : error_detected,
-		     "error_repair"   : repair_question
-      ];
-
-      OSRModuleProgressFill();
-
       return result_map;
   }
 

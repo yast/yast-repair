@@ -93,34 +93,27 @@
 	  color = "blue";
       }
 
-      return sformat(
-		     "<center><table width=380><tr><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr><tr><td align=left>%3</td></tr></table></center>",
-		     name,
-		     status_text,
-		     description,
-		     color
-		     );
-
-      
-      /*
-      return sformat(
-		     "<li><table width=380 height=40><tr valign=middle><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr></table>%3</li>",
-		     name,
-		     status_text,
-		     description,
-		     color
-		     );
-      */
-
-      // TODO: correct format for ncurses
-      /*
-      return sformat(
-		     "<li><font color=%1>%2</font><br>%3</li>",
-		     color,
-		     name,
-		     description
-		     );
-      */
+      // Check if the UI is running with ncurses or qt
+      if (UI(`HasSpecialWidget(`Slider)))
+      {
+	  return sformat(
+			 "<center><table width=380><tr><th align=left>%1</th><th align=right><font color=%4>%2</font></th></tr><tr><td align=left>%3</td></tr></table></center>",
+			 name,
+			 status_text,
+			 description,
+			 color
+			 );
+      }
+      else
+      {
+	  return sformat(
+			 "<li>%2: <b>%3</b><br>%4</li>",
+			 color,
+			 name,
+			 status,
+			 description
+			 );
+      }
   };
 
   /**

@@ -104,9 +104,8 @@
       {
 	  if (ret == `osr_popup_help)
 	  {
-	      y2error("HELP!");
-	      // TODO: launch text-popup to display help-text
-	      //UI(`LongTextPopup(UI(_("Help")), `RichText(help_text), 50, 20));
+	      // launch text-popup to display help-text
+	      UI(`LongTextPopup(UI(_("YaST2 OS Repair: Help")), `RichText(WFM::help_text), 50, 20));
 	  }
 	  ret = UI(`UserInput());
       }

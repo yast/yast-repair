@@ -46,7 +46,7 @@
       if (demo_mode) demo_string = "echo";
 
       // execute the given commandline and write the commandline and output information to logfile
-      commandline = sformat("%1 %2", demo_string, commandline);
+      commandline = sformat("%1 %2 2> /dev/null", demo_string, commandline);
       //command     = sformat("echo \"*** %1 ***\" >> %2; %1 >> %2 2>> %2", commandline, log_file);
       result_map  = SCR(`Execute(.target.bash_output, commandline));
       result      = lookup(result_map, "exit", 0);
@@ -353,4 +353,68 @@
 	       (sub_version_1 >= sub_version_2)));
   }
 
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "detect_ok"
+   *  @example string status = OSRStatusDetectOK();
+   */
+  global define OSRStatusDetectOK() ``{
+
+    return "detect_ok";
+  }
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "detect_error"
+   *  @example string status = OSRStatusDetectError();
+   */
+  global define OSRStatusDetectError() ``{
+
+    return "detect_error";
+  }
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "repair_ok"
+   *  @example string status = OSRStatusRepairOK();
+   */
+  global define OSRStatusRepairOK() ``{
+
+    return "repair_ok";
+  }
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "repair_error"
+   *  @example string status = OSRStatusRepairError();
+   */
+  global define OSRStatusRepairError() ``{
+
+    return "repair_error";
+  }
+
+  /**
+   *  This function is a wrapper for the definition of the correct status.
+   *
+   *  API function,
+   *
+   *  @return string The status "repair_omit"
+   *  @example string status = OSRStatusRepairOmit();
+   */
+  global define OSRStatusRepairOmit() ``{
+
+    return "repair_omit";
+  }
 }

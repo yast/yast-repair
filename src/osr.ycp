@@ -360,11 +360,10 @@
    */
   define OSRDetect() ``{
 
-      boolean error_detected  = false;
-      boolean error_repair    = false;
       integer index_modules   = 0;
       integer index_detect    = 0;
       string  module_name     = "";
+      string  status          = "";
       list    detect_methods  = [];
       list    module_sequence = [];
       map     result_map      = $[];
@@ -387,8 +386,7 @@
 	  // reset some values to empty before re-entry into the loop!
 	  index_detect   = 0;
 	  result_map     = $[];
-	  error_detected = false;
-	  error_repair   = false;
+	  status         = "";
 	      
 	  // execute all detect-functions of the specified module
 	  while((index_detect >= 0) && (index_detect < size(detect_methods)))
@@ -397,15 +395,39 @@
 	      result_map      = eval(select(detect_methods, index_detect));
 
 	      // get some information from the result_map
-	      error_detected  = lookup(result_map, "error_detected", false);
-	      error_repair    = lookup(result_map, "error_repair",   false);
+	      status          = lookup(result_map, "status",         "");
 
-	      if ((!error_detected) || (!error_repair))
+	      
+	      if (status == "detect_ok")
 	      {
-		  // if no error detected or the detected error was not repaired,
-		  // go to the next detection-method
+		  // if no error detected go to the next detection-method
 		  OSRGlobalProgressIncrease();
 		  index_detect = index_detect + 1;
+	      }
+	      else if (status == "detect_error")
+	      {
+		  // if an error was detected but no repair method started
+		  // restart the current detection method
+	      }
+	      else if (status == "repair_ok")
+	      {
+		  // if all detected errors were repaired restart the current
+		  // detection method
+	      }
+	      else if (status == "repair_error")
+	      {
+		  // if the repair-method was not successfull restart the current
+		  // detection method
+	      }
+	      else if (status == "repair_omit")
+	      {
+		  // if the user omitted repairing go to the next detection method
+		  OSRGlobalProgressIncrease();
+		  index_detect = index_detect + 1;
+	      }
+	      else
+	      {
+		y2error("not a valid status: %1", status);
 	      }
 	  }
 	  // save the result map in the global osr_map
