@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  2 15:51:52 CEST 2004 - jsuchome@suse.cz
+
+- changed license to GPL
+- 2.9.10
+
+-------------------------------------------------------------------
 Fri Apr  2 13:50:00 CEST 2004 - jsuchome@suse.cz
 
 - fix: check /etc/modprobe.conf existence, not /etc/modules.conf
