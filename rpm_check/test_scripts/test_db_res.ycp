@@ -1,5 +1,0 @@
-{
-	string db_name = "/tmp/RPM_dDB_intensive_Min";
-	list db = SCR( `Read(.rpm.get_rpm_dDB, db_name));
-	if(db != nil) SCR(`Write(.dumpto.tmp.myseek, db));
-}

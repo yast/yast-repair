@@ -1,4 +1,0 @@
-{
-	string db_name = "/tmp/RPM_dDB_intensive_Min";
-	SCR( `Write(.rpm.create_rpm_dDB, db_name));
-}
