@@ -61,13 +61,10 @@
 		   "headline"       :  _("Init"),
 		   "summary"        :  [],
 		   "test_mode_summary" : [
-					  $["header" : "Init1", "description" : "o.k.", "error" : false],
+					  $["header" : "Init test mode", "description" : "o.k.", "error" : false],
 		   ],
 		   "detect_methods" :  [
-					``(OSRInitConvertUserSettings()),
-					``(OSRInitHWProbe()),
-					``(OSRInitCheckFstab())
-					//,``(OSRInit1())
+					``(OSRInitConvertUserSettings())
 		   ],
 		   "provides"       : $[
 					"repair_target"      : $[ "type" : "string", "value" : "", "status" : "unknown" ],
@@ -102,231 +99,13 @@
   //////////////////////////////////////////////////////////////////////
 
   /**
-   *  @return 
-   */
-  global define OSRInitHWProbe() ``{
-
-      boolean repair_question  = false;
-      boolean error_detected   = false;
-      integer progress_expect  = 0;
-      string  error_message    = "";
-      string  help_text        = "";
-      string  progress_file    = "";
-      string  progress_label   = "";
-      string  module_name      = "osr_module_init";
-      string  status           = "";
-
-      // setup the module-progress-bar, it is the upper one of the two progress bars in the
-      // main window, it displays the progress of the current method
-      // get the file-name of the progress file that is observed by the module-progress-bar
-      progress_file   = "/tmp/osr_module_init_progress";
-
-      // set the expected file-size of the progress bar, this value is equivalent to 100%
-      // of the progress-bar
-      progress_expect = 100;
-
-      // the string to be displayed above the upper progress bar
-      progress_label  = _("Probing hardware");
-
-      // setup the module-progress-bar
-      OSRModuleProgress::SetParams(progress_label, progress_file, progress_expect);
-
-      // begin section: error detection
-
-      list disk_list = SCR::Read(.probe.disk);
-
-      //SCR::Write(.dumpto.tmp.disk_list, disk_list);
-
-      error_detected = false;
-      
-      // end section
-      
-      if (!error_detected)
-      {
- 	  status = OSRStatusDetectOK();
-
-	  string summary_text = "";
-	  foreach(`m, disk_list, ``{
-	      summary_text = summary_text + sformat("<br><code>%1</code>: o.k.", lookup(m, "dev_name", ""));
-	  });
-
-	  OSRSummaryDetectOK(
-			     module_name,
-			     _("Probing hardware"),
-			     sformat(_("Getting information for all disk-devices%1"), summary_text)
-			     );
-      }
-      else
-      {
- 	  status = OSRStatusDetectError();
-
-	  // set the error message that is displayed in the popup OSRRepairPopup
-	  error_message   = _("An error was detected.\nPress Repair to fix the error.");
-
-	  // set the help-text to be displayed in the left RichText-widget of the main window
-	  help_text       = _("<p>ERROR.</p>");
-	  help_text       = help_text + _("<p>Press <b>Repair</b>.</p>");
-
-	  // display the help-text
-	  //OSRDisplayHelpText(help_text);
-	  
-	  // launch the repair-popup
-          repair_question = OSRPopupRepair(_("Error detected"), error_message, help_text);
-
-	  // set the text that is displayed in the right RichText-widget of the main window
-	  //result_text = OSRSummaryItem(_("TEMPLATE check 1"), _("Error detected"), true);
-	  OSRSummaryDetectError(module_name, _("Probing hardware"), _("Error detected"));
-			      
-	  // if the user selected Repair set the sequence of repair methods
-  	  if (repair_question)
-	  {
-	    if (!OSRTemplateRepair1())
-	      {
-		status = OSRStatusRepairError();
-	      }
-	    else
-	      {
-		status = OSRStatusRepairOK();
-	      }
-
-	    if (!OSRTemplateRepair2())
-	      {
-		status = OSRStatusRepairError();
-	      }
-	    else
-	      {
-		status = OSRStatusRepairOK();
-	      }
-	  }
-	  else
-	  {
-	    status = OSRStatusRepairOmit();
-	  }
-      }
-      
-      // set the map that is returned by this method, it contains a boolean flag that
-      // signifies if this detection method has found an error or not and the result
-      // text to be displayed in the RichText-widget
-      result_map = $[
-		     "status"         : status,
-		     "error_detected" : error_detected,
-		     "error_repair"   : repair_question
-      ];
-      
-      return result_map;
-  }
-
-  
-  /**
-   *  Checks the file /etc/fstab and provides some data to the global osr_map.
+   *  Offers some neccesary values from the map user_settings from inst_startup.ycp to
+   *  the global map osr_map.
    *
-   *  @example "fstab_list" : $[ "status" : "known", "type" : "list",
-   *      "value" : [
-   *        $[ "file" : "/", "freq" : 1, "mntops" : "defaults", "passno" : 1, "spec" : "/dev/hda1",
-   *          "vfstype" : "reiserfs" ],
-   *        $[ "file" : "/proc", "freq" : 0, "mntops" : "defaults", "passno" : 0, "spec" : "proc",
-   *          "vfstype" : "proc" ],
-   *        $[ "file" : "swap", "freq" : 0, "mntops" : "pri=42", "passno" : 0, "spec" : "/dev/hda2",
-   *          "vfstype" : "swap" ]
-   *      ]
-   *    ],
-   *    "root_partition" : $[ "status" : "known", "type" : "string", "value" : "/dev/hda1" ],
-   *    "root_partition_map" : $[ "status" : "known", "type" : "map",
-   *      "value" :
-   *        $[ "file" : "/", "freq" : 1, "mntops" : "defaults", "passno" : 1, "spec" : "/dev/hda1",
-   *          "vfstype" : "reiserfs" ]
-   *    ]
-   *  ]
+   *  Provides: map target_map,
+   *            string repair_target
    *
-   *  @see .etc.fstab
-   *  @see .target.root
-   *  @see .probe.disk
-   *  @return The result map.
-   */
-  global define OSRInitCheckFstab() ``{
-
-      boolean error_detected        = false;
-      boolean repair_question       = false;
-      integer result                = 1;
-      string  command               = "";
-      string  root_path             = "";
-      string  root_partition        = "";
-      string  module_name           = "osr_module_init";
-      string  status                = "";
-      list    fstab_list            = [];
-      list    all_disks             = [];
-      list    disk_device_list      = [];
-      map     root_partition_map    = $[];
-      map     result_map            = $[];
-      
-      status = OSRStatusDetectOK();
-
-      OSRModuleProgress::SetParams(_("Checking /etc/fstab"), "/tmp/osr_module_init_progress", 10);
-
-      OSRModuleProgress::Add(1);
-      
-      // get the disk-devices maps as a list
-      all_disks  = SCR::Read(.probe.disk);
-
-      OSRModuleProgress::Add(1);
-      
-      // extract the device names from the disk-devices maps and add it to
-      // the provides map
-      integer i = 0;
-      while (i >= 0 && i < size(all_disks))
-      {
-	  disk_device_list = add(disk_device_list, lookup(select(all_disks, i), "dev_name", ""));
-	  i = i + 1;
-      }
-      OSRProvideList("disk_device_list", disk_device_list);
-
-      OSRModuleProgress::Add(1);
-      
-      // get the fstab-entries as list of maps and add it to the provides map
-      fstab_list = SCR::Read(.etc.fstab);
-      OSRProvideList("fstab_list", fstab_list);
-
-      OSRModuleProgress::Add(1);
-
-      // get the mountpoint of the root partition as string
-      root_path  = SCR::Read(.target.root);
-
-      OSRModuleProgress::Add(1);
-      
-      // extract the map of the root partition and its device name and provide it
-      root_partition_map = find(`m, fstab_list, ``(lookup(m, "file", "") == root_path));
-      root_partition     = lookup(root_partition_map, "spec", "");
-
-      OSRModuleProgress::Add(1);
-
-      OSRProvideMap("root_partition_map", root_partition_map);
-      OSRProvideString("root_partition", root_partition);
-
-      OSRModuleProgress::Add(1);
-      
-      //y2debug("RRRRRRRRRRR\n%1\n%2\n%3\n%4\n%5\n%6", fstab_list, root_path, root_partition_map, root_partition, all_disks, disk_device_list);
-      
-      OSRSummaryDetectOK(
-		   module_name,
-		   _("Checking filesystem table"),
-		   sformat(_("<code>/etc/fstab</code> is o.k.<br>Root partition is: <code>%1</code>"), root_partition)
-		   );
-
-      result_map = $[
-		     "status"         : status,
-		     "error_detected" : error_detected,
-		     "error_repair"   : repair_question
-      ];
-
-      OSRModuleProgress::Fill();
-
-      return result_map;
-  }
-
-  /**
-   *  
-   *
-   *  @return 
+   *  @return map The result map.
    */
   global define OSRInitConvertUserSettings() ``{
 
@@ -340,15 +119,9 @@
       map     target_map      = $[];
       string  repair_target   = "";
 
-      status = OSRStatusDetectOK();
-
       y2debug("OSRInitConvertUserSettings");
 
-      OSRModuleProgress::SetParams(_("Converting user-settings"), "/tmp/osr_module_init_progress", 10);
-
-      //OSRPopupDisplayQuick(sformat("user_settings: %1", user_settings), 4000);
-
-      //result_text = OSRSummaryItem(_("OSRInit1"), _("Is o.k."), false);
+      OSRModuleProgress::SetParams(_("Converting user-settings"), OSRGetTmpDir() + "/osr_module_init_progress", 10);
 
       target_map     = lookup (user_settings, "targets",      $[]);
       repair_target  = lookup (user_settings, "updateTarget", "");
@@ -370,44 +143,14 @@
 
       OSRModuleProgress::Add(5);
 
-      OSRSummaryDetectOK(module_name, _("Converting user-settings"), _("O.k."));
-
-      result_map = $[
-		     "status"         : status,
-		     "error_detected" : error_detected,
-		     "error_repair"   : repair_question
-      ];
-
-      OSRModuleProgress::Fill();
-      
-      return result_map;
-  }
-
-  /**
-   *  
-   *
-   *  @return 
-   */
-  global define OSRInit1() ``{
-
-      boolean error_detected  = false;
-      boolean repair_question = false;
-      integer result          = 1;
-      string  command         = "";
-      map     result_map      = $[];
-      string  module_name     = "osr_module_init";
-      string  status          = "";
-      
       status = OSRStatusDetectOK();
 
-      y2debug("OSRInit1");
+      OSRSummaryDetectOK(
+			 module_name,
+			 _("Converting user-settings"),
+			 _("O.k.")
+			 );
 
-      OSRModuleProgress::SetParams(_("Checking OSRInit1"), "/tmp/osr_module_init_progress", 10);
-      
-      //result_text = OSRSummaryItem(_("OSRInit1"), _("Is o.k."), false);
-
-      OSRSummaryDetectOK(module_name, _("OSRInit1"), _("Is o.k."));
-			     
       result_map = $[
 		     "status"         : status,
 		     "error_detected" : error_detected,
@@ -418,12 +161,6 @@
       
       return result_map;
   }
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  REPAIR METHODS
-  //
-  //////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////
   //
