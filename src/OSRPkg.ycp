@@ -110,9 +110,14 @@
      * This will be local when converted to a Module::
      * Has Pkg::TargetInit run?
      */
-    boolean target_initialized = true;
-    // FIXME initialized in bootloader constructors (in fact, in Product.ycp),
-    // which are called before OSRPkg constructor
+    boolean target_initialized = false;
+
+    /**
+     * Before first opening pkg database, we need to close it preventively
+     * (because it could be opened with a different root path).
+     * This variable says, if it is first time now.
+     */
+    boolean first_time_openpkg = true;
 
     /**
      * This will be local when converted to a Module::
@@ -217,6 +222,12 @@ is not possible.</P>
 	// open target system for Pkg access
 	if (!target_initialized)
 	{
+	    if (first_time_openpkg)
+	    {
+		y2milestone ("first time initializig -> finish target before");
+		Pkg::TargetFinish ();
+		first_time_openpkg = false;
+	    }
 	    target_initialized = Pkg::TargetInit ( root, false);
 	    get_minimal_selection ();
 	}

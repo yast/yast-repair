@@ -21,7 +21,7 @@
   return [
 	  `osr_module_init(),
 	  `osr_module_partition(),
-	  `osr_module_bootloader(),
 	  `osr_module_packages(),
+	  `osr_module_bootloader(),
   ];
 }
