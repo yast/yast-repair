@@ -854,7 +854,7 @@ database differs from the installed files of the
 package.</P>
 "), protocol_label),
 					   _("Packages with Problems:"),
-					   [ [`Right(`PushButton( `id(`protocol), protocol_label )), `protocol, ``(OSRPkgUI::ProtocolDialog())]]
+					   [ [`Right(`PushButton( `id(`protocol), protocol_label )), `protocol, OSRPkgUI::ProtocolDialog]]
 	     ];
 	}
 	return ret;
