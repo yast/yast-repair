@@ -1,5 +1,3 @@
-YAST2DIR = /tmp/yast2
-
 bin_PROGRAMS = rls
 rls_SOURCES = rls.C
 

@@ -39,5 +39,7 @@ AC_OUTPUT(Makefile
 	doc/autodocs/Makefile
 	testsuite/Makefile
 	rpm_check/Makefile
-	rpm_check/C_src/Makefile)
+	rpm_check/C_src/Makefile
+	rpm_check/scripts/Makefile
+	rpm_check/bin/Makefile)
 	
