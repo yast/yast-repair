@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 10 18:40:00 CET 2003 - jsuchome@suse.de
+
+- do not check/repair non-linux partitions (#24983, #25002)
+- untranslated texts (#25051, #25065)
+
+-------------------------------------------------------------------
 Fri Mar  7 17:03:19 CET 2003 - jsuchome@suse.de
 
 - fix of ncurses dialog of verified packages (#24572)

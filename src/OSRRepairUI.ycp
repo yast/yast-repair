@@ -43,7 +43,8 @@
    */
   boolean detected 		= false;
   
-  string exit_label		= "&Exit";
+//  string exit_label		= "&Exit";// FIXME!!
+  string exit_label		= UI::FinishButtonLabel();
   
   /**
    * Captions ...
@@ -266,7 +267,7 @@ Check your hardware.
    * Build a selection box with all scan and repair groups.
    */
   define term build_multi_selection_box(boolean mode )``{
-    return `MultiSelectionBox(`id(`options), "S&elect scan and repair options:", OSR::GroupItems(mode)); 
+    return `MultiSelectionBox(`id(`options), _("S&elect scan and repair options:"), OSR::GroupItems(mode)); 
   }
   
   /**

@@ -374,6 +374,7 @@ y2warning ("type from sysconfig: %1", SCR::Read (.sysconfig.bootloader.LOADER_TY
       // OSRStatus::error
       if( size ( not_found ) > 0 )
       {
+        // FIXME: whole texts have to be rewritten!!
         // popup header: %1 is root or boot
         if( UI::AnyQuestionPopup(sformat(_("No valid %1 partition was found"),
             not_found[0]:"" ),
