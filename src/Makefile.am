@@ -29,9 +29,9 @@ module_DATA =			\
 
 
 client_DATA = 			\
-	installation.ycp	\
-	inst_language.ycp	\
-	inst_custom_part.ycp	\
+#	installation.ycp	\
+#	inst_language.ycp	\
+#	inst_custom_part.ycp	\
 	inst_repair.ycp		\
 	repair.ycp		\
 	osr_module_init.ycp	\
