@@ -779,7 +779,7 @@ quite a while if this option is given. Be patient.</P>
 
       foreach(map paritition, found_partitions, ``{
 
-	  map matching = find(map e_part, existing_partitions, ``(e_part["region"]:[] == paritition["region"]:["not_empty"]));
+	  map matching = find(map e_part, existing_partitions, ``(e_part["region"]:[] == paritition["region"]:[0]));
 
 	  if (matching != nil && matching != $[] )
 	  {
@@ -823,190 +823,229 @@ quite a while if this option is given. Be patient.</P>
       return ret;
   }
 
-  define string partition_info(map part , string dev )``{
-      return sformat(_("cylinders %1-%2, "), part["region", 0]:0 , part["region",0]:0 + part["region",1]:0 -1) +
-	  sformat(_("ID %1, "),  part["fsid"]:131) +
-	  sformat(_("size %1"), ByteToHumanString( part["region",1]:0 * lookup( Storage::GetMainDev( dev), "cyl_size",0)  ));
+  /**
+   * return partition information (to be shown to user)
+   */
+  define string partition_info (map part, string dev ) ``{
+      return
+	// partition info 1/3, %1,%2 are numbers
+	sformat (_("cylinders %1-%2, "),
+	    part["region", 0]:0, part["region",0]:0 + part["region",1]:0 -1) +
+	// partition info 2/3, %1 is partition ID (number)
+	sformat(_("ID %1, "),  part["fsid"]:131) +
+	// partition info 3/3, %1 is partition size (number)
+	sformat(_("size %1"), ByteToHumanString (
+	    part["region",1]:0 * lookup (Storage::GetMainDev(dev),"cyl_size",0)
+	));
     }
 
-  /** 
+  /**
    * Compare an existing partition table with the gpart output
    */
-  define list<map> ComparePtblDialog( map compared, string target , string repair_tool  )``{
-      
-      term part_items = `VBox();
-      list<list<any> > part_list  = [];
-      
-      list found_free_parts = compared["free"]:[];
+  define list<map> ComparePtblDialog (map compared, string target,
+				      string repair_tool) ``{
 
-      //number to text
-      map number2text = $[ 1 : _("First Found Partition"),
-			   2 : _("Second Found Partition"),
-			   3 : _("Third Found Partition"),
-			   4 : _("Fourth Found Partition")];
-      
-    foreach( map<string,any> free_part, (list<map<string,any> >)found_free_parts, ``{
+    term part_items		= `VBox();
+    list<list> part_list	= [];
+    list<map> found_free_parts	= compared["free"]:[];
+    list<map> overlap_parts	= compared["overlap"]:[];
 
-	integer nr = free_part["nr"]:0;
+    //number to text
+    map number2text = $[
+	// label: partition number
+	1 : _("First Found Partition"),
+	2 : _("Second Found Partition"),
+	3 : _("Third Found Partition"),
+	4 : _("Fourth Found Partition")
+    ];
 
-	part_list = add (part_list, [
+    foreach (map free_part, found_free_parts, ``{
+	integer nr	= free_part["nr"]:0;
+	part_list	= add (part_list, [
 	    nr,
 	    `Left (
 		`CheckBox(`id(free_part["device"]:""),
 		    sformat (_("&%1: %2 - %3"), nr, number2text[nr]:"",
-			partition_info(free_part, target)),true
+			partition_info (free_part, target)),
+		    true
 		)
 	    )
 	]);
-      });
+    });
 
-      list overlap_parts = compared["overlap"]:[];
-      foreach( map<string,any> overlap_part, (list<map<string,any> >)overlap_parts, ``{
-	  integer nr = overlap_part["nr"]:0;
-	  list<string> del_text_parts = maplist(map e_part, overlap_part["overlap"]:[],
-					``(sformat(_("Partition %1 must be deleted to recover cylinders %2-%3."), e_part["device"]:"",
-						   overlap_part["region",0]:"", overlap_part["region",0]:0 + overlap_part["region",1]:0 -1 )));
+    foreach (map overlap_part, overlap_parts, ``{
+	integer nr = overlap_part["nr"]:0;
+	list<string> del_text_parts = maplist (map e_part,
+	    overlap_part["overlap"]:[], ``{
+	    return sformat (
+		// label: %1 is device name, %2,%3 numbers
+		_("Partition %1 must be deleted to recover cylinders %2-%3."),
+		e_part["device"]:"",
+		overlap_part["region",0]:0,
+		overlap_part["region",0]:0 + overlap_part["region",1]:0 - 1);
+	});
 
-	  part_list = add(part_list, [ nr, `Left(`VBox(`Left(`CheckBox(`id(overlap_part["device"]:""),
-								 sformat(_("&%1: %2 - %3"),
-									 nr, number2text[nr]:"",
-									 partition_info(overlap_part, target)),false )),
-						       `VSpacing(0.5),
-						       `Left(`Heading(_("Warning: Conflicts with existing partitions"))),
-						       `Left(`Label( mergestring(del_text_parts, "\n") ))))] );
-      });
+	part_list = add (part_list, [
+	    nr,
+	    `Left (`VBox (
+		`Left (
+		    `CheckBox (`id(overlap_part["device"]:""),
+			sformat(_("&%1: %2 - %3"), nr, number2text[nr]:"",
+			    partition_info (overlap_part, target)),
+			false)
+		),
+		`VSpacing(0.5),
+		`Left (
+		    // heading
+		    `Heading (_("Warning: Conflicts with existing partitions"))
+		),
+		`Left (
+		    `Label (mergestring (del_text_parts, "\n"))
+		)
+	    ))
+	]);
+    });
 
-      part_list = sort(list l, list q, part_list, ``( l[0]:0 < q[0]:0 ));
-      foreach( list<any> part, (list<list<any> >) part_list , ``{
-	  part_items = add(part_items, part[1]:`Empty());
-	  part_items = add(part_items, `VSpacing(2));
-      });
-      
-      
-      // gpart found only existing partitions.
-      if (size( found_free_parts ) == 0 && size( overlap_parts ) == 0 )
-      {
-	  Report::Message(_("
-No lost partition found.
-"));
-	  return [];
-      }
+    part_list = sort (list l, list q, part_list, ``( l[0]:0 < q[0]:0 ));
+    foreach (list part, part_list , ``{
+	part_items = add (part_items, part[1]:`Empty());
+	part_items = add (part_items, `VSpacing(2));
+    });
 
-      string help_text = _("
+    // gpart found only existing partitions.
+    if (size( found_free_parts ) == 0 && size( overlap_parts ) == 0 )
+    {
+	// popup message
+	Report::Message(_("No lost partition found."));
+	return [];
+    }
+
+    // help text of partition recovery 1/2
+    string help_text = _("
 <p>
 Read the following points accurately
 and select only the partition that should
 really be recovered.
 </P>
 ") +
-_("<P><B>Use caution.</B><BR>Sometimes an existing partition must
+
+    // help text of partition recovery 2/2
+    _("<P><B>Use caution.</B><BR>Sometimes an existing partition must
 be deleted to recover another partition.</P>
 ") +
 
-      OSRPopup::build_label_description( OSRPopup::repair_label, _("Start the Recovery Process"));
+    OSRPopup::build_label_description (OSRPopup::repair_label,
+	// button description
+	_("Start the Recovery Process"));
 
-      string message = "";
-      
-      OSRPopup::OpenSuggestDialog( _("Recover Previously Existing Partitions"),
-				   message,
-				   help_text,
-				   `HBox(`HSpacing(1),
-					 part_items,
-					 `HSpacing(1)),
-				   (size(found_free_parts) + size(overlap_parts)) * 15
-				   );
+    string message = "";
+    // popup headline
+    OSRPopup::OpenSuggestDialog (_("Recover Previously Existing Partitions"),
+	message,
+	help_text,
+	`HBox (`HSpacing(1), part_items, `HSpacing(1)),
+	(size(found_free_parts) + size(overlap_parts)) * 15
+    );
 
-      any ret          = `ok;
-      list<map>   recover = [];
-      repeat {
-	  ret = UI::UserInput();
+    any ret          = `ok;
+    list<map>   recover = [];
+    repeat
+    {
+	ret = UI::UserInput();
 
-	  if ( ret == `ok ) {
-
-	      foreach( map<string,any> free_part, (list<map<string,any> >) found_free_parts, ``{
-		  if ((boolean)
-		      UI::QueryWidget(`id(free_part["device"]:""), `Value ) )
-		  {
-		      recover = add(recover, free_part );
-		  }
-	      });
-	      foreach( map<string,any> overlap_part, (list<map<string,any> >) overlap_parts, ``{
-		  if ((boolean)
-		      UI::QueryWidget(`id(overlap_part["device"]:""), `Value))
-		  {
-		      if (Popup::ContinueCancel(sformat(_("
+	if ( ret == `ok )
+	{
+	    foreach (map free_part, found_free_parts, ``{
+		if ((boolean)
+		    UI::QueryWidget(`id(free_part["device"]:""), `Value))
+		{
+		    recover = add (recover, free_part );
+		}
+	    });
+	    foreach (map overlap_part, overlap_parts, ``{
+		if ((boolean)
+		    UI::QueryWidget(`id(overlap_part["device"]:""), `Value))
+		{
+		    // warning popup, %1 is device name, %2 list of partitions
+		    if (Popup::ContinueCancel (sformat(_("
 Recovering the selected partition %1 is only
 possible by deleting the following partitions:
 %2
 Press Continue to delete the partitions
-and recover %1.
-"), overlap_part["device"]:"", mergestring(maplist(map o_part, overlap_part["overlap"]:[],``(o_part["device"]:"")), " "))))
-		      {
-			 
-
-			  foreach(map  delpart, overlap_part["overlap"]:[], ``{
-			      delpart["delete"] = true;
-			      delpart = filter(string key, any d, (map<string,any>) delpart, ``(key != "overlap"));
-			      recover = (list<map>) union (recover, [delpart]);
-			  });
-			  overlap_part = filter(string key, any d, (map<string,any>)overlap_part, ``(key != "overlap"));
-			  recover = add(recover, overlap_part );
-		      }
-		      else {
-			  UI::ChangeWidget(`id(overlap_part["device"]:""), `Value, false);
-			  recover = [];
-			  ret = `again;
-		      }
-		  }
+and recover %1."),
+			overlap_part["device"]:"",
+			mergestring (
+			    maplist (map o_part, overlap_part["overlap"]:[],
+				``(o_part["device"]:"")),
+			    " "
+			)
+			)))
+		    {
+			foreach (map delpart, overlap_part["overlap"]:[], ``{
+			    delpart["delete"] = true;
+			    delpart = filter (string key, any d,
+				(map<string,any>) delpart,``(key != "overlap"));
+			    recover = (list<map>) union (recover, [delpart]);
+			});
+			overlap_part = filter (string key, any d,
+			    (map<string,any>)overlap_part,``(key != "overlap"));
+			recover = add (recover, overlap_part );
+		    }
+		    else //popup canceled
+		    {
+			UI::ChangeWidget (`id(overlap_part["device"]:""),
+			    `Value, false);
+			recover = [];
+			ret = `again;
+		    }
+		}
 	    });
-	    list existing_partitions	= compared["existing"]:[];
-	    list<integer> used_nrs	= (list<integer>) maplist (
-		map ep, (list<map<string,any> >)existing_partitions, ``( ep["nr"]:0 ));
+	    list<map> existing_partitions	= compared["existing"]:[];
+	    list used_nrs			= maplist (
+		map ep,existing_partitions,``(ep["nr"]:0));
+	    list delete_nrs			= maplist (
+		map dpp, filter (map dp, recover, ``(dp["delete"]:false)),
+		    ``(dpp["nr"]:0)
+	    );
 
-	    list<integer> delete_nrs	= (list<integer>) maplist (
-		map dpp, filter (map<string,any> dp, (list<map<string,any> >)recover, ``(
-		    dp["delete"]:false == true)),
-		``( dpp["nr"]:0));
-
-	    /* FIXME FIXME strange contains!
 	    used_nrs	= filter (integer nr, (list<integer>) used_nrs, ``(
-		!contains(delete_nrs, used_nrs )));
-	    */
+                !contains(delete_nrs, nr)));
+
 	    list<integer> primary_pos  = [1,2,3,4];
 	    list<integer> free_primary = filter (integer nr, primary_pos, ``(
-		!contains( used_nrs, nr )));
+		!contains (used_nrs, nr)));
 
-	      // check partition nr's
-	      foreach(map part, recover , ``{
-		  if (part["delete"]:false != true && ret != `again )
-		  {
-		      // partition nr is used by a other partition.
-		      if (contains( used_nrs, part["nr"]:0 ))
-		      {
-			  if (size( free_primary ) > 0 )
-			  {
-			      y2milestone("move partition nr to a free primary position");
-			      part["nr"] = free_primary[0]:0;
-			      free_primary = remove(free_primary, 0 );
-			  }
-			  else
-			  {
-			      y2error("no free primary slot found. locical search not supported");
-			      Report::Error(sformat(_("
-Recovering found paritition %1 ( %2 ) is not
+	    // check partition nr's
+	    foreach(map part, recover , {
+		if (part["delete"]:false != true && ret != `again )
+		{
+		    // partition nr is used by a other partition.
+		    if (contains (used_nrs, part["nr"]:0))
+		    {
+			if (size (free_primary) > 0)
+			{
+			    y2milestone("move partition nr %1 to a free primary position", part["nr"]:0);
+			    part["nr"] = free_primary[0]:0;
+			    free_primary = remove (free_primary, 0);
+			}
+			else
+			{
+			    y2error("no free primary slot found. locical search not supported");
+			    // error popup, %1 is paritition number, %2 info
+			    Report::Error(sformat(_("
+Recovering the paritition %1 ( %2 ) is not
 possible. The partition number conflicts
 with an existing paritition. Solving the
-conflict is not possible.
-"), part["nr"]:0, partition_info (part, target)));
+conflict is not possible."), part["nr"]:0, partition_info (part, target)));
 
-			      UI::ChangeWidget(`id(part["device"]:""), `Value, false);
-			      ret = `again;
-			  }
-		      }
-		  }
-	      });
-	  }
-      } until( ret == `ok || ret == `cancel );
+			    UI::ChangeWidget(`id(part["device"]:""), `Value, false);
+			    ret = `again;
+			}
+		    }
+		}
+	    });
+	}
+    } until ( ret == `ok || ret == `cancel );
 
     UI::CloseDialog();
     return recover;
@@ -1018,167 +1057,168 @@ conflict is not possible.
    */
   global define symbol RestoreWithGpart () ``{
 
-      /////////////////////////////////////////////////////////////////////////
-      //
-      //  Repair partition table with gpart
-      //
-      /////////////////////////////////////////////////////////////////////////
-      list<map> found_partitions	= [];
-      string gpart_file	= (string) SCR::Read(.target.tmpdir) + "/gpart";
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  Repair partition table with gpart
+    //
+    /////////////////////////////////////////////////////////////////////////
+    list<map> found_partitions	= [];
+    string gpart_file           = (string) SCR::Read(.target.tmpdir) + "/gpart";
+    WFM::Execute (.local.bash, sformat("if /usr/bin/test -e %1; then /bin/rm %1; else /bin/echo %1 not exist; fi;", gpart_file));
 
-      WFM::Execute(.local.bash, sformat("if /usr/bin/test -e %1; then /bin/rm %1; else /bin/echo %1 not exist; fi;", gpart_file));
-      string gpart_command   = "/usr/bin/gpart " + gpart_expert_options +" " + target;
+    string gpart_command = "/usr/bin/gpart "+ gpart_expert_options +" "+ target;
 
-      string message = _("
-This can take a lot of time depending on the
-system performance and the hard disk size.
-");
-
-      term contents  = `HBox(`HSpacing(0.5),
-	`VBox(
-	    // label text
-	    `Left(`HBox(`HWeight(30, `Heading(_("Search for Lost Partitions"))),
-	    `HWeight(30, `HSpacing(4)))),
+    term contents  = `HBox(`HSpacing(0.5),
+	`VBox (
+	    `Left (`HBox (
+		// headline of partition scan popup
+		`HWeight (30, `Heading(_("Search for Lost Partitions"))),
+		`HWeight (30, `HSpacing(4))
+	    )),
 	    `VSpacing(1),
-	    `Left(`Label(message )),
-            // label text
-	    `Left(`Label(_("Hard Disk: ") +  target )),
+	    // addtional info for partition scan
+	    `Left (`Label (_("This can take a lot of time depending on the
+system performance and the hard disk size.")
+	    )),
+	    // label text (device name follows)
+	    `Left (`Label(_("Hard Disk: ") + target)),
 	    `VSpacing(0.5),
-	    UI::HasSpecialWidget(`DownloadProgress) ?
-		`DownloadProgress(_("Progress:"), gpart_file, 200):`VSpacing(0),
 	    `VSpacing(1),
-            // button label
-	    `HBox(`PushButton(`id(`start) , _("&Start")),
-	    `PushButton(`id(`cancel),Label::CancelButton())
-	)),
+	    // button label
+	    `HBox (
+		`PushButton(`id(`start) , _("&Start")),
+		`PushButton (`id(`cancel), Label::CancelButton())
+	    )
+	),
 	`HSpacing(0.5)
-      );
+    );
 
-      UI::OpenDialog( contents );
+    UI::OpenDialog (contents);
 
-      if (UI::UserInput() != `start )
-      {
-	    UI::CloseDialog();
-	    return `cancel;
-      }
-      UI::ChangeWidget(`id(`start), `Enabled, false);
-      UI::ChangeWidget(`id(`cancel), `Enabled, false);
-      // FIXME action cannot be cancelled! -> TODO use background or callback
-      // progress doesn't have sence!
+    if (UI::UserInput () != `start )
+    {
+	UI::CloseDialog();
+        return `cancel;
+    }
 
-      UI::BusyCursor();
-      if (OSRExecute::CommandProgress(.target.bash_output, gpart_command ,gpart_file))
-      {
-	  string file = (string) WFM::Read(.local.string, gpart_file );
-	  // display the results in a window
-	  string partitions_out = substring(file,
-					    find(file, "\nPrimary partition(1)"),
-					    (size(file) - find(file, "\nPrimary partition(1)")));
+    UI::ChangeWidget(`id(`start), `Enabled, false);
+    UI::ChangeWidget(`id(`cancel), `Enabled, false);
+    // FIXME action cannot be cancelled! -> use background or callback
+    // progress doesn't have sence!
 
-	  string partition1 = substring(partitions_out,
-					    find(partitions_out, "\nPrimary partition(1)"),
-					    (find(partitions_out, "\nPrimary partition(2)") -
-					     find(partitions_out, "\nPrimary partition(1)")));
+    UI::BusyCursor();
+    if (OSRExecute::CommandProgress (.target.bash_output, gpart_command, gpart_file))
+    {
+	string file = (string) WFM::Read(.local.string, gpart_file );
+	// display the results in a window
+	string partitions_out = substring (file,
+	    find (file, "\nPrimary partition(1)"),
+	    (size(file) - find (file, "\nPrimary partition(1)"))
+	);
+	string partition1 = substring(partitions_out,
+	    find(partitions_out, "\nPrimary partition(1)"),
+	    (find(partitions_out, "\nPrimary partition(2)") -
+	     find(partitions_out, "\nPrimary partition(1)"))
+	);
 
-	  string partition2 = substring(partitions_out,
-					    find(partitions_out, "\nPrimary partition(2)"),
-					    (find(partitions_out, "\nPrimary partition(3)") -
-					     find(partitions_out, "\nPrimary partition(2)")));
+	string partition2 = substring (partitions_out,
+	    find (partitions_out, "\nPrimary partition(2)"),
+	    (find(partitions_out, "\nPrimary partition(3)") -
+	     find(partitions_out, "\nPrimary partition(2)"))
+	);
 
-	  string partition3 = substring(partitions_out,
-					    find(partitions_out, "\nPrimary partition(3)"),
-					    (find(partitions_out, "\nPrimary partition(4)") -
-					     find(partitions_out, "\nPrimary partition(3)")));
+	string partition3 = substring (partitions_out,
+	    find(partitions_out, "\nPrimary partition(3)"),
+	    (find(partitions_out, "\nPrimary partition(4)") -
+	     find(partitions_out, "\nPrimary partition(3)"))
+	);
 
-	  string partition4 = substring(partitions_out,
-					    find(partitions_out, "\nPrimary partition(4)"),
-					    (size(partitions_out) -
-					     find(partitions_out, "\nPrimary partition(4)")));
+	string partition4 = substring(partitions_out,
+	    find(partitions_out, "\nPrimary partition(4)"),
+	    (size(partitions_out)-find(partitions_out,"\nPrimary partition(4)"))
+	);
 
-	  list<string> gpart_partitions = [partition1, partition2, partition3, partition4];
+	list gpart_partitions = [partition1, partition2, partition3,partition4];
 
-	  integer index  = 0;
-	  while ((index >= 0) && (index < size(gpart_partitions)))
-	  {
-	      map partition = $[];
+	integer index  = 0;
+	while ((index >= 0) && (index < size(gpart_partitions)))
+	{
+	    map partition	= $[];
+	    string p		= gpart_partitions[index]:"";
+	    list<string> p_list = splitstring(p, "\n");
 
-	      string p = gpart_partitions[index]:"";
-	      list<string> p_list = splitstring(p, "\n");
+	    foreach (string line, p_list, ``{
+	        if (issubstring(line, "type: "))
+	        {
+	            partition["fsid"] = gpart_cat_fsid(line );
+	        }
+	        else if (issubstring( line, "chs:"))
+	        {
+		    map geometry = gpart_cat_geometry( line );
+	            integer s    = lookup( geometry["start"]:$[], "c", 0);
+	            integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
+	            partition["region"] = [s,l];
+		}
+	        partition["nr"]		= index +1;
+	        partition["type"]	= `primary;
+	        partition["create"]	= true;
+	        partition["device"] = Storage::GetDeviceName(target, index + 1);
+	    });
 
-	      foreach(string line, p_list, ``{
-		    if (issubstring(line, "type: "))
-		    {
-		        partition["fsid"] = gpart_cat_fsid(line );
-		    }
-		    else if (issubstring( line, "chs:"))
-		    {
-                map geometry = gpart_cat_geometry( line );
-		        integer s    = lookup( geometry["start"]:$[], "c", 0);
-		        integer l    = lookup( geometry["end"]:$[], "c", 0) - s+1;
-		        partition["region"] = [s,l];
-            }
+	    index = index + 1;
 
-		    partition["nr"]	= index +1;
-		    partition["type"]	= `primary;
-		    partition["create"]   = true;
-		    partition["device"]   = Storage::GetDeviceName( target, index + 1);
-	      });
+	    if (select(partition["region"]:[],1,0) != 0 &&
+	        partition["fsid"]:0 != 0 )
+	    {
+		found_partitions = add(found_partitions, partition );
+	    }
+	}
+    }
 
-	      index = index + 1;
+    UI::CloseDialog();
+    UI::NormalCursor();
 
-	      if (select(partition["region"]:[],1,0) != 0 &&
-		  partition["fsid"]:0 != 0 )	 found_partitions = add(found_partitions, partition );
-	  }
-      }
-
-      UI::CloseDialog();
-      UI::NormalCursor();
-
-
-      if (found_partitions == [] ) {
-
-	  Report::Error(sformat(_("
+    if (size (found_partitions) == 0)
+    {
+	// error popup, %1 is device
+	Report::Error(sformat(_("
 YaST did not find any valid partitions
 for partition table %1. If there were
 some partitions on the disk, you can try
 to restore them manually. To do
 that, enter the cylinder values
 in fdisk or the partitioning tool.
-"), target ));
-	  return `error;
-
-      }
-      else {
-
+"), target));
+	return `error;
+    }
+    else
+    {
 	map compared		=  compare_found_with_existing (
 	    found_partitions,
-	    (list<map>)Storage::GetMainDevParam (target, "partitions", []),
+	    (list<map>) Storage::GetMainDevParam (target, "partitions", []),
 	    target);
 	list<map> torecover	= ComparePtblDialog (compared, target, "Gpart");
-	      //}
 
-	  if (torecover == [] ) {
-	      return `cancel;
-	  }
+	if (size (torecover) < 1 || Mode::test)
+	    return `cancel;
 
-	  if (! Mode::test && size(torecover ) > 0  ) {
-
-	      if (fdisk_call(target_scrpath, torecover )) {
-
-		  if (CheckRestoredPtbl(target, target_scrpath ) ) {
-		      return `ok;
-		  }
-	      }
-	      else {
-		  Report::Error(_("Partition table was not successfully repaired."));
-		  return `error;
-	      }
-	  }
-      }
-      return `error;
+	if (fdisk_call (target_scrpath, torecover))
+	{
+	    if (CheckRestoredPtbl (target, target_scrpath))
+	    {
+		return `ok;
+	    }
+	}
+	else
+	{
+	    // error popup message
+	    Report::Error(_("Partition table was not successfully repaired."));
+	    return `error;
+	}
+    }
+    return `error;
   }
 
-   
   /**
    * Restore saved mbr.
    */
