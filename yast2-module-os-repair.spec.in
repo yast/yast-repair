@@ -42,7 +42,7 @@ make check
 %dir @YAST2DIR@/clients
 %dir @YAST2DIR@/menuentries
 %dir /var/lib/YaST2
-@YAST2DIR@/menuentries/menuentry_osr.ycp
+@YAST2DIR@/menuentries/menuentry_osr.y2cc
 @YAST2DIR@/clients/osr_step1.ycp
 @YAST2DIR@/clients/osr.ycp
 @YAST2DIR@/clients/osr_provides.ycp
