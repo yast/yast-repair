@@ -1,4 +1,4 @@
-/**
+    /**
  * File:	OSRBoot.ycp
  * Module:	repair
  * Summary:	Bootloader checks
@@ -1085,14 +1085,17 @@ contains no errors, press \"Skip\".
      * /boot/grub/menu.lst
      * /etc/grub.conf
      */
-    define boolean check_grub_config()``{
+    define boolean check_grub_config() {
 
 	// check /boot/grub/device.map
 	// (fd0)   /dev/fd0
 	// (hd0)   /dev/hda
 	// (hd1)   /dev/hdb
 	boolean grub_device_map = check_grub_device_map();
-	if ( ! grub_device_map ) { y2error("grub decide map contains errors2");		grub_device_map = false; }
+	if (!grub_device_map)
+	{
+	    y2error("grub devide map contains errors");
+	}
 
 	/* systax of grub_conf:
 	  $[
@@ -1107,15 +1110,29 @@ contains no errors, press \"Skip\".
 	*/
 	string conf_file_contens = (string) SCR::Read(.target.string,
 	    bootloader_config_check[bootloader, "config_file"]:"");
+
 	map grub_conf = BootGRUB::parseGrubConf(conf_file_contens);
         y2debug ("grub_conf: %1", grub_conf);
 
-	boolean grub_device	= check_grub_device(grub_conf["device"]:"" );
-	boolean grub_root       = check_grub_root(grub_conf["root"]:"" );
-	boolean grub_addr       = check_grub_addr(grub_conf["addr"]:"" );
-	boolean grub_discheck	= check_grub_discswitch(grub_conf["discswitch"]:"");
-	boolean grub_stage1	    = check_grub_stage1(grub_conf["stage1"]:"");
-	boolean grub_stage2	    = check_grub_stage2(grub_conf["stage2"]:"");
+	boolean embedding	= false;
+	if (grub_conf["command"]:"" == "setup")
+	{
+	    embedding		= true;
+	    y2milestone ("embedding stage 1.5 -> reduced checking");
+	}
+
+	boolean grub_device	= check_grub_device (grub_conf["device"]:"" );
+	boolean grub_root       = check_grub_root (grub_conf["root"]:"" );
+	boolean grub_addr	= embedding ||
+			    check_grub_addr (grub_conf["addr"]:"" );
+	boolean grub_discheck	= embedding ||
+			    check_grub_discswitch (grub_conf["discswitch"]:"");
+	boolean grub_stage1	= embedding ||
+			    check_grub_stage1 (grub_conf["stage1"]:"");
+	boolean grub_stage2	= embedding ||
+			    check_grub_stage2 (grub_conf["stage2"]:"");
+	boolean grub_menu	= embedding ||
+			    check_grub_menu (grub_conf["menu"]:"" );
 
 	if ( ! grub_device )
         y2error("grub conf device entry is invalid");
@@ -1130,19 +1147,19 @@ contains no errors, press \"Skip\".
 	if ( ! grub_stage2 )
         y2error("grub conf state2 is invalid");
 
-	// check grub menu file default /boot/grub/menu.lst
-	boolean grub_menu	= check_grub_menu(grub_conf["menu"]:"" );
 	if ( grub_menu == nil ) {
-        y2error("grub menu is invalid");
-        grub_menu = false;
-    }
-	if( grub_device && grub_root && grub_addr && grub_menu && grub_discheck && grub_stage1 && grub_stage2 && grub_device_map )
+	    y2error("grub menu is invalid");
+	    grub_menu = false;
+	}
+	if (grub_device && grub_root && grub_addr && grub_menu &&
+	    grub_discheck && grub_stage1 && grub_stage2 && grub_device_map)
 	{
 	    return true;
 	}
-	else {
+	else
+	{
 	    string menu_path = grub_conf["menu"]:"";
-	    if ( menu_path == "" || menu_path == nil )
+	    if (menu_path == "" || menu_path == nil)
 	    {
 		menu_path = bootloader_config_check[bootloader, "menu"]:"";
 	    }
@@ -1151,23 +1168,24 @@ contains no errors, press \"Skip\".
 		menu_path = substring(menu_path , findfirstof(menu_path, ")") +1 );
 	    }
 
-        // help text 1/4
+	    // help text 1/4
 	    help_text = _("
 <p>A default GRUB installation needs three
 configuration files:</p>
 ") +
 
-sformat("<p>%1</p>", mergestring([ bootloader_config_check[bootloader, "device_map"]:"",
-				   bootloader_config_check[bootloader, "config_file"]:"",
-				   menu_path
-				   ],"<br>")) +
+	    sformat("<p>%1</p>", mergestring ([
+		bootloader_config_check [bootloader, "device_map"]:"",
+		bootloader_config_check [bootloader, "config_file"]:"",
+		menu_path
+	    ],"<br>")) +
 
 // help text 2/4
 _("<P>YaST found the following files
 that are not valid:</p>
 ") +
 
-sformat("<p>%1</p>", mergestring(invalid_config_files, "<br>")) +
+	    sformat ("<p>%1</p>", mergestring (invalid_config_files, "<br>")) +
 
 // help text 3/4
 _("<p>This generally means that your system is not
@@ -1179,7 +1197,7 @@ _("<p>Creating a new boot loader
 configuration is recommended.</p>
 ");
 
-        // error text
+	    // error text
 	    error_message = _("
 The configuration of the boot loader
 contains errors.
@@ -1273,7 +1291,10 @@ is bootable, press \"Skip\".
 	if ( loader != "" ) bootloader = loader;
 	if ( show_message  )
 	{
-	    if ( ! OSRPopup::Repair(_("Boot loader error detected."), error_message, help_text) ) {
+	    // popup headline
+	    if ( !OSRPopup::Repair (_("Boot loader error detected."),
+		    error_message, help_text))
+	    {
 		return `cancel;
 	    }
 	}
