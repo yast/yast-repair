@@ -15,15 +15,9 @@
  */
 
 {
-  import "Storage";
   import "FileSystems";
-  import "Partitions";
-
   import "Label";
-  import "Popup";
-  import "Report";
-  import "Stage";
-
+  import "Mode";
   import "OSR";
   import "OSRCommon";
   import "OSRProgress";
@@ -37,6 +31,11 @@
   import "OSRFstab";
   import "OSRPopup";
   import "OSRModuleLoading";
+  import "Partitions";
+  import "Popup";
+  import "Report";
+  import "Stage";
+  import "Storage";
 
   textdomain "repair";
 

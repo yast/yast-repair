@@ -19,6 +19,7 @@
 
   import "Bootloader";
   import "Label";
+  import "Mode";
   import "Popup";
   import "Stage";
   import "Storage";
