@@ -69,11 +69,16 @@ USAGE
 
 BUGS
 
-	rpm_stat.awk makes a 'rpm -q --dump' call and takes the 1st word as filename -> if filename contains <whitespace> 
+	rpm_stat.awk:
+	1) makes a 'rpm -q --dump' call and takes the 1st word as filename -> if filename contains <whitespace> 
 	this script delivers false information (look rpmpackage liblcms). 
+	2) the output of rpm-calls will be tunneled into stderr -> output-string mishmash-danger!
 	Afected SCR-paths: .rpm.rpm_stat, .rpm.create_rpm_dDB, .rpm.add_rpm_dDB
 
 
+TODO
+
+	SCR-path for repair: recover that is recoverable, re-/install
 
 _______________________
 
