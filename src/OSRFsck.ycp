@@ -92,13 +92,17 @@
 				  "check" 	: ``(check_jfs())],
 		   `fat16 :	$[
 				  "find"	: ``(is_fat()),
+                  /*
 				  "repair"	: ``(repair_fat()),
-				  "check"	: ``(check_fat()) ],
-		   `fat32 : 	$[
+				  "check"	: ``(check_fat())*/
+                  ],
+		   `fat32 :	$[
 				  "find"	: ``(is_fat()),
+                  /*
 				  "repair"	: ``(repair_fat()),
-				  "check"	: ``(check_fat())]
-		   	   
+				  "check"	: ``(check_fat())*/
+                  ],
+           `ntfs : $[] // TODO: ignore??
   ];
 
 
@@ -229,6 +233,11 @@
 	      y2milestone("file system check successful executed");
 	      return true;
 	  }
+      else {
+      // Repair module should not touch non-linux partitions (#25002)
+	  y2milestone("non-linux filesystem: not checking");
+	  return true;// -> will be in checked_partitions
+      }
       }
       else {
 	  y2milestone("no file system found");
@@ -478,8 +487,8 @@
    */
   define boolean check_fat()``{
       // use first fat.
-      string  command_1        	= sformat("/bin/echo 1| /sbin/fsck.msdos %1", check_partition );
-      string  command_2		= sformat("/bin/echo 2| /sbin/fsck.msdos %1", check_partition );
+      string  command_1	= sformat("/bin/echo 1| /sbin/fsck.msdos %1", check_partition );
+      string  command_2	= sformat("/bin/echo 2| /sbin/fsck.msdos %1", check_partition );
       boolean check_fat_1 	= OSRExecute::Command(.local.bash, command_1);
       boolean check_fat_2 	= OSRExecute::Command(.local.bash, command_2);
       

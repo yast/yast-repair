@@ -301,7 +301,7 @@ erroneous entries.</P>
                        ],
                        $[ "name"     : "check_root_entry",
                                         // module method progress label
-                          "summary"  : "Checking root file system entry of fstab",
+                          "summary"  : _("Checking root file system entry of fstab"),
                           "method"   : ``(OSRPartitionCheckFstabRoot()),
                           "requires" :  [ "fstab_readed"        ],
                           "provides" :  [ "fstab_root_checked"      ],
@@ -310,7 +310,7 @@ erroneous entries.</P>
                         ],
                        $[ "name"     : "check_entries",
                                         // module method progress label
-                          "summary"  : "Checking fstab entries",
+                          "summary"  : _("Checking fstab entries"),
                           "method"   : ``(OSRPartitionCheckFstab()),
                           "requires" :  [ "fstab_root_checked"      ],
                           "provides" :  [ "fstab_checked"       ],
@@ -733,10 +733,11 @@ partition %1"), part)
       {
         // create a mount-like output
         list(string) mounted_output = maplist(string entry, mounted_partitions,
-                        ``("" + entry["spec"]:"" +
-                           " on " + entry["file"]:"" +
-                           " type " + entry["fstype"]:"" +
-                           " " + entry["mntops"]:""));
+                    // %1 is device, %2 mount point, %3 is fs type, %4 options
+                    // example: "/dev/hda3 on /local type  rw" (=empty type)
+                    ``(sformat (_("%1 on %2 type %3 %4"),
+                        entry["spec"]:"", entry["file"]:"",
+                        entry["fstype"]:"", entry["mntops"]:"")));
         OSRSummary::DetectOK("",
             // summary text
             sformat(_("Mounted partitions were found:<br>%1"),
@@ -920,7 +921,7 @@ installation.
       {
         OSRSummary::DetectOK("",
             // summary text
-            sformat("Mountable partitions were found:<br>%1",
+            sformat(_("Mountable partitions were found:<br>%1"),
                 mergestring(mount_possible_list, ", ")));
 
         OSR::ProvideList("mount_possible_list", mount_possible_list);
