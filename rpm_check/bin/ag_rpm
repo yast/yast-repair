@@ -19,6 +19,7 @@ while true ; do
     
     case "$COMMAND" in
 	"result ("*)
+		unset $PREFIX
 	    exit
 	    ;;
 		
