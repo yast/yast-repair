@@ -18,7 +18,7 @@
   textdomain "repair";
 
   import "Mode";
-  
+
   import "OSRPkg";
   import "OSRSummary";
   import "OSRStatus";
@@ -28,17 +28,19 @@
 
   integer arg_n = 0;
 
- 
+
   /**
    *  Initialization of the module map that contains all important information
    *  for this module.
    *
-   *  @return map The map that contains all information about the module osr_module_packages
+   *  @return map The map that contains all information about the module
+   *  osr_module_packages
    */
   define map OSRPackagesInit() ``{
 
       y2milestone("OSRPackagesInit");
 
+      // helptext
       string common_package_texts = _("The most common way to add a new program or library
 to a Linux system is to install a new package.
 In doing so, the install routine copies all files of the
@@ -46,7 +48,7 @@ package to the target and registers the package in
 the package database.
 ");
 
-      // %1 add one more sentence
+      // helptext, %1 add one more sentence
       string verify_package_text = sformat(_("
 %1
 The package database administers all
@@ -57,16 +59,17 @@ compared with the actual installed files.
 "), common_package_texts );
 
       map global_menu_entries = $[
-				  "packages_db_check" :
-					  $[ "text"	: _("Check Package Database"),
-					     "help"	: sformat(_("
+                  "packages_db_check" : $[
+                                  // module action label
+                         "text" : _("Check Package Database"),
+                         "help" : sformat(_("
 <P><B>What is the package database?</B><BR>
 The package database administers all
 information about the installed software packages.
 %1
 This makes it possible to remove the package later.</P>
 "), common_package_texts ) +
- 
+// helptext
 _("<P><B>Check Package Database</B><BR>
 YaST checks all files that pertain to the
 package database. If some files are missing
@@ -74,10 +77,12 @@ or the package database cannot be opened,
 YaST allows rebuilding the database or
 reverting to a backup.</P>
 ")
-					  ],
-				  "packages_selection" :
-					  $[ "text"	: _("Check Minimal Package Selection"),
-					     "help"	: sformat(_("
+                      ],
+                  "packages_selection" : $[
+                                  // module action label
+                         "text" : _("Check Minimal Package Selection"),
+                                  // helptext
+                         "help" : sformat(_("
 
 <P><B>What is the minimal package selection?</B><BR>
 %1
@@ -86,44 +91,50 @@ the basic system functionality. Without these
 packages, the system is not executable.</P>
 "), common_package_texts ) +
 
+// helptext
 _("<P><B>Check Minimal Package Selection</B><BR>
 YaST checks if all packages of a minimal installation
 are installed. If
 some packages are missing, YaST proposes
 installing the missing packages.</P>
 "),
-					     "requires" : [ "packages_db_check"]
-					  ],
-				  "packages_verify_base" :
-					  $[
-					    "text"	: _("Verify Base Packages (time consuming)"),
-					    "help"	: sformat(_("
+                         "requires" : [ "packages_db_check"]
+                      ],
+                  "packages_verify_base" :
+                      $[
+                                  // module action label
+                        "text"  : _("Verify Base Packages (time consuming)"),
+                                  // helptext
+                        "help"  : sformat(_("
 <P><B>What does verify packages mean?</B><BR>
 %1
 </P>
-"), verify_package_text ) + 
+"), verify_package_text ) +
 
+// helptext
 _("<P><B>Verify Base Package</B><BR>
 YaST verifies all package that belong
 to the minimal selection. If
 discrepancies appear, YaST suggests
 reinstalling the damaged packages.</P>
 ")
-					
-					  ]
+                      ]
       ];
 
       if( ! Mode::initial )
       {
-	  global_menu_entries[ "packages_verify_all" ] =
-					  $[
-					    "text"	: _("Verify All Installed Packages (very time consuming)"),
-					    "help"      : sformat(_("
+      global_menu_entries[ "packages_verify_all" ] =
+                      $[
+                                  // module action label
+                        "text"  : _("Verify All Installed Packages (very time consuming)"),
+                                  // helptext
+                        "help"  : sformat(_("
 <P><B>What does verify packages mean?</B><BR>
 %1
 </P>
-"), verify_package_text ) + 
+"), verify_package_text ) +
 
+// helptext
 _("<P><B>Verify All Installed Packages</B><BR>
 YaST verifies all installed packages. If
 discrepancies appear, YaST suggests
@@ -132,88 +143,95 @@ all packages is very time consuming. Therefore,
 this menu entry does not belong to the default
 selection.</P>
 "),
-					    "selected"	: false
-					  ];
+                        "selected"  : false
+                      ];
       }
-      
-      
-      map ret =  $[
-		  "name"              :  "osr_module_packages",
-		  "headline"          :  _("Packages"),
-		   
-		  "global_entries"    : global_menu_entries,
-		  "static_provides"	: $[],
-		  "reset_methods"      : [
-					  $["summary"	: _("Reset Package Check Settings"),
-					    "method"	: ``(OSRPackagesReset()),
-					    "provides"	: 10
-					  ]
-		  ], 
-		  // the sequence of the detection methods of this module
-		  "detect_methods"    :  [
-					  $[ "name"	: "mount_all",
-					     "summary"  : _("Mounting all partitions..."),
-					     "method"   : ``(OSRPackagesMountAll()),
-					     "requires" :  [ "fstab_checked" ],
-					     "provides" :  [ "mounted_all" ],
-					     "group"    : "packages_db_check",
-					     "progress" : 10
-					  ],
-					  $[ "name"	: "find_package_db",
-					     "summary"  : _("Searching for package database..."),
-					     "method"   : ``(OSRPackagesDBFind()),
-					     "requires" :  [ "mounted_all" 	],
-					     "provides" :  [ "package_db_found" ],
-					     "group"    : "packages_db_check",
-					     "progress" : 10
-					  ],
-					  $[ "name"	: "find_minimal_selection",
-					     "summary"  : _("Searching for minimal required packages..."),
-					     "method"   : ``(OSRPackagesCheckMinimumSelection()),
-					     "requires" :  [ "package_db_found" ],
-					     "provides" :  [ "package_minimal_selection" ],
-					     "group"    : "packages_selection",
-					     "progress" : 10
-					  ],
-					  $[ "name"	: "verify_base_packages",
-					     "summary"  : _("Verifying base packages..."),
-					     "method"   : ``(OSRPackagesVerifyPackages("base")),
-					     "requires" :  [ "package_minimal_selection" ],
-					     "provides" :  [ "package_base_verified" ],
-					     "group"    : "packages_verify_base",
-					     "progress" : 10
-					  ]
-		  ],		  
 
-		  "direct_methods" : [
-				      $[
-					"name"		: "direct_methods_verify_packages",
-					"button_text"	: _("Verifying installed software..."),
-					"description" 	: _("
+      map ret =  $[
+          "name"              :  "osr_module_packages",
+                                 // module headline
+          "headline"          :  _("Packages"),
+          "global_entries"    : global_menu_entries,
+          "static_provides"   : $[],
+          "reset_methods"     : [
+                      $[
+                                      // module reset label
+                        "summary"   : _("Reset Package Check Settings"),
+                        "method"    : ``(OSRPackagesReset()),
+                        "provides"  : 10
+                      ]
+          ],
+          // the sequence of the detection methods of this module
+          "detect_methods"    :  [
+                      $[ "name" : "mount_all",
+                                      // module method progress label
+                         "summary"  : _("Mounting all partitions..."),
+                         "method"   : ``(OSRPackagesMountAll()),
+                         "requires" :  [ "fstab_checked" ],
+                         "provides" :  [ "mounted_all" ],
+                         "group"    : "packages_db_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "find_package_db",
+                                      // module method progress label
+                         "summary"  : _("Searching for package database..."),
+                         "method"   : ``(OSRPackagesDBFind()),
+                         "requires" :  [ "mounted_all" ],
+                         "provides" :  [ "package_db_found" ],
+                         "group"    : "packages_db_check",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "find_minimal_selection",
+                                      // module method progress label
+                         "summary"  : _("Searching for minimal required packages..."),
+                         "method"   : ``(OSRPackagesCheckMinimumSelection()),
+                         "requires" :  [ "package_db_found" ],
+                         "provides" :  [ "package_minimal_selection" ],
+                         "group"    : "packages_selection",
+                         "progress" : 10
+                      ],
+                      $[ "name" : "verify_base_packages",
+                                      // module method progress label
+                         "summary"  : _("Verifying base packages..."),
+                         "method"   : ``(OSRPackagesVerifyPackages("base")),
+                         "requires" :  [ "package_minimal_selection" ],
+                         "provides" :  [ "package_base_verified" ],
+                         "group"    : "packages_verify_base",
+                         "progress" : 10
+                      ]
+          ],
+
+          "direct_methods" : [
+                      $[
+                    "name"      : "direct_methods_verify_packages",
+                                      // module method acton label
+                    "button_text"   : _("Verifying installed software..."),
+                                      // module method description
+                    "description"   : _("
 If you have problems with some installed
 applications, select this to check
 all software packages.
 "),
-					"method"		: ``(OSRDirectPackageCheck()),
-					"initial_only"   	: false,
-					"visible"		: true,
-					"initial_root"		: true
-				      ]
-		  ]
+                    "method"        : ``(OSRDirectPackageCheck()),
+                    "initial_only"  : false,
+                    "visible"       : true,
+                    "initial_root"  : true
+                    ]
+          ]
       ];
 
       if ( ! Mode::initial )
       {
-	  ret[ "detect_methods" ] = add(  ret[ "detect_methods" ]:[], 
-					  $[ "name"	    : "verify_all_packages",
-					     "summary"  : _("Verifying all installed packages..."),
-					     "method"   : ``(OSRPackagesVerifyPackages("all")),
-					     "requires" :  [ "package_minimal_selection" ],
-					     "provides" :  [ "package_all_verified" ],
-					     "group"    : "packages_verify_all",
-					     "progress" : 10
-					  ] );
-			
+      ret[ "detect_methods" ] = add(  ret[ "detect_methods" ]:[],
+                      $[ "name"     : "verify_all_packages",
+                                      // module method progress label
+                         "summary"  : _("Verifying all installed packages..."),
+                         "method"   : ``(OSRPackagesVerifyPackages("all")),
+                         "requires" :  [ "package_minimal_selection" ],
+                         "provides" :  [ "package_all_verified" ],
+                         "group"    : "packages_verify_all",
+                         "progress" : 10
+                      ] );
       }
       return ret;
 
@@ -226,101 +244,113 @@ all software packages.
   //
   //////////////////////////////////////////////////////////////////////
 
-  
   /**
-   * 
+   *
    */
   global define boolean OSRPackagesMountAll()``{
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
       //
       // Mount all partitions specified in the fstab
       //
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
 
 
       if( ! OSRFstab::ReadedSuccessfully())
-	  OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
-      
+      OSR::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
+
       list(map) mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());
       list(map) success      = filter(map mpe , mounted, ``(mpe["status"]:false == true));
-      
+
       if( mounted == nil )
       {
-	  OSRSummary::DetectError("",_("Target system was not initialized."));
-	  OSRStatus::Cancel();
-	  return false;
+        // summary text
+        OSRSummary::DetectError("",_("Target system was not initialized."));
+        OSRStatus::Cancel();
+        return false;
       }
 
       list(map) failed       = filter(map mpe,  mounted, ``(mpe["status"]:true  == false));
       if( size(failed) > 0 )
       {
-	  
-	  OSRSummary::DetectProblem("", sformat(_("Following devices cannot be mounted:<br>%1"),
-						mergestring(maplist(map mpe, failed, ``(sformat("%1",mpe["partition"]:""))), "<br>")));
+        OSRSummary::DetectProblem("",
+            // summary text
+            sformat(_("Following devices cannot be mounted:<br>%1"),
+                mergestring(maplist(map mpe, failed, ``(sformat("%1",mpe["partition"]:""))), "<br>")));
 
 
-	  // TODO check what is todo
+      // TODO check what is todo
       }
       else {
-	  OSRSummary::DetectOK("", _("Target system initialized."));
+        // summary text
+        OSRSummary::DetectOK("", _("Target system initialized."));
       }
-      
+
       OSR::ProvideBoolean("mounted_all", true );
       OSR::ProvideList("just_mounted", union( OSR::RequireList("just_mounted"), success));
-      
+
       return true;
   }
 
-  
   /**
-   * 
+   *
    */
   global define boolean OSRPackagesDBFind() ``{
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
       //
-      // 
       //
-      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      /////////////////////////////////////////////////////////////////////////
       if ( OSRPkg::CheckDB( OSRSystem::TargetRoot() ) )
       {
-	  OSRSummary::DetectOK("",_("Package database was found."));
-	  OSR::ProvideBoolean("package_db_found", true);
+        // summary text
+        OSRSummary::DetectOK("",_("Package database was found."));
+        OSR::ProvideBoolean("package_db_found", true);
       }
       else {
-	  OSRSummary::DetectError("", _("No package database was found."));	  
-	  OSRSummary::SetRepairSummary(OSRPkg::RepairDB(),
-				       _("Initializing new package database..."),
-				       _("Successfully initialized new package database."),
-				       _("Skipped initializing new package database."),
-				       _("Initialization of the new package database was not successful."));
+        // summary text
+        OSRSummary::DetectError("", _("No package database was found."));     
+        OSRSummary::SetRepairSummary(OSRPkg::RepairDB(),
+                       // summary header
+                       _("Initializing new package database..."),
+                       // summary text
+                       _("Successfully initialized new package database."),
+                       // summary text
+                       _("Skipped initializing new package database."),
+                       // summary text
+                       _("Initialization of the new package database was not successful."));
 
       }
       return true;
   }
-
 
   /**
    *
    */
   global define boolean OSRPackagesCheckMinimumSelection()``{
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
       //
-      // 
       //
-      ///////////////////////////////////////////////////////////////////////////////////
-      if ( OSRPkg::CheckMinimum("")) 
+      //
+      /////////////////////////////////////////////////////////////////////////
+      if ( OSRPkg::CheckMinimum(""))
       {
-	  OSRSummary::DetectOK("",_("All minimal required packages were found."));
-	  OSR::ProvideBoolean("package_minimal_selection", true);
+        // summary text
+        OSRSummary::DetectOK("",_("All minimal required packages were found."));
+        OSR::ProvideBoolean("package_minimal_selection", true);
       }
       else {
-	  OSRSummary::DetectError("", _("Some packages of the minimal requirement were missing."));	  
-	  OSRSummary::SetRepairSummary(OSRPkg::InstallMissing(true),
-				       _("Install Missing Packages"),
-				       _("Installation of missing packages was successful."),
-				       _("Installation of missing packages was skipped."),
-				       _("Installation of missing packages was not successful."));
-	 
+        OSRSummary::DetectError("",
+            // summary text
+            _("Some packages of the minimal requirement were missing."));
+        OSRSummary::SetRepairSummary(OSRPkg::InstallMissing(true),
+                    // summary heder
+                    _("Install Missing Packages"),
+                    // summary text
+                    _("Installation of missing packages was successful."),
+                    // summary text
+                    _("Installation of missing packages was skipped."),
+                    // summary text
+                    _("Installation of missing packages was not successful."));
       }
       return true;
   }
@@ -329,96 +359,102 @@ all software packages.
    *
    */
   global define boolean OSRPackagesVerifyPackages(string what)``{
-      ///////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////
       //
-      // 
       //
-      ///////////////////////////////////////////////////////////////////////////////////
+      //
+      /////////////////////////////////////////////////////////////////////////
       symbol ret = OSRPkg::VerifyPackages("", what, false, true );
 
       if( ret == `abort || ret == `cancel )
       {
-	  OSRSummary::DetectOmit("", _("Package verification was canceled."));
+        // summary text
+        OSRSummary::DetectOmit("", _("Package verification was canceled."));
       }
       else if ( ret == `error )
       {
-	  OSRSummary::DetectError("", _("Package verification failed."));
+        // summary text
+        OSRSummary::DetectError("", _("Package verification failed."));
       }
       else if ( size( OSRPkg::missing_packages ) > 0 )
       {
-	  OSRSummary::SetRepairSummary( OSRPkg::InstallMissing(true),
-					"",
-					_("Reinstallation of unverified packages was successful."),
-					_("Reinstallation of unverified packages was skipped."),
-					_("Reinstallation of unverified packages was not successful."));
+      OSRSummary::SetRepairSummary( OSRPkg::InstallMissing(true),
+                "",
+                // summary text
+                _("Reinstallation of unverified packages was successful."),
+                // summary text
+                _("Reinstallation of unverified packages was skipped."),
+                // summary text
+                _("Reinstallation of unverified packages was not successful."));
       }
       else if ( size( OSRPkg::missing_packages ) == 0 )
       {
-	  OSRSummary::DetectOK("", _("All packages were verified successfully."));
+        // summary text
+        OSRSummary::DetectOK("", _("All packages were verified successfully."));
       }
 
       //Not a second verify process!!
       OSRStatus::DetectOK();
-      
       OSR::ProvideBoolean("package_verified", true);
-      return true;			  
+      return true;
   }
-  
+
 
   global define symbol OSRDirectPackageCheck()``{
-      symbol ret  	   = `next;
-      string sret 	   = _("Base Packages Only");
+      symbol ret       = `next;
+      // radio button label
+      string sret      = _("Base Packages Only");
+      // radio button label
       list(string) options = [ sret , _("All Installed Packages") ];
 
       UI::NormalCursor();
       if( ! Mode::initial )
-      {	  
-	  sret = OSRPopup::RadioButtonGroup(_("Select the package count:"), _("
+      {
+        // RadioButtonGroup label
+        sret = OSRPopup::RadioButtonGroup(_("Select the package count:"),
+            // RadioButtonGroup text
+            _("
 You have the possibility to verify all packages
 or only the base packages. Verifying all packages 
 is very time consuming.
 "),
-					    options,
-					    options[0]:"",
-					    false);
+            options,
+            options[0]:"",
+            false);
       }
 
-      
       if ( sret == "" )
       {
-	  ret = `cancel;
+      ret = `cancel;
       }
       else {
-	  OSRPkg::VerifyPackages( OSRSystem::TargetRoot(), ( options[0]:"" == sret ) ? "base" : "all"   , false , true);
+      OSRPkg::VerifyPackages( OSRSystem::TargetRoot(), ( options[0]:"" == sret ) ? "base" : "all"   , false , true);
 
-	  if ( OSRPkg::missing_packages != [] )
-	  {
-	      OSRPkg::InstallMissing(true);
-	  }
-	  else {
-	      Report::Message(sformat(_("\nYaST verified %1 packages successfully.
+      if ( OSRPkg::missing_packages != [] )
+      {
+          OSRPkg::InstallMissing(true);
+      }
+      else {
+          Report::Message(sformat(_("\nYaST verified %1 packages successfully.
 "), size(OSRPkgVerify::verified_packages )));
-	  }
+      }
       }
 
       OSRFstab::Reset();
       OSRPkg::Reset();
-      
-      
       y2milestone("Direct package check");
       return ret;
   }
-  
+
   /**
    *  Reset boot loader temporary settings.
    */
   global define boolean OSRPackagesReset() ``{
-      
+
       OSRSystem::SetOrgRoot();
       OSRPkg::Reset();
   }
 
-  
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -429,13 +465,13 @@ is very time consuming.
   {
       if ( Args(arg_n) == .init )
       {
-	  y2milestone("Argument: %1", Args(arg_n));
-	  return  OSRPackagesInit();
+      y2milestone("Argument: %1", Args(arg_n));
+      return  OSRPackagesInit();
       }
       else
       {
-	  y2error("ERROR: unknown option %1", Args(arg_n) );
-	  return $[];
+      y2error("ERROR: unknown option %1", Args(arg_n) );
+      return $[];
       }
       arg_n = arg_n + 1;
   }
