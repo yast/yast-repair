@@ -918,8 +918,9 @@ the reinstallation process by pressing
 		sformat (_("
 <p>YaST has verified all installed packages. Some
 of these packages contain errors. For details,
-see the log of the verify process.
-To open the log, press <b>%1</b>.</p>"), protocol_label) +
+see the log of the verification process.
+To open the log, press <b>%1</b>.</p>
+"), protocol_label) +
 
 		// package verification summary 2/3
 _("<p>There, see if files of the package are

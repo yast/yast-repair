@@ -497,7 +497,7 @@ YaST verifies packages now."))),
 		`HSpacing(80),
 		`VSpacing (1),
 		// label - %1 is package name; file list (=result) will follow
-		`Label (sformat (_("Result of package '%1' verification"),
+		`Label (sformat (_("Result of Package '%1' Verification"),
 		    pkg_name)),
 		`VSpacing (1),
 		`RichText (`id (`files), `opt(`vstretch, `autoScrollDown), ""),
