@@ -10,15 +10,14 @@
  */
 
 {
-  
+
     module "OSRBoot";
-    
+
     import "Storage";
     import "StorageDevices";
     import "Report";
     import "Installation";
-//    import "Lilo";
-    
+
     import "Bootloader";
     import "Initrd";
     import "BootGRUB";
@@ -360,7 +359,6 @@
     global define boolean CheckSysconfigFiles(string root)``{
 
 	if( root != "" ) root_mountpoint = root;
-	
 
 	// TODO check if one module is needed at least
 	string r1 =   SCR::Read (.sysconfig.kernel.INITRD_MODULES);
@@ -565,13 +563,11 @@ modules to the initial ramdisk.
 		return `cancel;
 	}
 	boolean ret           = true;
-//	string  kernel_initrd = mergestring (Boot::initrdModules, " ");
 	string  kernel_initrd = mergestring (Initrd::ListModules(), " ");
 
 	if ( ! Mode::test )
 	{
-	    // write INITRD_MODULES
-        // TODO: Initrd::Write() should be sufficient...
+	    // write INITRD_MODULES - Initrd::Write() could be used?
 	    SCR::Write (.sysconfig.kernel.INITRD_MODULES, kernel_initrd);
 	    SCR::Write (.sysconfig.kernel, nil);
 
@@ -812,17 +808,16 @@ contains no errors, press \"Skip\".
 
     /**
      * Check the addr entry of a grub conf file.
-     * TODO
      */
     define boolean check_grub_addr( string addr  )``{
 	if( addr == "" )
 	{
-        addr = grub_conf_defaults["addr"]:"";
+	    addr = grub_conf_defaults["addr"]:"";
 	    y2milestone("adrr not set - use default addr");
 	}
 
 	if( addr != grub_conf_defaults["addr"]:""){
-	    y2error("grub addr (%1) changed not default %2",addr,  grub_conf_defaults["addr"]:"");
+	    y2error("grub addr (%1) changed not default %2", addr, grub_conf_defaults["addr"]:"");
         // TODO is it a problem, that addr is different from default?
 	}
 	return true;
@@ -849,9 +844,9 @@ contains no errors, press \"Skip\".
 	{
 	    stage1 = bootloader_config_check[bootloader, "stage1"]:"";
 	}
-//y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
-// file can be on other partition! (= grub_conf["root"]) -> hack
-// TODO FIXME: get the mount point of device...
+// y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
+// TODO: get the mount point of device...
+// file can be on other partition! (= grub_conf["root"]) -> hack:
 	return OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage1));
     }
@@ -860,9 +855,6 @@ contains no errors, press \"Skip\".
      * Test if stage2 exist.
      */
     define boolean check_grub_stage2(string stage2)``{
-//y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
-// file can be on other partition! (= grub_conf["root"]) -> hack
-// TODO FIXME: get the mount point of device...
 	return OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage2 ));
     }
@@ -987,7 +979,7 @@ contains no errors, press \"Skip\".
 	    y2error("grub menu device not found %1", menu);
 	    return false;
 	}
-    // TODO: get the really mountpoint for boot partition
+	// TODO: get the real mountpoint for boot partition
 	if(!OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, menu_path)))
 	{
@@ -1026,7 +1018,7 @@ contains no errors, press \"Skip\".
      */
     define boolean check_grub_device_map()``{
 
-    // TODO: get the really mountpoint for boot partition
+	// TODO: get the real mountpoint for boot partition
 	string grub_dir = root_mountpoint +  "/boot/grub";
 	if (! OSRExecute::Command(.local.bash, sformat("/usr/bin/test -d %1",grub_dir)))
 	{
