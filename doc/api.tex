@@ -1,44 +1,65 @@
-\chapter{API for the rescue system}
+\section{Introduction}
+The purpose of this document is to describe the application interface
+of the YaST2 OS Repair, a graphical and automatic error-detection \& repair
+tool for linux systems. This document is tended to developers of new modules
+for the rescue system. It describes how new modules have to be designed,
+implemented and integrated into the YaST2 OS Repair.
 
 \section{Architecture of the rescue system}
 The rescue system is composed of a central framework and the modules for
-error-detection and repair. The framework consists of the files\\
+error-detection and repair. The framework consists of the following files
+in the directory \verb+y2m_os_repair/src/+\\
 
-\begin{tabular}{ll}
-\verb+src/osr.ycp+ & \verb+src/osr_popup.ycp+\\
-\verb+src/osr_provides.ycp+ & \verb+src/osr_module_progress.ycp+\\
-\verb+src/osr_system.ycp+ & \verb+src/osr_global_progress.ycp+\\
-\verb+src/osr_api.ycp+ & \verb+src/osr_log_file.ycp+\\
-\verb+src/osr_summary.ycp+ & \verb+src/osr_module_list.ycp+\\\\
+\begin{tabular}{p{5cm}p{5cm}}
+\verb+osr.ycp+          & \verb+osr_popup.ycp+\\
+\verb+osr_provides.ycp+ & \verb+osr_module_progress.ycp+\\
+\verb+osr_system.ycp+   & \verb+osr_global_progress.ycp+\\
+\verb+osr_api.ycp+      & \verb+osr_log_file.ycp+\\
+\verb+osr_summary.ycp+  & \verb+osr_module_list.ycp+\\\\
 \end{tabular}
 
 Module files are\\
 
-\begin{tabular}{ll}
-\verb+src/osr_module_init.ycp+ & \verb+src/osr_module_lilo.ycp+\\
+\begin{tabular}{p{5cm}p{5cm}}
+\verb+osr_module_init.ycp+ & \verb+osr_module_lilo.ycp+\\
 \end{tabular}
 
-\section{Template module}
-All modules should obey the standard module \verb+osr_module_lilo+ to be consistent
-with the whole rescue system.
-
 \section{Developing a new module}
-A new module has the name \verb+osr_module_<name>+ and is placed in 
-\verb+y2c_osr/src/osr_module_<name>.ycp+ (the module \verb+osr_module_lilo+ is placed in
-the file \verb+y2c_osr/src/osr_module_lilo.ycp+).\\
+A new module is named \verb+osr_module_<name>+ and is placed in a file
+{\tt y2m\_os\_repair/src/ osr\_module\_<name>.ycp} (e.g. the module
+\verb+osr_module_lilo+ is placed in the file 
+{\tt y2m\_os\_ repair/src/osr\_module\_lilo.ycp}).\\
 
 To make the new module present to the framework a new
 entry like \verb+`osr_module_<name>()+ has to be added to the file
 \verb+osr_module_list.ycp+. This file contains all detection modules and
 is read by the framework on startup.
 
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
+{\footnotesize \begin{verbatim}
+[
+`osr_module_init(),
+`osr_module_lilo()
+]
+\end{verbatim}}
+\end{boxitpara}
+\caption{Contents of the file {\tt osr\_module\_list.ycp} so far}
+\end{program}
+
+\section{Template module}
+All modules should obey the well commented standard module
+\verb+osr_module_lilo+ to be consistent with the whole rescue system.
+Copy this module to the new file-name, delete the LILO-specific
+source-code and fill it with your own code.
+
 \section{Include}
-If the module needs special functions from outside the rescue-system it
+If the module needs special functions from outside the rescue system it
 can include other YCP-files. Some global YCP-files are already included
 by the framework and so they are present to all modules. Other that than
 mentioned above these included files are:\\
 
-\begin{tabular}{ll}
+\begin{tabular}{p{5cm}p{5cm}}
 \verb+ui/common_popups.ycp+ & \verb+ui/wizard_dialog.ycp+\\
 \end{tabular}
 
@@ -49,25 +70,42 @@ each module where the module-map is created and returned to the framework.
 For the LILO-module this is the function \verb+OSRLiloInit()+.\\
 
 \subsection{Module name and display information}
+The name of the current module has to be stored at the key \verb+"name"+.
+This is very important for the frictionless run of the whole rescue system.
+The key \verb+"headline"+ stores the headline to be displayed in the left
+RichText-widget of the main window.
 
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
 {\footnotesize \begin{verbatim}
 map osr_module_lilo = $[
      // has to be the name of the file
      "name"                  :  "osr_module_lilo",
      "headline"              :  UI(_("LILO")),
 \end{verbatim}}%$
+\end{boxitpara}
+\caption{Cutting of a module-map: name and headline}
+\end{program}
 
 \subsection{Detection sequence}
 At the key \verb+"detect_methods"+ the list of detection methods has to
 be specified. The execution-sequence of the methods is equal to the 
-specified sequence.
+specified sequence. The rescue system evaluates the items in this list
+one after another, so the double-quotes are needed here. The sequence of
+the items in this list is stringent and equals the evaluation-sequence.
 
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
 {\footnotesize \begin{verbatim}
      "detect_methods"   :  [
           ``(OSRLiloCheckPackage()),
           ``(OSRLiloConfTest())
      ],
 \end{verbatim}}
+\end{boxitpara}
+\caption{Cutting of a module-map: list of detection-methods}
+\label{detect_methods}
+\end{program}
 
 \subsection{Module control and data dependencies}
 At the keys \verb+"requires"+ and \verb+"provides"+ the information for
@@ -77,11 +115,14 @@ and known data. A module can only be executed if all the data it requires
 is already known. This known data must have been provided by other modules
 that were executed previously.\\
 
-The required data are specified by an entry in the list at the key
+The required data is specified by an entry in the list at the key
 \verb+"requires"+. All provided values from the existing modules can be
 received by executing \verb+yast2 osr_provides+ and looking for the
-file-contents in \verb+/tmp/osr_global_provides+.
+file-contents in \verb+/tmp/osr_global_provides+. See the code example
+\ref{requires}.\\
 
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
 {\footnotesize \begin{verbatim}
      "requires"         :  [
           "disk_device_list",
@@ -90,10 +131,60 @@ file-contents in \verb+/tmp/osr_global_provides+.
           "initrd_path_list"
      ],
 \end{verbatim}}
+\end{boxitpara}
+\caption{Cutting of a module-map: list of required data}
+\label{requires}
+\end{program}
+
+If one module requires one specific date that is not provided by any
+other module, the rescue system is not able to resolve this situation
+and so it exits with an error. The same happens if circular dependencies
+occur. E.g. module $A$ requires date $a$ and provides date $b$, module
+$B$ requires date $b$ and provides date $a$. This situation can only be
+solved if another module $C$ exists that requires only available data
+and provides date $a$ respectively date $b$ so that all dependencies
+are solved. See the code example \ref{example}.\\
+
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
+{\footnotesize \begin{verbatim}
+map osr_module_A : $[
+     "name"     : "osr_module_A",
+     "requires" : [ "a" ],
+     "provides" : $[ 
+          "b" : $[ "type" : "boolean", "value" : false, "status" : "unknown" ]
+     ],
+     ...
+];
+
+map osr_module_B : $[
+     "name"     : "osr_module_B",
+     "requires" : [ "b" ],
+     "provides" : $[ 
+          "a" : $[ "type" : "boolean", "value" : true, "status" : "unknown" ]
+     ],
+     ...
+];
+
+map osr_module_C : $[
+     "name"     : "osr_module_C",
+     "requires" : [ ],
+     "provides" : $[ 
+          "a" : $[ "type" : "boolean", "value" : true, "status" : "unknown" ]
+     ],
+     ...
+];
+\end{verbatim}}%$
+\end{boxitpara}
+\caption{Example: module $C$ solves the problem}
+\label{example}
+\end{program}
 
 Values provided by this module are stored in the module-map at the key
-\verb+"provides"+.
+\verb+"provides"+. See code \ref{provides}.
 
+\begin{program}[h!]
+\begin{boxitpara}{box 0.7 setgray fill}
 {\footnotesize \begin{verbatim}
      "provides"         : $[
           "lilo_package_is_installed" : $[
@@ -114,14 +205,20 @@ Values provided by this module are stored in the module-map at the key
      ],
 ];
 \end{verbatim}}
+\end{boxitpara}
+\caption{Cutting of a module-map: map of provided data}
+\label{provides}
+\end{program}
 
 \section{Error detection and repair}
 The sequence of the detection methods of a module is defined 
-at the key \verb+"detect_methods"+ in the module-map. Detection methods not
+at the key \verb+"detect_methods"+ in the module-map (see the code
+fragment \ref{detect_methods}). Detection methods not
 mentioned here are not executed by the rescue system.\\
 
 If an error is detected the detection method itself controls the further
 procedure and executes the nesseccary repair methods.\\
 
 Several functions are provided by the framework to integrate the modules
-into the rescue system. See the ycpdoc-output in HTML format.
+into the rescue system. See the {\tt ycpdoc}-output in HTML format in the
+directory {\tt y2m\_os\_repair/doc/autodocs/}.

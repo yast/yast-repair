@@ -1,36 +1,31 @@
-\documentclass[pdftex,titlepage,11pt]{report}
+\documentclass[titlepage,11pt]{article}
 
 \usepackage{a4wide}
 \usepackage{times}
 \usepackage{longtable}
 \usepackage{fancyheadings}
-\usepackage{german}
-
-\usepackage[colorlinks,%
-   linkcolor={black},%
-   urlcolor={black},%
-   pagecolor={black},%
-   filecolor={black},%
-   citecolor={black},%
-   %bookmarks,%
-   pdfauthor={Michael K\"ohrmann},%
-   %pdfsubject={},%
-   pdftitle={API for the YaST2 OS Repair},%
-   pdfkeywords={}]{hyperref}
+\usepackage{psboxit}
+\usepackage{float}
 
 \pagestyle{fancyplain}
 
-\renewcommand{\chaptermark}[1]%
-{\markboth{#1}{}}
-\renewcommand{\sectionmark}[1]%
-{\markright{\thesection\ #1}}
+%\renewcommand{\chaptermark}[1]%
+%{\markboth{#1}{}}
+%\renewcommand{\sectionmark}[1]%
+%{\markright{\thesection\ #1}}
+
 \lhead[\fancyplain{}{\bfseries\thepage}]%
 {\fancyplain{}{\bfseries\rightmark}}
 \rhead[\fancyplain{}{\bfseries\leftmark}]%
 {\fancyplain{}{\bfseries\thepage}}
 \cfoot{}
 
+\newfloat{program}{ht}{lop}
+\floatname{program}{Program}
+\floatstyle{plain}
+
 \includeonly{api}
+
 
 %%%
 \newcommand{\HRule}{\rule{\linewidth}{1mm}}
@@ -43,7 +38,7 @@
 
 \author{
   Michael K\"ohrmann\\
-  \href{mailto:curry@suse.de}{{\tt curry@suse.de}}\\
+  {\tt curry@suse.de}\\
   SuSE GmbH N\"urnberg}
 
 \date{\today}
