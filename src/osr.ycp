@@ -418,6 +418,7 @@ YaST2 OS Repair halts now."));
 					  WFM::osr_global_progress_length
 					  );
 
+
 	      /*
 	      // perhaps use a LogView widget instead of RichText
 	      rich_text = `LogView(
@@ -427,12 +428,12 @@ YaST2 OS Repair halts now."));
 				    100                     // number of lines to hold in memory
 				    );
 	      */
-
+	      
 	      rich_text = `RichText(
 				    `id(`rich_text_info),
 				    ""
 				    );
-
+	      	      
 	      // Contents of the dialog	  
 	      contents = `VBox(
 			       `VSpacing(0.3),
@@ -450,8 +451,10 @@ YaST2 OS Repair halts now."));
 			       );
 
 	      // Help text (HTML-like) START
-	      help_text = _("<p><b>YaST2 OS Repair</b> now checks your system.</p>");
-	      help_text = help_text +  _("<p>This can take some time depending on the system conditions.</p>");
+	      help_text = _("
+<p><b>YaST2 OS Repair</b> now checks your Linux system.</p>
+<p>Depending on the CPU and the amount of memory this can
+take some time.</p>");
 
 	      SetWizardContents(
 				_("YaST2 OS Repair - System check"),
@@ -724,7 +727,7 @@ YaST2 OS Repair halts now."));
       }
 
       // show the contents of the log file
-      ShowFilePopup(_("YaST2 OS Repair - Log file"), OSRLogFile::GetFile());
+      //ShowFilePopup(_("YaST2 OS Repair - Log file"), OSRLogFile::GetFile());
       
       if ((user_input == `next) || (user_input == `abort))
       {
