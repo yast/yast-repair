@@ -296,6 +296,7 @@
    */
   global define OSRRequireString(string name) ``{
 
+      // TODO: only return the value if it's status is "known"
       return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", "");
   }
 
@@ -310,6 +311,7 @@
    */
   global define OSRRequireList(string name) ``{
 
+      // TODO: only return the value if it's status is "known"
       return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", []);
   }
 
@@ -324,6 +326,7 @@
    */
   global define OSRRequireMap(string name) ``{
 
+      // TODO: only return the value if it's status is "known"
       return lookup(lookup(lookup(osr_map, "global_provides", $[]), name, $[]), "value", $[]);
   }
 

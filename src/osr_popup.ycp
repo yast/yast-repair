@@ -33,11 +33,13 @@
    */
   global define OSRPopupRepair(string headline, string message, string help_text) ``{
 
+      // in automatic-mode no window is displayed and true (== Repair) is returned
       if (automatic_mode)
       {
 	  return true;
       }
 
+      // in detection-mode no window is displayed and false (== Skip) is returned, only detection, no repair
       if (detection_mode)
       {
 	  return false;
@@ -49,10 +51,11 @@
 	  term help_button   = `Empty();
 	  term button_box    = `Empty();
 	  term contents      = `Empty();
-	  //term help_button_box = `Empty();
 	  
 	  repair_button = `PushButton(`id(`osr_popup_repair), `opt(`default), _("&Repair"));
 	  skip_button   = `PushButton(`id(`osr_popup_skip), _("&Skip"));
+
+	  // enable the help-button if a help-text is specified
 	  if (WFM::help_text != "")
 	  {
 	      help_button   = `PushButton(`id(`osr_popup_help), _("&Help"));
@@ -70,6 +73,7 @@
 				`HWeight(1, repair_button)
 				);
 
+	  // put the window-contents alltogether
 	  contents      = `HBox(
 				`HSpacing(1),
 				`HCenter(
@@ -98,14 +102,16 @@
 		     );
       });
 
+      // handling of the user-input
       any ret = UI(`UserInput());
 
+      // stay into the while-loop until the user presses Skip or Repair
       while ((ret != `osr_popup_skip) && (ret != `osr_popup_repair))
       {
 	  if (ret == `osr_popup_help)
 	  {
 	      // launch text-popup to display help-text
-	      UI(`LongTextPopup(UI(_("YaST2 OS Repair: Help")), `RichText(WFM::help_text), 50, 20));
+	      UI(`LongTextPopup(_("YaST2 OS Repair: Help"), `RichText(WFM::help_text), 50, 20));
 	  }
 	  ret = UI(`UserInput());
       }
@@ -156,7 +162,6 @@
 	  term cancel_button = `Empty();
 	  term button_box    = `Empty();
 	  term contents      = `Empty();
-
 	  term rb_group      = `Empty();
 	  term rb            = `Empty();
 	  term rbs           = `Empty();
@@ -182,11 +187,13 @@
 	      i   = i + 1;
 	  }
 
+	  // RadioButtonGroup
 	  rb_group      = `RadioButtonGroup(
 					    `id(`rb_group),
 					    rbs
 					    );
 
+	  // window contents alltogether
 	  contents      = `HBox(
 				`HSpacing(1),
 				`HCenter(
@@ -215,6 +222,7 @@
 		     );
       });
 
+      // handling of the user-input, return the activatet list-item
       any ret = UI(`UserInput());
       if (ret == `osr_popup_ok)
       {
