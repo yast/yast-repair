@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 22 13:13:19 CEST 2003 - jsuchome@suse.cz
+
+- close the target before first opening pkg database (#30423)
+- bootloader and package check fuctions back to original order
+- 2.9.1
+
+-------------------------------------------------------------------
 Mon Sep 29 14:03:40 CEST 2003 - jsuchome@suse.cz
 
 - actualized list of package problems ('rpm -V')
