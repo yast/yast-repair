@@ -189,14 +189,11 @@ _("The test failure seems to be caused by an incorrectly built package.")
 		    });
 		});
 	    });
+	    y2milestone(" update_problems packages %1", update_problems_map );
 	}
-	y2milestone(" update_problems packages %1", update_problems_map );
     }
 
     define boolean check_allowed (list<string> allowed_erros, string status)``{
-
-	y2milestone("check allowed: all allowed: %1 current status %2",
-	    allowed_erros, status);
 
 	boolean found = false;
 	foreach (string allowed, allowed_erros, ``{
@@ -210,7 +207,9 @@ _("The test failure seems to be caused by an incorrectly built package.")
 		return;
 	    }
 	});
-	y2milestone("allowd : %1", found);
+	y2milestone("all allowed: %1; current status %2; found: %3",
+	    allowed_erros, status, found);
+
 	return found;
     }
 
@@ -434,20 +433,6 @@ _("The test failure seems to be caused by an incorrectly built package.")
     }
 
     /**
-     * A a new package summary to the dialog
-     * and repaint the text.
-     */
-    define boolean add_package_summary(string pkg_name , string verify_output )``{
-
-	boolean package_ok = convert_verify_output( pkg_name, verify_output );
-	if( ! package_ok ) not_successful_verified = add( not_successful_verified, pkg_name );
-	
-//FIXME	OSRPkgUI::AddPackageSummary( pkg_name, verified_packages[ pkg_name]:$[] );
-	return package_ok;
-    }
-
-
-    /**
      *
      */
     global define boolean Verify (string p, string root_mountpoint) ``{
@@ -460,8 +445,6 @@ _("The test failure seems to be caused by an incorrectly built package.")
 	    sformat("LANG=ENG /bin/rpm --root %2 -V %1", p, root_mountpoint));
 
 	y2milestone("-----------package %1 verified", p);
-
-//	return add_package_summary( p, OSRExecute::stdout ); FIXME
 
 	boolean package_ok = convert_verify_output (p, OSRExecute::stdout);
 

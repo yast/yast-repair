@@ -29,7 +29,6 @@
    *  @example string tmpdir = GetTmpDir();
    */
   global define string GetTmpDir() ``{
-//      return (string) WFM::Read(.local.tmpdir, nil); FIXME: what is 2nd arg?
       return (string) WFM::Read (.local.tmpdir, "");
   };
 

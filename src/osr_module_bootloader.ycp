@@ -583,6 +583,7 @@ press \"Repair\".
 
       OSRSystem::SetOrgRoot();
       OSRBoot::Reset();
+      return true;
   }
 
   define symbol OSRDirectBootloader()``{

@@ -207,7 +207,8 @@ Check your hardware.
 	    //				  Hard disks
 	    // --------------------------------------------------------------
 
-	    map targetMap = $[1:2];//FIXME StorageDevices::Probe (true);
+//	    map targetMap = $[1:2];//FIXME StorageDevices::Probe (true);
+	    map targetMap = StorageDevices::Probe (true);
 	    if (size (targetMap) == 0)
 	    {
 		// error popue

@@ -640,8 +640,8 @@ press \"Yes\".
 	  // subdevkeys
 	  // $["disk":"/dev/hda", "nr":3]
 	  map subdevkeys    = Storage::GetDiskPartition( dev_name);
-	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
-	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
+	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:0);
+	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:0);
 	  // root_part
 	  // $["detected_fs":`reiser, "device":"/dev/hda3", "fsid":131, "fstype":"Linux native", "mount":"/", "nr":3, "region":[148, 1175],
 	  // "type":`primary, "used_fs":`reiser, "uuid":"a7fb4dc2-cd09-41d1-a696-805ea613abee"]
@@ -695,7 +695,7 @@ press \"Yes\".
 	y2warning ("no entry for %1 found in the fstab",p);
 	if (part["lvm_group"]:"" != "")
 	{
-	    y2warning ("it is a device device with LVM group: ignoring");
+	    y2warning ("it is a device with LVM group: ignoring");
 	    return true;
 	}
 	missing_devs = add (missing_devs, p);
@@ -1281,21 +1281,18 @@ Really continue?
 		}
 	    }
 	    // create mount point (cmp)
-	    map cmp 	     = $[];
+	    map cmp	     = $[];
 	    integer fack_lnr = 0;
 	    foreach (string k, map e, new_entries, ``{
 		if (e["spec"]:"" != "" && e["mount"]:"" != ""){
-
-		    list<string> fstlist = [ k , e["mount"]:"", 
-					     e["vfstype"]:"", e["mntops"]:"", 
-					     sformat ("%1",e["freq"]:0),
-					     sformat ("%1",e["passno"]:0) ];
-		    
+		    list<string> fstlist = [ k , e["mount"]:"",
+					     e["vfstype"]:"", e["mntops"]:"",
+					     sformat ("%1",e["freq"]:"0"),
+					     sformat ("%1",e["passno"]:"0") ];
 
 		    cmp[fack_lnr] =  e["mount"]:"";
 		    fack_lnr      =  fack_lnr + 1;
-		   
-		    AsciiFile::AppendLine( fstab, fstlist);	   
+		    AsciiFile::AppendLine( fstab, fstlist);
 		}
 	    });
 

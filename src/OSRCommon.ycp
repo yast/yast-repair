@@ -26,6 +26,30 @@ module "OSRCommon";
 
 textdomain "repair";
 
+/**
+ * Functions that could be used as a default in lookups for functin pointers
+ * @return false
+ */
+global define boolean False () ``{
+    return false;
+}
+
+/**
+ * @return `error
+ */
+global define symbol SymbolError () ``{
+    y2error ("method not found");
+    return `error;
+}
+
+/**
+ * @return ""
+ */
+global define string EmptyString () ``{
+    return "";
+}
+
+
 // ---------------------------------------------------------------------
 // from OSRDirect.ycp:
 

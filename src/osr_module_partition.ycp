@@ -40,7 +40,7 @@
 
   textdomain "repair";
 
-  include "partitioning/custom_part_dialogs.ycp";//FIXME only ReallyInstPrepdisk
+  include "partitioning/custom_part_dialogs.ycp";
 
   // begin argument handling:
   // in the initial phase the framework calls each module
@@ -1000,7 +1000,7 @@ root partition or cancel scanning the system.
 
       // remove all mount points
       map target_map = Storage::GetTargetMap();
-      foreach(`dev, map parts, target_map, ``{
+      foreach(string dev, map parts, target_map, ``{
 	integer counter = 0;
 	foreach (map part, parts["partitions"]:[], ``{
 	    if ( part["mount"]:"" != "" )
@@ -1022,7 +1022,8 @@ root partition or cancel scanning the system.
 
       if ( ret == `next  )
       {
-	  // FIXME: ReallyInstPrepdisk should be part of some module...-> fehr
+	  // TODO: ReallyInstPrepdisk should be part of some module...
+	  // (now included from "partitioning/custom_part_dialogs.ycp")
           ret = ReallyInstPrepdisk ();
           if ( ret == `back ) ret = `again;
 
@@ -1086,7 +1087,7 @@ lost partitions is not possible.
 
         OSRPtbl::SetTarget( repair_dev, maindev["scrpath"]:.);
 
-        ret = OSRPtbl::RestoreWithGpart(true);
+        ret = OSRPtbl::RestoreWithGpart ();
       }
 
       OSRPtbl::Reset();

@@ -284,12 +284,12 @@ modified.
     define void build_verify_dialog_contents(string headline)``{
 	dialogs = [];
 
-	//components for both 
+	//components for both
 	term ok_cancel_button =  `PushButton( `id(ok_or_cancel_key),  Label::CancelButton());
 	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &details"), expert_mode );
 	term progress_bar     =  OSRProgress::CreateProgressBar(package_progress_bar,  check_string(),  package_count  );
 	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Also Show Successfully Verified &Packages"),  show_ok));
-	term protocol 	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
+	term protocol	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
 
 	dialogs = add( dialogs,
 		       `HBox(`VSpacing(15),
@@ -299,7 +299,7 @@ modified.
 				   protocol,
 				   `Left(`PushButton(`id(pause_key),  pause_label )))
 			     ));
-	
+
 	dialogs = add( dialogs, `Empty());
 
 	// normal dialog
@@ -322,18 +322,15 @@ YaST verifies packages now."))),
 			     `HSpacing(3)
 			     ));
 
-	
 	dialogs = add( dialogs, `HBox(`HWeight(1, `HSpacing(3)),
 				      `HWeight(30,`VBox(`VWeight(10, show_ok_term ),
-							 `VWeight(80, protocol ),	
+							 `VWeight(80, protocol ),
 							 `VWeight(10, `PushButton( `id(ok_or_cancel_key), Label::OKButton())  ))),
 				      `HWeight(1, `HSpacing(1))));
     }
 
-    
     /**
-     * Open the main dialog depending on the values t_expert_mode ( expert_mode).
-     *  
+     * Open the main dialog depending on the values t_expert_mode (expert_mode).
      */
     global define boolean OpenVerifyDialog(integer size_progress , string headline , boolean t_expert_mode )``{
 
@@ -373,6 +370,15 @@ YaST verifies packages now."))),
 	return "";
     }
 
+    /**
+     * 'translate' booleqan to string which can be shown in dialogs
+     */
+    define string boolean2string (boolean val) ``{
+
+	// table entry (value in the column "Configuration file")
+	// translate it either as True/False or Yes/No
+	return val ? _("yes") : _("no");
+    }
 
     /**
      * Add a new package entry to the internal list and the displayed text.
@@ -410,7 +416,7 @@ YaST verifies packages now."))),
 		string color       = ( OSRPkgVerify::GreenPackageProblems(pkg_name, line ) == "" ) ? "red" : "green" ;
 		string file_status = HTML::Link(HTML::Bold(HTML::Colorize( line["status"]:"",  color)),  key );
 		string file        = line["file"]:"";
-		string config_file = sformat("%1", line["config_file"]:"");
+		string config_file = boolean2string (line["config_file"]:false);
 
 		if (UI::HasSpecialWidget(`DownloadProgress))
 		{
@@ -421,9 +427,9 @@ YaST verifies packages now."))),
                            </tr>";
 		}
 		else {
-		    line_sf 	= "<li>%1 %2 %3</li>%4";
-		    file 	= fill( sformat("%1",line["file"]:""), 	   60, "." ) + "..";
-		    config_file = fill( sformat("%1",line["config_file"]:false), 8,   ".");
+		    line_sf	= "<li>%1 %2 %3</li>%4";
+		    file	= fill (sformat("%1",line["file"]:""), 60, ".") + "..";
+		    config_file = fill (config_file, 8, ".");
 		}
 		tab_body = tab_body + sformat(line_sf,
 					      file,
@@ -539,8 +545,8 @@ YaST verifies packages now."))),
      */
     define symbol show_verify_details(string pkg_name, map pkg_data)``{
 
-	string status     		= pkg_data["status"]:"";
-	
+	string status		= pkg_data["status"]:"";
+
 	if (status == OSRPkgVerify::missing )
 	{
 	    // rpm output e.g.: missing    /etc/ppp/peers/wvdial
@@ -574,13 +580,11 @@ the unsatisfied dependencies.
 	    if (UI::HasSpecialWidget(`DownloadProgress))
 	    {
 		special = [ "width=400", "width=20", "width=270", "width=110"];
-	    
 		header = sformat("<table %4><tr><th %5>%1 <th %6>%2 <th %7>%3</tr>",
 				 HTML::Bold(_("Key")),
 				 HTML::Bold(_("Description")),
 				 HTML::Bold(_("Status")),
 				 special[0]:"", special[1]:"",special[2]:"", special[3]:"" );
-	    
 		header = header + "<tr><th><hr><td><hr><td><hr></tr>";
 		line  = "<tr><th %4>%1<td %5>%2<td %6>%3</tr>";
 	    }
@@ -588,10 +592,9 @@ the unsatisfied dependencies.
 		line = "<br><li>%1: %2: %3</li>";
 		end  = "";
 	    }
-	    
-	    string  body  		= "";
-	    list    not_passed 		= [];
-	    term    config_term  	= `Label(_("YaST suggests reinstalling this package."));
+	    string  body		= "";
+	    list    not_passed		= [];
+	    term    config_term		= `Label(_("YaST suggests reinstalling this package."));
 	    string  problem_color	= ( OSRPkgVerify::GreenPackageProblems( pkg_name, pkg_data ) == "" ) ? "red" : "green";
 
 	    if (pkg_data["green_status"]:"" != "" )
@@ -603,7 +606,7 @@ the unsatisfied dependencies.
 		// FIXME: this is never shown!!! check it!!
 		config_term = `Label( message );
 	    }
-	    
+
 	    //build table with test information.
 	    while ( size( status ) != 0 )
 	    {

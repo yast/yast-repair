@@ -262,6 +262,7 @@ is very time consuming.
 
       OSRSystem::SetOrgRoot();
       OSRPkg::Reset();
+      return true;
   }
 
   /**

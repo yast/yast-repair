@@ -26,6 +26,7 @@
   import "OSRLogFile";
   import "OSRModuleLoading";
   import "OSRPopup";
+  import "OSRCommon";
 
   textdomain "repair";
 
@@ -87,33 +88,41 @@
    */
   map fsck_map = $[
 		    `ext2 : $[
-				"find"		: ``(is_ext2fs()),
-				"repair"	: ``(repair_ext2fs()),
-				"check"		: ``(check_ext2fs()) ],
+				"find"		: is_ext2fs,
+				"repair"	: repair_ext2fs,
+				"check"		: check_ext2fs
+		    ],
 		    `ext3 :  $[
-				"find"		: ``(is_ext2fs()),
-				"repair"	: ``(repair_ext2fs()),
-				"check"		: ``(check_ext2fs()) ],
+				"find"		: is_ext2fs,
+				"repair"	: repair_ext2fs,
+				"check"		: check_ext2fs
+		    ],
 		    `reiser: $[
-				"find"		: ``(is_reiserfs()),
-				"repair"	: ``(repair_reiserfs()),
-				"check"		: ``(check_reiserfs()) ],
+				"find"		: is_reiserfs,
+				"repair"	: repair_reiserfs,
+				"check"		: check_reiserfs
+		    ],
 		    `xfs : $[
-				"find"		: ``(is_xfs()	),
-				"repair"	: ``(repair_xfs()),
-				"check"		: ``(check_xfs()) ],
+				"find"		: is_xfs,
+				"repair"	: repair_xfs,
+				"check"		: check_xfs
+		    ],
 		    `jfs : $[
-				"find"		: ``(is_jfs()),
-				"repair"	: ``(repair_jfs()),
-				"check"		: ``(check_jfs())],
+				"find"		: is_jfs,
+				"repair"	: repair_jfs,
+				"check"		: check_jfs
+		    ],
 		    // "Do not touch non-linux partitions" (#25002)
 		    // -> no check/repair functions for other filesystems
 		    `fat16 : $[
-				"find"		: ``(is_fat()) ],
+				"find"		: is_fat
+		    ],
 		    `fat32 : $[
-				"find"		: ``(is_fat()) ],
+				"find"		: is_fat
+		    ],
 		    `ntfs : $[
-				"find"		: ``(is_ntfs()) ]
+				"find"		: is_ntfs
+		    ]
   ];
 
 
@@ -158,10 +167,8 @@
 	  fs_kernel_modules = (list<string>) union (
 	    fs_kernel_modules, FileSystems::GetNeededModules (fs));
       });
-
       fs_kernel_modules = (list<string>) union (
 	fs_kernel_modules , [ "xor", "raid0", "raid1", "raid5", "lvm-mod"]);
-
 
       // iterate all listed kernel modules
       foreach(string fs_module, fs_kernel_modules, ``{
@@ -476,7 +483,9 @@ global define boolean Check(map part ) ``{
 
     y2milestone("Check the file system of the partition %1", check_partition );
     // find fs
-    if ( ! eval( lookup( fsck_map[used_fs]:$[], "find", ``(is_unknown()) )) )
+
+    boolean () find_fs = fsck_map [used_fs, "find"]:is_unknown;
+    if (!find_fs ())
     {
 	// ignore LVM partitions
 	if (part["fsid"]:0 == Partitions::fsid_lvm)
@@ -492,7 +501,8 @@ global define boolean Check(map part ) ``{
 
 	foreach (symbol fs, map fs_map, fsck_map, ``{
 	    if ( fs != used_fs ) {
-		if ( (boolean) eval (fs_map["find"]:``{ return false; }))
+		find_fs = fs_map["find"]:OSRCommon::False;
+		if (find_fs ())
 		{
 		    new_used_fs = fs;
 		}
@@ -521,7 +531,8 @@ global define boolean Check(map part ) ``{
 	    y2milestone("non-linux filesystem: no checks");
 	    return true;
 	}
-	if ((boolean) eval (fsck_map[used_fs, "check"]:``{ return false;}))
+	boolean () f_check = fsck_map[used_fs, "check"]:OSRCommon::False;
+	if (f_check ())
 	{
 	    y2milestone("file system check successful executed");
 	    return true;
@@ -615,8 +626,8 @@ close this help dialog and press
 	  boolean ret = true;
 	  if( !Mode::test )
 	  {
-	      ret = (boolean)
-		eval (fsck_map[used_fs, "repair"]:``{ return false;});
+	      boolean () f_rep = fsck_map [used_fs, "repair"]:OSRCommon::False;
+	      ret = f_rep ();
 	  }
 	  UI::CloseDialog();
 

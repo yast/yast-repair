@@ -32,6 +32,7 @@
     import "OSRExecute";
     import "OSRPkg";
     import "OSRPopup";
+    import "OSRCommon";
 
     textdomain "repair";
 
@@ -73,7 +74,7 @@
 	    "ppc"	: []  //"boot loader"
     ];
 
-    // function prototypes FIXME not necessary for NI (->pointers)
+    // function prototypes
     define boolean check_lilo_config();
     define boolean check_grub_config();
     global define symbol repair_grub_config();
@@ -83,13 +84,13 @@
      */
     map bootloader_config_check = $[
 	    "lilo"	: $[
-		"config_check"	: ``(check_lilo_config()),
-		"config_repair"	: ``(repair_grub_config()),
+		"config_check"	: check_lilo_config,
+		"config_repair"	: repair_grub_config,
 		"config_file"	: "/etc/lilo.conf"
 	    ],
 	    "grub"	: $[
-		"config_check"	: ``(check_grub_config()),
-		"config_repair"	: ``(repair_grub_config()),
+		"config_check"	: check_grub_config,
+		"config_repair"	: repair_grub_config,
 		"config_file"	: "/etc/grub.conf",
 		"device_map"	: "/boot/grub/device.map",
 		"stage1"	: "/boot/grub/stage1",
@@ -725,7 +726,7 @@ contains no errors, press \"Skip\".
 
 	// if device is a partition
 	map subdevkeys    = Storage::GetDiskPartition( dev_name );
-	ret = Storage::GetSubDev( Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:""));
+	ret = Storage::GetSubDev( Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:0));
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
 	// fix grub bug
@@ -1206,14 +1207,18 @@ is bootable, press \"Skip\".
 	help_text 		= "";
 	invalid_config_files 	= [];
 
-	if(!(boolean)eval(bootloader_config_check[bootloader,"config_check"]:``{
-	    y2error("check boot loader config not support");
+	if (!haskey (bootloader_config_check [bootloader]:$[], "config_check"))
+	{
+	    y2error("boot loader config check not supported");
 	    bootloader_error_found = true;
 	    return false;
-	}))
+	}
+	boolean () check_f =
+	    bootloader_config_check[bootloader,"config_check"]:OSRCommon::False;
+	if (!check_f ())
 	{
 	    bootloader_error_found = true;
-	    y2error("check boot loader config returned an error");
+	    y2error("boot loader config check returned an error");
 	    return false;
 	}
 	return true;
@@ -1229,7 +1234,8 @@ is bootable, press \"Skip\".
 	Bootloader::setLoaderType (nil);
 	Bootloader::Reset();
 	Bootloader::Propose(); // does not read current configuration...
-	map retmap = (map)WFM::CallFunction ("bootloader_proposal",["AskUser"]);
+	map retmap = (map)
+	    WFM::CallFunction ("bootloader_proposal",["AskUser", $[]]);
 	symbol ret = retmap["workflow_sequence"]:`next;
 
 	if( ret == `next )
@@ -1274,12 +1280,13 @@ is bootable, press \"Skip\".
 
 	// set needed value Boot::initrdModules
 	CheckInitrdModules( root_mountpoint );
-	symbol ret_repair = (symbol)
-	  eval (bootloader_config_check[bootloader, "config_repair" ]:``{
-	    y2error("repair boot loader config not support");
+	if (!haskey (bootloader_config_check [bootloader]:$[], "config_repair"))
+	{
+	    y2error("boot loader config repair not supported");
 	    return `error;
-	});
-	return ret_repair;
+	}
+	symbol () repair_f = bootloader_config_check [bootloader, "config_repair"]:OSRCommon::SymbolError;
+	return repair_f ();
     }
 
     /**
