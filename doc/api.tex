@@ -1,0 +1,127 @@
+\chapter{API for the rescue system}
+
+\section{Architecture of the rescue system}
+The rescue system is composed of a central framework and the modules for
+error-detection and repair. The framework consists of the files\\
+
+\begin{tabular}{ll}
+\verb+src/osr.ycp+ & \verb+src/osr_popup.ycp+\\
+\verb+src/osr_provides.ycp+ & \verb+src/osr_module_progress.ycp+\\
+\verb+src/osr_system.ycp+ & \verb+src/osr_global_progress.ycp+\\
+\verb+src/osr_api.ycp+ & \verb+src/osr_log_file.ycp+\\
+\verb+src/osr_summary.ycp+ & \verb+src/osr_module_list.ycp+\\\\
+\end{tabular}
+
+Module files are\\
+
+\begin{tabular}{ll}
+\verb+src/osr_module_init.ycp+ & \verb+src/osr_module_lilo.ycp+\\
+\end{tabular}
+
+\section{Template module}
+All modules should obey the standard module \verb+osr_module_lilo+ to be consistent
+with the whole rescue system.
+
+\section{Developing a new module}
+A new module has the name \verb+osr_module_<name>+ and is placed in 
+\verb+y2c_osr/src/osr_module_<name>.ycp+ (the module \verb+osr_module_lilo+ is placed in
+the file \verb+y2c_osr/src/osr_module_lilo.ycp+).\\
+
+To make the new module present to the framework a new
+entry like \verb+`osr_module_<name>()+ has to be added to the file
+\verb+osr_module_list.ycp+. This file contains all detection modules and
+is read by the framework on startup.
+
+\section{Include}
+If the module needs special functions from outside the rescue-system it
+can include other YCP-files. Some global YCP-files are already included
+by the framework and so they are present to all modules. Other that than
+mentioned above these included files are:\\
+
+\begin{tabular}{ll}
+\verb+ui/common_popups.ycp+ & \verb+ui/wizard_dialog.ycp+\\
+\end{tabular}
+
+\section{Control interface \& module-map}
+For determining the sequence of the detection-methods and getting some
+additional information the framework executes the initial functions of
+each module where the module-map is created and returned to the framework.
+For the LILO-module this is the function \verb+OSRLiloInit()+.\\
+
+\subsection{Module name and display information}
+
+{\footnotesize \begin{verbatim}
+map osr_module_lilo = $[
+     // has to be the name of the file
+     "name"                  :  "osr_module_lilo",
+     "headline"              :  UI(_("LILO")),
+\end{verbatim}}%$
+
+\subsection{Detection sequence}
+At the key \verb+"detect_methods"+ the list of detection methods has to
+be specified. The execution-sequence of the methods is equal to the 
+specified sequence.
+
+{\footnotesize \begin{verbatim}
+     "detect_methods"   :  [
+          ``(OSRLiloCheckPackage()),
+          ``(OSRLiloConfTest())
+     ],
+\end{verbatim}}
+
+\subsection{Module control and data dependencies}
+At the keys \verb+"requires"+ and \verb+"provides"+ the information for
+controlling the sequence of module-execution is defined. The framework
+computes the sequence of the detection modules depending on the required
+and known data. A module can only be executed if all the data it requires
+is already known. This known data must have been provided by other modules
+that were executed previously.\\
+
+The required data are specified by an entry in the list at the key
+\verb+"requires"+. All provided values from the existing modules can be
+received by executing \verb+yast2 osr_provides+ and looking for the
+file-contents in \verb+/tmp/osr_global_provides+.
+
+{\footnotesize \begin{verbatim}
+     "requires"         :  [
+          "disk_device_list",
+          "root_partition_device",
+          "kernel_path_list",
+          "initrd_path_list"
+     ],
+\end{verbatim}}
+
+Values provided by this module are stored in the module-map at the key
+\verb+"provides"+.
+
+{\footnotesize \begin{verbatim}
+     "provides"         : $[
+          "lilo_package_is_installed" : $[
+               "type"   : "boolean",
+               "value"  : false,
+               "status" : "unknown"
+          ],
+          "lilo_package_is_verified"  : $[
+               "type"   : "boolean",
+               "value"  : false,
+               "status" : "unknown"
+          ],
+          "lilo_conf_path"            : $[
+               "type"   : "string",
+               "value"  : "/etc/lilo.conf",
+               "status" : "unknown"
+          ]
+     ],
+];
+\end{verbatim}}
+
+\section{Error detection and repair}
+The sequence of the detection methods of a module is defined 
+at the key \verb+"detect_methods"+ in the module-map. Detection methods not
+mentioned here are not executed by the rescue system.\\
+
+If an error is detected the detection method itself controls the further
+procedure and executes the nesseccary repair methods.\\
+
+Several functions are provided by the framework to integrate the modules
+into the rescue system. See the ycpdoc-output in HTML format.
