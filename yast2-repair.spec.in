@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild  yast2-devel-packages yast2-storage yast2-installation yast2-packager yast2-bootloader yast2-country yast2 yast2-x11 yast2-mouse
+# neededforbuild  yast2-devel-packages yast2-storage yast2-installation yast2-packager yast2-bootloader yast2-country yast2 yast2-x11 yast2-mouse yast2-xml
 
 @HEADER@
 Requires:	yast2 gpart jfsutils yast2-bootloader yast2-storage
