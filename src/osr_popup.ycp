@@ -103,7 +103,7 @@
       });
 
       // handling of the user-input
-      any ret = UI(`UserInput());
+      any ret = UI::UserInput();
 
       // stay into the while-loop until the user presses Skip or Repair
       while ((ret != `osr_popup_skip) && (ret != `osr_popup_repair))
@@ -111,12 +111,12 @@
 	  if (ret == `osr_popup_help)
 	  {
 	      // launch text-popup to display help-text
-	      UI(`LongTextPopup(_("YaST2 OS Repair: Help"), `RichText(WFM::help_text), 50, 20));
+	      UI::LongTextPopup(_("YaST2 OS Repair: Help"), `RichText(WFM::help_text), 50, 20);
 	  }
-	  ret = UI(`UserInput());
+	  ret = UI::UserInput();
       }
 
-      UI(`CloseDialog());
+      UI::CloseDialog();
 
       return (ret == `osr_popup_repair);
   }
@@ -223,16 +223,35 @@
       });
 
       // handling of the user-input, return the activatet list-item
-      any ret = UI(`UserInput());
+      any ret = UI::UserInput();
       if (ret == `osr_popup_ok)
       {
-	  integer current = UI(`QueryWidget(`id(`rb_group), `CurrentButton));
+	  integer current = UI::QueryWidget(`id(`rb_group), `CurrentButton);
 	  result = select(item_list, current);
       }
 
-      UI(`CloseDialog());
+      UI::CloseDialog();
 
       return result;
   }
 
+
+  /**
+   *  Displays a popup window for the specified amount of time. The window
+   *  does not include buttons.
+   *
+   *  API function.
+   *
+   *  @param string The label of the popup window.
+   *  @param integer The number of milliseconds to display the popup window.
+   *  @example OSRPopupDisplayQuick("Test", 2000); 
+   */
+  global define OSRPopupDisplayQuick(string label, integer milliseconds) ``{
+
+      UI::OpenDialog(`opt(`decorated ), `Label(label));
+
+      sleep(milliseconds);
+
+      UI::CloseDialog();
+  }
 }
