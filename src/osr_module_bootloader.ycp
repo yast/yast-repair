@@ -32,7 +32,6 @@
   import "OSRFsck";
   import "OSRDirect";
 
-  integer arg_n = 0;
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -822,6 +821,8 @@ install a new boot loader.
 
 
 
+  /*
+  integer arg_n = 0;
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
@@ -841,4 +842,5 @@ install a new boot loader.
       }
       arg_n = arg_n + 1;
   }
+  */
 }//EOF

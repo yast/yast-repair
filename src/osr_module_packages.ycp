@@ -29,7 +29,6 @@
   import "OSRPopup";
   import "OSR";
 
-  integer arg_n = 0;
 
 
   //////////////////////////////////////////////////////////////////////
@@ -380,7 +379,8 @@ all packages is very time consuming. Therefore,
 this menu entry does not belong to the default
 selection.</P>
 "),
-                        "selected"  : false
+                        "selected"  : false,
+                        "requires" : [ "packages_db_check"]
                       ];
       }
 
@@ -476,6 +476,8 @@ all software packages.
 
 
 
+  /*
+  integer arg_n = 0;
   //////////////////////////////////////////////////////////////////////
   //
   //  MAIN
@@ -495,4 +497,5 @@ all software packages.
       }
       arg_n = arg_n + 1;
   }
+  */
 }//EOF
