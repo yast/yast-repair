@@ -39,7 +39,8 @@
   {
       Wizard::CreateDialog();
   }
-  Wizard::SetDesktopIcon("repair");
+//  Wizard::SetDesktopIcon("repair");
+  Wizard::SetTitleIcon("misc");
 
   // ===== Init the Rescue System =================================
   symbol ret = OSRRepairUI::InitDialog();
