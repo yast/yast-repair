@@ -39,7 +39,8 @@ client_DATA = 			\
 	osr_verified_packages.ycp	\
 	osr_module_bootloader.ycp
 
-config_DATA =			\
-	repair.y2cc
+#config_DATA =			\
+#	repair.y2cc
 
-EXTRA_DIST = $(client_DATA) $(config_DATA) $(module_DATA)
+EXTRA_DIST = $(client_DATA) $(module_DATA)
+# $(config_DATA) 
