@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 11 11:16:24 CET 2005 - jsuchome@suse.cz
+
+- added reiserfs package to Requires (#71740)
+- 2.11.9
+
+-------------------------------------------------------------------
 Tue Mar  1 11:01:01 CET 2005 - jsuchome@suse.cz
 
 - adapt bootloader config file check for embedding stage 1.5
