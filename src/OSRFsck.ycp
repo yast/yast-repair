@@ -90,14 +90,14 @@
 				  "find"	: ``(is_jfs()),
 				  "repair"	: ``(repair_jfs()),
 				  "check"	: ``(check_jfs())],
-            // "Do not touch non-linux partitions" (#25002)
-            // -> no check/repair functions for other filesystems
+		    // "Do not touch non-linux partitions" (#25002)
+		    // -> no check/repair functions for other filesystems
 		   `fat16 :	$[
 				  "find"	: ``(is_fat()) ],
 		   `fat32 :	$[
 				  "find"	: ``(is_fat()) ],
-           `ntfs :  $[
-                  "find"    : ``(is_ntfs()) ]
+		    `ntfs :	$[
+				    "find"	: ``(is_ntfs()) ]
   ];
 
 
@@ -115,7 +115,7 @@
   
   /**
    * Fill the list fsck_fsid with the date from module Partition.
-   */ 
+   */
   global define OSRFsck()``{
 
       fsck_fsid = union( Partitions::fsid_wintypes, Partitions::fsid_dostypes );
@@ -184,74 +184,79 @@
   }
 
 
-  /**
-   * Test the filesystem of one partition.
-   * @param the partition map
-   * 
-   */
-  global define boolean Check(map part ) ``{
-      if(Mode::test ) return true;
-      
-      symbol used_fs 	= part["detected_fs"]:`unknown;
-      check_partition 	= Storage::GetDeviceName(part["maindev"]:"", part["nr"]:0);
+/**
+  * Test the filesystem of one partition.
+  * @param the partition map
+  *
+  */
+global define boolean Check(map part ) ``{
+    if(Mode::test ) return true;
 
-      y2milestone("Check the file system of the partition %1", check_partition );
-      // find fs
-      if ( ! eval( lookup( fsck_map[used_fs]:$[], "find", ``(is_unknown()) )) )
-      {
-	  y2error("used_fs is not ok. Searching for new filesystem");
+    symbol used_fs = part["detected_fs"]:`unknown;
+    check_partition = Storage::GetDeviceName(part["maindev"]:"", part["nr"]:0);
 
-	  used_fs            = `unknown;
-	  symbol new_used_fs = `unknown;
-	  
-	  foreach(symbol fs, map fs_map, fsck_map, ``{
-	      if ( fs != used_fs ) {
-		  if( eval( fs_map["find"]:``{ return false; }))
-		  {
-		      new_used_fs = fs;
-		  }
-	      }  
-	  });
-	  if ( new_used_fs != `unknown ) used_fs = new_used_fs;
-	  else {
-	      y2error(" no file systen found for %1", check_partition );
-	  }
-      }
-      else {
-	  y2milestone("used_fs is ok. Executing file system check !!");
-      }
-      
-      Storage::SetSubDevParam(Storage::GetSubDevKey( part["maindev"]:"", part["nr"]:0 ),
-			      "detected_fs", used_fs );
-      
-      if ( used_fs != `unknown && used_fs != nil ) {
-	  // start check
-	  if( eval( fsck_map[used_fs, "check"]:``{ return false;}))
-	  {
-	      y2milestone("file system check successful executed");
-	      return true;
-	  }
-      else {
-      // Repair module should not touch non-linux partitions (#25002)
-	  y2milestone("non-linux filesystem: not checking");
-	  return true;// -> will be in checked_partitions
-      }
-      }
-      else {
-	  y2milestone("no file system found");
-	  return nil;
-      }
-      y2error("file system check was not successful");
-      return false;
+    y2milestone("Check the file system of the partition %1", check_partition );
+    // find fs
+    if ( ! eval( lookup( fsck_map[used_fs]:$[], "find", ``(is_unknown()) )) )
+    {
+	y2error("used_fs is not ok. Searching for new filesystem");
+
+	used_fs            = `unknown;
+	symbol new_used_fs = `unknown;
+
+	foreach(symbol fs, map fs_map, fsck_map, ``{
+	    if ( fs != used_fs ) {
+		if( eval( fs_map["find"]:``{ return false; }))
+		{
+		    new_used_fs = fs;
+		}
+	    }
+	});
+	if ( new_used_fs != `unknown )
+	    used_fs = new_used_fs;
+	else
+	{
+	    y2error(" no file systen found for %1", check_partition );
+	}
+    }
+    else
+    {
+	y2milestone("used_fs is ok. Executing file system check !!");
+    }
+    Storage::SetSubDevParam (
+	Storage::GetSubDevKey (part["maindev"]:"", part["nr"]:0 ),
+	"detected_fs", used_fs );
+
+    if ( used_fs != `unknown && used_fs != nil )
+    {
+	// ----------- start check now
+//	if (!haskey (fsck_map[used_fs]:$[], "check"))
+	if (IsNonLinuxFileSystem (used_fs))
+	{
+	    y2milestone("non-linux filesystem: no checks");
+	    return true;
+	}
+	if( eval (fsck_map[used_fs, "check"]:``{ return false;}))
+	{
+	    y2milestone("file system check successful executed");
+	    return true;
+	}
+    }
+    else
+    {
+	y2milestone("no file system found");
+	return nil;
+    }
+    y2error("file system check was not successful");
+    return false;
   }
 
-  
 
   define boolean is_unknown()``{
       y2error("unkonwn file system");
       return false;
   }
-  
+
   /**
    *  Checks if the specified check_partition is of filesystem-type ext2fs.
    *  @return boolean True if the check_partition is ext2fs.
@@ -426,29 +431,30 @@
       return check_ext2fs;
   };
 
-    
   /**
    *  Checks the specified partition for consistency with "/sbin/reiserfsck".
    */
   define boolean check_reiserfs() ``{
-      
-      string  command        = sformat("/bin/echo Yes | /sbin/reiserfsck --check %1", check_partition);
 
-      // don't use OSRExecute .. because OSRExecute use .target.bash_output and this break the hole Yast2
-      // output is to much !! e.g. 14 MB
-      last_check_return      = WFM::Execute(.local.bash, command );
-      boolean check_reiserfs = last_check_return == 0 ;
-            
-      if (check_reiserfs )
-      {
-	  y2milestone("partition %1 is o.k., /sbin/reiserfsck reports no errors", check_partition);
-      }
-      else
-      {
-	  y2error("/sbin/reiserfsck reports an error: %1, command line: %2", check_reiserfs, command);
-      }
+    string command = sformat("/bin/echo Yes | /sbin/reiserfsck --check %1",
+	check_partition);
 
-      return check_reiserfs;
+    // don't use OSRExecute .. because OSRExecute use .target.bash_output and
+    // this break the whole Yast2 -> output is to much !! e.g. 14 MB
+    last_check_return      = WFM::Execute(.local.bash, command );
+    boolean check_reiserfs = last_check_return == 0 ;
+
+    if (check_reiserfs )
+    {
+	y2milestone("partition %1 is o.k., /sbin/reiserfsck reports no errors",
+	    check_partition);
+    }
+    else
+    {
+	y2error("/sbin/reiserfsck reports an error: %1, command line: %2",
+	    check_reiserfs, command);
+    }
+    return check_reiserfs;
   };
 
     
@@ -505,26 +511,26 @@
       fsck_options   = "";
 
       file_name      = OSRLogFile::GetTmpDir()+ "/" + "fsck_repair";
-      
+
       // makes global use possible ( from another define as Check);
       check_partition = t_check_partition;
 
-      // TODO check english 
+      // error message, %1 is filesystem type, %2 partition
       string error_message = sformat(_("
-The %1 file system of the partition %2 is corrupt.
-To repair the file system,
-press \"Repair\".
+The %1 file system of the partition %2 is corrupted.
+To repair the file system, press \"Repair\".
 
 Press \"Skip\" to avoid repairing.
-"), FileSystems::GetName( used_fs, "unkonwn"), check_partition ); 
+"), FileSystems::GetName( used_fs, "unkonwn"), check_partition );
 
+      // error message
       string help_text         = _("
 <p>An inconsistent file system occurs when
 a partition is not correctly unmounted.
-For example, this happens when the system
-crashes.</p>
+This could happen during the system crash.</p>
 ") +
 
+      // error message
 _("<p>There is a repair method for each file
 system. For example, if the file system
 of the damaged partition is ext2 or
@@ -547,12 +553,11 @@ you have and how to use the corresponding
 tool, close YaST and repair the
 damaged file system on your own. Otherwise,
 close this help dialog and press the
-\"Repair\" button for automatic
-repair.</p>
+\"Repair\" button for automatic repair.</p>
 ");
-      
+
       while( true )
-      {     
+      {
 	  if (! OSRPopup::Repair(_("Error detected."), error_message, help_text) ) return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
@@ -621,7 +626,7 @@ Repairing %1 file system of partition
 	  string command = sformat("/sbin/fsck.ext2 -p -y -f %1 %2", fsck_options, check_partition );
 	  boolean repair_ext2fs = OSRExecute::CommandProgress(.local.bash,command ,file_name);
 
-	  // TOTO what is if fsck.ext2 requires y y y y for del indo XX ...
+	  // TODO what is if fsck.ext2 requires y y y y for del indo XX ...
 	  
 	  if ( OSRExecute::result == 0 ||
 	       OSRExecute::result == 1 ||
@@ -702,5 +707,16 @@ press \"Yes\". Otherwise press
       return false;
 
   }
+
+/**
+ * checks for filesystem type
+ * (Repair module should not touch non-linux partitions - bug #25002)
+ */
+global define boolean IsNonLinuxFileSystem (symbol fs) ``{
+
+    return contains ([`ntfs, `fat16, `fat32], fs);
+
+}
+
 
 }
