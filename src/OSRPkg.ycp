@@ -22,6 +22,7 @@
     import "Wizard";
     import "Popup";
 
+    import "OSRCommon";
     import "OSRSystem";
     import "OSRExecute";
     import "OSRLogFile";
@@ -438,7 +439,6 @@ the package database.
 	    UI::CloseDialog();
 	    ret = false;
 	}
-	
 	return ret;
     }
 
@@ -489,8 +489,7 @@ Try another repair method.
 "),backup_path));
 	    return false;
 	}
-	
-	
+
 	string selected  = OSRPopup::RadioButtonGroupText(_("Select one backup time:"),
 						   _("
 YaST found several backups
@@ -538,7 +537,6 @@ database was not successful.
 	return ret;
     }
 
-    
     /**
      * Repair or initialise a damaged package
      * damaged. Call CheckDB before.
@@ -546,30 +544,37 @@ database was not successful.
     global define symbol RepairDB()``{
 
 	string repair_header = _("Repair Package Database");
-	
+
 	if (! backup_package_db())
 	{
 	    y2error("Creating backup of package db was not successful");
 	    if (size(not_found_files ) == 0 ) return `error;
-	    
 	}
 
-	term r_options = `VBox(`Left(`Label(_("Select a repair method or skip repairing."))),
-			       `VSpacing(0.5),
-			       `Left(`RadioButton(`id(`rebuild ),  _("Rebuild Package Database") ,true )),
-			       `Left(`RadioButton(`id(`daily    ), _("Revert to Daily Backup"), false))
-			       );
-	
+	term r_options = `VBox (
+	    `Left (
+		// popup headline
+		`Label(_("Select a repair method or skip repairing."))),
+	    `VSpacing(0.5),
+	    `Left (
+		// radio button label
+		`RadioButton(`id(`rebuild), _("Rebuild Package Database"),true)
+	    ),
+	    `Left (
+		// radio button label
+		`RadioButton(`id(`daily), _("Revert to Daily Backup"), false)
+	    )
+	);
+
 	term last_entry = `RadioButton(`id(`revert ));
 
 	if (! package_db_repaired )
 	    last_entry = add( last_entry , `opt(`disabled ));
-	
+
 	last_entry = add( last_entry,  _("Revert to Orginal Package Database (saved by YaST)"));
 	last_entry = add( last_entry, false);
 	r_options  = add( r_options, last_entry);
 
-	
 	if (! OSRPopup::OpenMainRepairDialog( repair_header , error_text, r_options ))
 	{
 	    y2error("Could not open main dialog for repairing package database.");
@@ -685,32 +690,38 @@ database was not successful.
 	    y2error ("These packages belonging to the minimal selection were not found: %1", missing_packages);
 	    // set information for repair dialog
 	    install_missing_dialog_data = [
-					   _("Missing Packages"),
-					   _("
+		// headline
+		_("Missing Packages"),
+		// check for package minimum summary, 1st part (table follows)
+		_("
 YaST checked the package selection of
 the system. The following packages are
 not installed."),
 
-					   _("
+		// check for package minimum summary, last part (below table)
+		_("
 The listed packages belong to the minimal
 package selection. Installing these
 packages is recommended.  Press
 \"Repair \" to install all selected 
 packages in the list.
 "),
-					     _("
+		// check for package minimum help text 1/2
+		_("
 <P>&product; needs at least some packages for
 basic system functionality. Without these
 packages, the system is not executable.</P>
 ") +
 
-_("<P>YaST checks if all required packages for a
+		// check for package minimum help text 2/2, %1 is tool name
+		sformat (_("<P>%1 checks if all required packages for a
 minimal system are installed. If
-some packages are missing, YaST offers to
+some packages are missing, %1 offers to
 install the missing packages.</P>
-"),
-					   _("&Missing Packages to Install:"),
-					   []
+"), OSRCommon::tool_name),
+		// table headline (package list follows)
+		_("&Missing Packages to Install:"),
+		[]
 	    ];
 	}
 	return ret;
@@ -792,7 +803,8 @@ install the missing packages.</P>
 			}
 		    }
 
-		    if (! haskey(OSRPkgVerify::verified_packages, p ) && ret != `abort && ret != `cancel)
+		    if (!haskey(OSRPkgVerify::verified_packages, p ) &&
+			ret != `abort && ret != `cancel)
 		    {
 			boolean ver = OSRPkgVerify::Verify (p, root_mountpoint);
 			OSRPkgUI::AddPackageSummary (
@@ -833,36 +845,51 @@ install the missing packages.</P>
 	missing_packages = OSRPkgVerify::not_successful_verified;
 	OSRPkgVerify::WriteVerifiedPackages( check_packages, false);
 
-	if (size( missing_packages ) > 0 )
+	if (size( missing_packages ) > 0)
 	{
+	    // button label
 	    string protocol_label = _("Show Log");
 	    OSRPkgUI::expert_mode = true;
 	    install_missing_dialog_data = [
-					   _("Unverified Packages"),
-					   _("
+		// dialog headline
+		_("Unverified Packages"),
+		// package verification summary, 1st part (table follows)
+		_("
 YaST verified the installed software
 and found problems in the following
 packages.
 "),
+		// package verification summary, last part
+		_("
+These packages probably differ from their
+originaly installed versions. You can check
+the packages you want to reinstall and start
+the reinstallation process by pressing
+the \"Repair\" button."),
 
-					   _("
-YaST proposes installing these packages.
-Press \"Repair \" to install
-all selected packages in the list.
-"),
-					   sformat(_("
+		// package verification summary, help text (%1 is button label)
+		sformat(_("
 <P>YaST has verified all installed packages. Some
 of these packages contain errors. For details,
 see the log of the verify process.
-To open the log, press %1.</P>
+To open the log, press <b>%1</b>.</P>
 
 <p>There, you can see if files of the package are
 missing or the data of the package in the package
 database differs from the installed files of the
 package.</P>
+
+<p>Sometimes, verification of the package could 
+report errors even if the package is correctly
+installed and works fine. That's why you should
+reinstall only the packages which you find not working.</p>
 "), protocol_label),
-					   _("Packages with Problems:"),
-					   [ [`Right(`PushButton( `id(`protocol), protocol_label )), `protocol, OSRPkgUI::ProtocolDialog]]
+		// table headline (package list follows)
+		_("Packages with Problems:"),
+		[ [
+		    `Right(`PushButton( `id(`protocol), protocol_label )),
+		    `protocol, OSRPkgUI::ProtocolDialog
+		] ]
 	     ];
 	}
 	return ret;
@@ -880,20 +907,20 @@ package.</P>
 	{
 	    list<list> item_list = [];
 	    foreach(string item, missing_packages, ``{
-		item_list = add( item_list, [item, true]);
+		item_list = add( item_list, [item, false]);
 	    });
-
 
 	    if (use_dialog )
 	    {
-		missing_packages = OSRPopup::MultiSelectionBox(
+		missing_packages = OSRPopup::MultiSelectionBox (
 		    install_missing_dialog_data[0]:"",
 		    install_missing_dialog_data[1]:"",
 		    install_missing_dialog_data[2]:"",
 		    install_missing_dialog_data[3]:"",
 		    install_missing_dialog_data[4]:"",
 		    item_list,
-		    install_missing_dialog_data[5]:[]);
+		    install_missing_dialog_data[5]:[]
+		);
 	    }
 
 	   if (missing_packages == [] )
@@ -925,16 +952,17 @@ package.</P>
 
 		    ok = ok && result[1]:nil == [] && result[2]:nil == [];
 		    Wizard::CreateDialog ();
-//                    Wizard::SetDesktopIcon("repair");
+//                    Wizard::SetTitleIcon("repair");TODO
 		    Wizard::SetTitleIcon("misc");
                     WFM::CallFunction ("inst_suseconfig", [false, false]);
 
 		    Wizard::CloseDialog ();
 
-		    if (ok )
+		    if (ok)
 		    {
 			reinstalled_packages = missing_packages;
-			y2milestone("All reinstalled_packages: %1", reinstalled_packages );
+			y2milestone("All reinstalled_packages: %1",
+			    reinstalled_packages );
 			ret = `ok;
 		    }
 		    else ret = `error;

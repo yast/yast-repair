@@ -1241,11 +1241,6 @@ is bootable, press \"Skip\".
 
 	if( ret == `next )
 	{
-	    /*
-	    UI::OpenDialog (
-		// message popup: wait for action
-		`Label(_("Saving new boot loader configuration...")));
-	    */
 	    Wizard::CreateDialog ();
 
 	    // prepare environment for saving boot loader settings
@@ -1254,11 +1249,9 @@ is bootable, press \"Skip\".
 	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
 	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
 
-//	    Progress::off();
 	    boolean g_ret = Bootloader::Write();
-//            Progress::on();
-
 	    Wizard::CloseDialog();
+
 	    if ( g_ret )
 		// message popup
 	      Report::Message(_("The boot loader was installed successfully."));
