@@ -43,7 +43,7 @@
   /**
    * Check the base boot loader and kernel configuration files
    */
-  global define boolean OSRBootloaderSysconfigFiles()``{
+  define boolean OSRBootloaderSysconfigFiles()``{
       /////////////////////////////////////////////////////////////////////////
       //
       // Check sysconfig files ...
@@ -85,7 +85,7 @@
   /**
    * Find the type of the boot loader e.g.: lilo, grub
    */
-  global define boolean OSRBootloaderType() ``{
+  define boolean OSRBootloaderType() ``{
       /////////////////////////////////////////////////////////////////////////
       //
       // Searching type of the boot loader type ...
@@ -120,7 +120,7 @@
   /**
    * Find the root and boot partition.
    */
-  global define boolean OSRBootloaderBootRoot()``{
+  define boolean OSRBootloaderBootRoot()``{
       /////////////////////////////////////////////////////////////////////////
       //
       // Searching for root and boot partition  ...
@@ -266,7 +266,7 @@ the system and start a new installation.
   /**
    * Check if all needed boot loader packages are installed.
    */
-  global define boolean OSRBootloaderPackagesInstalled()``{
+  define boolean OSRBootloaderPackagesInstalled()``{
       /////////////////////////////////////////////////////////////////////////
       //
       // Check boot loader packages
@@ -338,7 +338,7 @@ Otherwise press \"Cancel\" and continue with other tests.
   /**
    * Verifying installed boot loader packages
    */
-  global define boolean OSRBootloaderPackagesVerified()``{
+  define boolean OSRBootloaderPackagesVerified()``{
 
       string bootloader = OSR::RequireString("bootloader_type");
       if( OSRBoot::CheckLoaderPackages(bootloader, "", "verify" ) )
@@ -381,7 +381,7 @@ these packages.
   /**
    * Check the boot loader version.
    */
-  global define boolean OSRBootloaderPackagesVersion()``{
+  define boolean OSRBootloaderPackagesVersion()``{
 
       string bootloader = OSR::RequireString("bootloader_type");
       if( OSRBoot::CheckLoaderPackages(bootloader,"", "version" ) )
@@ -420,7 +420,7 @@ these packages.
   }
 
 
-  global define boolean OSRBootloaderCheckInitrd() ``{
+  define boolean OSRBootloaderCheckInitrd() ``{
 
       if( OSRBoot::CheckInitrdModules("") )
       {
@@ -448,7 +448,7 @@ these packages.
    *  Checks if the boot loader configuration file exists at
    *  the standard location
    */
-  global define boolean OSRBootloaderConfExists() ``{
+  define boolean OSRBootloaderConfExists() ``{
 
       string  bootloader    = OSR::RequireString("bootloader_type");
 
@@ -482,7 +482,7 @@ these packages.
    * Check boot loader conf file,
    * e.g. /etc/lilo.conf or ( /etc/grub.conf && /boot/grub/menu.lst )
    */
-  global define boolean OSRBootloaderCheckConf()``{
+  define boolean OSRBootloaderCheckConf()``{
 
       string  bootloader    = OSR::RequireString("bootloader_type");
 
@@ -517,7 +517,7 @@ these packages.
   /**
    *
    */
-  global define boolean OSRBootloaderAskUser()``{
+  define boolean OSRBootloaderAskUser()``{
       string bootloader     = OSR::RequireString("bootloader_type");
       // summary header
       string summary_header =_("Ask User Concerning Boot Loader Configuration");
@@ -579,13 +579,13 @@ press \"Repair\".
   /**
    *  Reset boot loader temporary settings.
    */
-  global define boolean OSRBootloaderReset() ``{
+  define boolean OSRBootloaderReset() ``{
 
       OSRSystem::SetOrgRoot();
       OSRBoot::Reset();
   }
 
-  global define symbol OSRDirectBootloader()``{
+  define symbol OSRDirectBootloader()``{
       y2milestone("Direct start boot loader");
 
       OSRBoot::root_device = OSRDirect::mounted_root_partition;
@@ -704,7 +704,6 @@ boot loader.
           "reset_methods"      : [
                                       // module reset label
                       $["summary"   : _("Reset Boot Loader Settings"),
-//                        "method"    : ``(OSRBootloaderReset()), FIXME
                         "method"    : OSRBootloaderReset,
                         "provides"  : 10
                       ]
@@ -714,7 +713,6 @@ boot loader.
                       $[ "name"   : "find_config_files",
                                       // module method progress label
                          "summary"  : _("Searching configuration files..."),
-//                         "method"   : ``(OSRBootloaderSysconfigFiles()),
                          "method"   : OSRBootloaderSysconfigFiles,
                          "requires" :  ["valid_target", "root_mounted" ],
                          "provides" :  ["config_files"],
@@ -724,7 +722,6 @@ boot loader.
                       $[ "name"   : "find_bootloader_type",
                                       // module method progress label
                          "summary"  : _("Searching for boot loader..."),
-//                         "method"   : ``(OSRBootloaderType()),
                          "method"   : OSRBootloaderType,
                          "requires" :  ["config_files"],
                          "provides" :  ["bootloader_type"],
@@ -733,7 +730,6 @@ boot loader.
                       ],
                      $[ "name"    : "find_boot_root",
                          "summary"  : "",
-//                         "method"   : ``(OSRBootloaderBootRoot()),
                          "method"   : OSRBootloaderBootRoot,
                          "requires" :  ["bootloader_type"],
                          "provides" :  ["boot_device", "root_device"],
@@ -743,7 +739,6 @@ boot loader.
                       $[ "name"   : "bootloader_package_installed",
                                       // module method progress label
                          "summary"  : _("Searching for packages"),
-//                         "method"   : ``(OSRBootloaderPackagesInstalled()),
                          "method"   : OSRBootloaderPackagesInstalled,
                          "requires" :  ["bootloader_type", "boot_device", "root_device"],
                          "provides" :  ["bootloader_packages_installed"],
@@ -753,7 +748,6 @@ boot loader.
                       $[ "name" : "verify_bootloader_package",
                                       // module method progress label
                          "summary"  : _("Verifying packages..."),
-//                         "method"   : ``(OSRBootloaderPackagesVerified()),
                          "method"   : OSRBootloaderPackagesVerified,
                          "requires" :  ["bootloader_packages_installed"],
                          "provides" :  ["bootloader_packages_vertified"],
@@ -763,7 +757,6 @@ boot loader.
                       $[ "name" : "bootloader_package_version",
                                       // module method progress label
                          "summary"  : _("Checking versions..."),
-//                         "method"   : ``(OSRBootloaderPackagesVersion()),
                          "method"   : OSRBootloaderPackagesVersion,
                          "requires" :  ["bootloader_packages_vertified"],
                          "provides" :  ["bootloader_packages_version"],
@@ -773,7 +766,6 @@ boot loader.
                        $[ "name"    : "bootloader_initrd_modules",
                                       // module method progress label
                          "summary"  : _("Checking initrd modules..."),
-//                         "method"   : ``(OSRBootloaderCheckInitrd()),
                          "method"   : OSRBootloaderCheckInitrd,
                          "requires" :  ["bootloader_packages_version"],
                          "provides" :  ["bootloader_initrd_valid"],
@@ -783,7 +775,6 @@ boot loader.
                       $[ "name" : "bootloader_conf_exists",
                                       // module method progress label
                          "summary"  : _("Searching boot loader configuration file..."),
-//                         "method"   : ``(OSRBootloaderConfExists()),
                          "method"   : OSRBootloaderConfExists,
                          "requires" :  ["bootloader_initrd_valid"],
                          "provides" :  ["bootloader_conf_exists"],
@@ -793,7 +784,6 @@ boot loader.
                       $[ "name" : "bootloader_conf_check",
                                       // module method progress label
                          "summary"  : _("Checking boot loader configuration file..."),
-//                         "method"   : ``(OSRBootloaderCheckConf()),
                          "method"   : OSRBootloaderCheckConf,
                          "requires" :  ["bootloader_conf_exists"],
                          "provides" :  ["bootloader_conf_check"],
@@ -802,7 +792,6 @@ boot loader.
                       ],
                       $[ "name" : "bootloader_ask_user",
                          "summary"  : "",
-//                         "method"   : ``(OSRBootloaderAskUser()),
                          "method"   : OSRBootloaderAskUser,
                          "requires" :  ["bootloader_conf_check"],
                          "provides" :  ["bootloader_ask_user"],
@@ -815,7 +804,6 @@ boot loader.
                          "name"     : "direct_methods_booloader",
                                           // module method action label
                          "button_text"  : _("Install New Boot Loader"),
-//                         "method"       : ``(OSRDirectBootloader()),
                          "method"       : OSRDirectBootloader,
                          "initial_only" : false,
                          "description"  : _("

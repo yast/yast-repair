@@ -115,7 +115,7 @@ repair.</p>
   global define list<string> ValidPartitions(list<string> partition_list) ``{
 
       list<string> swap_possible_list = [];
-      list<string> already_swapped_on = Storage::SwappingPartitions();
+      list already_swapped_on = Storage::SwappingPartitions();
 
       foreach(string partition_item, partition_list, ``{
 

@@ -285,14 +285,14 @@
    * @param m_point the test mountpoint
    * @return list List of partition names successfully mounted to m_point.
    */
-  global define list<string> MountablePartitions(list linux_partition_list,
-						 string m_point) ``{
+  global define list<string> MountablePartitions(
+			list<string> linux_partition_list, string m_point) ``{
 
     if (Mode::test || size (linux_partition_list) == 0)
 	return linux_partition_list;
 
     // e.g.: ["/dev/hda1"]
-    list mount_possible_list	= [];
+    list<string> mount_possible_list	= [];
 
     integer i = 0;
     foreach (string partition_item, linux_partition_list, ``{
@@ -1705,7 +1705,7 @@ change the status.
   define list<term> modify_items(map nlines, string ignore_label, boolean existing)``{
 
     list<term> ret = [];
-    foreach (integer lnr, list nline, nlines , ``{
+    foreach (integer lnr, list<string> nline, nlines , ``{
 	if (existing)
 	    nline = lookup (AsciiFile::GetLine(fstab,lnr), "fields", []);
 	ret = add (ret,`item(`id(lnr), ignore_label, mergestring(nline, ", ")));

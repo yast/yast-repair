@@ -39,7 +39,7 @@
 
   /**
    */
-  global define boolean OSRInitSelectFloppy() ``{
+  define boolean OSRInitSelectFloppy() ``{
 
       /////////////////////////////////////////////////////////////////////////
       //
@@ -57,8 +57,9 @@
       }
       else if ( size( StorageDevices::FloppyDrives)  > 1 )
       {
-	list drives = maplist (map floppy, StorageDevices::FloppyDrives, ``{
-	    return floppy["dev_name"]:"";
+	list<string> drives = (list<string>) maplist (
+	    map floppy, StorageDevices::FloppyDrives, ``{
+		return floppy["dev_name"]:"";
 	});
 
         OSRSummary::DetectOK("",
@@ -94,7 +95,7 @@ devices for later use."),
       return true;
   }
 
-  global define boolean OSRInitTarget()``{
+  define boolean OSRInitTarget()``{
 //FIXME: value of "repair_target" is not used anywhere!!
 
       // summary text
@@ -126,7 +127,7 @@ devices for later use."),
    *  @return map The map that contains all information about
    *  the module osr_module_init.
    */
-  global define map OSRInitInit() ``{
+  define map OSRInitInit() ``{
 
       y2debug("OSRInitInit");
 
@@ -147,21 +148,21 @@ devices for later use."),
         "detect_methods" :  [
                             // module method progress label
             $[ "summary"  : _("Probing floppy..."),
-//               "method"   : ``(OSRInitSelectFloppy()) ,
                "method"   : OSRInitSelectFloppy,
                "requires" : [],
                "provides" : [ "has_floppy"],
                "group"    : "init",
-               "progress" : 10
+               "progress" : 10,
+	       "name"		: "init_floppy",
             ],
                             // module method progress label
             $[ "summary"  : _("Initialize Target System"),
-//               "method"   : ``(OSRInitTarget()), FIXME pointer
                "method"   : OSRInitTarget,
                "requires" : [],
                "provides" : ["repair_target"],
                "group"    : "init",
-               "progress" : 10
+               "progress" : 10,
+	       "name"		: "init_target"
             ]
         ]
       ];

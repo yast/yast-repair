@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  4 16:55:08 CET 2004 - jsuchome@suse.cz
+
+- migrated for new interpreter
+- 2.9.2
+
+-------------------------------------------------------------------
 Wed Oct 22 13:13:19 CEST 2003 - jsuchome@suse.cz
 
 - close the target before first opening pkg database (#30423)

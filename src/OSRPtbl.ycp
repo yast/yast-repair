@@ -601,7 +601,7 @@ have gpart suggest the partition table.
 		  OSRFloppy::Close();
 
 		  if (! haskey( to_recover[0]:$[], "whole_mbr") ) {
-		      list new_to_recover = [];
+		      list<map> new_to_recover = [];
 		      foreach(map p, to_recover, ``{
 			  p["create"] = true;
 			  new_to_recover = add(new_to_recover, p);
@@ -1157,19 +1157,21 @@ in fdisk or the partitioning tool.
       }
       else {
 
-	map compared		=  compare_found_with_existing(found_partitions,
-	    (list<map>)Storage::GetMainDevParam(target, "partitions" ), target);
+	map compared		=  compare_found_with_existing (
+	    found_partitions,
+	    (list<map>)Storage::GetMainDevParam (target, "partitions", []),
+	    target);
 	list<map> torecover	= ComparePtblDialog (compared, target, "Gpart");
 	      //}
 
 	  if (torecover == [] ) {
 	      return `cancel;
 	  }
-	  
+
 	  if (! Mode::test && size(torecover ) > 0  ) {
-	        
+
 	      if (fdisk_call(target_scrpath, torecover )) {
-		  
+
 		  if (CheckRestoredPtbl(target, target_scrpath ) ) {
 		      return `ok;
 		  }
@@ -1331,7 +1333,8 @@ skip the repair.
 	  }
 	  else if (ret == `ok ) {
 	      UI::CloseDialog();
-	      // FIXME function pointer???
+	      // FIXME use function pointer or eval ?
+	      // "repair_methods" are e.g. restore_original(), restore_from_floppy() ...
 	      ret = (symbol) eval (
 		repair_methods[ selected, "method"]:``{ return `error;});
 

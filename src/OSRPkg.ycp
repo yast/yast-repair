@@ -15,6 +15,7 @@
     textdomain "repair";
 
     import "Kernel";
+    import "Packages";
     import "PackageCallbacks";
     import "Mode";
     import "Report";
@@ -137,7 +138,7 @@
 
     // list of packages in minimal selection (read it just after pkg target is
     // initialized to avoid bug #30423)
-    list minimal_selection = [];
+    list<string> minimal_selection = [];
 
     // general help text about package database
     string default_package_help  = _("
@@ -190,10 +191,13 @@ is not possible.</P>
 	Reset();
     }
 
-    define list get_minimal_selection () ``{
+    define list<string> get_minimal_selection () ``{
 
 	if (minimal_selection == [] || minimal_selection == nil)
-	    minimal_selection = Pkg::SelectionContent("Minimal", false, "");
+	{
+	    minimal_selection = (list<string>)
+		Pkg::SelectionContent("Minimal", false, "");
+	}
 	return minimal_selection;
     }
 
@@ -220,7 +224,6 @@ is not possible.</P>
 		//change root for the Package module call
 		OSRSystem::SetOrgRoot();
 
-		import "Packages";
 		Packages::Init (true);
 
 		architecture_packages = Packages::ComputeSystemPackageList();
@@ -909,7 +912,7 @@ package.</P>
 			}
 		    });
 
-		    ok = ok && Pkg::PkgSolve ();
+		    ok = ok && Pkg::PkgSolve (false);
 
 		    y2milestone("Solving dependencies returned %1", ok );
 
