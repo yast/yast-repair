@@ -623,7 +623,7 @@ Repairing %1 file system of partition
 
 	  y2milestone("repair ext2/ext3 filesystem on partition %1", check_partition);
 
-	  string command = sformat("/sbin/fsck.ext2 -p -y -f %1 %2", fsck_options, check_partition );
+	  string command = sformat("/sbin/fsck.ext2 -p -f %1 %2", fsck_options, check_partition );
 	  boolean repair_ext2fs = OSRExecute::CommandProgress(.local.bash,command ,file_name);
 
 	  // TODO what is if fsck.ext2 requires y y y y for del indo XX ...
@@ -636,7 +636,7 @@ Repairing %1 file system of partition
 	  
       }
    
-      y2milestone("not ext2 filesystem repaired successful.");
+      y2milestone("ext2 filesystem not successful repaired.");
       return false;
   }
 		   
