@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 23 17:15:20 CET 2004 - jsuchome@suse.cz
+
+- minor syntax fixes
+
+-------------------------------------------------------------------
 Thu Feb 19 17:28:43 CET 2004 - jsuchome@suse.cz
 
 - fixes for NI (use function pointers)
