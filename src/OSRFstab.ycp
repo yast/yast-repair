@@ -91,12 +91,14 @@
     "proc":	["proc", "/proc", "proc", "defaults", "0", "0"],
     "usb":	["usbfs", "/proc/bus/usb", "usbfs", "noauto", "0", "0"],
     "swap":	["", "swap", "swap", "pri=42", "0", "0"],
-    "cdrom":	["", "", "auto", "ro,noauto,user,exec", "0", "0"],
-    "floppy":	["", "", "auto", "noauto,user,sync", "0", "0"],
+    "cdrom":	["", "", "subfs", "fs=cdfss,ro,procuid,nosuid,nodev,exec", "0", "0"],
+    "floppy":	["", "", "subfs", "fs=floppyfss,procuid,nodev,nosuid,sync", "0", "0"],
+
     "root":	["", "", "auto", "defaults", "1", "1"],
     "zip":	["", "", "auto", "noauto,user", "0", "0"],
     "dev":	["", "", "auto", "noauto,user", "0", "0"],
-    "nfs":	["", "", "nfs", "defaults", "0", "0"]
+    "nfs":	["", "", "nfs", "defaults", "0", "0"],
+    "sys":      ["sysfs", "/sys", "sysfs", "noauto", "0", "0"]
     ];
 
   /**
@@ -108,8 +110,10 @@
     "async","atime","auto","defaults","dev","exec", "noatime","noauto","nodev",
     "noexec", "nosuid","nouser","remount","ro","rw", "suid","sync","dirsync",
     "user","users",
-    "acl", "user_xattr", "iocharset=utf8" ];
-// FIXME new possible options for floppy/CD
+    "acl", "user_xattr", "iocharset=utf8",
+    "procuid", "fs=floppyfss", "fs=cdfss"
+     ];
+
   /**
    * All digits
    */
@@ -837,6 +841,14 @@ press \"Yes\".
 	else if (line[0]:"" == defs["proc",0]:"!")
 	{
 	    type = "proc";
+	    fs_spec  =true;
+	    fs_file  = line[1]:"" == defs[type,1]:"!";
+	    fs_vfstype = ( line[2]:"" == defs[type,2]:"!");
+	    fs_mntops  = ( line[3]:"" != nil && line[3]:"" != "");
+	}
+	else if (line[0]:"" == defs["sys",0]:"!")
+	{
+	    type = "sys";
 	    fs_spec  =true;
 	    fs_file  = line[1]:"" == defs[type,1]:"!";
 	    fs_vfstype = ( line[2]:"" == defs[type,2]:"!");
