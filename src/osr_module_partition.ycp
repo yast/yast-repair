@@ -809,6 +809,7 @@ partition %1"), part)
 
           if ( fs_ok == true )
           {
+	    // FIXME: unknown, not 'unkonw'! And translate it!
             OSRSummary::DetectOK(summary_header,
                 // summary text, %1 is device, %2 file system type
                 sformat(_("%1 contains valid %2 file system"),

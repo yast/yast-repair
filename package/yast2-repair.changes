@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 10 14:13:18 CEST 2003 - jsuchome@suse.cz
+
+- updated list of packages for which 'rpm -V' complains (#30381)
+  (+ check which kernel package is used)
+- 2.8.4
+
+-------------------------------------------------------------------
 Fri Sep  5 15:30:37 CEST 2003 - jsuchome@suse.cz
 
 - removed language selection dialog when running from CD
