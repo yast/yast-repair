@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 19 17:28:43 CET 2004 - jsuchome@suse.cz
+
+- fixes for NI (use function pointers)
+- 2.9.3
+
+-------------------------------------------------------------------
 Thu Feb 19 15:38:19 CET 2004 - arvin@suse.de
 
 - removed special ide recorder handling (bug #34694)

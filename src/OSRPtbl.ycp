@@ -20,6 +20,7 @@
   import "OSRExecute";
   import "OSRFloppy";
   import "OSRPopup";
+  import "OSRCommon";
 
   import "Storage";
   import "StorageDevices";
@@ -41,41 +42,41 @@
   define string floppy_help_text ();
   define string gpart_help_text ();
   define string original_help_text ();
+
   define symbol restore_from_floppy ();
   define symbol restore_original();
   define symbol expert_restore_with_gpart ();
-  global define symbol RestoreWithGpart (boolean compare_mode);
+  global define symbol RestoreWithGpart ();
 
   /**
    * All repair methods
    */
   map repair_methods = $[
-			 `floppy : $[
-				     "header" :  _("&Copy Saved Partition Table from Floppy"),
-				     "help"   : ``(floppy_help_text()),
-				     "method" : ``(restore_from_floppy())
-			 ],
-			 `gpart : $[
-				    "header"  : _("Have &gpart Suggest Partition Table"),
-				    "help"    : ``(gpart_help_text()),
-				    "method"  : ``(RestoreWithGpart(false)),
-				    "default" : true
-			 ],
-			 `gpart_e : $[
-				    "header"  : _("Have g&part Suggest Partition Table (Expert Mode)"),
-				    "help"    : ``(gpart_help_text()),
-				    "method"  : ``(expert_restore_with_gpart()),
-				    "default" : true
-			 ],
-			 `original : $[
-				       "header" :  _("&Restore Original Partition Table"),
-				       "help"   : ``(original_help_text()),
-				       "method" : ``(restore_original()),
-				       "enabled" : false
-			 ]
+	 `floppy : $[
+	    "header" : _("&Copy Saved Partition Table from Floppy"),
+	    "help"   : floppy_help_text,
+	    "method" : restore_from_floppy
+	 ],
+	 `gpart : $[
+	    "header"  : _("Have &gpart Suggest Partition Table"),
+	    "help"    : gpart_help_text,
+	    "method"  : RestoreWithGpart,
+	    "default" : true
+	 ],
+	 `gpart_e : $[
+	    "header"  : _("Have g&part Suggest Partition Table (Expert Mode)"),
+	    "help"    : gpart_help_text,
+	    "method"  : expert_restore_with_gpart,
+	    "default" : true
+	 ],
+	 `original : $[
+	    "header" :  _("&Restore Original Partition Table"),
+	    "help"   : original_help_text,
+	    "method" : restore_original,
+	    "enabled" : false
+	 ]
   ];
 
-  
   /**
    * The harddisk name. e.g.: /dev/hda
    */
@@ -87,7 +88,6 @@
   path	 target_scrpath = .;
 
 
-  
   /**
    * At the first call of the OSRPtbl module the constructor saves all
    * mbr's to the YaST"2.tmp Directory. The names of the randomly
@@ -497,7 +497,7 @@ in the table and press \"Recover\".
 			      torecover, args );
       /////////////////////////////////////////////////////
 	  repair_methods[ `original,  "enabled"] = true;
-	  
+
 	  Storage::ReReadTargetMap();
       }
       else {
@@ -769,7 +769,7 @@ quite a while if this option is given. Be patient.</P>
     } until( ret == `ok || ret == `cancel );
     UI::CloseDialog();
 
-    if (ret == `ok ) ret = RestoreWithGpart(false);
+    if (ret == `ok ) ret = RestoreWithGpart ();
 
     gpart_expert_options = "";
     return  ret;
@@ -779,7 +779,7 @@ quite a while if this option is given. Be patient.</P>
   define map compare_found_with_existing (  list<map> found_partitions,
 					    list<map> existing_partitions,
 					    string target) ``{
-      map ret 		    = $[];
+      map ret		    = $[];
 
       foreach(map paritition, found_partitions, ``{
 
@@ -794,7 +794,6 @@ quite a while if this option is given. Be patient.</P>
 	  {
 	      integer found_start = paritition["region",0]:0;
 	      integer found_end   = paritition["region",0]:0 + paritition["region", 1]:0  -1;
-	         
 	      foreach(map e_part,  existing_partitions, ``{
 		  integer existing_start = e_part["region", 0]:0;
 		  integer existing_end   = e_part["region", 0]:0 + e_part["region", 1]:0 -1;
@@ -825,10 +824,8 @@ quite a while if this option is given. Be patient.</P>
       {
 	  ret["existing"] = existing_partitions;
       }
-      
       return ret;
   }
-  
 
   define string partition_info(map part , string dev )``{
       return sformat(_("cylinders %1-%2, "), part["region", 0]:0 , part["region",0]:0 + part["region",1]:0 -1) +
@@ -1022,14 +1019,13 @@ conflict is not possible.
   /**
    * Restoring a partition tables with gpart.
    */
-  global define symbol RestoreWithGpart(boolean compare_mode )``{
+  global define symbol RestoreWithGpart () ``{
 
       /////////////////////////////////////////////////////////////////////////
       //
       //  Repair partition table with gpart
       //
       /////////////////////////////////////////////////////////////////////////
-
       list<map> found_partitions	= [];
       string gpart_file	= (string) SCR::Read(.target.tmpdir) + "/gpart";
 
@@ -1302,7 +1298,6 @@ partition table of %2 with the backup.
 	  if (! rd["enabled"]:true ) r_button = add( r_button , `opt(`disabled));
 	  r_button      = add( r_button ,   rd["header"]:"");
 	  r_button      = add( r_button,    rd["default"]:false );
-					 
 	  r_options = add( r_options , `Left( r_button ));
       });
 
@@ -1321,38 +1316,40 @@ skip the repair.
 	  y2error("could not open main dialog");
 	  return `error;
       }
-
       symbol ret     = `ok;
       repeat {
-	  ret             = (symbol) UI::UserInput();
-	  symbol selected = (symbol) UI::QueryWidget(`id(`rb), `CurrentButton);
+	ret             = (symbol) UI::UserInput();
+	symbol selected = (symbol) UI::QueryWidget(`id(`rb), `CurrentButton);
 
-	  if (ret == `help ) {
-	      Popup::LongText( OSRPopup::help_headline,
-            `RichText( eval( repair_methods[selected,"help"]:"")), 50, 20);
-	  }
-	  else if (ret == `ok ) {
-	      UI::CloseDialog();
-	      // FIXME use function pointer or eval ?
-	      // "repair_methods" are e.g. restore_original(), restore_from_floppy() ...
-	      ret = (symbol) eval (
-		repair_methods[ selected, "method"]:``{ return `error;});
+	if (ret == `help )
+	{
+	    string () help_f =
+		repair_methods[selected,"help"]:OSRCommon::EmptyString;
+	    Popup::LongText (OSRPopup::help_headline,
+		`RichText ( help_f () ), 50, 20);
+	}
+	else if (ret == `ok )
+	{
+	    UI::CloseDialog();
+	    symbol () f =
+		repair_methods [selected,"method"]:OSRCommon::SymbolError;
+	    ret = f ();
 
-	      // if ret == `cancel || `abort || `error 
-	      if (ret != `ok )  {
-		  if (! OSRPopup::OpenMainRepairDialog( sformat(_("Repair partition table %1."),target ), error_text, r_options ))
-		  {
-		      y2error("could not open main dialog");
-		      return `error;
-		  }
-		  ret = `again;
-	      }
-	  }
-    	
-      } until( ret == `cancel || ret == `abort || ret == `ok );	      
-    
+	    if (ret != `ok )
+	    {
+		if (! OSRPopup::OpenMainRepairDialog (
+			// dialog headline
+			sformat(_("Repair partition table %1."), target ),
+			error_text, r_options ))
+		{
+		    y2error("could not open main dialog");
+		    return `error;
+		}
+		ret = `again;
+	    }
+	}
+      } until( ret == `cancel || ret == `abort || ret == `ok );
       if (ret != `ok )  UI::CloseDialog();
-
       return ret;
   }
 

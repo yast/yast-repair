@@ -40,15 +40,6 @@
     global string mounted_root_partition = "";
 
     /**
-     * Default function, called when direct method is not defined
-     * @return `error
-     */
-     define symbol ErrorDirect () ``{
-	y2error("direct method not found");
-	return `error;
-    }
-
-    /**
      * Reset the module settings.
      * Don`t reset direct_methods.
      */
@@ -211,7 +202,7 @@
 	    if (method_data["client"]:"" != "")
 		WFM::CallFunction (method_data["client"]:"");
 
-	    symbol () f = method_data["method"]:ErrorDirect;
+	    symbol () f = method_data["method"]:OSRCommon::SymbolError;
 	    ret = f ();
 
 	    OSRSystem::SetOrgRoot();

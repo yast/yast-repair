@@ -674,7 +674,7 @@ database was not successful.
 
 	if (! ret )
 	{
-	    y2error("Not found packages that belong to the minimal selection: %1" ,missing_packages );
+	    y2error ("These packages belonging to the minimal selection were not found: %1", missing_packages);
 	    // set information for repair dialog
 	    install_missing_dialog_data = [
 					   _("Missing Packages"),
@@ -737,17 +737,19 @@ install the missing packages.</P>
 
 	list<string> check_packages = toset(get_verify_packages(what));
 
-	
 	if (check_packages == nil ||  size(check_packages) == 0 )
 	{
 	    y2error("No packages to verify found. Stop verify and return error.");
 	    return `error;
 	}
 
-	string headline = ( what != "all" ) ? _("Verifying base packages...") : _("Verifying all installed packages...");
-	
+	// dialog headline
+	string headline = ( what != "all" ) ? _("Verifying base packages...") :
+	// dialog headline
+	_("Verifying all installed packages...");
+
 	// open dialog
-	if (! OSRPkgUI::OpenVerifyDialog( size(check_packages), headline , expert_mode) )
+	if (! OSRPkgUI::OpenVerifyDialog (size(check_packages), headline , expert_mode) )
 	{
 	    y2error("Verify Dialog can not be opened");
 	    return `error;
@@ -784,12 +786,6 @@ install the missing packages.</P>
 
 		    if (! haskey(OSRPkgVerify::verified_packages, p ) && ret != `abort && ret != `cancel)
 		    {
-			/* FIXME - check if it works
-			if (!OSRPkgVerify::Verify (p, root_mountpoint) )
-			{
-			    missing_packages = add(missing_packages, p );
-			}
-			*/
 			boolean ver = OSRPkgVerify::Verify (p, root_mountpoint);
 			OSRPkgUI::AddPackageSummary (
 			    p, OSRPkgVerify::verified_packages [p]:$[] );

@@ -157,15 +157,6 @@
    */
   integer max_index_detect_loop     = 3;
 
-
-    /**
-     * Function that could be used as a default in lookups for functin pointers
-     * @return false
-     */
-    define boolean False () ``{
-	return false;
-    }
-
   /**
    * Reset all.
    */
@@ -334,19 +325,11 @@ Error during initialization.
 
     OSRLogFile::Add (sformat("List of modules:\n%1\n", module_function_list));
 
-    // add .init to the symbols, e.g.:
-    // `osr_module_init() -> `osr_module_init(.init)
-    /* FIXME not term any more...
-    module_function_list = maplist (term n, module_function_list,
-	``( add (n, .init)));
-    */
-
     // execute the init-functions of all modules in the module-list
     while ((index >= 0) && (index < size( module_function_list)))
     {
 	// result of this evaluation is the module_map of the specific module
 	map result_map = $[];
-y2internal ("mod: %1", module_function_list[index]:nil);
 	if (module_function_list [index]:"" != "")
 	    result_map = (map)
 		WFM::CallFunction (module_function_list[index]:"", [ .init ]);
@@ -534,7 +517,8 @@ modules were successfully solved.
 		  OSRLogFile::Add(sformat("Detection method with the summary :%1 could not be executed.
 The conditions are not complied.",module_detection_methods["summary"]:""));
 
-		  y2error("Skip detection method (requires not solved ) %1", lookup(method_map , "method", ``(osr_empty())));
+		  y2error ("Skip detection method (requires not solved ) %1",
+		    method_map["name"]:"");
 		  return true;
 	      }
 	  }
@@ -554,10 +538,10 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
       // for every module
       while( reset_module_index >= 0 ) {
 
-	  string 	reset_module_name = module_sequence[reset_module_index]:"";
-	  list<map>   	reset_methods     = module_reset_methods[reset_module_name]:[];
-	  integer 	index_reset  	  = 0;
-	  
+	  string reset_module_name = module_sequence[reset_module_index]:"";
+	  list<map> reset_methods  = module_reset_methods[reset_module_name]:[];
+	  integer index_reset	   = 0;
+
 	  while( index_reset <= size( reset_methods )) {
 	      map current_reset_map = reset_methods[index_reset]:$[];
 
@@ -565,14 +549,16 @@ The conditions are not complied.",module_detection_methods["summary"]:""));
 	      {
 		  if (haskey (current_reset_map , "method"))
 		  {
-		    boolean () f = current_reset_map["method"]:False;
-		    if(f ())
+		    boolean () f = current_reset_map["method"]:OSRCommon::False;
+		    if (f())
 		    {
-			y2milestone("%1 : was successfull", current_reset_map["summary"]:"");
+			y2milestone("%1 : was successfull",
+			    current_reset_map["summary"]:"");
 		    }
 		    else
 		    {
-			y2milestone("%1 : was not successfull", current_reset_map["summary"]:"");
+			y2milestone("%1 : was not successfull",
+			    current_reset_map["summary"]:"");
 		    }
 		  }
 	      }
@@ -757,7 +743,8 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 	    // ret is boolean and not used at the moment
 	    if (haskey (OSRCommon::current_detect_map, "method"))
 	    {
-		boolean () f = OSRCommon::current_detect_map["method"]:False;
+		boolean () f =
+		    OSRCommon::current_detect_map["method"]:OSRCommon::False;
 		f ();
 	    }
 
@@ -846,7 +833,7 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 		    -> go to the next detection method
 		    */
 
-		// FIXME no restarting is done here, so why is DetectError here?
+		// TODO no restarting is done here, so why is DetectError here?
 		// DetectError:
 		// if a "normal" error was detected but no repair method started
 		// restart the current detection method
@@ -1090,7 +1077,7 @@ y2warning ("detect map: %1", OSRCommon::current_detect_map);
 
       if (! haskey ( global_provides, name ))
       {
-	  y2error("The required value \"%1\" is not yet set.", name);
+	  y2warning ("The required value \"%1\" is not yet set.", name);
       }
 
       return global_provides[ name]:false;
