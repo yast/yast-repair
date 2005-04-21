@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=systemprotocol
+Icon=yast-messages
 Exec=/sbin/yast2 view_anymsg /var/log/messages
 
 Name=View system log
