@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=startprotocol
+Icon=yast-bootmsg
 Exec=/sbin/yast2 view_anymsg /var/log/boot.msg
 
 Name=View start-up log
