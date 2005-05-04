@@ -290,10 +290,10 @@
    *  @example string result = OSRPopup::RadioButtonGroup("Test", "This is just a test.", ["a", "b", "c"], "b", true);
    */
   global define string RadioButtonGroup(string headline, string message,
-					list<string> item_list, string default,
-					boolean strict) ``{
+					list<string> item_list,
+					string default_val, boolean strict) ``{
 
-      string result = default;
+      string result = default_val;
       if (OSRMode::automatic || OSRMode::detection )
       {
 	  return "";
@@ -317,7 +317,7 @@
 	// if the current radio button is the default enable it
 	term rb  = `Left (
 	    `RadioButton (`id(i), item,
-		((item == default) || ((default == "") && (i == 0)))
+		((item == default_val) || ((default_val == "") && (i == 0)))
 	));
 	rbs = add(rbs, rb);
 	i   = i + 1;
@@ -335,7 +335,7 @@
       {
 	  integer current = (integer)
 	    UI::QueryWidget(`id(`rb_group), `CurrentButton);
-	  result	  = item_list[current]:default;
+	  result	  = item_list[current]:default_val;
       }
       else {
 	  result = "";
@@ -372,10 +372,10 @@
    */
   global define string RadioButtonGroupText(string headline, string message,
 					    list<list> item_list,
-					    string default,
+					    string default_val,
 					    string cancel, boolean strict) ``{
 
-      string result = default;
+      string result = default_val;
 
       if (OSRMode::automatic || OSRMode::detection )
       {
@@ -404,12 +404,12 @@
 	  // create a radio button for the current item
 	  // if the current radio button is the default enable it
 	  term rb  = `Left(
-		      `RadioButton(
-				   `id(i),
-				   (item_text == "") ? item_key : item_key + " - " + item_text,
-				   ((item_key == default) || ((default == "") && (i == 0)))  // enable the specified default
-				   )
-		      );
+	    `RadioButton (`id(i),
+		(item_text == "") ? item_key : item_key + " - " + item_text,
+		// enable the specified default
+		((item_key == default_val) || ((default_val == "") && (i == 0)))
+	    )
+	  );
 
 	  // add the current radio button to the radio buttons
 	  rbs = add(rbs, rb);
