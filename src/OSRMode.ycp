@@ -72,9 +72,9 @@
 	    // error popup
 	    Report::Error(_("
 Finish installation before
-starting the YaST2 repair system.
+starting the repair system.
 
-YaST2 halts now.
+Halting the repair system.
 "));
 	    return false;
 	}

@@ -67,7 +67,7 @@
         // let the user select the floppy device to use
         OSRFloppy::floppy_device = OSRPopup::RadioButtonGroup(
 	    // popup headline
-	    _("Select one of the floppy devices"),
+	    _("Select the Floppy Device"),
 	    // radibutton group description
             _("Select one of the floppy
 devices for later use."),
@@ -94,7 +94,7 @@ devices for later use."),
   define boolean OSRInitTarget() {
 
       // summary text
-      OSRSummary::DetectOK("", _("Target system initialized."));
+      OSRSummary::DetectOK("", _("Target system initialized"));
 
       // if the rescue-system is launched from a running Linux-system
       // the target-directory is empty, else "/mnt"
@@ -133,7 +133,7 @@ devices for later use."),
         "global_entries" : $[
                      "init" : $[
                                   // module action label
-                        "text"  : _("Init Repair System"),
+                        "text"  : _("Initialize Repair System"),
                                   // module helptext
                         "help"  : _("TODO"),
                         "mode"  : "forall"
@@ -151,7 +151,7 @@ devices for later use."),
 	       "name"		: "init_floppy",
             ],
                             // module method progress label
-            $[ "summary"  : _("Initialize Target System"),
+            $[ "summary"  : _("Initializing target system..."),
                "method"   : OSRInitTarget,
                "requires" : [],
                "provides" : ["repair_target"],

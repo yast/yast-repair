@@ -79,7 +79,7 @@ global string current_direct_name	= "";
 /**
  * The name of the repair and rescue tool.
  */
-global string tool_name		= _("YaST System Repair");
+global string tool_name		= _("System Repair");
 
 
 // ---------------------------------------------------------------------

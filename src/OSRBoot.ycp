@@ -500,7 +500,7 @@ Press Repair to install these packages.
 "),install_reason, mergestring( missing_packages, "\n" ));
 
 
-	if( OSRPopup::Repair(_("Boot loader package missing."), error_message, help_text)) {
+	if( OSRPopup::Repair(_("Boot Loader Package Missing"), error_message, help_text)) {
 
 	    OSRPkg::root_mountpoint  = root;
 	    OSRPkg::missing_packages = missing_packages;
@@ -546,18 +546,19 @@ Press Repair to install these packages.
 	{
 	    help_text = _("
 The variable INITRD_MODULES contains the list of modules
-to add to the initial RAM disk by calling the script \"mkinitrd\"
-Examples are drivers for SCSI controllers and LVM or reiserfs.
+to add to the initial RAM disk by calling the script mkinitrd.
+Examples are drivers for SCSI controllers, LVM, reiserfs.
 ");
+	    //%1 is file name, %2 is list of kernel modules
 	    error_message = sformat(_("
 The file %1 contains a list
 of modules to add to the initial
-RAM disk by calling the script \"mkinitrd\".
+RAM disk by calling the script mkinitrd.
 YaST is missing the following modules:
 
 %2
 
-Press \"Repair\" to add the missing
+Press Repair to add the missing
 modules to the initial RAM disk.
 "), needed_config_files["initrd"]:"", mergestring( missing , "\n" ));
 
@@ -572,7 +573,8 @@ modules to the initial RAM disk.
      * Wirte initrd modules and call mkinitrd
      */
     global define symbol RepairInitrdModules()``{
-	if ( ! OSRPopup::Repair(_("Initrd modules missing."), error_message, help_text) ) {
+	// initrd is case-sensitive
+	if ( ! OSRPopup::Repair(_("initrd Modules Missing"), error_message, help_text) ) {
 		return `cancel;
 	}
 	boolean ret           = true;
@@ -599,7 +601,7 @@ modules to the initial RAM disk.
 Display the log file?
 ")))
             {
-                Popup::ShowFile( _("The Output of the Script mkinitrd:"), "/var/log/YaST2/y2logmkinitrd" );
+                Popup::ShowFile( _("The Output of the Script mkinitrd"), "/var/log/YaST2/y2logmkinitrd" );
             }
         }
 	if( ret ) return `ok;
@@ -694,11 +696,11 @@ file is not valid.
 The configuration file contains defective
 data needed for booting the Linux system.
 
-Press \"Repair\" to have YaST generate a new
-configuration file.
+Press Repair to generate a new
+configuration file automatically.
 
 If you are sure your configuration file
-contains no errors, press \"Skip\".
+contains no errors, press Skip.
 ");
 	    return false;
 	}
@@ -1181,8 +1183,8 @@ configuration files:</p>
 	    ],"<br>")) +
 
 // help text 2/4
-_("<P>YaST found the following files
-that are not valid:</p>
+_("<P>The following files
+are not valid:</p>
 ") +
 
 	    sformat ("<p>%1</p>", mergestring (invalid_config_files, "<br>")) +
@@ -1202,12 +1204,12 @@ configuration is recommended.</p>
 The configuration of the boot loader
 contains errors.
 
-Press \"Repair\" to have YaST generate a new
-configuration.
+Press Repair to generate a new
+configuration automatically.
 
 If you are sure your configuration
 contains no errors and your system
-is bootable, press \"Skip\".
+is bootable, press Skip.
 ");
 
 	    return false;
@@ -1292,7 +1294,7 @@ is bootable, press \"Skip\".
 	if ( show_message  )
 	{
 	    // popup headline
-	    if ( !OSRPopup::Repair (_("Boot loader error detected."),
+	    if ( !OSRPopup::Repair (_("Boot Loader Error Detected"),
 		    error_message, help_text))
 	    {
 		return `cancel;
@@ -1316,15 +1318,15 @@ is bootable, press \"Skip\".
     global define symbol InstallNewLoader()``{
 
 	error_message = _("
-YaST cannot find a valid boot loader
-installation. Therefore, installing
+No valid boot loader installation
+can be found. Installing
 a new boot loader is recommended.
 
 If you are sure your system boots
 correctly, it is not necessary to
 reinstall the boot loader.
 
-Otherwise, press \"Repair\"
+Otherwise, press Repair
 to install a new boot loader.
 ");
 
@@ -1357,8 +1359,7 @@ which system to start.</P>
 	    y2error("repairing %1 is not possible", needed_config_files["modules"]:"");
 	    Report::Error(sformat (_("
 The file %1 was not found.
-YaST cannot recover this
-file.
+It cannot be recovered.
 "), needed_config_files["modules"]:""));
 	    return `error;
 	}
@@ -1366,19 +1367,19 @@ file.
 	list<string> t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
 
 	error_message = sformat(_("
-YaST cannot find the following
-configuration files:
+The following configuration 
+files cannot be found:
 
 %1
 
-Therefore, installing a new
+Installing a new
 boot loader is recommended.
 
 If you are sure your system boots
 correctly, it is not necessary to
 reinstall the boot loader.
 
-Otherwise, press \"Repair\"
+Otherwise, press Repair
 to install a new boot loader.
 "), mergestring(maplist(string file, not_valid_files, ``(file)), "\n"));
 

@@ -57,7 +57,6 @@
      * Used in OSR module at the initial sequence.
      * @param new_entries A list that describe the new direct repair entries.
      */
-//    global define void AddEntries(list new_entries, term client ) ``{
     global define void AddEntries(list new_entries, string client ) ``{
 
 	foreach (map p, (list<map<string,any> >)new_entries, ``{
@@ -78,7 +77,7 @@
 	list<term> menu_button_items = [];
 	term direct_items	     = `VBox (
 	    // header (options with buttons will follow)
-	    `VSpacing(1), `Left(`Label(_("Select One Option:"))));
+	    `VSpacing(1), `Left(`Label(_("Repair Tools"))));
 
 	// layout with buttons
 	if (size (direct_methods) <= max_direct_push_buttons)
@@ -169,7 +168,7 @@
 	    // prepare executing direct method
 	    UI::OpenDialog (
 		// wait popup
-		`Label(_("Reading system settings. Please wait...")));
+		`Label(_("Reading system settings...")));
 
 	    OSRFstab::Reset();
 	    OSRFsck::LoadAllFsModules();

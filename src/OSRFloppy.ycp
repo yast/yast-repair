@@ -132,7 +132,7 @@ System information cannot be read.
 
 	  // error popup (%1 is mount point, e.g. /media/floppy)
 	  string message = sformat (_("
-The default floppy mount point \"%1\"
+The default floppy mount point %1
 does not exist and cannot be created.
 "), mount_point);
 
@@ -264,6 +264,7 @@ CloseFloppy(...) to close floppy device.");
 
       Reset( use_ui );
 
+      //progress bar label
       if  ( use_ui ) OpenFloppyDialog( _("Checking floppy device..."), count_io_files + 4 );
       if ( ! CheckPresent()) return false;
 

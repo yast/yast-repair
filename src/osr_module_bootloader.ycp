@@ -107,11 +107,11 @@
                         // summary header
                        _("Installing new boot loader..."),
                         // summary text
-                       _("New boot loader installation was successful."),
+                       _("New boot loader installation was successful"),
                         // summary text
-                       _("Skipped installing a new boot loader."),
+                       _("Skipped installing a new boot loader"),
                         // summary text
-                       _("New boot loader installation was not successful."));
+                       _("New boot loader installation was not successful"));
 
       }
       return true;
@@ -194,14 +194,14 @@
       if( size ( not_found ) > 0 )
       {
         // popup header
-        string header = _("No valid root partition was found");
+        string header = _("No Valid Root Partition");
         // popup text
         string text =  _("
-YaST could not detect any valid root partitions
+No valid root partitions detected
 in your system. Probably, there is no valid
 Linux system on this computer. If you are
-sure you installed a Linux system, press
-\"Retry Scanning\". Otherwise, skip scanning
+sure that you installed a Linux system, 
+press Retry Scanning. Otherwise, skip scanning
 the system and start a new installation.
 ");
 
@@ -211,11 +211,11 @@ the system and start a new installation.
             header =  _("No Valid Boot Partition Found");
             // popup text
             text =  _("
-YaST could not detect any valid boot partitions
+No valid boot partitions detected
 in your system. Probably, there is no valid
 Linux system on this computer. If you are
-sure you installed a Linux system, press
-\"Retry Scanning\". Otherwise, skip scanning
+sure that you installed a Linux system, 
+press Retry Scanning. Otherwise, skip scanning
 the system and start a new installation.
 ");
         }
@@ -302,15 +302,15 @@ system.
         OSRSummary::DetectError("", _("Cannot initialize package database."));
 
         // popup header
-        if( Popup::AnyQuestion(_("YaST cannot initialize the package database."),
+        if( Popup::AnyQuestion(_("Cannot Initialize the Package Database"),
             // popup text
             _("
-YaST could not initialize the package database.
+Could not initialize the package database.
 Probably, there is no valid package database
 on this computer.
 To check the package database,
-press \"Retry Scanning\".
-Otherwise press \"Cancel\" and continue with other tests.
+press Retry Scanning.
+Otherwise press Cancel and continue with other tests.
 "),
             // button label
             _("&Retry Scanning"), Label::CancelButton(), `focus_yes) )
@@ -335,7 +335,7 @@ Otherwise press \"Cancel\" and continue with other tests.
 
         OSRSummary::DetectOK("", sformat(
 // summary text, %1 are packages
-_("Packages needed by the boot loader were <br>checked successfully:<br>%1"),
+_("Packages needed by the boot loader were checked successfully:<br>%1"),
             mergestring(OSRBoot::BootloaderPackages(bootloader), "<br>" )));
 
         OSRCommon::ProvideBoolean("bootloader_packages_vertified", true);
@@ -352,7 +352,7 @@ _("Packages needed by the boot loader were not checked successfully:<br>%1"),
             OSRBoot::InstallLoaderPackage(bootloader, "", _("
 The state of the following packages
 needed by the boot loader is not
-valid. Press \"Repair\" to update
+valid. Press Repair to update
 these packages.
 ")),
                         // summary header
@@ -376,7 +376,7 @@ these packages.
       if( OSRBoot::CheckLoaderPackages(bootloader,"", "version" ) )
       {
         // summary text
-        OSRSummary::DetectOK("", sformat(_("Package versions are ok:<br>%1"),
+        OSRSummary::DetectOK("", sformat(_("Package versions are OK:<br>%1"),
             mergestring(OSRBoot::PackageVersionStrings(bootloader,
                 OSRBoot::BootloaderPackages(bootloader)), "<br>")));
 
@@ -392,8 +392,8 @@ these packages.
         OSRSummary::SetRepairSummary(
             // popup text
             OSRBoot::InstallLoaderPackage(bootloader, "", _("
-The version of the following packages
-is obsolete. Press \"Repair\" to update
+The following packages are 
+obsolete. Press Repair to update
 these packages.
 ")),
                         // summary header
@@ -444,24 +444,24 @@ these packages.
       if ( OSRBoot::ExistsConf(bootloader, OSRSystem::TargetRoot() ))
       {
         // summary text
-        OSRSummary::DetectOK("",_("File exists."));
+        OSRSummary::DetectOK("",_("File exists"));
         OSRCommon::ProvideBoolean("bootloader_conf_exists", true);
       }
       else
       {
         OSRSummary::DetectError("",
             // summary text
-            _("Configuration file was not found or is empty."));
+            _("Configuration file was not found or is empty"));
 
         OSRSummary::SetRepairSummary(OSRBoot::RepairConfig(bootloader,true),
                         // summary header
                         _("Creating new boot loader configuration file..."),
                         // summary text
-                        _("Creation was not successful."),
+                        _("Creation was not successful"),
                         // summary text
                         _("Creation was skipped"),
                         // summary text
-                        _("Creation was not successful."));
+                        _("Creation was not successful"));
       }
       return true;
   };
@@ -481,23 +481,23 @@ these packages.
       {
         OSRSummary::DetectOK("",
             // summary text
-            _("Boot loader configuration file check was successful."));
+            _("Boot loader configuration file check was successful"));
         OSRCommon::ProvideBoolean("bootloader_conf_check", true);
       }
       else
       {
         OSRSummary::DetectError("",
             // summary text
-            _("Boot loader configuration file contains errors."));
+            _("Boot loader configuration file contains errors"));
         OSRSummary::SetRepairSummary(OSRBoot::RepairConfig(bootloader,true),
                         // summary header
                         _("Repairing boot loader configuration..."),
                         // summary text
-                        _("Repair was successful."),
+                        _("Repair was successful"),
                         // summary text
-                        _("Repair was skipped."),
+                        _("Repair was skipped"),
                         // summary text
-                        _("Repair was not successful."));
+                        _("Repair was not successful"));
       }
       return true;
   }
@@ -509,7 +509,7 @@ these packages.
   define boolean OSRBootloaderAskUser()``{
       string bootloader     = OSRCommon::RequireString("bootloader_type");
       // summary header
-      string summary_header =_("Ask User Concerning Boot Loader Configuration");
+      string summary_header =_("Asking about boot loader...");
 
       // don't start OSRBootloaderAskUser twice
       if( OSRCommon::RequireBoolean("bootloader_ask_user")) return true;
@@ -520,23 +520,23 @@ these packages.
       if( ! OSRBoot::bootloader_error_found )
       {
         // popup header
-        if ( Popup::AnyQuestion(_("YaST Boot Loader Check"),
+        if ( Popup::AnyQuestion(_("Boot Loader Check"),
             // popup text
             _("
-YaST has checked the boot loader settings
-of the system and found no error. 
+No error found in the boot loader 
+settings of the system. 
 
 It is sometimes possible that your
 boot loader is damaged anyway. The only way to
 detect such an exceptional case is to ask
 the user.
 
-If you shut down your system and it start
-correctly afterwards, you have a valid
-boot loader installation. In this case, you 
-should press \"Continue\".
+If you can shut down your system and have it 
+start correctly, you have a valid
+boot loader installation. In this case, 
+press Continue.
 If your system does not start correctly,
-press \"Repair\".
+press Repair.
 "),
             // button label
             _("&Repair"),
@@ -545,20 +545,20 @@ press \"Repair\".
             ))
       {
           // summary text
-          OSRSummary::DetectError(summary_header, _("User Found Error"));
+          OSRSummary::DetectError(summary_header, _("Error detected by user..."));
           OSRSummary::SetRepairSummary(OSRBoot::RepairConfig(bootloader,false),
                         // summary header
                         _("Repairing boot loader configuration..."),
                         // summary text
-                        _("Repair was successful."),
+                        _("Repair was successful"),
                         // summary text
-                        _("Repair was skipped."),
+                        _("Repair was skipped"),
                         // summary text
-                        _("Repair was not successful."));
+                        _("Repair was not successful"));
       }
       else {
           // summary text
-          OSRSummary::DetectOK(summary_header, _("User Found No Error"));
+          OSRSummary::DetectOK(summary_header, _("No error found..."));
       }
       }
       OSRCommon::ProvideBoolean("bootloader_ask_user", true);
@@ -665,9 +665,9 @@ press \"Repair\".
                       $[ "text" : _("Check Boot Loader Configuration"),
                                   // bootloader module helptext
                          "help" : _("
-<p><B>What is a boot loader?</B><BR>
+<p>
 The boot loader is the first thing
-you should see after you turned
+you should see after you turn
 on a computer with a Linux installion.
 Starting a Linux system without
 a boot loader is not possible.</P>
@@ -679,10 +679,10 @@ the boot loader allows you to select
 which system to start.</P>
 ") +
 
-_("<P><B>Check Boot Loader Configuration</B><BR>
-YaST tries to detect the installed boot
+_("<P>For this check, the repair system 
+tries to detect the installed boot
 loader. Afterwards, the configuration
-files of the found boot loader will be
+files of the found boot loader are
 checked. If no boot loader or an error
 in the configuration is detected, you
 have the possibility to install a new
@@ -694,8 +694,8 @@ boot loader.
           ],
           "static_provides" : $[],
           "reset_methods"      : [
-                                      // module reset label
-                      $["summary"   : _("Reset Boot Loader Settings"),
+                                      // summary
+                      $["summary"   : _("Resetting boot loader settings..."),
                         "method"    : OSRBootloaderReset,
                         "provides"  : 10
                       ]
@@ -730,7 +730,7 @@ boot loader.
                       ],
                       $[ "name"   : "bootloader_package_installed",
                                       // module method progress label
-                         "summary"  : _("Searching for packages"),
+                         "summary"  : _("Searching for packages..."),
                          "method"   : OSRBootloaderPackagesInstalled,
                          "requires" :  ["bootloader_type", "boot_device", "root_device"],
                          "provides" :  ["bootloader_packages_installed"],

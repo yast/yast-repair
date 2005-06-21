@@ -277,9 +277,9 @@ is not possible.</P>
 	    help_text  = default_package_help + damaged_package_help;
 	    // error popup
 	    error_text = _("
-YaST cannot open the package database.
+Cannot open the package database.
 Try rebuilding the package
-database or reverting a backup.
+database or reverting to a backup.
 ");
 	}
 	return target_initialized && source_initialized;
@@ -345,9 +345,10 @@ database or reverting a backup.
 	    help_text  = default_package_help + damaged_package_help;
 	    // error message: files (%1) not found
 	    error_text = sformat(_("
-YaST checked the package database and
-did not find the following files
-that belong to the package database.
+The package database was checked.
+The following files that belong 
+to the package database were not
+found.
 
 %1
 "),mergestring(not_found_files,"\n"));
@@ -435,7 +436,7 @@ the package database.
 	UI::OpenDialog (`VBox (
 	    `VSpacing(1),
 	    // wait popup label
-	    `Label(_("Rebuilding the package database. Please wait...")),
+	    `Label(_("Rebuilding the package database...")),
 	    `VSpacing(1)
 	));
 
@@ -460,14 +461,14 @@ the package database.
 		if (ret )
 		{
 		    Report::Message(_("
-YaST successfully rebuilt the package
-database.
+Successfully rebuilt the 
+package database.
 "));
 		}
 		else
 		{
 		    Report::Error(_("
-YaST could not rebuild the package
+Could not rebuild the package
 database. Revert to a backup of
 the package database.
 "));
@@ -514,12 +515,12 @@ the package database.
 							 substring(f,6,2))));
 	list<list> items = maplist(string f, dates, ``([f,""]));
 
-	// no backup was found
+	// no backup was found, %1 is path
 	if (size(items ) == 0 )
 	{
 	    Report::Error(sformat(_("
-YaST could not find any package database
-backup files. Normally, a cron job creates
+No package database backup files
+found. Normally, a cron job creates
 daily backups of the package database and
 stores the backups in the directory
 %1. However, no backup files could
@@ -529,10 +530,10 @@ Try another repair method.
 	    return false;
 	}
 
-	string selected  = OSRPopup::RadioButtonGroupText(_("Select one backup time:"),
+	string selected  = OSRPopup::RadioButtonGroupText(_("Backup to Use"),
 						   _("
-YaST found several backups
-of the package database.
+Several backups of the 
+package database found.
 Select the date (YYYY/MM/DD)
 of the backup to which 
 to revert.
@@ -593,7 +594,7 @@ database was not successful.
 	term r_options = `VBox (
 	    `Left (
 		// popup headline
-		`Label(_("Select a repair method or skip repairing."))),
+		`Label(_("Repair Method"))),
 	    `VSpacing(0.5),
 	    `Left (
 		// radio button label
@@ -733,8 +734,7 @@ database was not successful.
 		_("Missing Packages"),
 		// check for package minimum summary, 1st part (table follows)
 		_("
-YaST checked the package selection of
-the system. The following packages are
+The following packages are
 not installed."),
 
 		// check for package minimum summary, last part (below table)
@@ -742,7 +742,7 @@ not installed."),
 The listed packages belong to the minimal
 package selection. Installing these
 packages is recommended.  Press
-\"Repair \" to install all selected 
+Repair  to install all selected 
 packages in the list.
 "),
 		// check for package minimum help text 1/2
@@ -759,7 +759,7 @@ some packages are missing, %1 offers to
 install the missing packages.</P>
 "), OSRCommon::tool_name),
 		// table headline (package list follows)
-		_("&Missing Packages to Install:"),
+		_("&Missing Packages to Install"),
 		[]
 	    ];
 	}
@@ -810,9 +810,9 @@ install the missing packages.</P>
 	}
 
 	// dialog headline
-	string headline = ( what != "all" ) ? _("Verifying base packages...") :
+	string headline = ( what != "all" ) ? _("Verifying Base Packages") :
 	// dialog headline
-	_("Verifying all installed packages...");
+	_("Verifying All Installed Packages");
 
 	// open dialog
 	if (! OSRPkgUI::OpenVerifyDialog (size(check_packages), headline , expert_mode) )
@@ -901,7 +901,7 @@ install the missing packages.</P>
 		_("Unverified Packages"),
 		// package verification summary, 1st part (table follows)
 		_("
-YaST verified the installed software
+Verified the installed software
 and found problems in the following
 packages.
 "),
@@ -911,12 +911,12 @@ These packages probably differ from their
 originally installed versions. Check
 the packages to reinstall and start
 the reinstallation process by pressing
-\"Repair\".
+Repair.
 "),
 
 		// package verification summary, help text (%1 is button label)
 		sformat (_("
-<p>YaST has verified all installed packages. Some
+<p>All installed packages have been verified. Some
 of these packages contain errors. For details,
 see the log of the verification process.
 To open the log, press <b>%1</b>.</p>
@@ -935,7 +935,7 @@ installed and works fine. That is why you should
 reinstall only the packages that do not work properly.</p>
 "),
 		// table headline (package list follows)
-		_("Packages with Problems:"),
+		_("Packages with Problems"),
 		[ [
 		    `Right(`PushButton( `id(`protocol), protocol_label )),
 		    `protocol, OSRPkgUI::ProtocolDialog

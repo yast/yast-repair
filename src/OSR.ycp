@@ -327,10 +327,10 @@
 file \"osr_module_list.ycp\".
 YaST system repair halts now!");
 
-      // popup text: %1 is "YaST System Repair" (translated)
+      // popup text: %1 is "System Repair" (translated)
 	  Report::Error(sformat(_("
 Error during initialization.
-%1 halts now.
+Halting %1.
 "), OSRCommon::tool_name ));
 	  return false;
     }
@@ -353,11 +353,11 @@ Error during initialization.
 	  if ((result_map == nil) || (result_map == $[]))
 	  {
 	      Report::Error(sformat(
-// popup text: %1 is function name, %2 is "YaST System Repair" (translated)
+// popup text: %1 is function name, %2 is "System Repair" (translated)
 _("An error occurred during execution
-of the init functions of module: %1
+of the init functions of module %1.
 
-%2 halts now.
+Halting %2.
 "), module_function_list[index]:"", OSRCommon::tool_name ));
 
 	      y2error("An error occurred during execution of the init-functions
@@ -422,11 +422,12 @@ modules successfully solved. YaST system repair halts now!");
 	if (! OSRMode::automatic )
 	{
 	    // show error message and close the main window
+	    //%1 is translation of "System Repair"
 	    Report::Error(sformat(_("
 Not all dependencies between the
 modules were successfully solved.
 
-%1 halts now."), OSRCommon::tool_name ));
+Halting %1."), OSRCommon::tool_name ));
 	}
 	return false;
     }

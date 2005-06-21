@@ -19,8 +19,8 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-bootmsg
 Exec=/sbin/yast2 view_anymsg /var/log/boot.msg
 
-Name=View start-up log
-GenericName=This module displays the boot log (/var/log/boot.msg)
+Name=Start-Up Log
+GenericName=Display the boot log (/var/log/boot.msg)
 Name[cs]=Zobrazit startovací protokol (log)
 GenericName[cs]=Tento modul zobrazí startovací protokol (log) /var/log/boot.msg
 Name[de]=Startprotokoll anzeigen
