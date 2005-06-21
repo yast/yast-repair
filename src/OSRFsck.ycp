@@ -561,9 +561,9 @@ global define boolean Check(map part ) ``{
       // error message, %1 is filesystem type, %2 partition
       string error_message = sformat(_("
 The %1 file system of the partition %2 is corrupted.
-To repair the file system, press \"Repair\".
+To repair the file system, press Repair.
 
-Press \"Skip\" to avoid repairing.
+Press Skip if you do not want this repair.
 "), FileSystems::GetName( used_fs, "unkonwn"), check_partition );
 
       // error message
@@ -596,18 +596,18 @@ msdos (fat):   fsck.msdos</pre></p>");
 	help_text = help_text +
 _("<p>If you know what kind of file system
 you have and how to use the corresponding
-tool, close YaST and repair the
+tool, close this program and repair the
 damaged file system on your own. Otherwise,
 close this help dialog and press 
-\"Repair\" for automatic repair.</p>
+Repair for automatic repair.</p>
 ");
 
       while( true )
       {
-	  if (! OSRPopup::Repair(_("Error detected."), error_message, help_text) ) return `cancel;
+	  if (! OSRPopup::Repair(_("Error Detected"), error_message, help_text) ) return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
-			       `Label(_("Repairing file system. Please wait...")),
+			       `Label(_("Repairing file system...")),
 			       `VSpacing(1)));
 
 	  // if file exist
@@ -628,16 +628,16 @@ close this help dialog and press
 
 	  if ( ret )
 	  {
+	      //%1 is file system, %2 is partition
 	      headline = sformat(_("
-Repairing %1 file system of
-partition %2 was successful."),
+Successfully Repaired %1 on %2"),
 		FileSystems::GetName(used_fs, "unkonwn"), check_partition );
 	  }
 	  else
 	  {
+	      //%1 is file system, %2 is partition
 	      headline = sformat(_("
-Repairing %1 file system of partition
-%2 was not successful."),
+Failed Repair of %1 on %2"),
 		FileSystems::GetName(used_fs, "unkonwn"), check_partition );
 	  }
 
@@ -702,8 +702,8 @@ Repairing %1 file system of partition
     }
     else if ( last_check_return == 2 )
     {
-	// popup headline
-	if ( Popup::YesNoHeadline(_("Reiserfs Fatal Corruptions"),
+	// popup headline, reiserfs is file system
+	if (Popup::AnyQuestion (_("Fatal Corruptions on reiserfs"),
 	// popup text (yes/no)
 _("
 Checking the file system (reiserfs) reports
@@ -712,9 +712,10 @@ file system tree (reiserfsck --rebuild-tree)
 could solve the problem.
 
 To rebuild your reiserfs tree,
-press \"Yes\". Otherwise press
-\"No\" and repair the file system manually.
-")))
+press Repair. Otherwise press
+Skip and repair the file system manually.
+"),
+	    OSRPopup::repair_label, OSRPopup::skip_label,`focus_yes))
 	{
 	    command =
 		sformat("/bin/echo Yes | /sbin/reiserfsck --rebuild-tree %1",

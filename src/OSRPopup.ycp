@@ -33,7 +33,7 @@
   global string help_label	=  Label::HelpButton();
 
   // dialog caption: "YaST system repair Help"
-  global string help_headline  = OSRCommon::tool_name + _(" Help");
+  global string help_headline  = OSRCommon::tool_name + " " + _("Help");
 
   /**
    * Sublayout for other layouts.
@@ -568,7 +568,7 @@
  * @return the formatted label help text
  */
 global define string build_label_description (string label, string description) ``{
-    return sformat ("<P><B>%1</B><BR>%2</P>",
+    return sformat ("<P><B>%1</B>: %2</P>",
         mergestring (splitstring (label, "&"), ""), description);
 }
 

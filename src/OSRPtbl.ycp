@@ -129,11 +129,12 @@
    * Help text for the floppy repair method.
    */
   define string floppy_help_text() ``{
+      //%1 is device label, such as /dev/hda
       return sformat(_("
-<p><h3>No partition table found for hard disk %1.</h3></BR>
+<p><h3>No Partition Table Found for Hard Disk %1</h3></BR>
 
-Repair will search for a valid partition table of disk %1
-on the inserted floppy disk. If YaST OS Repair cannot find
+The repair system will search for a valid partition table of disk %1
+on the inserted floppy disk. If it cannot find
 one, it will start the program gpart to guess the lost
 partition table. You can decide if the information gpart
 finds is valid for your system.</p>
@@ -143,23 +144,23 @@ _("<p>gpart may be of some help when the primary partition table
 has been lost or destroyed, but it can, under no circumstances,
 replace proper disk and partition table backups. To save the
 master boot record (MBR) including the primary partition
-table to the file /tmp/hda.mbr, type
+table to the file /tmp/hda.mbr, enter the command
 
 <pre>
-$ dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
+dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
 </pre>
 
-replace /dev/hda with the block device name of the disk
+replacing /dev/hda with the block device name of the disk
 in question. This should be done for all disks in the system.
 To restore the primary partition table without overwriting
-the MBR, type
+the MBR, enter
 
 <pre>
-$ dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
+dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
 </pre></p>
 ") +
 
-_("<p>Warning: Make sure all parameters are typed as shown
+_("<p>Warning: Make sure that all parameters are entered as shown
 and the disk device is correct. Failing to do so may
 result in severe corruption of the file system. The saved file
 should be stored in a safe place like a floppy disk.</p>
@@ -177,44 +178,45 @@ also be terribly wrong. You have been warned.\"</p>");
    * Help for gpart
    */
   define string gpart_help_text()``{
+      //%1 is device label, such as /dev/hda
       return sformat(_("
-<P><h3>No partition table found for hard disk %1.</h3><BR>
+<P><h3>No Partition Table Found for Hard Disk %1</h3><BR>
 
-Repair will start gpart to guess the primary partition
+The repair system will start gpart to guess the primary partition
 table of disk %1.</p>
 "),  target) +
 
-_("<p>Gpart may be of some help when the primary partition table
+_("<p>gpart may be of some help when the primary partition table
 was lost or destroyed, but it can, under no circumstances,
 replace proper disk and partition table backups. To save the
 master boot record (MBR) including the primary partition
-table to the file /tmp/hda.mbr, type
+table to the file /tmp/hda.mbr, enter
 
 <pre>
-$ dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
+dd if=/dev/hda of=/tmp/hda.mbr bs=512 count=1
 </pre>
 
 replacing /dev/hda with the block device name of the disk
 in question. This should be done for all disks in the system.
 To restore the primary partition table without overwriting
-the MBR, type
+the MBR, enter
 
 <pre>
-$ dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
+dd if=/tmp/hda.mbr of=/dev/hda bs=1 count=64 skip=446 seek=446
 </pre></p>
 ") +
 
-_("<p>Warning: Make sure all parameters are typed as shown
+_("<p>Warning: Make sure that all parameters are typed as shown
 and the disk device is correct. Failing to do so may
 result in severe corruption of the file system. The saved file
 should be stored in a safe place like a floppy disk.</p>
 ") +
 
 _("<p>From the manual page of gpart:<br>
-It should be stressed that gpart does a very heuristic
+\"It should be stressed that gpart does a very heuristic
 job, never believe its output without any plausability
 checks. It can be easily right in its guesswork but it can
-also be terribly wrong. You have been warned.</p>");  
+also be terribly wrong. You have been warned.\"</p>");  
 
   }
 
@@ -223,10 +225,11 @@ also be terribly wrong. You have been warned.</p>");
    * Help text for restoring orginal mbr's
    */
   define string original_help_text()``{
+      //%1 is device label, such as /dev/hda
       return sformat(_("
 Before starting any scan or repair sequence,
-YaST creates a backup of the original
-partition table of the device %1.
+a backup of the original partition table 
+of the device %1 is created.
 "), target );
     
   }
@@ -319,7 +322,8 @@ Partition table was not successfully repaired.
 
       string label_status = _("Status");
       string label_name   = _("Name");
-      string label_fsid   = _("Fsid");
+      //File System ID
+      string label_fsid   = _("FSID");
       string label_start  = _("Start");
       string label_end    = _("End");
       string label_size   = _("Size");
@@ -347,18 +351,21 @@ Partition table was not successfully repaired.
 that could be recovered.</P>
 ") +
 
+	  // %1 is Ignore label
 	  OSRPopup::build_label_description( OSRPopup::ignore_label,  sformat(_("Change the status of a partition to %1."), s_ignore_label )) +
+	  // %1 is Recover label
 	  OSRPopup::build_label_description( OSRPopup::recover_label, sformat(_("Change the status of a partition to %1."), s_recover_label)) +
 
+	  //%1 is Recover label
 	  OSRPopup::build_label_description( OSRPopup::repair_label, sformat(_("If you have changed the status of all partitions for recovering
 to %1, press Repair to execute the recovery process.
 "), s_recover_label)) +
  
-	  // help_text description for table column
+	  // help_text description for table column, %1 ignore, %2 recover
 	  OSRPopup::build_label_description( label_status, sformat(_("The status of a listed partition
-can be switched between %1 and %2. YaST only
-recovers partitions with the status
-%2.
+can be switched between %1 and %2. Only
+partitions with the status
+%2 are recovered.
 "), s_ignore_label, s_recover_label )) +
 
 	  OSRPopup::build_label_description( label_name, _("Name of the partition that could be
@@ -366,12 +373,12 @@ recovered.
 ")) +
 
 	  OSRPopup::build_label_description( label_fsid, _("The file system ID of the partition.
-For example, 131 is a normal Linux partition and  6, 11, 12, and 14 are fat and fat32 partitions.
+For example, 131 is a normal Linux partition and 6, 11, 12, and 14 are fat and fat32 partitions.
 ")) +
 
 	  OSRPopup::build_label_description( label_start, _("The start cylinder of the partition.")) +
 
-	  OSRPopup::build_label_description( label_end,   _("End cylinder of the partition.")) +
+	  OSRPopup::build_label_description( label_end,   _("The end cylinder of the partition.")) +
 
 	  OSRPopup::build_label_description( label_size,  _("Size of the partition."));
 
@@ -387,11 +394,11 @@ recover the entire master boot record with all partitions.
 
       // dialog caption
       OSRPopup::OpenSuggestDialog(_("Recover Lost Partitions"),
-				  // dialog text
+				  // dialog text, %1 is device label
 				  sformat(_("
-YaST found the following partitions on device %1.
+The following partitions were found on device %1.
 To recover a partition, select the entry
-in the table and press \"Recover\".
+in the table and press Recover.
 "), dev),
 				  help_text,
 				  `VBox(`Table(`id(`table), `header(label_status, label_name, label_fsid, label_start, label_end, label_size ), items ),
@@ -482,7 +489,7 @@ in the table and press \"Recover\".
 		    "label"  : ""  ];
 
       UI::OpenDialog(`VBox(`VSpacing(1),
-			   `Label(_("Recovering partition table. Please wait...")),
+			   `Label(_("Recovering partition table...")),
 			   `VSpacing(1)));
 
       boolean result = true;
@@ -514,7 +521,9 @@ in the table and press \"Recover\".
    */
   define symbol restore_from_floppy( )``{
 
+      //%1 is device label, such as /dev/hda
       string error_message_start = sformat(_("No primary partition table was found on hard disk %1."), target );
+      //%1 is device label, such as /dev/hda
       string error_message       = sformat(_("
 
 If you have a floppy with some
@@ -536,7 +545,7 @@ and how to restore it.
       {
 	  // display that no floppy drive was detected
 	  Report::Message(_("
-YaST cannot detect a floppy drive
+Cannot detect a floppy drive
 in your system. A backup copy of the
 primary partition table could not be
 read.
@@ -544,11 +553,11 @@ read.
 	  return `error;
       }	
       else {
-	  if (! OSRPopup::Repair(_("Error detected."), error_message_start + error_message, floppy_help_text())) return `cancel;
+	  if (! OSRPopup::Repair(_("Error Detected"), error_message_start + error_message, floppy_help_text())) return `cancel;
 	  
 	  if (OSRFloppy::Open(true, 2))
 	  {
-	      OSRFloppy::NextStep(_("Searching partition table..."));
+	      OSRFloppy::NextStep(_("Searching for partition table..."));
 	      list<map> found_partitions = read_part_list_from_floppy(target);
 	      list   to_recover          = [];
 		  
@@ -586,7 +595,7 @@ partition table.
 		      else {
 			  Report::Error(_("
 Could not find a valid master boot
-record on floppy disk. Insert
+record on the floppy disk. Insert
 another floppy disk and try again or
 have gpart suggest the partition table.
 "));
@@ -699,7 +708,7 @@ have gpart suggest the partition table.
 
     // help text label
     string help_text = _("<P>
-<B>Help for Expert Mode</B>
+<BIG><B>Help for Expert Mode</B></BIG>
 </P>
 ") +
 	// help text (restorng partition)
@@ -708,7 +717,7 @@ have gpart suggest the partition table.
 gpart normally skips all sectors this entry seems
 to occupy and continues the scan from the end of
 the last possible partition. The disk scan can take
-quite a while if this option is given. Be patient.</P>
+quite a while when using this option. Be patient.</P>
 "));
 
       UI::OpenDialog( `HBox(
@@ -717,11 +726,11 @@ quite a while if this option is given. Be patient.</P>
 				     `HBox(
 					    `HSpacing(2),
 					    `VBox(
-						    // headline label
-						  `Heading(_("Select the Scan Options for gpart:")),
+						    // headline label, gpart is command
+						  `Heading(_("Scan Options for gpart")),
 						  `VSpacing(3),
 						  // checkbox label
-						  `Left(`CheckBox(`id(`extended),    _("Do Not Try To &Identify Extended Partition Tables"))),
+						  `Left(`CheckBox(`id(`extended),    _("Do Not Try to &Identify Extended Partition Tables"))),
 						  // checkbox label
 						  `Left(`CheckBox(`id(`skip_errors), _("Do Not &Skip Disk Read Errors"))),
 						  `Left(`CheckBox(`id(`full_scan),  full_label  )),
@@ -823,12 +832,12 @@ quite a while if this option is given. Be patient.</P>
       map maindev	= Storage::GetMainDev (dev);
       return
 	// partition info 1/3, %1,%2 are numbers
-	sformat (_("cylinders %1-%2, "),
+	sformat (_("Cylinders %1-%2, "),
 	    part["region", 0]:0, part["region",0]:0 + part["region",1]:0 -1) +
 	// partition info 2/3, %1 is partition ID (number)
 	sformat(_("ID %1, "),  part["fsid"]:131) +
 	// partition info 3/3, %1 is partition size (number)
-	sformat (_("size %1"), ByteToHumanString (
+	sformat (_("Size %1"), ByteToHumanString (
 	    part["region",1]:0 * maindev["cyl_size"]:0));
     }
 
@@ -846,10 +855,10 @@ quite a while if this option is given. Be patient.</P>
     //number to text
     map number2text = $[
 	// label: partition number
-	1 : _("First Found Partition"),
-	2 : _("Second Found Partition"),
-	3 : _("Third Found Partition"),
-	4 : _("Fourth Found Partition")
+	1 : _("First Partition Found"),
+	2 : _("Second Partition Found"),
+	3 : _("Third Partition Found"),
+	4 : _("Fourth Partition Found")
     ];
 
     foreach (map free_part, found_free_parts, ``{
@@ -858,7 +867,8 @@ quite a while if this option is given. Be patient.</P>
 	    nr,
 	    `Left (
 		`CheckBox(`id(free_part["device"]:""),
-		    sformat (_("&%1: %2 - %3"), nr, number2text[nr]:"",
+			  //%1 is number.  %2 is text like "First Partition Found", %3 is partition info
+		    sformat (_("&%1: %2: %3"), nr, number2text[nr]:"",
 			partition_info (free_part, target)),
 		    true
 		)
@@ -883,14 +893,15 @@ quite a while if this option is given. Be patient.</P>
 	    `Left (`VBox (
 		`Left (
 		    `CheckBox (`id(overlap_part["device"]:""),
-			sformat(_("&%1: %2 - %3"), nr, number2text[nr]:"",
+			       //%1 in number, %2 is text like "Second Partition Found", %3 is partition info
+			sformat(_("&%1: %2: %3"), nr, number2text[nr]:"",
 			    partition_info (overlap_part, target)),
 			false)
 		),
 		`VSpacing(0.5),
 		`Left (
 		    // heading
-		    `Heading (_("Warning: Conflicts with existing partitions"))
+		    `Heading (_("Conflicts with Existing Partitions"))
 		),
 		`Left (
 		    `Label (mergestring (del_text_parts, "\n"))
@@ -916,20 +927,20 @@ quite a while if this option is given. Be patient.</P>
     // help text of partition recovery 1/2
     string help_text = _("
 <p>
-Read the following points accurately
+Read the following points carefully
 and select only the partition that should
 really be recovered.
 </P>
 ") +
 
     // help text of partition recovery 2/2
-    _("<P><B>Use caution.</B><BR>Sometimes an existing partition must
+    _("<P><B>Use caution.</B> Sometimes an existing partition must
 be deleted to recover another partition.</P>
 ") +
 
     OSRPopup::build_label_description (OSRPopup::repair_label,
-	// button description
-	_("Start the Recovery Process"));
+	// help text for button
+	_("Start the recovery process."));
 
     string message = "";
     // popup headline
@@ -1175,8 +1186,8 @@ system performance and the hard disk size.")
     {
 	// error popup, %1 is device
 	Report::Error(sformat(_("
-YaST did not find any valid partitions
-for partition table %1. If there were
+No valid partitions found for the 
+partition table of %1. If there were
 some partitions on the disk, you can try
 to restore them manually. To do
 that, enter the cylinder values
@@ -1252,12 +1263,15 @@ in fdisk or the partitioning tool.
    */
   define symbol restore_original()``{
       
-      string header   = sformat(_("Restore Original Partition Table %1"), target);
+      //%1 is device label, such as /dev/hda
+      string header   = sformat(_("Restore Original Partition Table of %1"), target);
       string ok_label = mergestring(splitstring(Label::OKButton(), "&"),"");
 
+      //%1 is OK button label, %2 is device like /dev/hda
       string message  = original_help_text() +  sformat(_("
-If you press %1, YaST will replace the
-partition table of %2 with the backup.
+If you press %1, the partition table 
+of %2 will be replaced with 
+the backup.
 "), ok_label, target );
       
       if (Popup::YesNoHeadline(header, message ))
@@ -1327,7 +1341,7 @@ partition table of %2 with the backup.
 	  r_button      = add( r_button,    rd["default"]:false );
 	  r_options = add( r_options , `Left( r_button ));
       });
-
+      //%1 is device label, such as /dev/hda
       string error_text = sformat(_("
 No partition table was found for hard disk %1.
 If at least one partition should exist for %1,
@@ -1337,8 +1351,8 @@ skip the repair.
 
 "), target);
 
-
-      if (! OSRPopup::OpenMainRepairDialog( sformat(_("Repair partition table %1."),target ), error_text, r_options ))
+      //%1 is device label, such as /dev/hda
+      if (! OSRPopup::OpenMainRepairDialog( sformat(_("Repair Partition Table of %1"),target ), error_text, r_options ))
       {
 	  y2error("could not open main dialog");
 	  return `error;
@@ -1365,8 +1379,8 @@ skip the repair.
 	    if (ret != `ok )
 	    {
 		if (! OSRPopup::OpenMainRepairDialog (
-			// dialog headline
-			sformat(_("Repair partition table %1."), target ),
+			// dialog headline, %1 is device label live /dev/hda
+			sformat(_("Repair Partition Table of %1"), target ),
 			error_text, r_options ))
 		{
 		    y2error("could not open main dialog");

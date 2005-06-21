@@ -40,9 +40,9 @@
       string error_message = sformat(_("
 The partition %1 has the file system ID 130, but
 contains no valid swap area. To create
-a valid swap area, press \"Repair\".
+a valid swap area, press Repair.
 
-Press \"Skip\" to avoid repairing.
+Press Skip to not perform the repair.
 "), target);
 
       // helptext 1/2
@@ -55,20 +55,20 @@ the tool mkswap.</p>
 
       // helptext 2/2
 _("<p>If you know how to use mkswap, 
-close YaST and create a new swap area
+close this tool and create a new swap area
 on the damaged swap partition. Otherwise
 close this help dialog and press
-\"Repair\" for automatic
+Repair for automatic
 repair.</p>
 ");
 
       while( true )
       {
-	  if (!OSRPopup::Repair(_("Error detected."), error_message, help_text))
+	  if (!OSRPopup::Repair(_("Error Detected"), error_message, help_text))
 	      return `cancel;
 
 	  UI::OpenDialog(`VBox(`VSpacing(1),
-			       `Label(_("Creating swap area. Please wait...")),
+			       `Label(_("Creating swap area...")),
 			       `VSpacing(1)));
 
 	  boolean ret = OSRExecute::Command(.local.bash,"/sbin/mkswap "+target);

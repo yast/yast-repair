@@ -140,7 +140,7 @@
 	// Fill the LogView with file contents
 	UI::ChangeWidget( `id(`log ), `Value, file_contents );
 
-	string heading = sformat( _("System log (%1)"), filename );
+	string heading = sformat( _("System Log (%1)"), filename );
 	UI::ChangeWidget( `id(`log ), `Label, heading);
 
 	// wait for user input

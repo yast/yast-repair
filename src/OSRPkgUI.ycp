@@ -145,7 +145,7 @@
 
 	    verified_text_ok = sformat( header,
 					HTML::Bold(_("Package Name")),
-					HTML::Bold(_("Files ")),
+					HTML::Bold(_("Files")),
 					HTML::Bold(_("Configuration File")),
 					HTML::Bold(_("Status")),
 					special[0]:"",
@@ -263,7 +263,7 @@
      */
     define string check_string()``{
 	// current action label; %1 is current package number, %2 all packages
-	return sformat(_("Checking package: (%1/%2)"), OSRPkgVerify::VerifiedSize (), package_count);
+	return sformat(_("Package %1 of %2"), OSRPkgVerify::VerifiedSize (), package_count);
     }
 
     /**
@@ -276,7 +276,7 @@
 
 	//components for both
 	term ok_cancel_button =  `PushButton( `id(ok_or_cancel_key),  Label::CancelButton());
-	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &details"), expert_mode );
+	term switch_button    = `CheckBox(`id(mode_key ),    `opt(`notify),  _("Show &Details"), expert_mode );
 	term progress_bar     =  OSRProgress::CreateProgressBar(package_progress_bar,  check_string(),  package_count  );
 	term show_ok_term     = `Left(`CheckBox(`id("show_ok"), `opt(`notify), _("Also Show Successfully Verified &Packages"),  show_ok));
 	term protocol	      =  `RichText(`id(package_widget), `opt(`vstretch, `autoScrollDown )  , (show_ok ) ? verified_text_ok : verified_text );
@@ -300,9 +300,6 @@
 				   `VBox(
 					 `HSpacing(80),
 					 `Left(`Heading(headline)),
-					 `VSpacing(0.3),
-					 `Left(`Label(_("
-YaST verifies packages now."))),
 					 `VSpacing(1),
 					 progress_bar,
 					 `Left(switch_button) ),
@@ -371,7 +368,7 @@ YaST verifies packages now."))),
 
 	// table entry (value in the column "Configuration file")
 	// translate it either as True/False or Yes/No
-	return val ? _("yes") : _("no");
+	return val ? _("Yes") : _("No");
     }
 
     /**
@@ -542,7 +539,7 @@ YaST verifies packages now."))),
      */
     define symbol show_package_details (string pkg_name) {
 	// popup headline
-	map ret = OSRPopup::CheckBoxDialog (_("Package Details:"),
+	map ret = OSRPopup::CheckBoxDialog (_("Package Details"),
 	    Pkg::PkgSummary (pkg_name),
 	    [ [ pkg_name,
 		// checkbox label
@@ -636,7 +633,7 @@ YaST verifies packages now."))),
 	    // user clicked a package status open a
 	    // dialog with the following message.
 	    Report::Message(sformat(_("
-Verifying the packages %1 was successful.
+Verifying the package %1 was successful.
 "), ok_key2pkg_name(input)));
 	}
 	else if (input == mode_key )

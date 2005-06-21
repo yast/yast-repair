@@ -69,14 +69,14 @@
         // if no harddisk was found, exit the rescue system
         OSRStatus::ErrorSeverityBlocking();
         // summary text
-        OSRSummary::DetectError( "", _("No hard disks were detected."));
+        OSRSummary::DetectError( "", _("No hard disks were detected"));
         // error popup
         Report::Message(_("
-YaST could not detect any hard disks
+Could not detect any hard disks
 in your system. You probably need to load
 the correct kernel modules.
 
-YaST halts now.
+Halting the repair system.
 "));
 
         OSR::SetReboot();
@@ -136,11 +136,11 @@ YaST halts now.
                 // summary header
                 sformat(_("Repairing partition table of hard disk %1"), target),
                 // summary text
-                _("Successfully repaired the partition table."),
+                _("Successfully repaired the partition table"),
                 // summary text
-                _("Partition table was not repaired."),
+                _("Partition table was not repaired"),
                 // summary text
-                _("Repair was not successful."));
+                _("Repair was not successful"));
       }
       else
       {
@@ -161,14 +161,14 @@ YaST halts now.
 
         OSRSummary::DetectError("",
             // summary text
-            _("No hard disk was found with a valid primary partition table."));
+            _("No hard disk was found with a valid primary partition table"));
 
         // error popup
         Report::Message(_("
-YaST could not detect any hard disks that
+None of the hard disks detected
 contain a valid primary partition table.
 
-YaST halts now.
+Halting the repair system.
 "));
 
         OSR::SetReboot();
@@ -207,7 +207,7 @@ YaST halts now.
       if ( size( swap_partition_list ) <= 0 )
       {
         // summary text
-        OSRSummary::NotFound("", _("No valid partition types were found."));
+        OSRSummary::NotFound("", _("No valid partition types were found"));
       }
       else
       {
@@ -236,13 +236,13 @@ YaST halts now.
       if (size( swapable_partition_list ) <= 0 )
       {
         // summary text
-        OSRSummary::NotFound("", _("No swappable partitions were found."));
+        OSRSummary::NotFound("", _("No swap partitions were found"));
       }
       else
       {
         OSRSummary::DetectOK("",
             // summary text (%1 are partitions)
-            sformat(_("Swappable partitions were found:<br>%1"),
+            sformat(_("Swap partitions were found:<br>%1"),
                 mergestring(swapable_partition_list, ", ")));
       }
 
@@ -274,8 +274,8 @@ YaST halts now.
 The partition %1 has the file system ID 130 and
 contains a valid swap area. Activating this swap
 partition increases the performance of the repair tool.
-Press \"Yes\" to activate the swap
-partition.
+Activate the swap
+partition?
 "),swap ) ))
           {
             return;
@@ -286,7 +286,7 @@ partition.
           {
             OSRSummary::DetectOK( summary_header,
                 // summary text
-                _("Swap activation was successful."));
+                _("Swap activation was successful"));
 
             // add spap partition to list swap_aktivated for swapoff
             OSRCommon::ProvideList("swap_aktivated", add (
@@ -297,7 +297,7 @@ partition.
             // should never happen - GetSwapablePartitions(swap_partition_list) test swapon !!
             OSRSummary::DetectError( summary_header,
                 // summary text
-                _("Swap activation was not successful."));
+                _("Swap activation was not successful"));
           }
       }
       });
@@ -306,7 +306,7 @@ partition.
       foreach(string part, swapon_notpossible_list, ``{
           OSRSummary::DetectError(
                       // summary header
-                      sformat(_("Adding partition %1 to swap"), part),
+                      sformat(_("Adding partition %1 to swap..."), part),
                       // summary text
                       sformat(_("No valid swap area was found on
 partition %1"), part)
@@ -316,11 +316,11 @@ partition %1"), part)
                       // summary header
                       sformat(_("Creating swap area on partition %1..."), part),
                       // summary text
-                      sformat(_("mkswap %1 was successful."), part ),
+                      sformat(_("mkswap %1 was successful"), part ),
                       // summary text
-                      _("Repair skipped."),
+                      _("Repair skipped"),
                       // summary text
-                      sformat(_("mkswap %1 not successful."), part ));
+                      sformat(_("mkswap %1 was not successful"), part ));
       });
       }
       return true;
@@ -385,7 +385,7 @@ partition %1"), part)
       {
         // no mounted partitions: not implicitly an error!
         // summary text
-        OSRSummary::DetectOK("", _("No mounted partitions were found."));
+        OSRSummary::DetectOK("", _("No mounted partitions were found"));
       }
       else
       {
@@ -420,12 +420,12 @@ partition %1"), part)
 
       if( size( fs_check_parts ) == 0 || fs_check_parts == nil) {
         // summary text
-        OSRSummary::DetectError("",_("No partitions found."));
+        OSRSummary::DetectError("",_("No partitions found"));
       }
       else {
         list<string> key_list = maplist(map p, fs_check_parts,
             ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:nil)));
-        OSRSummary::DetectOK("", sformat(_("%1"), mergestring(key_list, " " )));
+        OSRSummary::DetectOK("", sformat("%1", mergestring(key_list, " " )));
       }
       OSRCommon::ProvideList("fsck_partitions", fs_check_parts );
   }
@@ -456,7 +456,7 @@ partition %1"), part)
       if( size( filter(map p, mounted_partitions, ``(p["spec"]:""  == dev_name ))) != 0 )
       {
         // summary text
-        OSRSummary::DetectOK(summary_header, _("The partition is mounted. The file system check is not possible."));
+        OSRSummary::DetectOK(summary_header, _("Partition mounted: check impossible"));
         checked_partitions = add(checked_partitions, dev_name );
       }
       else
@@ -491,11 +491,11 @@ partition %1"), part)
               OSRSummary::SetRepairSummary( ret ,
                            summary_header,
                            // summary text
-                           _("Repair was successful."),
+                           _("Repair was successful"),
                            // summary text
-                           _("Repair was skipped."),
+                           _("Repair was skipped"),
                            // summary text
-                           _("Repair was not successful."));
+                           _("Repair was not successful"));
               if ( ret == `ok )
               {
                 checked_partitions = add(checked_partitions, dev_name );
@@ -524,15 +524,15 @@ partition %1"), part)
       if (size(linux_partition_list) <= 0 )
       {
         // summary text
-        OSRSummary::DetectError("", _("No valid partition types were found."));
+        OSRSummary::DetectError("", _("No valid partition types were found"));
         // popup label
-        if( Popup::AnyQuestion(_("No valid Linux partitions were found"),
+        if( Popup::AnyQuestion(_("No Valid Linux Partitions Found"),
             // popup text
-            _("YaST could not detect any valid Linux partitions
+            _("Could not detect any valid Linux partitions
 in your system. There probably is no valid
 Linux system on this computer. If you are
-sure you installed a Linux system,
-press \"Retry Scanning\". Otherwise
+sure that you installed a Linux system,
+press Retry Scanning. Otherwise
 skip scanning the system and start a new
 installation.
 "),
@@ -596,14 +596,14 @@ installation.
         // summary text
         OSRSummary::DetectError("", _("No mountable partitions were found"));
         // popup label
-        if( Popup::AnyQuestion(_("No mountable partitions were found"),
+        if( Popup::AnyQuestion(_("No Mountable Partitions Found"),
             // popup text
             _("
-YaST could not detect any mountable partitions
+Could not detect any mountable partitions
 in your system. Probably there is no valid
 Linux system on this computer. If you are sure
-you installed a Linux system, press 
-\"Retry Scanning\". Otherwise skip scanning
+that you installed a Linux system, press 
+Retry Scanning. Otherwise skip scanning
 the system and start a new installation.
 "),
             // button label
@@ -693,13 +693,13 @@ the system and start a new installation.
         // summary text
         OSRSummary::DetectError("", _("No valid root partition was found"));
         // popup label
-        if( Popup::AnyQuestion(_("No valid root partition was found"),
+        if( Popup::AnyQuestion(_("No Valid Root Partition Found"),
             // popup text
             _("
-YaST could not detect any valid root partition
+Could not detect any valid root partition
 in your system. Probably there is no valid
 Linux system on this computer. If you are
-sure you installed a Linux system, try 
+sure that you installed a Linux system, try 
 to restart scanning. Otherwise skip scanning and
 start a new installation.
 "),
@@ -741,7 +741,7 @@ start a new installation.
     list<map> just_mounted	= [];
 
     // summary header, %1 is root partition, %2 target
-    string  summary_header	= sformat(_("Mounting root partition %1 to %2"),
+    string  summary_header	= sformat(_("Mounting root partition %1 to %2..."),
 	root_partition, OSRSystem::TargetRoot());
 
     // check if the specified partition is already mounted to "/mnt",
@@ -776,11 +776,11 @@ start a new installation.
 
 		if (Popup::AnyQuestion (sformat (
 		    // popup label, %1 is mount point
-		    _("Root partition was not successfully mounted to %1"),
+		    _("Could Not Mount Root Partition to %1"),
 			OSRSystem::TargetRoot()),
 		    // popup text, %1 is root partition
 		    sformat (_("
-YaST could not mount the root partition %1.
+Unable to mount the root partition %1.
 Restart the scanning and choose a another
 root partition or cancel scanning the system.
 "), root_partition),
@@ -800,7 +800,7 @@ root partition or cancel scanning the system.
     {
 	OSRSummary::DetectOK(
 	    // summary header (%1 is partition, %2 mount point)
-            sformat(_("Mount Root Partition %1 to %2"),
+            sformat(_("Mounting root partition %1 to %2..."),
                 root_partition, OSRSystem::TargetRoot()),
             // summary text (%1 is mount point)
             sformat(_("Root partition is already mounted to %1"),
@@ -837,14 +837,14 @@ root partition or cancel scanning the system.
       if ( ! OSRFstab::ReadFstab(OSRSystem::TargetRoot(), false))
       {
         // summary text
-        OSRSummary::DetectError( summary_header, _("fstab could not be read."));
+        OSRSummary::DetectError( summary_header, _("fstab could not be read"));
 
         if( size( OSRCommon::RequireList("valid_root_partitions")) > 1 ) {
-            // popup label
-            if( Popup::AnyQuestion(_("fstab was not successfully read."),
+            // popup label, fstab is filename
+            if( Popup::AnyQuestion(_("Could Not Read fstab"),
                 // popup text
                 _("
-YaST could not read fstab.
+Unable to read fstab.
 Restart the scan and choose another
 root partition or cancel scanning the system.
 "),
@@ -863,7 +863,7 @@ root partition or cancel scanning the system.
       else
       {
         // summary text
-        OSRSummary::DetectOK( summary_header, _("fstab read."));
+        OSRSummary::DetectOK( summary_header, _("fstab read"));
       }
 
       OSRCommon::ProvideBoolean("fstab_readed", true);
@@ -882,21 +882,21 @@ root partition or cancel scanning the system.
 	  Mode::test ())
       {
         // summary text
-        OSRSummary::DetectOK("", _("The root entry of fstab is valid."));
+        OSRSummary::DetectOK("", _("The root entry of fstab is valid"));
       }
       else {
 
         // summary text
-        OSRSummary::DetectError("", _("The root entry of fstab is not valid."));
+        OSRSummary::DetectError("", _("The root entry of fstab is not valid"));
 
         OSRSummary::SetRepairSummary(OSRFstab::Repair(),
                        "",
                        // summary text
-                       _("Repairing the root entry was successful."),
+                       _("Repairing the root entry was successful"),
                        // summary text
-                       _("Repair was skipped."),
+                       _("Repair was skipped"),
                        // summary text
-                       _("Repair was not successful."));
+                       _("Repair was not successful"));
       }
       OSRCommon::ProvideBoolean("fstab_root_checked",true);
       return true;
@@ -914,21 +914,21 @@ root partition or cancel scanning the system.
 		(list<string>)OSRCommon::RequireList("checked_partitions")))
       {
         // summary text
-        OSRSummary::DetectOK("", _("fstab entries valid."));
+        OSRSummary::DetectOK("", _("fstab entries valid"));
       }
       else
       {
         // summary text
-        OSRSummary::DetectError("",_("At least one fstab entry is not valid."));
+        OSRSummary::DetectError("",_("At least one fstab entry is not valid"));
 
         OSRSummary::SetRepairSummary(OSRFstab::Repair(),
                        "",
                        // summary text
-                       _("The fstab entry was successfully repaired."),
+                       _("The fstab entry was successfully repaired"),
                        // summary text
-                       _("Repair was skipped."),
+                       _("Repair was skipped"),
                        // summary text
-                       _("Repair was not successful."));
+                       _("Repair was not successful"));
       }
       OSRCommon::ProvideBoolean( "fstab_checked", true);
       return true;
@@ -1062,7 +1062,7 @@ root partition or cancel scanning the system.
       if( size( disk_list ) > 1)
       {
         // RadioButtonGroup label
-        repair_dev =  OSRPopup::RadioButtonGroup(_("Select a hard disk"),
+        repair_dev =  OSRPopup::RadioButtonGroup(_("Hard Disk"),
             // RadioButtonGroup text
             _("
 There are several hard disk in your system.
@@ -1129,10 +1129,10 @@ check is not possible.");
       else if( size( partitions ) > 0 )
       {
         // RadioButtonGroup label
-        scan_dev =  OSRPopup::RadioButtonGroup(_("Select partition"),
+        scan_dev =  OSRPopup::RadioButtonGroup(_("Partition"),
             // RadioButtonGroup text
             _("
-Where should YaST execute a file system check?
+Select the partition on which to execute a file system check.
 "),
             partitions,
             partitions[0]:"",
@@ -1151,11 +1151,11 @@ Where should YaST execute a file system check?
       {
           if( contains( OSRFstab::system_mount_points,  p["mount"]:""))
           {
-            // error popup
+            // error popup. %1 is partition, %2 is mount point
             Report::Error( sformat(_("
 The selected partition %1 is
 currently mounted on the system mount point %2.
-YaST cannot unmount this partition.
+This partition cannot be unmounted here.
 Start the YaST rescue tool from CD-ROM and
 try executing the file system check again.
 "), scan_dev, p["mount"]:""));
@@ -1165,12 +1165,12 @@ try executing the file system check again.
           else
           {
             // popup label
-            if (! Popup::YesNoHeadline(_("Partition mounted"),
+            if (! Popup::YesNoHeadline(_("Partition Mounted"),
                 // popup text
                 sformat(_("
 The selected partition %1 is 
-currently mounted. Should YaST try to
-unmount the partition then try to execute
+currently mounted. 
+Unmount the partition then execute
 a file system check?
 "), scan_dev )))
           {
@@ -1184,7 +1184,7 @@ a file system check?
                 // error popup
                 Report::Error(sformat(_("
 Unmounting the partition %1 is
-not possible. File system check
+not possible. A file system check
 cannot be executed.
 "), scan_dev ));
                 return `error;
@@ -1197,7 +1197,7 @@ cannot be executed.
       string direct_name = OSRCommon::current_direct_name;
 
       term progress = OSRProgress::Create(`fsck_progress,
-                          _("Progress:"),
+                          _("Progress"),
                           0,true);
       term contents = `HBox(
 	`HSpacing(1),
@@ -1207,6 +1207,7 @@ cannot be executed.
             `HBox(`HWeight(30,`Left(`Heading(_("Checking file system...")))),
             `HWeight(30, `HSpacing(10))),
             `VSpacing(1),
+	    // partition is appended
             `Left(`Label(_("Partition: ") + scan_dev )),
             `VSpacing(1),
             progress,
@@ -1226,8 +1227,7 @@ cannot be executed.
       {
           // error popup
           Report::Error(sformat(_("
-
-YaST cannot detect the file system type
+Cannot detect the file system type
 of the partition %1. Executing a file
 system check is not possible.
 "), scan_dev ));
@@ -1244,7 +1244,7 @@ system check is not possible.
 		// message popup %1 is partition, %2 filesystem type name
 		Report::Message(sformat(_("
 The partition %1 contains
-the non-Linux file system \"%2\".
+the non-Linux file system %2.
 No partitions checks were done.
 "),scan_dev, FileSystems::GetName( used_fs, "unknown") ));
 	    else
@@ -1282,7 +1282,7 @@ a valid %2 file system.
       {
 	// message popup (no floppy drive was detected)
 	Report::Message(_("
-YaST could not detect a floppy drive in your
+No floppy drive detected in your
 system. Saving system information is not
 possible.
 "));
@@ -1332,7 +1332,7 @@ not successful. Try again.
       }
       else {
           // message popup
-          Report::Message(_("\nWriting the system information was successful.
+          Report::Message(_("Writing the system information was successful.
 "));
 
       }
@@ -1365,7 +1365,7 @@ not successful. Try again.
                           "text"    : _("Check Partition Tables"),
                                       // helptext
                           "help"    : _("
-<P><B>What is a partition table?</B><BR>
+<P>
 The partition table is the part of
 a hard disk where the information about
 the size and the position of the
@@ -1378,15 +1378,15 @@ Linux cannot find a partition on a hard
 disk.</P>
 ") +
 
-_("<P><B>Check Partition Tables</B><BR>
+_("<P>
 If you delete a partition by mistake,
 it is sometimes possible to recover the
-lost partition. YaST can analyze
+lost partition. This tool can analyze
 the hard disk and try to find such a
 partition.
 The partition table can also be lost 
 or damaged due to a system crash or a virus.
-Even in these cases, YaST can sometimes
+Even in these cases, it can sometimes
 recover a partition table.</P>
 ")
                        ],
@@ -1396,16 +1396,15 @@ recover a partition table.</P>
                          "text" : _("Check Swap Areas"),
                                   // helptext
                          "help" : _("
-<P><B>What is a swap area?</B><BR>
+<P>
 The swap area is the virtual memory of a
 Linux system. Linux swap areas can be a
-special partition or in a file.</P>
+special partition or a file.</P>
 ") +
 
-_("<P><B>Check Swap Areas</B><BR>
-YaST checks all found swap areas.
-If a swap area is damaged, the
-repair system proposes creating
+_("<P>
+This procedure checks all swap areas found.
+If a swap area is damaged, the system can create
 a new swap area.
 </P>
 ")
@@ -1416,17 +1415,17 @@ a new swap area.
                          "text" : _("Check File Systems"),
                                   // helptext
                          "help" : _("
-<P><B>What is a file system?</B><BR>
+<P>
 Formatting a partition means a
 file system will be created in a partition.
 After that, you can mount the partition and
 save files and other data to the partition.
-Linux can normally use only partitions with
+Linux can normally only use partitions with
 a valid file system for saving data and
 programs. </p>
 ") +
 
-_("<P><B>Check File System</B><BR>
+_("<P>
 An inconsistent file system occurs when
 a partition is not correctly unmounted.
 For example, this happens when the system
@@ -1440,8 +1439,8 @@ ext3, use fsck.ext2 (e2fsck) with the
 corresponding options to repair the
 file system.</P>
 ") +
-_("<P>YaST checks the file system of all
-found partitions and suggests 
+_("<P>This procedure checks the file system of all
+partitions found and suggests 
 repairing it if an error was found.</P>
 ")
                          ],
@@ -1452,7 +1451,7 @@ repairing it if an error was found.</P>
                          "text" : _("Check fstab Entries"),
                                   // helptext
                          "help" : _("
-<P><B>What is fstab?</B><BR>
+<P>
 fstab is a configuration file that
 contains entries for all devices that should
 be mounted during the boot process. 
@@ -1461,8 +1460,8 @@ removing the corresponding fstab entry, you
 get a warning during the boot process.</P>
 ")+
 
-_("<P><B>Check fstab Entries</B><BR>
-YaST checks all entries listed in the
+_("<P>
+This procedure checks all entries listed in 
 fstab and reports missing, obsolete, and
 erroneous entries.</P>
 "),
@@ -1511,7 +1510,7 @@ erroneous entries.</P>
                           ],
                        $[ "name"     : "find_swapable",
                                         // module method progress label
-                          "summary"  : _("Searching for swappable partitions..."),
+                          "summary"  : _("Searching for swap partitions..."),
                           "method"   : OSRPartitionCheckSwapAble,
                           "requires" :  [ "swap_partition_list" ],
                           "provides" :  [ "swapable_partitions" ],
@@ -1598,7 +1597,7 @@ erroneous entries.</P>
                        ],
                        $[ "name"     : "check_root_entry",
                                         // module method progress label
-                          "summary"  : _("Checking root file system entry of fstab"),
+                          "summary"  : _("Checking root file system entry of fstab..."),
                           "method"   : OSRPartitionCheckFstabRoot,
                           "requires" :  [ "fstab_readed"        ],
                           "provides" :  [ "fstab_root_checked"      ],
@@ -1607,7 +1606,7 @@ erroneous entries.</P>
                         ],
                        $[ "name"     : "check_entries",
                                         // module method progress label
-                          "summary"  : _("Checking fstab entries"),
+                          "summary"  : _("Checking fstab entries..."),
                           "method"   : OSRPartitionCheckFstab,
                           "requires" :  [ "fstab_root_checked"      ],
                           "provides" :  [ "fstab_checked"       ],
@@ -1655,7 +1654,7 @@ recovery.
                                           // module method description
                        "description"    : _("
 If the system crashed and you have a
-corrupted file system afterward press
+corrupted file system, press
 this button to scan and repair the file
 system.
 "),
