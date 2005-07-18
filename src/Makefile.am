@@ -40,7 +40,8 @@ ynclude_DATA =          		\
 	osr_module_init.ycp		\
 	osr_module_packages.ycp		\
 	osr_module_partition.ycp	\
-	osr_module_bootloader.ycp
+	osr_module_bootloader.ycp	\
+	bootloader_routines.ycp
 
 
 desktop_DATA =			\

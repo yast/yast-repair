@@ -10,19 +10,18 @@ Dump	--------------------------------------------------------------
 Dump	--- status: detect_error
 Dump	--- failed in module: osr_module_partition
 Dump	----------------- start detection [hard disks now ok]: --------
-Log	root fstype not valid
-Log	root fstab line is not valid
-Log	no entry for /dev/hda1 found in the fstab
-Log	no entry for usbfs found in the fstab
-Log	no entry for proc found in the fstab
-Log	no entry for devpts found in the fstab
-Log	no entry for /dev/cdrom found in the fstab
-Log	no entry for  found in the fstab
-Log	no entry for /dev/hda1 found in the fstab
-Log	no entry for usbfs found in the fstab
-Log	no entry for proc found in the fstab
-Log	no entry for devpts found in the fstab
-Log	no entry for /dev/cdrom found in the fstab
-Log	no entry for  found in the fstab
-Log	The required value "bootloader_ask_user" is not yet set.
+Log	Skip detection method (requires not solved ) mount_all
+Log	Skip detection method (requires not solved ) find_package_db
+Log	Skip detection method (requires not solved ) find_minimal_selection
+Log	Skip detection method (requires not solved ) verify_base_packages
+Log	Skip detection method (requires not solved ) find_config_files
+Log	Skip detection method (requires not solved ) find_bootloader_type
+Log	Skip detection method (requires not solved ) find_boot_root
+Log	Skip detection method (requires not solved ) bootloader_package_installed
+Log	Skip detection method (requires not solved ) verify_bootloader_package
+Log	Skip detection method (requires not solved ) bootloader_package_version
+Log	Skip detection method (requires not solved ) bootloader_initrd_modules
+Log	Skip detection method (requires not solved ) bootloader_conf_exists
+Log	Skip detection method (requires not solved ) bootloader_conf_check
+Log	Skip detection method (requires not solved ) bootloader_ask_user
 Return	`detectok

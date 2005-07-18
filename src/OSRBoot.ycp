@@ -1,4 +1,4 @@
-    /**
+/**
  * File:	OSRBoot.ycp
  * Module:	repair
  * Summary:	Bootloader checks
@@ -23,7 +23,6 @@
 
     import "Bootloader";
     import "BootCommon";
-    import "BootGRUB";
     import "Initrd";
     import "Kernel";
 
@@ -35,6 +34,8 @@
     import "OSRCommon";
 
     textdomain "repair";
+
+    include "repair/bootloader_routines.ycp";
 
     /**
      * Configuration files needed by every boot loader
@@ -727,12 +728,12 @@ contains no errors, press Skip.
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
 	// if device is a hard disk
-	ret 	= Storage::GetMainDev( dev_name );
+	map<string,map> tg = Storage::GetTargetMap();
+	ret 	= tg[dev_name]:$[];
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
 	// if device is a partition
-	map subdevkeys    = Storage::GetDiskPartition( dev_name );
-	ret = Storage::GetSubDev( Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:0));
+	ret = Storage::GetPartition( tg, dev_name );
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
 	// fix grub bug
@@ -758,8 +759,7 @@ contains no errors, press Skip.
 	string ret = "";
 	if ( !regexpmatch(grub_device, ".fd.*"))
 	{
-	    BootGRUB::readDeviceMap();
-	    ret = BootGRUB::grubDev2unixDev(grub_device);
+	    ret = grubDev2unixDev (grub_device);
 	}
 	else
 	{
@@ -1113,8 +1113,8 @@ contains no errors, press Skip.
 	string conf_file_contens = (string) SCR::Read(.target.string,
 	    bootloader_config_check[bootloader, "config_file"]:"");
 
-	map grub_conf = BootGRUB::parseGrubConf(conf_file_contens);
-        y2debug ("grub_conf: %1", grub_conf);
+	map grub_conf = parseGrubConf (conf_file_contens);
+        y2internal ("grub_conf: %1", grub_conf);
 
 	boolean embedding	= false;
 	if (grub_conf["command"]:"" == "setup")
@@ -1122,6 +1122,8 @@ contains no errors, press Skip.
 	    embedding		= true;
 	    y2milestone ("embedding stage 1.5 -> reduced checking");
 	}
+
+	readDeviceMap ();
 
 	boolean grub_device	= check_grub_device (grub_conf["device"]:"" );
 	boolean grub_root       = check_grub_root (grub_conf["root"]:"" );

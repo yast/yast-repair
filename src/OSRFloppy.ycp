@@ -27,7 +27,7 @@
   textdomain "repair";
 
   import "StorageDevices";
-  import "Partitions";
+  import "Storage";
   import "Report";
   import "Label";
 
@@ -159,7 +159,7 @@ does not exist and cannot be created.
   define boolean Mount()``{
 
       //WFM::Execute(.local.bash, "/bin/umount " + mount_point );
-      string mpoint = Partitions::MountedOn( floppy_device, Partitions::CurMounted() );
+      string mpoint = Storage::DeviceMounted( floppy_device );
       if ( mpoint != "") {
 	  y2milestone("Floppy is already mounted on %1", mpoint );
 	  mount_point = mpoint;
@@ -185,7 +185,7 @@ does not exist and cannot be created.
    * Unmount floppy device
    */
   define boolean Umount()``{
-      if( Partitions::MountedOn (floppy_device, Partitions::CurMounted()) == "")
+      if( Storage::DeviceMounted(floppy_device) == "")
 	  return true;
       if ((integer)WFM::Execute(.local.bash, "/bin/umount "+ mount_point) != 0)
       {

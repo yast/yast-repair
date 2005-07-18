@@ -198,7 +198,6 @@
 		  ( contains ( fsck_fsid, p["fsid"]:0 ) &&
 		    contains ( fsck_type, p["type"]:`unknown ) ) )
 	      {
-		  p["maindev"] = dev;
 		  partitions = add(partitions, p );
 	      }
 	  });
@@ -472,7 +471,7 @@ global define boolean Check(map part ) ``{
     if(Mode::test () ) return true;
 
     symbol used_fs = part["detected_fs"]:`unknown;
-    check_partition = Storage::GetDeviceName(part["maindev"]:"",part["nr"]:nil);
+    check_partition = part["device"]:"";
 
     y2milestone("Check the file system of the partition %1", check_partition );
     // find fs
@@ -512,10 +511,6 @@ global define boolean Check(map part ) ``{
     {
 	y2milestone("used_fs is ok. Executing file system check !!");
     }
-    Storage::SetSubDevParam (
-	Storage::GetSubDevKey (part["maindev"]:"", part["nr"]:nil),
-	"detected_fs", used_fs );
-
     if ( used_fs != `unknown && used_fs != nil )
     {
 	// ----------- start check now
