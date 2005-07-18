@@ -86,14 +86,14 @@ repair.</p>
 
     list<string> ret = [];
     foreach (string dev, map disk, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
-	if( !disk["is_lvm_vg"]:false && dev != "/dev/md" )
+	if( disk["type"]:`CT_UNKNOWN==`CT_DISK )
 	{
 	    list l = filter (map p, disk["partitions"]:[], ``(
 		!p["delete"]:false && p["fsid"]:0 == Partitions::fsid_swap)
 	    );
 
 	    ret = (list<string>) union (ret, maplist (map p, (list<map<string,any> >)l,
-		``(Storage::GetDeviceName (dev,p["nr"]:nil))));
+						      ``(p["device"]:"")));
 	}
     });
 

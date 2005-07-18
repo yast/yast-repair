@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jul 14 15:07:21 CEST 2005 - jsuchome@suse.cz
+
+- adapted to new partitioner using storage-lib (arvin)
+- adapted for API changes in yast2-bootloader
+- updated NFB (yast2-bootloader needs limal)
+- 2.12.2 
+
+-------------------------------------------------------------------
 Tue Jun 21 10:47:29 CEST 2005 - jsuchome@suse.cz
 
 - text fixes from proofreader (rwalter)

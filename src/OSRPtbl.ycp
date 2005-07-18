@@ -242,8 +242,8 @@ of the device %1 is created.
     y2milestone("Saving all mbr's to tmp directory");
 
     // save all current ptbl's to tmp directory
-    list<string> devlist = (list<string>)
-	Storage::GetMainDevFilter("only_disk", "key_list" );
+    map<string,map> tg = filter( string k, map disk, Storage::GetTargetMap(), ``(Storage::IsRealDisk(disk)));
+    list<string> devlist = maplist( string k, map disk, tg, ``(k));
 
     if (devlist != nil && devlist != [] ) {
 	  integer ok = 0;
@@ -271,13 +271,10 @@ of the device %1 is created.
   /**
    * Check reparired mbr.
    */
-  define boolean CheckRestoredPtbl(string target , path target_scrpath ) ``{
+  define boolean CheckRestoredPtbl(string target) ``{
       y2milestone("checking restored ptl");
 
-      // read the partition table for checking if it is o.k.
-      string partition_path	  = ".disk" + target_scrpath + ".partitions";
-      // no TYPE
-      list   partition_table   = (list) SCR::Read(topath(partition_path));
+      list partition_table = Storage::GetTargetMap()[target,"partitions"]:[];
 
       if ((partition_table != nil) && (partition_table != []))
       {
@@ -334,14 +331,14 @@ Partition table was not successfully repaired.
 
 	if (n["region",1]:0 != 1)
 	{
-	    map mdev	= Storage::GetMainDev (dev);
+	    map mdev	= Storage::GetTargetMap()[dev]:$[];
 	    items = add (items, `item (`id(sformat("%1", n["nr"]:1)),
 			s_ignore_label,
 			dev + n["nr"]:1,
 			n["fsid"]:131,
 			sformat ("%1", n["region",0]:0),
 			sformat ("%1", n["region",1]:0 + n["region",0]:0 - 1),
-			ByteToHumanString (n["region",1]:0 * mdev["cyl_size"]:0)
+			ByteToHumanString (n["size_k"]:0 * 1024)
 	    ));
 	}
       });
@@ -483,10 +480,7 @@ in the table and press Recover.
   /**
    * Call fdisk
    */
-  define boolean fdisk_call(path target_scrpath, list<map> torecover )``{
-
-      map args = $[ "parted" : false,
-		    "label"  : ""  ];
+  define boolean fdisk_call(string disk_dev, list<map> torecover )``{
 
       UI::OpenDialog(`VBox(`VSpacing(1),
 			   `Label(_("Recovering partition table...")),
@@ -497,8 +491,10 @@ in the table and press Recover.
       if (! Mode::test () )
       {
       /////////////////////////////////////////////////////
-	  result = SCR::Write(.disk + target_scrpath + .partitions,
-			      torecover, args );
+	  map<string,map> tg = Storage::GetTargetMap();
+	  tg[disk_dev,"partitions"] = torecover;
+	  Storage::SetTargetMap(tg);
+	  Storage::CommitChanges();
       /////////////////////////////////////////////////////
 	  repair_methods[ `original,  "enabled"] = true;
 
@@ -612,12 +608,12 @@ have gpart suggest the partition table.
 			  p["create"] = true;
 			  new_to_recover = add(new_to_recover, p);
 		      });
-		      revert = fdisk_call( target_scrpath, new_to_recover );
+		      revert = fdisk_call( target, new_to_recover );
 		  }
 		  
 		  if (revert )
 		  {
-		      if (CheckRestoredPtbl(target, target_scrpath ) ) {
+		      if (CheckRestoredPtbl(target) ) {
 			  return `ok; 
 		      }
 		  }
@@ -696,7 +692,8 @@ have gpart suggest the partition table.
     // button label
     string start_label		= _("Start Detection");
 
-    map maindev			= Storage::GetMainDev (target);
+
+    map maindev			= Storage::GetTargetMap()[target]:$[];
     integer cyl_count		= maindev["cyl_count"]:0;
     gpart_expert_options	= "";
 
@@ -829,7 +826,7 @@ quite a while when using this option. Be patient.</P>
    */
   define string partition_info (map part, string dev) {
 
-      map maindev	= Storage::GetMainDev (dev);
+      map maindev	= Storage::GetTargetMap()[target]:$[];
       return
 	// partition info 1/3, %1,%2 are numbers
 	sformat (_("Cylinders %1-%2, "),
@@ -1199,16 +1196,16 @@ in fdisk or the partitioning tool.
     {
 	map compared		=  compare_found_with_existing (
 	    found_partitions,
-	    (list<map>) Storage::GetMainDevParam (target, "partitions", []),
+	    (list<map>) Storage::GetTargetMap()[target, "partitions"]:[],
 	    target);
 	list<map> torecover	= ComparePtblDialog (compared, target, "Gpart");
 
 	if (size (torecover) < 1 || Mode::test ())
 	    return `cancel;
 
-	if (fdisk_call (target_scrpath, torecover))
+	if (fdisk_call (target, torecover))
 	{
-	    if (CheckRestoredPtbl (target, target_scrpath))
+	    if (CheckRestoredPtbl (target))
 	    {
 		return `ok;
 	    }
@@ -1321,16 +1318,14 @@ the backup.
    * Main Dialog for repairing deleted/not valid partition tables.
    *
    * @parm t_target the target e.g.: /dev/hda
-   * @parm t_target_scrpath the souce path of the target .dev.hda
    * 
    */
-  global define symbol MainPtblRepairDialog(string t_target, path t_target_scrpath ) ``{
+  global define symbol MainPtblRepairDialog(string t_target) ``{
 
       //Save all mbr's to tmp directory.
       SavePtbl();
       
       target 	     = t_target;
-      target_scrpath = t_target_scrpath;
       
       term r_options = `VBox(`Left(`Label(_("Select a repair method or skip repairing."))),`VSpacing(0.5));
       
@@ -1394,9 +1389,8 @@ skip the repair.
       return ret;
   }
 
-  global define void SetTarget(string ttarget, path ttarget_scrpath )``{
+  global define void SetTarget(string ttarget)``{
       target = ttarget;
-      target_scrpath = ttarget_scrpath;
   }
 
 }//EOF

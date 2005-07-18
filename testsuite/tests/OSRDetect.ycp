@@ -138,6 +138,7 @@
     READ["target","yast2"]	= $[
 	"/dev/hda": $[
 	    "device"	: "/dev/hda",
+	    "type"      : `CT_DISK,
 	    "partitions": [
 		$[
 		    "detected_fs":`reiser,
@@ -147,7 +148,7 @@
 		],
 		$[
 		    "fsid" : 130,
-		    "device"	: "/dev/hda0",
+		    "device"	: "/dev/hda1",
 		    "nr"	: 1
 		]
 	    ]

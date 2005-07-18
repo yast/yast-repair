@@ -259,17 +259,16 @@
 		// if the fsck functions have been executed
 		if (size (checked_partitions) != 0)
 		{
-		    if (contains (checked_partitions,
-			Storage::GetDeviceName (device, partition["nr"]:nil)))
+		    if (contains (checked_partitions,partition["device"]:""))
 		    {
 			linux_partition_list = add (linux_partition_list,
-			  Storage::GetDeviceName (device, partition["nr"]:nil));
+			                            partition["device"]:"");
 		    }
 		}
 		else
 		{
 		    linux_partition_list = add (linux_partition_list,
-			Storage::GetDeviceName( device, partition["nr"]:nil));
+						partition["device"]:"");
 		}
 	    }
 	});
@@ -619,21 +618,11 @@ Create a new one?
 
       if (ret == $[] || ret == nil)
       {
-	  if (! Storage::IsKeyKey(dev_name)) return $[];
-	  // subdevkeys
-	  // $["disk":"/dev/hda", "nr":3]
-	  map subdevkeys    = Storage::GetDiskPartition( dev_name);
-	  string dev_name   = Storage::GetDeviceName(subdevkeys["disk"]:"", subdevkeys["nr"]:nil);
-	  string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:nil);
-	  // root_part
-	  // $["detected_fs":`reiser, "device":"/dev/hda3", "fsid":131, "fstype":"Linux native", "mount":"/", "nr":3, "region":[148, 1175],
-	  // "type":`primary, "used_fs":`reiser, "uuid":"a7fb4dc2-cd09-41d1-a696-805ea613abee"]
-	  ret = Storage::GetSubDev( subdevkey);
+	  ret = Storage::GetPartition( Storage::GetTargetMap(), dev_name );
 	  if (ret != $[] && ret != nil) {
 	      if (ret["device"]:"" == dev_name)
 	      {
 		  ret["dev_name"] = dev_name;
-		  ret["subdevkey"] =  subdevkey;
 		  if (ret["fsid"]:0 == Partitions::fsid_swap) {
 		      ret["found"] = "swap";
 		  }
@@ -676,9 +665,9 @@ Create a new one?
     else
     {
 	y2warning ("no entry for %1 found in the fstab",p);
-	if (part["lvm_group"]:"" != "")
+	if (part["used_by"]:"" != "")
 	{
-	    y2warning ("it is a device with LVM group: ignoring");
+	    y2warning ("it is a device used by other entity (e.g. LVM, EVMS, MD): ignoring");
 	    return true;
 	}
 	missing_devs = add (missing_devs, p);
@@ -873,7 +862,7 @@ Create a new one?
 	    special_freq	= [ "1" ];
 	    // add mount point to target_map for later use (OSRBoot)
 	    part["mount"]	= line[1]:"";
-	    Storage::SetSubDev (part["subdevkey"]:"", part);
+	    Storage::ChangeVolumeProperties(part);
 	}
 	else if (contains (swapable_partition_list, part["dev_name"]:"") &&
 		 part["found"]:"" == "swap")
@@ -1046,7 +1035,6 @@ Create a new one?
 
     if (Mode::test ()) return $[ "/dev/hda1" : $[ "mount" : "/hh" ]];
 
-    include "partitioning/write_fstab.ycp";
     integer other_nr = 1;	// count other mounts -> global for wirte_fstab
     map new_entries = $[];
 
@@ -1060,7 +1048,7 @@ Create a new one?
 	{
 	    part["device"] = dev;
 	    integer nr = 1;
-	    map fstabentry			= onepartition2fstab (part,nr);
+	    map fstabentry			= Storage::onepartition2fstab(part,nr);
 	    list<string> used_mountpoints	= used_mount_points(fstab);
 	    string start			= "/data";
 	    integer count			= 2;
@@ -2016,7 +2004,7 @@ selected lines?
 
     //for OSRBoot
     root_part["mount"] = "/";
-    Storage::SetSubDev (root_part["subdevkey"]:"", root_part);
+    Storage::ChangeVolumeProperties(root_part);
 
     //inst_prepdisk for OSRBoot!
     foreach (string modname, (list<string>)FileSystems::GetNeededModules (
@@ -2270,7 +2258,7 @@ and select all scan options.
 	    (!contains (["/dev/cdrecorder", "/dev/cdrom", "/dev/dvd",
 			 "/media/cdrecorder", "/media/cdrom", "/media/dvd" ],
 		line[1]:"")) &&
-	    (Partitions::MountedOn (line[1]:"", Partitions::CurMounted()) == "")
+	    (Storage::DeviceMounted(line[1]:"") == "")
 	    && ( line[1]:"" != "/"))
 	{
 	    string mp	= root_mountpoint + line[1]:"";

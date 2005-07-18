@@ -584,14 +584,10 @@ press Repair.
       y2milestone("root_device_1 %1", OSRBoot::root_device);
       y2milestone("boot_device_1 %1", OSRBoot::boot_device);
       // patch storage entries for Boot::Set!!
-      map subdevkeys    = Storage::GetDiskPartition(OSRBoot::root_device );
-      any subdevindex	= subdevkeys["nr"]:nil;
-      if (subdevindex == nil) subdevindex = "";
-      string subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevindex);
-
-      map part = Storage::GetSubDev( subdevkey );
+      map part = Storage::GetPartition( Storage::GetTargetMap(), 
+                                        OSRBoot::root_device );
       part["mount"] = "/";
-      Storage::SetSubDev(subdevkey, part );
+      Storage::ChangeVolumeProperties(part);
 
       //if not boot device is specified use root device
       if( OSRBoot::boot_device == "" )
@@ -599,12 +595,10 @@ press Repair.
       OSRBoot::boot_device = OSRBoot::root_device;
       }
       else {
-      subdevkeys = Storage::GetDiskPartition(OSRBoot::boot_device );
-      subdevkey  = Storage::GetSubDevKey(subdevkeys["disk"]:"", subdevkeys["nr"]:"");
-
-      part = Storage::GetSubDev( subdevkey );
+      map part = Storage::GetPartition( Storage::GetTargetMap(), 
+                                        OSRBoot::boot_device );
       part["mount"] = "/boot";
-      Storage::SetSubDev(subdevkey, part );
+      Storage::ChangeVolumeProperties(part);
       }
 
       y2milestone("root_device_2 %1", OSRBoot::root_device);

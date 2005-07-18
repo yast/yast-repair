@@ -61,8 +61,8 @@
       Storage::ReReadTargetMap();
 
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
-      list<string> disk_list = (list<string>)
-	Storage::GetMainDevFilter("all", "key_list" );
+      map<string,map> tg = filter( string k, map d, Storage::GetTargetMap(), ``(Storage::IsRealDisk(d)));
+      list<string> disk_list = maplist( string k, map d, tg, ``(k));
 
       if ((size(disk_list) == 0) || (disk_list == nil))
       {
@@ -118,7 +118,6 @@ Halting the repair system.
       foreach(string target, map values, (map<string,map>) target_map, ``{
 
       list<map> target_partitions = values["partitions"]:[];
-      path      target_scrpath    = values["scrpath"]:.;
 
       if ( size(target_partitions) == 0 )
       {
@@ -132,7 +131,7 @@ Halting the repair system.
           //  from gpart
           //
           /////////////////////////////////////////////////////////////////////
-          OSRSummary::SetRepairSummary( OSRPtbl::MainPtblRepairDialog(target , target_scrpath ),
+          OSRSummary::SetRepairSummary( OSRPtbl::MainPtblRepairDialog(target),
                 // summary header
                 sformat(_("Repairing partition table of hard disk %1"), target),
                 // summary text
@@ -424,7 +423,7 @@ partition %1"), part)
       }
       else {
         list<string> key_list = maplist(map p, fs_check_parts,
-            ``( Storage::GetDeviceName(p["maindev"]:"", p["nr"]:nil)));
+            ``( p["device"]:"" ));
         OSRSummary::DetectOK("", sformat("%1", mergestring(key_list, " " )));
       }
       OSRCommon::ProvideList("fsck_partitions", fs_check_parts );
@@ -449,7 +448,7 @@ partition %1"), part)
 
       foreach(map p, fsck_partitions, ``{
 
-      string  dev_name   = Storage::GetDeviceName(p["maindev"]:"", p["nr"]:nil);
+      string  dev_name   = p["device"]:"";
       // summary header
       string summary_header  = sformat(_("Executing file system check for partition %1..."),  dev_name  );
 
@@ -462,9 +461,8 @@ partition %1"), part)
       else
       {
           boolean fs_ok    = OSRFsck::Check( p );
-          symbol used_fs  = (symbol) Storage::GetSubDevParam (
-	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:nil),"detected_fs");
-
+          symbol used_fs  = Storage::GetPartition( Storage::GetTargetMap(),
+	                                           p["device"]:"" )["detected_fs"]:`none;
           if ( fs_ok == true )
           {
             OSRSummary::DetectOK(summary_header,
@@ -746,8 +744,7 @@ start a new installation.
 
     // check if the specified partition is already mounted to "/mnt",
     // mount only if it is not already done.
-    if ( OSRSystem::TargetRoot() !=
-	 Partitions::MountedOn (root_partition, Partitions::CurMounted()))
+    if ( OSRSystem::TargetRoot() != Storage::DeviceMounted (root_partition))
     {
 	// Mount selected partition to /mnt
         if ((boolean) WFM::Execute (.local.mount,
@@ -1003,7 +1000,7 @@ root partition or cancel scanning the system.
       y2milestone("Direct start Custom Part");
 
       // remove all mount points
-      map target_map = Storage::GetTargetMap();
+      map<string,map> target_map = Storage::GetTargetMap();
       foreach(string dev, map parts, (map<string,map>) target_map, ``{
 	integer counter = 0;
 	foreach (map part, parts["partitions"]:[], ``{
@@ -1019,10 +1016,8 @@ root partition or cancel scanning the system.
       symbol ret = `next ;
       UI::NormalCursor();
       repeat {
-      Storage::immediate_prepdisk = true;
 
       ret = (symbol) WFM::CallFunction ("inst_disk", [true, true] );
-      Storage::immediate_prepdisk = false;
 
       if ( ret == `next  )
       {
@@ -1053,8 +1048,9 @@ root partition or cancel scanning the system.
       y2milestone("Direct start repairing partition table");
 
       symbol ret             = `next;
-      list<string> disk_list = (list<string>)
-	Storage::GetMainDevFilter("all", "key_list" );
+      map<string,map> tg = filter( string k, map d, Storage::GetTargetMap(), 
+                                   ``(Storage::IsRealDisk(d)));
+      list<string> disk_list = maplist( string k, map d, tg, ``(k));
       string repair_dev      = disk_list[0]:"";
 
       UI::NormalCursor();
@@ -1087,9 +1083,7 @@ lost partitions is not possible.
 
       if( repair_dev != "cancel" && repair_dev != "" )
       {
-        map maindev = Storage::GetMainDev( repair_dev );
-
-        OSRPtbl::SetTarget( repair_dev, maindev["scrpath"]:.);
+        OSRPtbl::SetTarget( repair_dev );
 
         ret = OSRPtbl::RestoreWithGpart ();
       }
@@ -1106,8 +1100,10 @@ lost partitions is not possible.
 
       y2milestone("Direct start repairing a file system ");
 
-      list<map> parts_data = (list<map>)
-	Storage::GetSubDevFilterList("all", "no_delete" ,"all" );
+      list<map> parts_data = [];
+      foreach( string k, map disk, Storage::GetTargetMap(),
+	       ``{parts_data = (list<map>)union( parts_data, 
+	                                         disk["partitions"]:[]);});
 
       parts_data = filter(map p, parts_data,
         ``(  ( contains ( OSRFsck::fsck_fsid, p["fsid"]:0 )) &&
@@ -1143,9 +1139,7 @@ Select the partition on which to execute a file system check.
       {
       import "OSRLogFile";
 
-      map subdevkeys    = Storage::GetDiskPartition( scan_dev );
-      map p = find(map part, parts_data, ``( scan_dev == part["device"]:"" )); //Storage::GetSubDev( subdevkey );
-      p["maindev"]      = subdevkeys["disk"]:"";
+      map p = Storage::GetPartition( Storage::GetTargetMap(), scan_dev );
 
       if( p["mount"]:"" != "" )
       {
@@ -1179,7 +1173,7 @@ a file system check?
           else {
               WFM::Execute(.local.umount,  p["mount"]:""   );
 
-              if( Partitions::MountedOn( scan_dev , Partitions::CurMounted()) != "" )
+              if( Storage::DeviceMounted( scan_dev ) != "" )
               {
                 // error popup
                 Report::Error(sformat(_("
@@ -1235,9 +1229,7 @@ system check is not possible.
       }
       else
       {
-          symbol used_fs = (symbol) Storage::GetSubDevParam (
-	    Storage::GetSubDevKey (p["maindev"]:"", p["nr"]:nil),"detected_fs");
-
+          symbol used_fs = p["detected_fs"]:`none;
           if (fs_ok)
 	  {
 	    if (OSRFsck::IsNonLinuxFileSystem (used_fs))
