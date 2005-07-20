@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 20 09:20:22 CEST 2005 - jsuchome@suse.cz
+
+- another NFB update: limal-perl limal 
+- 2.12.3
+
+-------------------------------------------------------------------
 Thu Jul 14 15:07:21 CEST 2005 - jsuchome@suse.cz
 
 - adapted to new partitioner using storage-lib (arvin)
