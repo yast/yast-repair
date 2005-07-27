@@ -19,8 +19,8 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-messages
 Exec=/sbin/yast2 view_anymsg /var/log/messages
 
-Name=View system log
-GenericName=This module displays the systems log (/var/log/messages)
+Name=System Log
+GenericName=Display the system's log (/var/log/messages)
 Name[cs]=Zobrazit systémový protokol (log)
 GenericName[cs]=Tento modul zobrazí systémový protokol (log) /var/log/messages
 Name[de]=Systemprotokoll anzeigen
