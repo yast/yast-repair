@@ -533,11 +533,10 @@ Try another repair method.
 	string selected  = OSRPopup::RadioButtonGroupText(_("Backup to Use"),
 						   _("
 Several backups of the 
-package database found.
+package database were found.
 Select the date (YYYY/MM/DD)
 of the backup to which 
-to revert.
-"), items, dates[0]:"", "", false);
+to revert.\n"), items, dates[0]:"", "", false);
 
 	y2milestone("The selected item %1", selected);
 
