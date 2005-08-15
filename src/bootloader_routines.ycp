@@ -3,6 +3,8 @@
  * originaly from bootloader/src/grub/misc.ycp, yast2-bootloader now
  * doesn't provide this API
  *
+ * Author: Jiri Suchomel <jsuchome@suse.cz>
+ *
  * $Id$
  */
 {
@@ -17,7 +19,7 @@
 	BootCommon::InitializeLibrary (true, "grub");
 	BootCommon::ReadFiles ();
 	device_map	= BootCommon::GetDeviceMap ();
-y2milestone ("device map: %1", device_map);
+	y2debug ("device map: %1", device_map);
     }
 
 
@@ -29,13 +31,11 @@ y2milestone ("device map: %1", device_map);
     global define string grubDev2unixDev (string o_dev) {
 
 	string ret	= "";
-y2security ("grub device: %1", o_dev);
 	foreach (string k, string v, device_map, {
-	    y2internal ("key: %1, val: %2", k, v);
+	    y2debug ("key: %1, val: %2, o_dev: %3", k, v, o_dev);
 	    if (v == o_dev)
 	    {
 		ret	= k;
-		y2security ("ret: %1", k);
 	    }
 	});
 	return ret;
@@ -46,9 +46,14 @@ y2security ("grub device: %1", o_dev);
       * @param file string contents of grub.conf file
       * @return map of settings
       */
-    global define map<string,string> parseGrubConf (string file) ``{
+    global define map<string,string> parseGrubConf (string file) {
+
 	if (file == "" || file == nil)
 	    return $[];
+
+	if (size (device_map) == 0)
+	    readDeviceMap ();
+
 	list<string> lines = splitstring (file, "\n");
 	lines = filter (string l, lines, ``(l != ""));
 	map<string,string> settings = $[];
@@ -96,6 +101,24 @@ y2security ("grub device: %1", o_dev);
 	        if (substring (tmp, 0, 1) == "/")
 	            tmp = sformat ("%1%2", root, tmp);
 	        settings = add (settings, "menu", tmp);
+		settings = add (settings, "command", "install");
+	    }
+	    else if (entries[0]:"" == "setup")
+	    {
+	        integer shift = 0;
+		integer shift1 = 1 + shift;
+	        string tmp = entries[shift1]:"";
+	        while (substring (tmp, 0, 2) == "--")
+	        {
+		    string prefix = settings["prefix"]:"";
+		    prefix = prefix + " " + tmp;
+	            settings = add (settings, "prefix", prefix);
+	            shift = shift + 1;
+		    shift1 = 1 + shift;
+	            tmp = entries[shift1]:"";
+	        }
+	        settings = add (settings, "device", tmp);
+		settings = add (settings, "command", "setup");
 	    }
 	    settings = add (settings, "root", root);
 	});

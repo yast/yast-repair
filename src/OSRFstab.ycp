@@ -871,10 +871,9 @@ Create a new one?
 	    fs_file	= true;
 	    fs_spec	= (line[1]:"" == "swap");
 	    fs_vfstype	= ( line[2]:"" == "swap");
-	    fs_mntops	= ( (substring (line[3]:"",0,4) == "pri=") &&
-		(size (filterchars (substring (line[3]:"",4), digits+"-"))
-		 == size (substring (line[3]:"",4)))
-	    );
+	    // TODO the default could be checked by
+	    // FileSystems::GetFstabDefaultMntops ("swap")
+	    fs_mntops	= check_fs_mntops (line);
 	}
 	else if (part["found"]:"" == "root")
 	{
