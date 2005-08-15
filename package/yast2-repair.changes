@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug 12 11:29:28 CEST 2005 - jsuchome@suse.cz
+
+- fixed grub config file checking 
+- updated to changed Initrd.ycp iterface
+- fixed checking of swap entry in /etc/fstab
+- 2.12.5
+
+-------------------------------------------------------------------
 Thu Jul 28 11:23:41 CEST 2005 - jsuchome@suse.cz
 
 - updated desktop file

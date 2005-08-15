@@ -536,9 +536,9 @@ Press Repair to install these packages.
         Initrd::AddModule (m, "");
 	});
 
-	list listed_modules = Initrd::ListModules();
+	list<string> listed_modules = Initrd::ListModules();
 	y2milestone("needed initrd_modules in Boot %1", listed_modules );
-	list<string> missing = (list<string>) filter(string s, (list<string>)listed_modules,
+	list<string> missing = (list<string>) filter(string s, listed_modules,
 	    ``( !contains(current_initrd_modules, s)));
 
 //	if( Mode::test () ) missing = add(missing, "reiserfs");
@@ -805,9 +805,13 @@ contains no errors, press Skip.
     /**
      * Check if the root entry exists and is the expected
      */
-    define boolean check_grub_root(string root )``{
+    define boolean check_grub_root(string root ) {
+
 	y2milestone("check grub root: %1", root);
-	if( ! exists_grub_device(root)) return false;
+
+	if (root == "") return true;
+
+	if (! exists_grub_device(root)) return false;
 
 	string check_dev = root_device;
 
