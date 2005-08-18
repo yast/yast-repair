@@ -124,4 +124,32 @@
 	});
 	return settings;
     }
+
+    global list<string> GetSpecialOptions () {
+       list<string> special = [];
+       string bl = BootCommon::getLoaderType (false);
+       if (bl != "grub")
+       {
+           special = [ "change-rules", "type", "reset", "normal", "hidden",
+               "disk", "heads", "inaccessible", "cylinders", "bios",
+               "sectors", "change", "set", "partition", "deactivate",
+               "partition", "automatic", "map-drive", "to",
+           ];
+       }
+       if (bl != "ppc")
+       {
+           special = add (special, "activate");
+       }
+       return special;
+    }
+
+    /**
+      * return true if given option is special
+      * @param opt option name
+      * @return boolean special/not
+      */
+    global define boolean isSpecial(string opt) {
+       list<string> special = GetSpecialOptions ();
+       return (contains (special, opt));
+    }
 }

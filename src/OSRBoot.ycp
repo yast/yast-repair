@@ -865,9 +865,6 @@ contains no errors, press Skip.
 	{
 	    stage1 = bootloader_config_check[bootloader, "stage1"]:"";
 	}
-// y2internal ("grub root: %1", grubDev2LiloDev(grub_conf["root"]:""));
-// TODO: get the mount point of device...
-// file can be on other partition! (= grub_conf["root"]) -> hack:
 	return OSRExecute::Command(.local.bash, sformat(
         "/usr/bin/test -f %1%2 -o -f %1/boot%2", root_mountpoint, stage1));
     }
@@ -959,7 +956,7 @@ contains no errors, press Skip.
 
 	foreach (string e, (list<string>) optlist, ``{
 	    value = BootCommon::mod2ui (SCR::Read(add(p, e)));
-	    if (BootCommon::isSpecial(e))
+	    if (isSpecial(e))
 	    {
 		retval = add (retval,
 		    e, mergestring ((list<string>)SCR::Read(add(p, e)), ","));
