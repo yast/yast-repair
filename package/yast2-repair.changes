@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 18 12:56:19 CEST 2005 - jsuchome@suse.cz
+
+- adapted for API changes in yast2-bootloader
+- 2.12.6 
+
+-------------------------------------------------------------------
 Fri Aug 12 11:29:28 CEST 2005 - jsuchome@suse.cz
 
 - fixed grub config file checking 
