@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 23 12:29:57 CEST 2005 - jsuchome@suse.cz
+
+- reduced NFB (#106608)
+- 2.12.7
+
+-------------------------------------------------------------------
 Thu Aug 18 12:56:19 CEST 2005 - jsuchome@suse.cz
 
 - adapted for API changes in yast2-bootloader
