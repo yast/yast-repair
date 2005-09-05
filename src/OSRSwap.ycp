@@ -89,7 +89,9 @@ repair.</p>
 	if( disk["type"]:`CT_UNKNOWN==`CT_DISK )
 	{
 	    list l = filter (map p, disk["partitions"]:[], ``(
-		!p["delete"]:false && p["fsid"]:0 == Partitions::fsid_swap)
+		!p["delete"]:false &&
+		(p["fsid"]:0 == Partitions::fsid_swap ||
+		 p["detected_fs"]:nil == `swap))
 	    );
 
 	    ret = (list<string>) union (ret, maplist (map p, (list<map<string,any> >)l,
