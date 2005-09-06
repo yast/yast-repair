@@ -49,6 +49,9 @@
 
     list<string> all_files = splitstring (filenames, "\n");
 
+    boolean set_default = false;
+    list<term> combo_files = [];
+
     // check if default given as argument
 
     string filename = "";
@@ -56,14 +59,16 @@
 	&& is(WFM::Args(0), string))
     {
 	filename = (string)WFM::Args(0);
+	if (filename != "")
+	{
+	    combo_files = [ `item(`id(filename), filename, true) ];
+	    set_default = true;
+	}
     }
 
 
     // build up ComboBox
 
-    boolean set_default = false;
-
-    list<term> combo_files = [];
     foreach (string name, all_files,
     {
 	// empty lines or lines starting with "#" are ignored
@@ -72,22 +77,22 @@
 	{
 	    // the default is either given via WFM::Args() -> filename != ""
 	    // or by a filename starting with "*"
-	    if (!set_default
-		&& (filename != ""))
-	    {
-		combo_files = add (combo_files, `item(`id(filename), filename));
-		set_default = true;
-	    }
-	    else if (!set_default
-		     && (substring (name, 0, 1) == "*"))
+	    if (substring (name, 0, 1) == "*")
 	    {
 		name = substring (name, 1);	// strip leading "*"
-		if (filename == "")
-		    filename = name;
-		combo_files = add (combo_files, `item(`id(name), name, true));
-		set_default = true;
+		if (name != filename)		// do not add it twice
+		{
+		    combo_files =
+			add (combo_files,`item (`id(name),name, !set_default));
+		}
+		if (!set_default)
+		{
+		    if (filename == "")
+			filename = name;
+		    set_default = true;
+		}
 	    }
-	    else
+	    else if (name != filename)		// do not add it twice
 	    {
 		combo_files = add (combo_files, `item(`id(name), name));
 	    }
@@ -208,7 +213,6 @@
 	    }
 	}
     });
-
     // if we don't have a default by now, it wasn't in the list before
     // so add it here.
 
