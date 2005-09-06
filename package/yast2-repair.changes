@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  6 09:41:08 CEST 2005 - jsuchome@suse.cz
+
+- fixed handling default value in system log viewer (#115183)
+- 2.12.9
+
+-------------------------------------------------------------------
 Mon Sep  5 17:02:33 CEST 2005 - jsuchome@suse.cz
 
 - fixed checking for swap on RAID and LVM (#115197)
