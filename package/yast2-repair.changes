@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct  6 07:54:22 CEST 2005 - jsuchome@suse.cz
+
+- fixed testsuite (adapted to changes in StorageDevices)
+- 2.13.0
+
+-------------------------------------------------------------------
 Tue Sep  6 09:41:08 CEST 2005 - jsuchome@suse.cz
 
 - fixed handling default value in system log viewer (#115183)

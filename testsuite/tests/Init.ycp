@@ -12,9 +12,7 @@
 
     map I_READ = $[
 	"probe" : $[
-	    "cdrom" : $[
-		"manual" : [],
-	    ],
+	    "cdrom" : [],
 	    "is_uml" : false,
 	],
 	"proc" : $[
