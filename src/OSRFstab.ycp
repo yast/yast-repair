@@ -244,6 +244,7 @@
     if (Mode::test ()) return ["/dev/hda1", "/dev/hda2"];
 
     if (size (checked_partitions) == 0) return [];
+y2warning ("checked_partitions: %1", checked_partitions);
 
     // e.g.: ["/dev/hda1", "/dev/hdb2"]
     list<string> linux_partition_list		= [];
@@ -252,6 +253,7 @@
 
 	foreach (map partition, description["partitions"]:[], ``{
 
+y2internal ("partition: %1", partition);
 	    if ((partition["fsid"]:0 == Partitions::fsid_native ||
 		 partition["type"]:`primary == `lvm ||
 		 partition["type"]:`primary == `sw_raid))

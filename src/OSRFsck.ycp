@@ -147,7 +147,7 @@
     fsck_fsid = union (Partitions::fsid_wintypes, Partitions::fsid_dostypes );
     fsck_fsid = union (fsck_fsid, Partitions::fsid_ntfstypes );
     fsck_fsid = union (fsck_fsid,
-	[ Partitions::fsid_native, Partitions::fsid_lvm  ]);
+	[ Partitions::fsid_native, Partitions::fsid_lvm, Partitions::fsid_raid  ]);
   }
 
 

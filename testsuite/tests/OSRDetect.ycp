@@ -11,9 +11,7 @@
 
     map I_READ = $[
 	"probe" : $[
-	    "cdrom"	: $[
-		"manual"	: [],
-	    ],
+	    "cdrom"	: [],
 	    "is_uml"	: false,
 	    "floppy"	: $[
 		"manual"	: [ $[] ] // 1 floppy for "init_floppy" method
