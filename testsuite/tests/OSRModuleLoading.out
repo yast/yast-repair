@@ -3,6 +3,7 @@ Dump	--------------------- loading module 'mod1' [modprobe failed]-
 Read	.proc.modules $[]
 Read	.proc.modules $[]
 Read	.proc.modules $[]
+Read	.etc.install_inf.BrokenModules nil
 Execute	.target.modprobe "mod1" "" false
 Return	false
 Dump	--------------------- loading module 'mod1' [success]---------
