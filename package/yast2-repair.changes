@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 21 09:48:11 CEST 2005 - jsuchome@suse.cz
+
+- testsuite udapted to recent changes in ModuleLoading.ycp
+- 2.13.1
+
+-------------------------------------------------------------------
 Thu Oct  6 07:54:22 CEST 2005 - jsuchome@suse.cz
 
 - fixed testsuite (adapted to changes in StorageDevices)

@@ -23,6 +23,11 @@
 	"proc" : $[
 	    "modules": $[]
 	],
+	"etc"	: $[
+	    "install_inf"	: $[
+		"BrokenModules"	: nil
+	    ],
+	],
     ];
     map W	= $[];
     map E	= $[
