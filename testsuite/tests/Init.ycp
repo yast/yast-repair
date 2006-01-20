@@ -15,8 +15,13 @@
 	    "cdrom" : [],
 	    "is_uml" : false,
 	],
+	"etc"	: $[
+	    "mtab"	: []
+	],
 	"proc" : $[
-	    "modules": $[]
+	    "modules"	: $[],
+	    "swaps"	: [],
+	    "mounts"	: [ $["file": "/" , "spec": "/dev/hda3"]],
 	],
 	"target" : $[
 	    "size" : -1,
