@@ -209,6 +209,7 @@ is not possible.</P>
 		    minimal_selection, Pkg::SelectionContent (req, false, ""));
 		y2debug ("minimal: %1", minimal_selection);
 	    });
+	    // FIXME use solver to get content of minimal selection
 	}
 	return minimal_selection;
     }
