@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 20 15:47:16 CET 2006 - jsuchome@suse.cz
+
+- reduced BuildRequires
+- 2.13.3 
+
+-------------------------------------------------------------------
 Fri Jan 20 12:54:50 CET 2006 - jsuchome@suse.cz
 
 - testsuite udapted to recent changes in yast2-bootloader
