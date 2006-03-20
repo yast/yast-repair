@@ -189,22 +189,22 @@
    */
   global define list<map> PossiblePartitions()``{
 
-      list<map> partitions =	[];
+    list<map> partitions =	[];
 
-      foreach(string dev, map target, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
-	  foreach(map p, target["partitions"]:[],``{
+    foreach(string dev, map target, Storage::GetTargetMap(), {
+	foreach(map p, target["partitions"]:[], {
 
-	      if ( p["delete"]:false == false &&
-		  ( contains ( fsck_fsid, p["fsid"]:0 ) &&
-		    contains ( fsck_type, p["type"]:`unknown ) ) )
-	      {
-		  partitions = add(partitions, p );
-	      }
-	  });
-      });
+	    if (p["delete"]:false == false &&
+		(contains (fsck_fsid, p["fsid"]:0) || p["fstype"]:"" == "LV") &&
+		contains (fsck_type, p["type"]:`unknown))
+	    {
+		partitions = add(partitions, p );
+	    }
+	});
+    });
 
-      y2milestone("all partitions %1", partitions);
-      return partitions;
+    y2milestone("all partitions %1", partitions);
+    return partitions;
   }
 
 
