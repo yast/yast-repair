@@ -17,6 +17,7 @@
   module "OSRFsck";
 
   import "FileSystems";
+  import "FileUtils";
   import "Storage";
   import "Partitions";
   import "Mode";
@@ -289,6 +290,12 @@
    */
   define boolean is_jfs()``{
 
+    if (!FileUtils::Exists ("/sbin/jfs_logdump"))
+    {
+	y2milestone ("/sbin/jfs_logdump not available, exiting check...");
+	return false;
+    }
+
     string command = sformat ("if /usr/bin/test -f %1; then /bin/rm %1; fi",
 	OSRLogFile::GetTmpDir() +"/jfslog.dmp" );
 
@@ -435,6 +442,12 @@
    * Checks the specified partition for consistency with "/sbin/fsck.jfs -n ".
    */
   define boolean check_jfs()``{
+
+    if (!FileUtils::Exists ("/sbin/fsck.jfs"))
+    {
+	y2milestone ("/sbin/fsck.jfs not available, exiting check...");
+	return false;
+    }
 
     string command	= sformat("/sbin/fsck.jfs -n %1", check_partition);
     boolean checkjfs	= OSRExecute::Command(.local.bash, command);
@@ -745,6 +758,11 @@ Skip and repair the file system manually.
    */
   define boolean repair_jfs()``{
 
+    if (!FileUtils::Exists ("/sbin/fsck.jfs"))
+    {
+	y2milestone ("/sbin/fsck.jfs not available, exiting repair...");
+	return false;
+    }
     string command	= sformat("/sbin/fsck.jfs -p %1", check_partition);
     boolean repairjfs	= OSRExecute::CommandProgress (
 	.local.bash, command, file_name);
