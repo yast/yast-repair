@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 23 08:58:52 CEST 2006 - jsuchome@suse.cz
+
+- removed jfsutils from Requires (#177898)
+- 2.13.5 
+
+-------------------------------------------------------------------
 Mon Mar 20 10:50:20 CET 2006 - jsuchome@suse.cz
 
 - allow root partition on LVM (#147377)
