@@ -1296,6 +1296,8 @@ Continue.
       if (OSRFloppy::Open (true, size(target_map)))
       {
           foreach (string key, map v, (map<string,map>) target_map, {
+	    if (v["type"]:`CT_UNKNOWN != `CT_DISK)
+		return;
 	    OSRFloppy::NextStep (
 		// progress label
 		sformat (_("Saving partition table of disk %1..."), key));
