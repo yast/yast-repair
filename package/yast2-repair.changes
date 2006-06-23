@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 23 12:21:58 CEST 2006 - jsuchome@suse.cz
+
+- do not create fstab entry for cdrom (#185575)
+- 2.13.7 
+
+-------------------------------------------------------------------
 Thu Jun 15 12:50:38 CEST 2006 - jsuchome@suse.cz
 
 - 'Save system settings' scans only real disks (#184342)
