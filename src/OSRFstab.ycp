@@ -1089,7 +1089,7 @@ Create a new one?
 	else if ("cdrom" == part["found"]:"")
 	{
 	    map ret		= Storage::MakeCdromFstabEntry (part);
-	    new_entries[dev]	= ret;
+//	    new_entries[dev]	= ret; // workaround for bug #185575
 	}
 	else {
 	    y2error("creating an entry for %1 is not possible (3)", dev);
