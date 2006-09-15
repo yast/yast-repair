@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 15 11:39:24 CEST 2006 - jsuchome@suse.cz
+
+- show the product information when choosing root partition (#203542)
+- 2.13.8
+
+-------------------------------------------------------------------
 Fri Jun 23 12:21:58 CEST 2006 - jsuchome@suse.cz
 
 - do not create fstab entry for cdrom (#185575)
