@@ -49,6 +49,7 @@
 
   import "Label";
   import "Popup";
+  import "SuSERelease";
 
 
   textdomain "repair";
@@ -328,16 +329,22 @@ y2internal ("partition: %1", partition);
    *  @return list The list of partition-names that were successfully mounted
    *	to /mnt and contain a filesystem table.
    */
-  global define list<string> ValidRootPartitions(list<string> mount_possible_list, string mount_p) ``{
+  global define list<map> ValidRootPartitions (
+    list<string> mount_possible_list, string mount_p)
+  {
 
-    if (Mode::test ()) return mount_possible_list;
+    if (Mode::test ())
+	return maplist (string p, mount_possible_list, ``($["device": p]));
 
     if (size (mount_possible_list) == 0) return [];
 
-    // e.g.: ["/dev/hda1"]
-    list<string> valid_root_partitions	= [];
+    // e.g.: [ "device" : "/dev/hda1", "label" : "SUSE Linux"]
+    list<map> valid_root_partitions	= [];
     list<string> fstab_found_partitions	= [];
     list<string> smpoints_found_partitions	= [];
+
+    // mapping of device to the product label ($[ "/dev/hda1" : "SUSE Linux"])
+    map device2label	= $[];
 
     foreach (string partition_item, mount_possible_list, ``{
 
@@ -349,6 +356,8 @@ y2internal ("partition: %1", partition);
 	}
 	else
 	{
+	    device2label[partition_item] =
+		SuSERelease::ReleaseInformation (mount_p);
 	    // Check fstab exist
 	    // use the .local.size agent instead of the .etc.fstab agent
 	    // because it finds the fstab of currently mounted root partition
@@ -367,9 +376,9 @@ y2internal ("partition: %1", partition);
 	    foreach (string mp,  system_mount_points, ``{
 		if (mp != "/")
 		{
-		    y2debug ("command: /usr/bin/test -d " +  mount_p + mp);
-		    if (! OSRExecute::Command(.local.bash,
-			    "/usr/bin/test -d "+ mount_p + mp))
+		    string cmd	= sformat ("/usr/bin/test -d %1%2", mount_p,mp);
+		    y2debug ("command: %1", cmd);
+		    if (!OSRExecute::Command (.local.bash, cmd))
 		    {
 			  not_fount = true;
 		    }
@@ -388,18 +397,11 @@ y2internal ("partition: %1", partition);
 	WFM::Execute(.local.umount, mount_p);
     });
 
-    // filter items witch are in both list
-    valid_root_partitions = (list<string>) filter (string p, (list<string>)
-	union (fstab_found_partitions, smpoints_found_partitions), ``(
-	    contains (fstab_found_partitions, p) &&
-	    contains (smpoints_found_partitions, p))
-    );
+    valid_root_partitions = maplist (string part, smpoints_found_partitions, {
+	return $[ "device" : part, "label" : device2label[part]:"?" ];
+    });
 
-    //OSRFstab can create a new fstab.!!
-    valid_root_partitions = (list<string>)
-	union (valid_root_partitions, smpoints_found_partitions);
-    y2milestone("OSRFstab::ValidRootPartitions return %1",
-	valid_root_partitions);
+    y2milestone("ValidRootPartitions return %1", valid_root_partitions);
     return valid_root_partitions;
   };
 
@@ -2045,21 +2047,27 @@ selected lines?
 
 
   /**
-   *
+   * ask user to select the root partition
    */
-  global define string SelectRoot (list<string> valid_root_partition_list) ``{
+  global define string SelectRoot (list<map> valid_root_partition_list) {
 
     if (size (valid_root_partition_list) == 1)
-	return valid_root_partition_list[0]:"";
+	return valid_root_partition_list[0,"device"]:"";
 
-    return OSRPopup::RadioButtonGroup (
+    return OSRPopup::RadioButtonGroupText (
 	// popup headline
 	_("Select a Root Partition"),
 	// popup text (radio buttons wil follow
 	_("There are several valid root partitions in your system.
 Select one item in the list.
 "),
-	valid_root_partition_list,
+	(list<list>) maplist (map entry, valid_root_partition_list, ``(
+	    [
+		entry["device"]:"",
+		entry["label"]:""
+	    ]
+	)),
+	"",
 	"",
 	true
     );
@@ -2164,7 +2172,7 @@ Select one item in the list.
 	    LinuxPartitions(checked_partitions);
 	list<string> mount_possible_list	=
 	    MountablePartitions (linux_partition_list, root_mountpoint);
-	list<string> valid_root_partitions	=
+	list<map> valid_root_partitions	=
 	    ValidRootPartitions (mount_possible_list, root_mountpoint);
 
 	if (size (valid_root_partitions) == 0)
@@ -2178,7 +2186,7 @@ scanning.
 "));
 	    return nil;
 	}
-	string root_partition	= SelectRoot(valid_root_partitions);
+	string root_partition	= SelectRoot (valid_root_partitions);
 	y2milestone("selected root_partition %1" ,root_partition);
 
 	boolean mount		= OSRExecute::Command (.local.bash,

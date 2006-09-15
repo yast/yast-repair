@@ -650,25 +650,30 @@ the system and start a new installation.
       //
       /////////////////////////////////////////////////////////////////
 
-      list<string> valid_root_partition_list = OSRFstab::ValidRootPartitions (
+      list<map> valid_root_partition_list = OSRFstab::ValidRootPartitions (
         (list<string>) OSRCommon::RequireList("mount_possible_list"),
 	OSRSystem::TargetRoot());
       string  root_partition         = "";
 
       if (size(valid_root_partition_list) == 1)
       {
-        root_partition = valid_root_partition_list[0]:"";
+        root_partition = valid_root_partition_list[0,"device"]:"";
         // summary text (%1 is root partition)
         OSRSummary::DetectOK("", sformat(_("One valid partition was found: %1"),
             root_partition));
       }
       else if ( size(valid_root_partition_list) > 1 )
       {
+	string partitions_string	= mergestring (
+	    maplist (map part, valid_root_partition_list,``(part["device"]:"")),
+	    ", "
+	);
         // several valid root partitions found
-        OSRSummary::DetectOK("",
+        OSRSummary::DetectOK ("",
             // summary text (%1 are root partitions)
-            sformat(_("Several valid root partitions were found:<br>%1"),
-                mergestring(valid_root_partition_list, ", ")));
+            sformat (_("Several valid root partitions were found:<br>%1"),
+		partitions_string)
+	);
 
       if( ! Stage::initial () )
       {
@@ -682,7 +687,7 @@ the system and start a new installation.
           // launch a popup with a RadioButtonGroup
           // - one button for each item in the list -
           // and let the user select the root partition
-          root_partition = OSRFstab::SelectRoot( valid_root_partition_list);
+          root_partition = OSRFstab::SelectRoot (valid_root_partition_list);
       }
       }
 
