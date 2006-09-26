@@ -14,6 +14,7 @@
 
     textdomain "repair";
 
+    import "DefaultDesktop";
     import "Kernel";
     import "Mode";
     import "Report";
@@ -199,17 +200,22 @@ is not possible.</P>
 	}
 	if (minimal_selection == [] || minimal_selection == nil)
 	{
-	    minimal_selection = (list<string>)
-		Pkg::SelectionContent("Minimal", false, "");
-	    // add also contents of required selections: (bug #37133)
-	    map sel_data = Pkg::SelectionData ("Minimal");
-	    foreach (string req, sel_data["requires"]:[], ``{
-		y2debug ("required selection: %1", req);
-		minimal_selection = (list<string>) union (
-		    minimal_selection, Pkg::SelectionContent (req, false, ""));
-		y2debug ("minimal: %1", minimal_selection);
+	    DefaultDesktop::SetDesktop ("text");
+	    list<string> pats	= DefaultDesktop::PatternsToSelect ();
+
+	    foreach (string p, pats, {
+		list<map> descrs = Pkg::ResolvableDependencies (p,`pattern, "");
+		foreach (map descr, descrs, {
+		    foreach (map dep, (list<map>)descr["dependencies"]:[], {
+			if (dep["res_kind"]:"" == "package" &&
+			    dep["dep_kind"]:"" == "requires")
+			{
+			    minimal_selection	= add (minimal_selection,
+				dep["name"]:"");
+			}
+		    });
+		});
 	    });
-	    // FIXME use solver to get content of minimal selection
 	}
 	return minimal_selection;
     }
@@ -1003,7 +1009,6 @@ reinstall only the packages that do not work properly.</p>
 
 		    ok = ok && result[1]:nil == [] && result[2]:nil == [];
 		    Wizard::CreateDialog ();
-//                    Wizard::SetTitleIcon("repair");TODO
 		    Wizard::SetTitleIcon("misc");
                     WFM::CallFunction ("inst_suseconfig", [false, false]);
 
