@@ -15,6 +15,7 @@
   import "Linuxrc";
   import "Mode";
   import "ModuleLoading";
+  import "PackageCallbacksInit";
   import "Popup";
   import "Progress";
   import "Report";
@@ -251,6 +252,9 @@ Check your hardware.
 	Wizard::EnableBackButton();
 	Wizard::SetFocusToNextButton();
     }
+
+    PackageCallbacksInit::InitPackageCallbacks();
+
     initialized = true;
     return `next;
   }
