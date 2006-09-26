@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 26 11:15:59 CEST 2006 - jsuchome@suse.cz
+
+- correctly get lost of minimal set of required packages (#184323)
+- initialize package callbacks
+- 2.13.9
+
+-------------------------------------------------------------------
 Fri Sep 15 11:39:24 CEST 2006 - jsuchome@suse.cz
 
 - show the product information when choosing root partition (#203542)
