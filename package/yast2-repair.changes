@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  6 11:33:57 CET 2006 - jsuchome@suse.cz
+
+- new version for new product
+- 2.14.0
+
+-------------------------------------------------------------------
 Tue Sep 26 11:15:59 CEST 2006 - jsuchome@suse.cz
 
 - correctly get minimal set of required packages (#184323)
