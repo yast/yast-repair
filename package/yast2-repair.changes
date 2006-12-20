@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 20 14:02:49 CET 2006 - jsuchome@suse.cz
+
+- use exit code of xfs_admin to check if partition is XFS (#228813)
+- text fixes to enable better translations 
+- 2.13.10
+
+-------------------------------------------------------------------
 Tue Sep 26 11:15:59 CEST 2006 - jsuchome@suse.cz
 
 - correctly get minimal set of required packages (#184323)

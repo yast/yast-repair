@@ -63,8 +63,9 @@
    */
   global define void OSRRepairUI()``{
 
-      // dialog caption, appended to tool name
-      init_dialog_caption	= OSRCommon::tool_name +" "+_("Initialization");
+      // dialog caption, %1 is tool name ("System Repair")
+      init_dialog_caption	= sformat (_("%1 Initialization"),
+	OSRCommon::tool_name);
       // dialog caption
       start_dialog_caption	= _("Repair Method");
       // dialog caption
@@ -304,7 +305,7 @@ Check your hardware.
     detected = false;
 
     // summary help text 1/3
-    string help_text    = _("<p>The system repair
+    string help_text    = _("<p>The system repair tool
 can repair some parts of a damaged system. Therefore, the
 tool scans the system and reports the errors found.</p>
 ") +
@@ -626,7 +627,7 @@ go back and start the automatic analysis.</P>
     );
 
     // Help text for automatic check/repair process 1/4 
-    string help_text = sformat(_("<p>Now checking your Linux system.</p>
+    string help_text = sformat(_("<p>Now checking your system.</p>
 ")) +
 
     // Help text for automatic check/repair process 2/4
