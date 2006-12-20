@@ -755,7 +755,7 @@ packages in the list.
 		_("
 <P>&product; needs at least some packages for
 basic system functionality. Without these
-packages, the system is not executable.</P>
+packages, the system might be not executable.</P>
 ") +
 
 		// check for package minimum help text 2/2, %1 is tool name
