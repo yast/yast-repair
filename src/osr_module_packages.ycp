@@ -115,7 +115,7 @@
 	// error text in summary
 	OSRSummary::DetectError ("", _("Different versions of products"));
 	OSRStatus::ErrorSeverityModuleBlocking ();
-	// error popup, %1 is tool name
+	// error popup, %1 is tool name ('System repair')
 	Popup::Error (sformat (_("You are using %1 from a product 
 different than the installed one.
 
