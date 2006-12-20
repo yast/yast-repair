@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 20 13:59:20 CET 2006 - jsuchome@suse.cz
+
+- use exit code of xfs_admin to check if partition is XFS (#228813)
+- text fixes to enable better translations
+- 2.15.0
+
+-------------------------------------------------------------------
 Mon Nov  6 11:33:57 CET 2006 - jsuchome@suse.cz
 
 - new version for new product

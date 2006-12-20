@@ -32,8 +32,8 @@
   global string ignore_label	=  _("&Ignore");
   global string help_label	=  Label::HelpButton();
 
-  // dialog caption: "YaST system repair Help"
-  global string help_headline  = OSRCommon::tool_name + " " + _("Help");
+  // dialog caption: %1 is tool name ("System Repair")
+  global string help_headline  = sformat (_("%1 Help"), OSRCommon::tool_name);
 
   /**
    * Sublayout for other layouts.

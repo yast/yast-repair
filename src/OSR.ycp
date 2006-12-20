@@ -327,7 +327,7 @@
 file \"osr_module_list.ycp\".
 YaST system repair halts now!");
 
-      // popup text: %1 is "System Repair" (translated)
+      // popup text: %1 is tool name ("System Repair" translated)
 	  Report::Error(sformat(_("
 Error during initialization.
 Halting %1.
