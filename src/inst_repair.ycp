@@ -28,10 +28,13 @@
   y2milestone( "Starting yast repair tool" );
 
   Wizard::OpenNextBackDialog();
+  Wizard::HideBackButton ();
 
   any ret = WFM::CallFunction ("repair");
 
   Linuxrc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
+
+  Wizard::CloseDialog();
 
   return ret;
 }

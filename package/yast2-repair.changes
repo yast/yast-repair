@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan  5 14:25:46 CET 2007 - jsuchome@suse.cz
+
+- show popup that restart is imminent (#186580)
+- 2.15.1 
+
+-------------------------------------------------------------------
 Wed Dec 20 13:59:20 CET 2006 - jsuchome@suse.cz
 
 - use exit code of xfs_admin to check if partition is XFS (#228813)
