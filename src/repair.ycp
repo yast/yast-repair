@@ -41,13 +41,19 @@
     if( (! Stage::cont ()) && (! Stage::initial ()))
     {
 	Wizard::CreateDialog();
+	Wizard::HideBackButton ();
     }
     Wizard::SetTitleIcon("misc");
 
     // ===== Init the Rescue System =================================
     symbol ret = OSRRepairUI::InitDialog();
 
-    if ( ret != `next ) return ret;
+    if (ret != `next)
+    {
+	if (!Stage::cont () && ! Stage::initial ())
+	    Wizard::CloseDialog();
+	return ret;
+    }
 
     // ==== Open main dialog =========================================
     ret = OSRRepairUI::OsrMainDialog();
@@ -58,7 +64,7 @@
     // ==== Close the dialog =========================================
     if( (! Stage::cont ()) && (! Stage::initial ()))
     {
-	UI::CloseDialog();
+	Wizard::CloseDialog();
     }
     return ret;
   }

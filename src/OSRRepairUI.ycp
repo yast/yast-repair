@@ -58,6 +58,9 @@
 
   boolean initialized			= false;
 
+  // popup message (see bug #186580)
+  string restart_message		= _("The system will be restarted now.");
+
   /**
    * Constructor
    */
@@ -89,6 +92,22 @@
   }
 
   /**
+   *  AbortDialog
+   **/
+  define symbol AbortDialog() ``{
+
+    // popup label
+    if (Popup::YesNo (_("Really abort the system repair tool?")))
+    {
+	if (Stage::initial ())
+	    Popup::Message (restart_message);
+	return `yes;
+    }
+    return `back;
+  }
+
+
+  /**
    * Init Dialog
    */
   global define symbol InitDialog() ``{
@@ -96,17 +115,12 @@
     if ( initialized )
 	return `next;
 
-    if ( Stage::initial () )
-    {
-	Wizard::RestoreAbortButton();
-    }
-
     // Set help text
     if (!OSRMode::script) Wizard::RestoreHelp ( "" );
 
     // A callback function for abort
     block<boolean> abort = ``{
-	return UI::PollInput () == `abort;
+	return (UI::PollInput () == `abort && AbortDialog() == `yes);
     };
 
     integer no_of_steps = 6;
@@ -250,7 +264,6 @@ Check your hardware.
     {
 	Wizard::EnableNextButton();
 	Wizard::EnableAbortButton();
-	Wizard::EnableBackButton();
 	Wizard::SetFocusToNextButton();
     }
 
@@ -300,7 +313,7 @@ Check your hardware.
   * The start dialog let the user select how the system should be analysed.
   * @return symbol for sequencer
   */
-  define symbol StartDialog() ``{
+  define symbol StartDialog() {
 
     detected = false;
 
@@ -383,18 +396,10 @@ partition table or verify the package database.")
     );
 
     Wizard::SetContentsButtons (start_dialog_caption,contents,help_text,
-	Label::BackButton(), exit_label );
+	Label::AbortButton(), exit_label );
+    Wizard::HideBackButton ();
 
     UI::SetFocus(`id(`scan_repair));
-
-    if (!Stage::initial ())
-    {
-        Wizard::DisableBackButton();
-    }
-    else
-    {
-	Wizard::RestoreAbortButton();
-    }
 
     symbol ret = (symbol) UI::UserInput();
 
@@ -406,10 +411,6 @@ partition table or verify the package database.")
         OSR::SelectDefaultDetectGroups();
     }
 
-    if ( ret == `back && Stage::initial () )
-    {
-        Wizard::RestoreNextButton();
-    }
     return ret;
   }
 
@@ -661,17 +662,6 @@ Then select one proposal or cancel the repair. </P>
   };
 
   /**
-   *  AbortDialog
-   **/
-  define symbol AbortDialog() ``{
-
-    // popup label
-    if (Popup::YesNo (_("Really abort the system repair tool?")))
-	return `yes;
-    return `back;
-  }
-
-  /**
    * Controll the user interaction for the scan and repair sequence.
    */
   define symbol DetectDialog() ``{
@@ -834,7 +824,11 @@ Then select one proposal or cancel the repair. </P>
 
     // popup label
     if (Popup::YesNo (_("Really finish the system repair tool?")))
+    {
+	if (Stage::initial ())
+	    Popup::Message (restart_message);
 	return `yes;
+    }
 
     return `back;
   }
