@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 13 09:39:19 CET 2007 - jsuchome@suse.cz
+
+- fixed failing testsuites (Mode::test now works correctly)
+- 2.15.2
+
+-------------------------------------------------------------------
 Fri Jan  5 14:25:46 CET 2007 - jsuchome@suse.cz
 
 - show popup that restart is imminent (#186580)
