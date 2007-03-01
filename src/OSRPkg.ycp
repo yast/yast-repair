@@ -302,24 +302,43 @@ database or reverting to a backup.
 
 	integer source_id	= 1;
 
-	// TODO we could use Packages::theSources
 	list curr_sources	= Pkg::SourceGetCurrent (true);
 
 	source_id		= curr_sources[0]:source_id;
-	map source_product	= Pkg::SourceProduct (source_id);
+	map source_product	= Pkg::SourceProductData (source_id);
 	list all_products	= Pkg::TargetProducts ();
 	map target_product	= all_products[0]:$[];
 
 	y2debug ("source product: %1", source_product);
 	y2debug  ("target_product: %1", target_product);
 
-	if (source_product["product"]:"" != target_product["product"]:"")
+	if (source_product["productname"]:"" != target_product["name"]:"" ||
+	    source_product["productversion"]:"" != target_product["version"]:"")
 	{
-	    y2error("target product (%1) is different from source product (%2)",
-		target_product["product"]:"", source_product["product"]:"");
-	    y2warning ("source product: %1", source_product);
-	    y2warning ("target_product: %1", target_product);
-	    return false;
+	    y2warning ("target product (%1-%2) is probably different from source product (%3-%4)",
+		target_product["name"]:"", target_product["version"]:"",
+		source_product["productname"]:"", source_product["productversion"]:"");
+	    y2milestone ("source product: %1", source_product);
+	    y2milestone ("target_product: %1", target_product);
+	    // continue/cancel popup, %1 is tool name ('System repair')
+	    // %2-%3 are name and version of product with yast2-repair (e.g. the one on CD/DVD)
+	    // %4-%5 are name and version of installed product (the one being checked/repaired)
+	    if (!Popup::ContinueCancel (sformat (_("You seem to be using %1 from
+a product (%2 %3) different
+than the installed one (%4 %5).
+
+Because the package database of the installed product
+can be damaged, only the package database from the correct 
+installation media can be used for package database checking.
+Checking the package database with a different product
+should be skipped. 
+
+Really continue?"),
+		OSRCommon::tool_name,
+		source_product["productname"]:"", source_product["productversion"]:"",
+		target_product["name"]:"", target_product["version"]:""))
+	    )
+		return false;
 	}
 	return true;
     }

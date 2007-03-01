@@ -115,16 +115,7 @@
 	// error text in summary
 	OSRSummary::DetectError ("", _("Different versions of products"));
 	OSRStatus::ErrorSeverityModuleBlocking ();
-	// error popup, %1 is tool name ('System repair')
-	Popup::Error (sformat (_("You are using %1 from a product 
-different than the installed one.
-
-Because the package database of the installed product 
-can be broken, only the package database on the installation 
-media can be used for package database checking. 
- 
-Checking the package database is not possible and will be skipped."),
-	OSRCommon::tool_name));
+	return false;
     }
 
     return true;

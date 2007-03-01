@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar  1 15:24:36 CET 2007 - jsuchome@suse.cz
+
+- check the products (installed vs repairing) for name and version,
+  give possibility to continue even when they differ (#195265)
+- 2.15.3 
+
+-------------------------------------------------------------------
 Tue Feb 13 09:39:19 CET 2007 - jsuchome@suse.cz
 
 - fixed failing testsuites (Mode::test now works correctly)
