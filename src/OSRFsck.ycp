@@ -318,7 +318,7 @@
    */
   define boolean is_fat()``{
 
-    string command	= sformat("/bin/guessfstype %1", check_partition );
+    string command	= sformat("blkid -o value -s TYPE %1", check_partition);
     boolean isfat	= OSRExecute::CommandOutput (.local.bash, command );
 
     if ( issubstring( OSRExecute::stdout, "fat" ))
@@ -338,7 +338,7 @@
    */
   define boolean is_ntfs()  ``{
 
-    string command	= sformat("/bin/guessfstype %1", check_partition );
+    string command	= sformat("blkid -o value -s TYPE %1", check_partition);
     boolean isntfs	= false;
     OSRExecute::CommandOutput (.local.bash, command );
 
