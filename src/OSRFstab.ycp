@@ -187,7 +187,7 @@
 
     foreach (string type, [
 	"pts", "proc", "usb", "swap", "cdrom", "floppy",
-	"root", "zip", "dev", "nfs", "sys" ],
+	"root", "zip", "dev", "nfs", "sys", "debug" ],
     {
 	fstab_defaults [type]	= FileSystems::GetFstabDefaultMap (type);
     });
@@ -245,7 +245,7 @@
     if (Mode::test ()) return ["/dev/hda1", "/dev/hda2"];
 
     if (size (checked_partitions) == 0) return [];
-y2warning ("checked_partitions: %1", checked_partitions);
+    y2warning ("checked_partitions: %1", checked_partitions);
 
     // e.g.: ["/dev/hda1", "/dev/hdb2"]
     list<string> linux_partition_list		= [];
@@ -254,7 +254,7 @@ y2warning ("checked_partitions: %1", checked_partitions);
 
 	foreach (map partition, description["partitions"]:[], ``{
 
-y2internal ("partition: %1", partition);
+	    y2internal ("partition: %1", partition);
 	    if ((partition["fsid"]:0 == Partitions::fsid_native ||
 		 partition["type"]:`primary == `lvm ||
 		 partition["type"]:`primary == `sw_raid))
@@ -610,7 +610,6 @@ Create a new one?
       else {
 	  ret["found"] = "cdrom";
       }
-
       if (ret == $[] || ret == nil)
       {
 	list lret	= maplist (string n, map m,
@@ -624,7 +623,16 @@ Create a new one?
       {
 	  ret = Storage::GetPartition( Storage::GetTargetMap(), dev_name );
 	  if (ret != $[] && ret != nil) {
-	      if (ret["device"]:"" == dev_name)
+	    /*
+	    dev name might be: /dev/disk/by-id/scsi-SATA_ST340016A_3HS8YAL0-part6
+	    ret = Storage::GetPartition might contain: $["detected_fs":`ext3, "device":"/dev/sda6", "fsid":131, "fstopt":"acl,user_xattr", "fstype":"Linux native", "mount":"/", "mountby":`id, "name":"sda6", "nr":6, "region":[2351, 652], "size_k":5237158, "type":`logical, "udev_id":["scsi-SATA_ST340016A_3HS8YAL0-part6", "ata-ST340016A_3HS8YAL0-part6"], "udev_path":"pci-0000:00:02.5-scsi-0:0:0:0-part6", "used_fs":`ext3, "uuid":"75ff86c0-4c4d-47ab-af1e-196dbed4ea68"]
+	    */
+	      boolean correct	= false;
+	      foreach (string udev_id, ret["udev_id"]:[], {
+		  correct	= correct || issubstring (dev_name, udev_id);
+	      });
+
+	      if (ret["device"]:"" == dev_name || correct)
 	      {
 		  ret["dev_name"] = dev_name;
 		  if (ret["fsid"]:0 == Partitions::fsid_swap) {
@@ -829,6 +837,14 @@ Create a new one?
 	    fs_vfstype	= ( line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
 	    fs_mntops	= ( line[3]:"" != nil && line[3]:"" != "");
 	}
+	else if (line[0]:"" == fstab_defaults["debug","spec"]:"!")
+	{
+	    type	= "debug";
+	    fs_spec	= true;
+	    fs_file	= ( line[1]:"" == fstab_defaults[type,"mount"]:"!");
+	    fs_vfstype	= ( line[2]:"" == fstab_defaults[type,"vfstype"]:"!");
+	    fs_mntops	= ( line[3]:"" != nil && line[3]:"" != "");
+	}
 	fs_freq		= check_fs_freq (
 	    line, [ tostring (fstab_defaults [type, "freq"]:0) ]);
 	fs_passno	= check_fs_passno (
@@ -868,7 +884,8 @@ Create a new one?
 	    part["mount"]	= line[1]:"";
 	    Storage::ChangeVolumeProperties(part);
 	}
-	else if (contains (swapable_partition_list, part["dev_name"]:"") &&
+	else if ((contains (swapable_partition_list, part["dev_name"]:"") ||
+		  contains (swapable_partition_list, part["device"]:"")) &&
 		 part["found"]:"" == "swap")
 	{
 	    type	= "swap";
@@ -982,18 +999,23 @@ Create a new one?
       swapable_partition_list = tswapable_partition_list;
       checked_partitions      = tchecked_partitions;
 
+    map fstab2part	= $[];
+
       // check all lines in existing fstab file 
       foreach (integer lnr, map line, fstab["l"]:$[], ``{
 	  y2milestone("----check fstab line %1 ", lnr);
 	  if (! contains (valid_lines, lnr))
 	      check_fstab_line(lnr);
+	map fstabpart	= Storage::GetPartition (Storage::GetTargetMap(), line["fields",0]:"");
+	if (fstabpart["device"]:"" != "")
+	    fstab2part[fstabpart["device"]:""]	= fstabpart;
       });
       // check all mountable partitions + swap + usb+ proc +...
       foreach (string p, devices2check(), ``{
 	  y2milestone("-----check partition and usb,proc,pts %1", p);
-	  check_dev_entry(p);
+	  if (!haskey (fstab2part, p))
+	    check_dev_entry(p);
       });
-
       return ((size (missing_devs) == 0)  && (size (not_valid_lines) == 0));
   }
 
@@ -1939,6 +1961,15 @@ selected lines?
 
     root_l_no			= union (root_l_no,
 	AsciiFile::FindLineField (fstab, 0, "LABEL=" + root_part["label"]:""));
+
+    if (root_l_no == [])
+    {
+	foreach (integer lnr, map line, fstab["l"]:$[], {
+	    map fstabpart   = Storage::GetPartition (Storage::GetTargetMap(), line["fields",0]:"");
+	    if (fstabpart["device"]:"" == dev_name)
+		root_l_no	= add (root_l_no, lnr);
+	});
+    }
 
     // root_lines example:
     // $[ 1 : $["fields":["/dev/hda3", "/", "reiserfs", "defaults", "1", "2"],
