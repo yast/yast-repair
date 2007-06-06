@@ -684,9 +684,17 @@ Verifying the package %1 was successful.
 	return item_list;
     }
 
-    global define list ProtocolDialog()``{
+    /**
+    * Show the detailed list of packages that failed to be verified, together with
+    * rpm -V output. User can review the errors and choose the packages to reinstall.
+    * @param selected packages selected for reinstallation in the selection box
+    * @return packages that are selected for reinstallation
+    */
+    global define list ProtocolDialog (list selected) {
 
 	protocol_mode = true;
+
+	packages_to_reinstall	= selected;
 
 	UI::OpenDialog( get_verify_dialog()  );
 
