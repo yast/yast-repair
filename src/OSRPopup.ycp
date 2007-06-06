@@ -508,7 +508,7 @@
       foreach ( list special_button, special_buttons_list, ``{
 	  special_buttons = add( special_buttons, special_button[0]:`Empty());
 	  special_symbol_to_action[special_button[1]:`empty] =
-	    special_button[2]:OSRCommon::EmptyList;
+	    special_button[2]:OSRCommon::EmptyListWithParam;
       });
       term multi_box_with_text =  `VBox(`Left(`Label(message_top )),
 					`VSpacing(1),
@@ -546,9 +546,11 @@
 	      // eval special button action define.
 	      if ( haskey( special_symbol_to_action, ret ))
 	      {
-		  list () f =special_symbol_to_action[ret]:OSRCommon::EmptyList;
+		  list selected_for_reinstall	= (list)
+		    UI::QueryWidget (`id(`selection_box), `SelectedItems);
+		  list (list) f =special_symbol_to_action[ret]:OSRCommon::EmptyListWithParam;
 		  UI::ReplaceWidget(`id(`rp),
-		    build_multi_box(box_headline, (list<list>) f()));
+		    build_multi_box(box_headline, (list<list>) f(selected_for_reinstall)));
 	      }
 	  }
       }

@@ -63,7 +63,12 @@ global define list EmptyList () ``{
     return [];
 }
 
-
+/**
+ * @return []
+ */
+global define list EmptyListWithParam (list param) {
+    return [];
+}
 // ---------------------------------------------------------------------
 // from OSRDirect.ycp:
 

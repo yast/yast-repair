@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  6 12:53:50 CEST 2007 - jsuchome@suse.cz
+
+- remember the packages selected for reinstallation (#278512)
+- 2.15.7 
+
+-------------------------------------------------------------------
 Fri May 25 13:30:04 CEST 2007 - jsrain@suse.cz
 
 - removed outdated translations from .desktop-files (#271209)
