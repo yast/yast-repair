@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct  3 11:40:11 CEST 2007 - jsuchome@suse.cz
+
+- adapt for API change in yast2-bootloader (#329702)
+- 2.16.0
+
+-------------------------------------------------------------------
 Wed Jun  6 12:53:50 CEST 2007 - jsuchome@suse.cz
 
 - remember the packages selected for reinstallation (#278512)
