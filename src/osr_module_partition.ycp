@@ -1275,7 +1275,7 @@ a valid %2 file system.
 
 
       UI::NormalCursor();
-      if (!StorageDevices::FloppyPresent)
+      if (!StorageDevices::FloppyPresent())
       {
 	// message popup (no floppy drive was detected)
 	Report::Message(_("

@@ -722,9 +722,9 @@ contains no errors, press Skip.
 	if(dev_name == "" ) return true;
 
 	// if device is a floppy
-	if( StorageDevices::FloppyDrives == [] || StorageDevices::FloppyDrives == nil ) StorageDevices::Probe(false);
-	y2milestone("FloppyDrives %1", StorageDevices::FloppyDrives );
-	map ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
+	if( StorageDevices::FloppyDrives() == [] || StorageDevices::FloppyDrives == nil ) StorageDevices::Probe(false);
+	y2milestone("FloppyDrives %1", StorageDevices::FloppyDrives() );
+	map ret =  find(map e, StorageDevices::FloppyDrives(), ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
 	if ( ret != nil && size( ret ) > 0 ) return true;
 
 	// if device is a hard disk

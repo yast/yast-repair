@@ -116,7 +116,7 @@
 
   global define void OSRPtbl()``{
 
-    if (! StorageDevices::FloppyPresent )
+    if (! StorageDevices::FloppyPresent() )
     {
 	// filter floppy repair methode
 	y2milestone("filter floppy repair methode. No floppy found");

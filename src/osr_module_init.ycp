@@ -43,7 +43,7 @@
       //
       /////////////////////////////////////////////////////////////////////////
 
-      if  ( size( StorageDevices::FloppyDrives) == 1 )
+      if  ( size( StorageDevices::FloppyDrives()) == 1 )
       {
         // summary text, %1 is floppy device
         OSRSummary::DetectOK("",sformat(_("Floppy device found on %1"),
@@ -51,10 +51,10 @@
 
         OSRCommon::ProvideBoolean("has_floppy", true);
       }
-      else if ( size( StorageDevices::FloppyDrives)  > 1 )
+      else if ( size( StorageDevices::FloppyDrives())  > 1 )
       {
 	list<string> drives = (list<string>) maplist (
-	    map floppy, StorageDevices::FloppyDrives, ``{
+	    map floppy, StorageDevices::FloppyDrives(), ``{
 		return floppy["dev_name"]:"";
 	});
 
