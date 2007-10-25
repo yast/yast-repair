@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct 25 10:00:20 CEST 2007 - jsuchome@suse.cz
+
+- adapted for the API change in yast2-storage (#335582)
+- 2.16.1 
+
+-------------------------------------------------------------------
 Wed Oct  3 11:40:11 CEST 2007 - jsuchome@suse.cz
 
 - adapt for API change in yast2-bootloader (#329702)

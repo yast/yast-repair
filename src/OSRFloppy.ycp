@@ -41,7 +41,7 @@
   /**
    * Default floppy device
    */
-  global string floppy_device	       = StorageDevices::FloppyDevice;
+  global string floppy_device	       = StorageDevices::FloppyDevice();
 
   /**
    * Supported file systems
@@ -71,7 +71,7 @@
    */
   define boolean CheckPresent()``{
 
-      if ( ! StorageDevices::FloppyPresent )
+      if ( ! StorageDevices::FloppyPresent() )
       {
 	  // error message
 	  string message = _("

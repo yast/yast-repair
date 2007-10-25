@@ -578,7 +578,7 @@ Create a new one?
       map ret = StorageDevices::GetCdromEntry( dev_name);
       if (ret == $[] || ret == nil) {
 
-	  ret = find(map e, StorageDevices::cddrives, ``(e["linkname"]:"" == dev_name));
+	  ret = find(map e, StorageDevices::cddrives(), ``(e["linkname"]:"" == dev_name));
 
 	  // check link
 	  if (ret == nil) {
@@ -596,15 +596,15 @@ Create a new one?
 	      ret = StorageDevices::GetCdromEntry( link);
 	      if (ret == $[] || ret == nil)
 	      {
-		  //y2milestone(" StorageDevices :: %1 " ,StorageDevices::cddrives);
-		  ret = find(map e, StorageDevices::cddrives, ``(e["linkname"]:"" == link));
+		  //y2milestone(" StorageDevices :: %1 " ,StorageDevices::cddrives());
+		  ret = find(map e, StorageDevices::cddrives(), ``(e["linkname"]:"" == link));
 	      }
 	      y2milestone(" ret in check link %1", ret);
 	  }
       }
 
       if (ret == $[] || ret == nil) {
-	  ret =  find(map e, StorageDevices::FloppyDrives, ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
+	  ret =  find(map e, StorageDevices::FloppyDrives(), ``(e["dev_orig"]:(e["dev_name"]:"") == dev_name));
 	  if (ret != $[] && ret != nil) ret["found"] = "floppy";
       }
       else {
@@ -613,7 +613,7 @@ Create a new one?
       if (ret == $[] || ret == nil)
       {
 	list lret	= maplist (string n, map m,
-	    filter (string k, map e, (map<string,map>)StorageDevices::ZipDrives,
+	    filter (string k, map e, StorageDevices::ZipDrives(),
 		``(e["dev_orig"]:(e["dev_name"]:"") == dev_name)), ``(m));
 	ret		= lret[0]:$[];
 	if (ret != $[] && ret != nil) ret["found"] = "zip";
@@ -974,15 +974,15 @@ Create a new one?
 	    ]
 	);
       dev2check = (list<string>) union (dev2check,
-	maplist (map d, StorageDevices::cddrives,
+	maplist (map d, StorageDevices::cddrives(),
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       dev2check = (list<string>) union (dev2check,
-	maplist (map d, StorageDevices::FloppyDrives,
+	maplist (map d, StorageDevices::FloppyDrives(),
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       dev2check = (list<string>) union (dev2check,
-	maplist (string k, map d, (map<string,map>) StorageDevices::ZipDrives,
+	maplist (string k, map d, StorageDevices::ZipDrives(),
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));
 
       return dev2check;
