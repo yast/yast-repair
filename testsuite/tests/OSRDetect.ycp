@@ -7,7 +7,7 @@
 {
     // testedfiles: OSRRepairUI.ycp OSR.ycp OSRCommon.ycp osr_module_partition.ycp OSRFstab.ycp
 
-    include "testsuite.ycp";
+    import "Testsuite";
 
     map I_READ = $[
 	"probe" : $[
@@ -46,7 +46,7 @@
 	    "bash_output" : $[],
 	],
     ];
-    TESTSUITE_INIT ( [I_READ, $[], I_EXEC], nil);
+    Testsuite::Init ( [I_READ, $[], I_EXEC], nil);
 
     import "Mode";
 
@@ -79,14 +79,25 @@
 	    "boot_disk"	: "",
 	    "disk"	: [],
 	    "floppy"	: [ $[] ],
+
+	    "cdrom"	: [],
+	    "is_uml"	: false,
+	    "floppy"	: $[
+		"manual"	: [ $[] ] // 1 floppy for "init_floppy" method
+	    ],
+	    "architecture"	: ""
 	],
 	"proc"	: $[
 	    "swaps"	: [ ],
 	    "mounts"	: [ $["file": "/" , "spec": "/dev/hda3"],
 			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
+	    "modules"	: $[],
 	],
 	"etc"	: $[
-	    "mtab"	: [ $["file": "/"] ]
+	    "mtab"	: [ $["file": "/"] ],
+	    "install_inf"	: $[
+		"Cdrom"	: "",
+	    ],
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[
@@ -115,28 +126,28 @@
 	],
     ];
 
-    DUMP (sformat ("global entries: %1", OSRCommon::global_entries));
-    TEST (``(OSR::Init ()), [READ, WRITE, EXEC], 0);
-    DUMP (sformat ("global entries (keys): %1", maplist (
+    Testsuite::Dump (sformat ("global entries: %1", OSRCommon::global_entries));
+    Testsuite::Test (``(OSR::Init ()), [READ, WRITE, EXEC], 0);
+    Testsuite::Dump (sformat ("global entries (keys): %1", maplist (
 	string k, map m, (map<string,map>)OSRCommon::global_entries, ``(k))));
 
-    DUMP (sformat ("detect group: %1", OSR::DetectGroupList ()));
+    Testsuite::Dump (sformat ("detect group: %1", OSR::DetectGroupList ()));
 
-    TEST (``(OSR::SelectDefaultDetectGroups ()), [READ, WRITE, EXEC], 0);
+    Testsuite::Test (``(OSR::SelectDefaultDetectGroups ()), [READ, WRITE, EXEC], 0);
 
-    DUMP (sformat ("detect group: %1", OSR::DetectGroupList ()));
+    Testsuite::Dump (sformat ("detect group: %1", OSR::DetectGroupList ()));
 
-    DUMP ("----------------- start detection [no hard disk found]: ------");
+    Testsuite::Dump ("----------------- start detection [no hard disk found]: ------");
 
-    TEST (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
+    Testsuite::Test (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
 
-    DUMP ("--------------------------------------------------------------");
+    Testsuite::Dump ("--------------------------------------------------------------");
 
-    DUMP (sformat ("--- status: %1", OSRStatus::status));
+    Testsuite::Dump (sformat ("--- status: %1", OSRStatus::status));
 
-    DUMP (sformat ("--- failed in module: %1", OSRCommon::current_module_name));
+    Testsuite::Dump (sformat ("--- failed in module: %1", OSRCommon::current_module_name));
 
-    DUMP ("----------------- start detection [hard disks now ok]: --------");
+    Testsuite::Dump ("----------------- start detection [hard disks now ok]: --------");
 
     READ["target","yast2"]	= $[
 	"/dev/hda": $[
@@ -158,6 +169,5 @@
 	]
     ];
 
-    TEST (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
-
+    Testsuite::Test (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
 }

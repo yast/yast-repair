@@ -103,14 +103,19 @@ usbfs	/proc/bus/usb	usbfs	noauto 0 0";
 	],
 	"probe" : $[
 	    "usbctrl"	: [ $[] ],
+	    "cdrom"	: [],
 	],
 	"proc"	: $[
 	    "swaps"	: [ ],
 	    "mounts"	: [ $["file": "/" , "spec": "/dev/hda3"],
 			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
+	    "modules"	: $[],
 	],
 	"etc"	: $[
-	    "mtab"	: [ $["file": "/"] ]
+	    "mtab"	: [ $["file": "/"] ],
+	    "install_inf"	: $[
+		"Cdrom"	: "",
+	    ],
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[
