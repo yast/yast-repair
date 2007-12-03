@@ -329,11 +329,12 @@ than the installed one (%4 %5).
 
 Because the package database of the installed product
 can be damaged, only the package database from the correct 
-installation media can be used for package database checking.
+installation media can be used for the package database checking.
 Checking the package database with a different product
 should be skipped. 
 
-Really continue?"),
+Really continue?
+"),
 		OSRCommon::tool_name,
 		source_product["productname"]:"", source_product["productversion"]:"",
 		target_product["name"]:"", target_product["version"]:""))
