@@ -27,6 +27,8 @@
   // pushbutton label
   global string repair_label	=  _("&Repair");
   // pushbutton label
+  global string change_label	=  _("&Change");
+  // pushbutton label
   global string recover_label   =  _("&Recover");
   // pushbutton label
   global string ignore_label	=  _("&Ignore");
@@ -126,32 +128,29 @@
   /**
    * Open a dialog with the term r_options in the center.
    */
-  global define boolean OpenMainRepairDialog(string headline, string error_text, term r_options ) ``{
+  global define boolean OpenMainRepairDialog(string headline, string error_text, term r_options )
+  {
 
-      // Build the options for the user dialog
-      term contents = `HVSquash (
-				`HBox(
-				      `HSpacing(2),
-				      `VBox(
-					    `VSpacing(1),
-					    `Left(`Heading( headline)),
-					    `VSpacing(1),
-					    `Left(`Label(error_text)),
-					    `VSpacing(1),
-					    `RadioButtonGroup(`id(`rb), r_options),
-					    `VSpacing(1),
-					    `Bottom( `HSquash(`HBox(
-							  `PushButton(`id(`ok), `opt(`default ), Label::OKButton()),
-							  `PushButton(`id(`cancel), skip_label),
-							  `HSpacing(2),
-							  `Right(`PushButton(`id(`help), help_label ))
-							  )))
-						    ),
-					    `HSpacing(2)));
+    term contents = `HVSquash (`HBox (`HSpacing(2), `VBox (
+	`VSpacing (1),
+	`Left (`Heading (headline)),
+	`VSpacing (1),
+	`Left (`Label (error_text)),
+	`VSpacing (1),
+	`RadioButtonGroup (`id(`rb), r_options),
+	`VSpacing (1),
+	`Bottom (`HSquash (`HBox (
+	    `PushButton (`id(`ok), `opt (`default ), Label::OKButton()),
+	    `PushButton (`id(`cancel), skip_label),
+	    `HSpacing(2),
+	    `Right (`PushButton (`id(`help), help_label))
+	))),
+	`VSpacing (0.2)
+    ), `HSpacing(2)));
 
-      boolean ret = UI::OpenDialog( contents );
-      UI::SetFocus(`id(`ok));
-      return ret;
+    boolean ret = UI::OpenDialog( contents );
+    UI::SetFocus(`id(`ok));
+    return ret;
   }
 
   /**
@@ -159,9 +158,7 @@
    */
   global define boolean OpenSuggestDialog(string headline, string message, string help_text, term body, integer hweight )``{
 
-      term message_box = `VBox(`Left(`Label(message )),
-			       `VSpacing(1)
-			       );
+      term message_box = `VBox (`Left (`Label (message)), `VSpacing(1));
 
       integer headline_box_wight = 20;
 
@@ -171,28 +168,24 @@
 	 headline_box_wight = 10;
       }
 
-      term contents =
-	  `HBox(
-		`HWeight( 25, `RichText( help_text )),
-		`HWeight( 1,  `HSpacing(1)),
-		`HWeight( 60, `VBox(
-				    `VWeight(headline_box_wight,`VBox(
-						      `Left(`Heading(headline )),
-						      //`VSpacing(1),
-						      message_box
-						      )
-					     ),	
-				    `VWeight(hweight, body ),
-				    `VWeight(10,`VBox(
-						      //`VSpacing(1),
-						      `Bottom(`HBox(
-								    `PushButton(`id(`ok),     repair_label ),
-								    `HSpacing(2),
-								    `PushButton(`id(`cancel), Label::CancelButton())
-								    ))))
-				    )),
-		`HWeight( 1, `HSpacing(1))
-		);
+      term contents = `HBox (
+	`HWeight (25, `RichText( help_text )),
+	`HWeight (1,  `HSpacing(1)),
+	`HWeight (60, `VBox (
+	    `VWeight (headline_box_wight,`VBox (
+		`Left (`Heading (headline )),
+		message_box
+	    )),
+	    `VWeight (hweight, body),
+	    `VWeight (10, `VBox (`Bottom (`HBox (
+		`PushButton (`id (`ok), change_label),//repair_label,
+		`HSpacing(2),
+		`PushButton (`id (`cancel), skip_label)//Label::CancelButton
+	    )))),
+	    `VSpacing (0.2)
+	)),
+	`HWeight (1, `HSpacing(1))
+      );
       boolean ret = UI::OpenDialog(contents );
       UI::SetFocus(`id(`ok));
       return ret;

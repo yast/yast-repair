@@ -353,11 +353,11 @@ that could be recovered.</P>
 	  // %1 is Recover label
 	  OSRPopup::build_label_description( OSRPopup::recover_label, sformat(_("Change the status of a partition to %1."), s_recover_label)) +
 
-	  //%1 is Recover label
-	  OSRPopup::build_label_description( OSRPopup::repair_label, sformat(_("If you have changed the status of all partitions for recovering
-to %1, press Repair to execute the recovery process.
+	  //%1 is Change label
+	  OSRPopup::build_label_description( OSRPopup::change_label, sformat(_("If you have changed the status of all partitions for recovering
+to %1, press <b>Change</b> to execute the recovery process.
 "), s_recover_label)) +
- 
+
 	  // help_text description for table column, %1 ignore, %2 recover
 	  OSRPopup::build_label_description( label_status, sformat(_("The status of a listed partition
 can be switched between %1 and %2. Only
@@ -935,7 +935,7 @@ really be recovered.
 be deleted to recover another partition.</P>
 ") +
 
-    OSRPopup::build_label_description (OSRPopup::repair_label,
+    OSRPopup::build_label_description (OSRPopup::change_label,
 	// help text for button
 	_("Start the recovery process."));
 

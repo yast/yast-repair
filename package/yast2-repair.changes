@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Jan  7 15:20:18 CET 2008 - jsuchome@suse.cz
+
+- /etc/fstab (#350539):
+    do not offer devpts entry
+    do not offer adding mount points for removable devices
+- changed some button labels (Repair to Change), adapted appropriate
+  help texts (#350538)
+- 2.16.3
+
+-------------------------------------------------------------------
 Mon Dec  3 15:14:51 CET 2007 - jsuchome@suse.cz
 
 - merged texts from proofread 

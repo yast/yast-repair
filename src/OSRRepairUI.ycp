@@ -115,8 +115,9 @@
     if ( initialized )
 	return `next;
 
-    // Set help text
-    if (!OSRMode::script) Wizard::RestoreHelp ( "" );
+    if (!OSRMode::script)
+	// init dialog help text
+	Wizard::RestoreHelp (_("Initializing the system. Please wait..."));
 
     // A callback function for abort
     block<boolean> abort = ``{
