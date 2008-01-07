@@ -333,7 +333,7 @@ installation media can be used for the package database checking.
 Checking the package database with a different product
 should be skipped. 
 
-Really continue?
+Really continue to package database check?
 "),
 		OSRCommon::tool_name,
 		source_product["productname"]:"", source_product["productversion"]:"",
