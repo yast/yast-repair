@@ -660,7 +660,7 @@ Failed Repair of %1 on %2"),
    */
   define boolean repair_ext2fs()``{
 
-    if (last_check_return == 4 )
+    if (last_check_return == 4 || last_check_return == 8)
     {
 	y2milestone("repair ext2/ext3 filesystem on partition %1",
 	    check_partition);
