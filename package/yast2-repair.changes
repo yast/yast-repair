@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 27 07:31:50 CET 2008 - jsuchome@suse.cz
+
+- yast2-storage required for build (bnc#359719)
+- 2.13.11
+
+-------------------------------------------------------------------
 Wed Dec 20 14:02:49 CET 2006 - jsuchome@suse.cz
 
 - use exit code of xfs_admin to check if partition is XFS (#228813)
