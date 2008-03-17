@@ -22,3 +22,4 @@ Exec=/sbin/yast2 view_anymsg /var/log/messages
 Name=System Log
 GenericName=Display the system's log (/var/log/messages)
 X-KDE-SubstituteUID=true
+StartupNotify=true
