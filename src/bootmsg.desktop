@@ -22,3 +22,4 @@ Exec=/sbin/yast2 view_anymsg /var/log/boot.msg
 Name=Start-Up Log
 GenericName=Display the boot log (/var/log/boot.msg)
 X-KDE-SubstituteUID=true
+StartupNotify=true
