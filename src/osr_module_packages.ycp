@@ -18,6 +18,7 @@
   textdomain "repair";
 
   import "Popup";
+  import "Progress";
   import "Report";
   import "Stage";
 
@@ -80,14 +81,13 @@
   }
 
   /**
-   *
+   * Search for package database
    */
   define boolean OSRPackagesDBFind() ``{
-    /////////////////////////////////////////////////////////////////////////
-    //
-    //
-    //
-    /////////////////////////////////////////////////////////////////////////
+
+    // no package callbacks in wizard window
+    Progress::set (false);
+
     if ( OSRPkg::CheckDB (OSRSystem::TargetRoot()))
     {
 	// summary text
@@ -215,7 +215,14 @@
       return OSRPackagesVerifyPackages ("all");
   }
 
+  /**
+   * Direct method "Verify Installed Software" (from Expert tools)
+   */
   define symbol OSRDirectPackageCheck()``{
+
+    // no package callbacks in wizard window
+    Progress::set (false);
+
       symbol ret       = `next;
       // radio button label
       string sret      = _("Base Packages Only");
@@ -266,17 +273,21 @@ is very time consuming.
 
       OSRFstab::Reset();
       OSRPkg::Reset();
+      // progress was off due to package callbacks
+      Progress::set (OSRCommon::progress_orig);
       y2milestone("Direct package check");
       return ret;
   }
 
   /**
-   *  Reset boot loader temporary settings.
+   *  Reset packager temporary settings.
    */
   define boolean OSRPackagesReset() ``{
 
       OSRSystem::SetOrgRoot();
       OSRPkg::Reset();
+      // progress was off due to package callbacks
+      Progress::set (OSRCommon::progress_orig);
       return true;
   }
 
@@ -355,7 +366,7 @@ install the missing packages.</P>
                   "packages_verify_base" :
                       $[
                                   // module action label
-                        "text"  : _("Verify Base Packages (time consuming)"),
+                        "text"  : _("Verify Base Packages"),
                                   // helptext
                         "help"  : sformat("
 <P>%1</P>
@@ -491,26 +502,4 @@ all software packages.
 
 
 
-  /*
-  integer arg_n = 0;
-  //////////////////////////////////////////////////////////////////////
-  //
-  //  MAIN
-  //
-  //////////////////////////////////////////////////////////////////////
-  while ( arg_n <  size(WFM::Args()) )
-  {
-      if ( WFM::Args(arg_n) == .init )
-      {
-	y2milestone("Argument: %1", WFM::Args(arg_n));
-	return OSRPackagesInit();
-      }
-      else
-      {
-	y2error("ERROR: unknown option %1", WFM::Args(arg_n) );
-	return $[];
-      }
-      arg_n = arg_n + 1;
-  }
-  */
 }//EOF

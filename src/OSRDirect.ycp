@@ -101,17 +101,7 @@
 	    string text = "";
 	    foreach (string key, map<string,any> data, (map<string,map<string,any> >)direct_methods , ``{
 
-		string item = "";
-		if (UI::HasSpecialWidget(`DownloadProgress))
-		{
-		    item = "<tr><th width=30 colspan=2> %1 </th><th></th></tr>"
-		    +  "<tr> <td width=30>  </th> <td width=370>%2</th></tr>"
-		    +  "<tr><td>  </th><td></th></tr>";
-		}
-		else
-		{
-		    item = "<li>%1 </li> <li>%2 </li> <li> </li><br>";
-		}
+		string item = "<li>%1 </li> <li>%2 </li> <li> </li><br>";
 		data["description"] = mergestring (
 		    splitstring (data["description"]:"", "\n"), " ");
 
@@ -124,15 +114,7 @@
 		menu_button_items = add (menu_button_items,
 		    `item (`id(key), data["button_text"]:""));
 	    });
-	    if (UI::HasSpecialWidget(`DownloadProgress))
-	    {
-		direct_items = add (direct_items,
-		    `RichText(`id(`options),sformat("<table>%1</table>",text)));
-	    }
-	    else
-	    {
-		direct_items = add (direct_items,`RichText(`id(`options),text));
-	    }
+	    direct_items = add (direct_items,`RichText(`id(`options),text));
 
 	    direct_items = add (direct_items,
 		// menubutton label

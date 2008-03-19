@@ -200,7 +200,7 @@ is not possible.</P>
 	}
 	if (minimal_selection == [] || minimal_selection == nil)
 	{
-	    DefaultDesktop::SetDesktop ("text");
+	    DefaultDesktop::SetDesktop ("textmode");
 	    list<string> pats	= DefaultDesktop::PatternsToSelect ();
 
 	    foreach (string p, pats, {

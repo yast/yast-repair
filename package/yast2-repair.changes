@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Mar 19 08:03:14 CET 2008 - jsuchome@suse.cz
+
+- yast2-storage required for build (bnc#359719)
+- fixed expert summary layout (bnc#366358)
+- fixed selection of minimal package set (bnc#366865)
+- do not show package progress in wizard window
+- 2.16.5 
+
+-------------------------------------------------------------------
 Mon Mar 17 12:43:32 CET 2008 - jsrain@suse.cz
 
 - added 'StartupNotify=true' to the desktop file (bnc #304964)
