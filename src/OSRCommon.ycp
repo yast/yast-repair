@@ -26,6 +26,10 @@ module "OSRCommon";
 
 textdomain "repair";
 
+
+// original value of progress status (before manipulation with our progress)
+global boolean progress_orig	= true;
+
 /**
  * Functions that could be used as a default in lookups for functin pointers
  * @return false

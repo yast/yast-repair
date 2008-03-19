@@ -126,6 +126,8 @@
 
     integer no_of_steps = 6;
 
+    OSRCommon::progress_orig	= Progress::status ();
+
     // We do not set help text here, because it was set outside
     if(!OSRMode::script)
 	Progress::New ( init_dialog_caption, " ", no_of_steps,
