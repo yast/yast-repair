@@ -186,7 +186,7 @@
   global define void OSRFstab () {
 
     foreach (string type, [
-	"proc", "usb", "swap", "cdrom", "floppy",
+	"pts", "proc", "usb", "swap", "cdrom", "floppy",
 	"root", "zip", "dev", "nfs", "sys", "debug" ],
     {
 	fstab_defaults [type]	= FileSystems::GetFstabDefaultMap (type);
@@ -506,13 +506,9 @@ Create a new one?
    */
   define boolean check_fs_vfstype(list<string> line, map part) ``{
 
-y2internal ("line: %1", line);
     if (line[2]:"" == nil || line[2]:"" == "") return false;
 
     line[2] = remove_blanks (line[2]:"");
-y2internal ("removed: %1", line[2]:"");
-y2warning ("part %1", part);
-y2internal ("FileSystems::GetMountString (%1):%2", part["detected_fs"]:`unknown, FileSystems::GetMountString (part["detected_fs"]:`unknown, "!"));
 
     if (!(FileSystems::GetMountString (part["detected_fs"]:`unknown, "!")
 	    == line[2]:""
@@ -989,6 +985,7 @@ y2internal ("FileSystems::GetMountString (%1):%2", part["detected_fs"]:`unknown,
 	    [
 		fstab_defaults ["usb", "spec"]:"",
 		fstab_defaults ["proc", "spec"]:"",
+		fstab_defaults ["pts", "spec"]:"",
 	    ]
 	);
       dev2check = (list<string>) union (dev2check,

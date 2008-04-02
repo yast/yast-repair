@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  2 12:41:44 CEST 2008 - jsuchome@suse.cz
+
+- devpts entry is acutally required in /etc/fstab (bnc#366860)
+- 2.16.6
+
+-------------------------------------------------------------------
 Wed Mar 19 08:03:14 CET 2008 - jsuchome@suse.cz
 
 - yast2-storage required for build (bnc#359719)
