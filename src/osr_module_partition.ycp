@@ -431,35 +431,36 @@ partition %1"), part)
 
 
   /**
-   *
+   * fsck for all possible partitions
    */
   define boolean OSRPartitionFSCheck()``{
 
-      /////////////////////////////////////////////////////////
-      //
-      // fsck for all possible partitions
-      //
-      /////////////////////////////////////////////////////////
       list<map> fsck_partitions		= (list<map>)
 	OSRCommon::RequireList("fsck_partitions");
       list<map> mounted_partitions	= (list<map>)
 	OSRCommon::RequireList("mounted_partitions");
       list<string> checked_partitions = [];
 
-      foreach(map p, fsck_partitions, ``{
+      foreach(map p, fsck_partitions, {
 
-      string  dev_name   = p["device"]:"";
-      // summary header
-      string summary_header  = sformat(_("Executing file system check for partition %1..."),  dev_name  );
+	string  dev_name   = p["device"]:"";
+	// summary header
+	string summary_header  = sformat(_("Executing file system check for partition %1..."),  dev_name  );
 
-      if( size( filter(map p, mounted_partitions, ``(p["spec"]:""  == dev_name ))) != 0 )
-      {
-        // summary text
-        OSRSummary::DetectOK(summary_header, _("Partition mounted: check impossible"));
-        checked_partitions = add(checked_partitions, dev_name );
-      }
-      else
-      {
+	if( size( filter(map p, mounted_partitions, ``(p["spec"]:""  == dev_name ))) != 0 )
+	{
+	    // summary text
+	    OSRSummary::DetectOK(summary_header, _("Partition mounted: check impossible"));
+	    checked_partitions = add(checked_partitions, dev_name );
+	}
+	else if (p["enc_type"]:`none != `none)
+	{
+	    OSRSummary::DetectOmit (summary_header,
+		// summary text
+		_("Partition is encrypted: check not supported"));
+	}
+	else
+	{
           boolean fs_ok    = OSRFsck::Check( p );
           symbol used_fs  = Storage::GetPartition( Storage::GetTargetMap(),
 	                                           p["device"]:"" )["detected_fs"]:`none;
@@ -500,7 +501,7 @@ partition %1"), part)
               }
             }
           }
-      }
+	}
       });
       OSRCommon::ProvideList( "checked_partitions", checked_partitions );
       return true;

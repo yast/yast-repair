@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  8 13:07:52 CEST 2008 - jsuchome@suse.cz
+
+- do not report errors on encrypted partitions (fate#301729)
+- 2.16.7 
+
+-------------------------------------------------------------------
 Wed Apr  2 12:41:44 CEST 2008 - jsuchome@suse.cz
 
 - devpts entry is acutally required in /etc/fstab (bnc#366860)
