@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 14 13:43:27 CEST 2008 - jsuchome@suse.cz
+
+- solver needs to be run before reading product info (bnc#368104)
+- 2.16.8 
+
+-------------------------------------------------------------------
 Tue Apr  8 13:07:52 CEST 2008 - jsuchome@suse.cz
 
 - do not report errors on encrypted partitions (fate#301729)
