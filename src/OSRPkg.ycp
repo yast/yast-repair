@@ -306,6 +306,8 @@ database or reverting to a backup.
 
 	source_id		= curr_sources[0]:source_id;
 	map source_product	= Pkg::SourceProductData (source_id);
+	// we need to call solver to 'compute' the product info (bnc#368104)
+	Pkg::PkgSolve (false);
 	list all_products	= Pkg::TargetProducts ();
 	map target_product	= all_products[0]:$[];
 
