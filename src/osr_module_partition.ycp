@@ -53,11 +53,7 @@
    */
   define boolean OSRPartitionCheckDiskCount()``{
 
-      /////////////////////////////////////////////////////////////////////////
-      //
       //  Check all disks for entries in their map
-      //
-      /////////////////////////////////////////////////////////////////////////
       Storage::ReReadTargetMap();
 
       // get the names of detected harddisks and put them in the list -> ["/dev/hda", "/dev/sda"]
@@ -105,12 +101,7 @@ Halting the repair system.
    */
   define boolean OSRPartitionCheckDisks() ``{
 
-      /////////////////////////////////////////////////////////////////////////
-      //
       //  Iterate all harddisks, check for partitions
-      //
-      /////////////////////////////////////////////////////////////////////////
-
       map           target_map      = Storage::GetTargetMap();
       list<string>  valid_target_list   = [];
 
@@ -125,12 +116,8 @@ Halting the repair system.
             // summary text
             sformat(_("No partition table was found for hard disk %1"),target));
 
-          /////////////////////////////////////////////////////////////////////
-          //
           //  Repair partition table with backup from floppy or with proposal
           //  from gpart
-          //
-          /////////////////////////////////////////////////////////////////////
           OSRSummary::SetRepairSummary( OSRPtbl::MainPtblRepairDialog(target),
                 // summary header
                 sformat(_("Repairing partition table of hard disk %1"), target),
@@ -148,11 +135,7 @@ Halting the repair system.
       }
       });
 
-      /////////////////////////////////////////////////////////////////////////
-      //
       //  Check if at least one harddisk with a valid partition table exists
-      //
-      /////////////////////////////////////////////////////////////////////////
 
       if (size(valid_target_list) == 0)
       {
@@ -194,14 +177,10 @@ Halting the repair system.
   };
 
   /**
-   *
+   * search for valid swap partitions
    */
   define boolean OSRPartitionCheckSwap()``{
-      /////////////////////////////////////////////////////////////////
-      //
-      // search for valid swap partitions
-      //
-      /////////////////////////////////////////////////////////////////
+
       list<string> swap_partition_list = OSRSwap::Partitions();
       if ( size( swap_partition_list ) <= 0 )
       {
@@ -220,13 +199,11 @@ Halting the repair system.
   }
 
 
+  /**
+   * search for "swap-able" partitions
+   */
   define boolean OSRPartitionCheckSwapAble()``{
 
-      /////////////////////////////////////////////////////////////////
-      //
-      // search for "swap-able" partitions
-      //
-      /////////////////////////////////////////////////////////////////
       list<string> swap_partition_list     = (list<string>)
 	OSRCommon::RequireList("swap_partition_list"); // ["/dev/hda1", "/dev/hdb2"]
       list<string> swapable_partition_list = OSRSwap::ValidPartitions(swap_partition_list); // ["/dev/hdb2"]
@@ -247,11 +224,7 @@ Halting the repair system.
 
       OSRCommon::ProvideList("swapable_partitions", swapable_partition_list);
 
-      /////////////////////////////////////////////////////////////////
-      //
       // include all swap partitions
-      //
-      /////////////////////////////////////////////////////////////////
       foreach(string swap, swapable_partition_list, ``{
 
       // Check if the specified swap-partition is already "swapped", if true don't swapon.
@@ -331,11 +304,7 @@ partition %1"), part)
    */
   define boolean OSRPartitionLoadAllFsModules()``{
 
-      /////////////////////////////////////////////////////////
-      //
       // install available kernel modules for the filesystems
-      //
-      /////////////////////////////////////////////////////////
       if (! OSRFsck::LoadAllFsModules())
       {
         OSRSummary::DetectProblem("",
@@ -355,17 +324,12 @@ partition %1"), part)
   }
 
   /**
-   *
+   * Umount all partitions from "/mnt" or from deeper directories
+   * (e.g. "/mnt/usr", "/mnt/usr/local", ...)
+   *  before mounting anything to "/mnt".
    */
   define boolean OSRPartitionCurrentlyMountedPartitions()``{
 
-      /////////////////////////////////////////////////////////
-      //
-      // Umount all partitions from "/mnt" or from deeper directories
-      // (e.g. "/mnt/usr", "/mnt/usr/local", ...)
-      // before mounting anything to "/mnt".
-      //
-      /////////////////////////////////////////////////////////
       //string  root_mountpoint    = OSRCommon::RequireString("root_mountpoint");
       OSRSystem::SetOrgRoot();
       OSRCommon::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
@@ -375,11 +339,7 @@ partition %1"), part)
       mounted_partitions = filter(map p, mounted_partitions,
         ``(p["file"]:"" != "swap" && findfirstof( p["spec"]:"", "/") == 0 ));
 
-      /////////////////////////////////////////////////////////
-      //
       // search for currently mounted partitions
-      //
-      /////////////////////////////////////////////////////////
       if ( size( mounted_partitions) <= 0)
       {
         // no mounted partitions: not implicitly an error!
@@ -405,15 +365,9 @@ partition %1"), part)
   }
 
   /**
-   *
+   * search for fsck possible partitions
    */
   define boolean OSRPartition2CheckPartitions()``{
-
-      /////////////////////////////////////////////////////////
-      //
-      // search for fsck possible partitions
-      //
-      /////////////////////////////////////////////////////////
 
       list<map> fs_check_parts = OSRFsck::PossiblePartitions();
 
@@ -508,9 +462,7 @@ partition %1"), part)
   }
 
     /**
-     * //////////////////////////////////////////////////
-     * // search for valid Linux partitions
-     * //////////////////////////////////////////////////
+     * search for valid Linux partitions
      */
     define boolean OSRPartitionLinuxPartitions()``{
 
@@ -567,15 +519,10 @@ installation.
 
 
   /**
-   *
+   * search for mountable partitions
    */
   define boolean OSRPartitionMountableLinuxPartitions()``{
 
-      /////////////////////////////////////////////////////////
-      //
-      // search for mountable partitions
-      //
-      /////////////////////////////////////////////////////////
       list<string> linux_partition_list	= (list<string>)
 	OSRCommon::RequireList("linux_partition_list");
       list<string> mount_possible_list  = OSRFstab::MountablePartitions(linux_partition_list, OSRSystem::TargetRoot());
@@ -645,11 +592,7 @@ the system and start a new installation.
    */
   define boolean OSRPartitionFindRootPartitions() ``{
 
-      /////////////////////////////////////////////////////////////////
-      //
       // search for valid root partitions with a filesystem table
-      //
-      /////////////////////////////////////////////////////////////////
 
       list<map> valid_root_partition_list = OSRFstab::ValidRootPartitions (
         (list<string>) OSRCommon::RequireList("mount_possible_list"),
@@ -733,13 +676,11 @@ start a new installation.
 
 
 
+  /**
+   *  mount the root partition to /mnt
+   */
   define boolean OSRPartitionMountRoot()``{
 
-    /////////////////////////////////////////////////////////////////////////
-    //
-    //  mount the root partition to /mnt
-    //
-    /////////////////////////////////////////////////////////////////////////
     string root_partition	= OSRCommon::RequireString ("root_partition");
 
     list<map> just_mounted	= [];
@@ -828,11 +769,7 @@ root partition or cancel scanning the system.
    */
   define boolean OSRPartitionReadFstab() ``{
 
-      /////////////////////////////////////////////////////////////////////////
-      //
       //  get the fstab
-      //
-      /////////////////////////////////////////////////////////////////////////
 
       // summary header
       string summary_header   = sformat(_("Reading fstab of root partition %1..."),  OSRCommon::RequireString("root_partition"));
@@ -1352,7 +1289,6 @@ not successful. Try again.
    *  @return map The map that contains all information about the module
    *  osr_module_partition.
    */
-
   define map OSRPartitionInit() ``{
       return $[
            // has to be the name of the file
