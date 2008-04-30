@@ -393,10 +393,11 @@ partition %1"), part)
 	OSRCommon::RequireList("fsck_partitions");
       list<map> mounted_partitions	= (list<map>)
 	OSRCommon::RequireList("mounted_partitions");
-      list<string> checked_partitions = [];
+      list<string> checked_partitions	= [];
+      list<string> encrypted_partitions	= [];
 
       foreach(map p, fsck_partitions, {
-
+y2internal ("partition to check %1", p);
 	string  dev_name   = p["device"]:"";
 	// summary header
 	string summary_header  = sformat(_("Executing file system check for partition %1..."),  dev_name  );
@@ -412,6 +413,7 @@ partition %1"), part)
 	    OSRSummary::DetectOmit (summary_header,
 		// summary text
 		_("Partition is encrypted: check not supported"));
+	    encrypted_partitions	= add (encrypted_partitions, dev_name);
 	}
 	else
 	{
@@ -458,6 +460,7 @@ partition %1"), part)
 	}
       });
       OSRCommon::ProvideList( "checked_partitions", checked_partitions );
+      OSRCommon::ProvideList( "encrypted_partitions", encrypted_partitions );
       return true;
   }
 
@@ -849,9 +852,11 @@ root partition or cancel scanning the system.
 
       string root_partition    = OSRCommon::RequireString("root_partition");
 
-      if ( OSRFstab::Check (
+      if (OSRFstab::Check (
 		(list<string>)OSRCommon::RequireList("swapable_partitions"),
-		(list<string>)OSRCommon::RequireList("checked_partitions")))
+		(list<string>)OSRCommon::RequireList("checked_partitions"),
+		(list<string>)OSRCommon::RequireList("encrypted_partitions"))
+      )
       {
         // summary text
         OSRSummary::DetectOK("", _("fstab entries valid"));

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Apr 22 11:58:58 CEST 2008 - jsuchome@suse.cz
+
+- extended help text if no partition was found (bnc#366856)
+- initialize target before source to get correct name of kernel
+- patterns now only recommend packages
+- handle encrypted partitions separately during fstab check
+- 2.16.9
+
+-------------------------------------------------------------------
 Mon Apr 14 13:43:27 CEST 2008 - jsuchome@suse.cz
 
 - solver needs to be run before reading product info (bnc#368104)
