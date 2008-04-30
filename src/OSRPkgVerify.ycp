@@ -14,7 +14,6 @@
 
     textdomain "repair";
 
-    import "Kernel";
     import "OSRExecute";
     import "OSRLogFile";
     import "OSRMode";

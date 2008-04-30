@@ -117,6 +117,11 @@
   list<string> checked_partitions	= [];
 
   /**
+   * Encrypted partitions (actually not checked)
+   */
+  list<string> encrypted_partitions	= [];
+
+  /**
     @example of map describing /etc/fstab:
 
     $[
@@ -302,6 +307,7 @@
     integer i = 0;
     foreach (string partition_item, linux_partition_list, ``{
 
+y2internal ("partition to check: %1", partition_item);
 	if ((boolean) WFM::Execute (.local.mount,
 		[ partition_item, m_point, OSRExecute::OutputFile() ]))
 	{
@@ -573,6 +579,8 @@ Create a new one?
    */
   define map devname2part(string dev_name)``{
 
+      y2milestone ("device name %1", dev_name);
+
       if (substring (dev_name, 0,1) != "/") return $[];
 
       map ret = StorageDevices::GetCdromEntry( dev_name);
@@ -622,6 +630,13 @@ Create a new one?
       if (ret == $[] || ret == nil)
       {
 	  ret = Storage::GetPartition( Storage::GetTargetMap(), dev_name );
+	  if (ret == $[] && substring (dev_name, 0, 15) == "/dev/mapper/cr_")
+	  {
+		// encrypted partition does not show the real device name
+		dev_name	= "/dev/" + substring (dev_name, 15);
+		y2milestone ("transforming device name to %1", dev_name);
+		ret = Storage::GetPartition (Storage::GetTargetMap(), dev_name);
+	  }
 	  if (ret != $[] && ret != nil) {
 	    /*
 	    dev name might be: /dev/disk/by-id/scsi-SATA_ST340016A_3HS8YAL0-part6
@@ -661,6 +676,7 @@ Create a new one?
   define boolean check_dev_entry(string p)``{
 
     map part  =  devname2part(p);
+y2internal ("part map for device %1: %2", p, part);
     map lines =  filter (integer lnr, map line, fstab["l"]:$[], ``(
 
 	(line["fields",0]:"!" == p)				||
@@ -867,6 +883,8 @@ Create a new one?
     {
 	list<string> special_freq	= [];
 	list<string> special_passno	= [];
+	string dev_name			= part["dev_name"]:"";
+	string device			= part["device"]:"";
 
 	// cdrom floppy zip
 	if (part["found"]:"" == "floppy" ||
@@ -880,8 +898,10 @@ Create a new one?
 	    fs_mntops	= check_fs_mntops( line);
 	}
 	else if ((part["found"]:"" == "dev") &&
-	    (contains (checked_partitions, part["dev_name"]:"") ||
-	     contains (checked_partitions, part["device"]:""))
+	    (contains (checked_partitions, dev_name)	||
+	     contains (checked_partitions, device)	||
+	     contains (encrypted_partitions, dev_name)	||
+	     contains (encrypted_partitions, device))
 	)
 	{
 	    // check root first with CheckRootEntry!!
@@ -899,8 +919,8 @@ Create a new one?
 	    part["mount"]	= line[1]:"";
 	    Storage::ChangeVolumeProperties(part);
 	}
-	else if ((contains (swapable_partition_list, part["dev_name"]:"") ||
-		  contains (swapable_partition_list, part["device"]:"")) &&
+	else if ((contains (swapable_partition_list, dev_name) ||
+		  contains (swapable_partition_list, device)) &&
 		 part["found"]:"" == "swap")
 	{
 	    type	= "swap";
@@ -1007,16 +1027,18 @@ Create a new one?
    * Check if all entries in the fstab are valid and
    * if all found devices have an entry in the fstab.
    */
-  global define boolean Check(list<string> tswapable_partition_list,
-			      list<string> tchecked_partitions) ``{
-
-      ResetSettings();
-      swapable_partition_list = tswapable_partition_list;
-      checked_partitions      = tchecked_partitions;
+  global define boolean Check (list<string> tswapable_partition_list,
+			       list<string> tchecked_partitions,
+			       list<string> tencrypted_partitions)
+  {
+    ResetSettings();
+    swapable_partition_list	= tswapable_partition_list;
+    checked_partitions		= tchecked_partitions;
+    encrypted_partitions	= tencrypted_partitions;
 
     map fstab2part	= $[];
 
-      // check all lines in existing fstab file 
+      // check all lines in existing fstab file
       foreach (integer lnr, map line, fstab["l"]:$[], ``{
 	  y2milestone("----check fstab line %1 ", lnr);
 	  if (! contains (valid_lines, lnr))

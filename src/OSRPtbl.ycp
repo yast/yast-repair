@@ -1336,13 +1336,16 @@ the backup.
 	  r_button      = add( r_button,    rd["default"]:false );
 	  r_options = add( r_options , `Left( r_button ));
       });
-      //%1 is device label, such as /dev/hda
+      // %1 is device label, such as /dev/hda
+      // sometimes it is not a problem (see bug 366856) => calm user with the
+      // last sentence
       string error_text = sformat(_("
 No partition table was found for hard disk %1.
 If at least one partition should exist for %1,
 select one of the following repair methods.  If
 no partition ever existed on this hard disk,
 skip the repair.
+If in doubt, skip the repair.
 
 "), target);
 
