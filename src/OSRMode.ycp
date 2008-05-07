@@ -103,7 +103,7 @@ Halting the repair system.
 	{
 	    while ( arg_no < size(WFM::Args()) )
 	    {
-		y2debug("option #%1: %2", arg_no, WFM::Args(arg_no) );
+		y2milestone("option #%1: %2", arg_no, WFM::Args(arg_no) );
 
 		if ( WFM::Args(arg_no) == "automatic" )
 		{

@@ -85,7 +85,12 @@ repair.</p>
   global define list<string> Partitions() ``{
 
     list<string> ret = [];
-    foreach (string dev, map disk, (map<string,map<string,any> >)Storage::GetTargetMap(), ``{
+    foreach (string dev, map disk, Storage::GetTargetMap(), {
+	if (disk["used_by_type"]:nil == `UB_DMRAID)
+	{
+	    y2milestone ("disk %1 is used by DM Raid, skipping checks", dev);
+	    return;
+	}
 	if( disk["type"]:`CT_UNKNOWN==`CT_DISK )
 	{
 	    list l = filter (map p, disk["partitions"]:[], ``(
@@ -94,12 +99,12 @@ repair.</p>
 		 p["detected_fs"]:nil == `swap))
 	    );
 
-	    ret = (list<string>) union (ret, maplist (map p, (list<map<string,any> >)l,
-						      ``(p["device"]:"")));
+	    ret = (list<string>)
+		union (ret, maplist (map p, (list<map>) l, ``(p["device"]:"")));
 	}
     });
 
-    y2debug ("GetPartitionList ret=%1", ret );
+    y2milestone ("GetPartitionList ret=%1", ret );
     return ret;
   };
 

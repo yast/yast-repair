@@ -247,6 +247,15 @@
    */
   global define list<string> LinuxPartitions(list checked_partitions) ``{
 
+    // true if partitions that are part of MD raid array were 'checked'
+    boolean raid_checked (list<string> parts) {
+	boolean ret	= true;
+	foreach (string p, parts, {
+	    if (!contains (checked_partitions, p))
+		ret	= false;
+	});
+	return true;
+    }
     if (Mode::test ()) return ["/dev/hda1", "/dev/hda2"];
 
     if (size (checked_partitions) == 0) return [];
@@ -260,6 +269,7 @@
 	foreach (map partition, description["partitions"]:[], ``{
 
 	    y2internal ("partition: %1", partition);
+
 	    if ((partition["fsid"]:0 == Partitions::fsid_native ||
 		 partition["type"]:`primary == `lvm ||
 		 partition["type"]:`primary == `sw_raid))
@@ -267,7 +277,8 @@
 		// if the fsck functions have been executed
 		if (size (checked_partitions) != 0)
 		{
-		    if (contains (checked_partitions,partition["device"]:""))
+		    if (contains (checked_partitions,partition["device"]:"")
+			|| raid_checked (partition["devices"]:[]))
 		    {
 			linux_partition_list = add (linux_partition_list,
 			                            partition["device"]:"");
@@ -307,6 +318,7 @@
     integer i = 0;
     foreach (string partition_item, linux_partition_list, ``{
 
+// FIXME check if already mounted?
 y2internal ("partition to check: %1", partition_item);
 	if ((boolean) WFM::Execute (.local.mount,
 		[ partition_item, m_point, OSRExecute::OutputFile() ]))
@@ -383,7 +395,7 @@ y2internal ("partition to check: %1", partition_item);
 		if (mp != "/")
 		{
 		    string cmd	= sformat ("/usr/bin/test -d %1%2", mount_p,mp);
-		    y2debug ("command: %1", cmd);
+		    y2milestone ("command: %1", cmd);
 		    if (!OSRExecute::Command (.local.bash, cmd))
 		    {
 			  not_fount = true;
@@ -2182,7 +2194,7 @@ Select one item in the list.
 
     if (counter_error == 0)
     {
-	y2debug("All partitions were successfully umounted from /mnt...");
+	y2milestone("All partitions were successfully umounted from /mnt...");
     }
     return just_umounted;
   }
