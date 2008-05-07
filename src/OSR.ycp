@@ -239,7 +239,7 @@
 	      index = index + 1;
 	  }
       }
-//      y2debug ("Detection method sequence for module %1 : %2", module_name , ret);
+//      y2milestone ("Detection method sequence for module %1 : %2", module_name , ret);
       return ret;
   }
 
@@ -495,14 +495,14 @@ Halting %1."), OSRCommon::tool_name ));
 	    maplist (map detect_method, required_module_detection_methods, ``(
 		detect_method["group"]:""));
 
-	y2debug("Required module groups %1", required_groups );
+	y2milestone("Required module groups %1", required_groups );
 	if (!OSRCommon::IsSubSet (required_groups, DetectGroupList ()))
 	{
 	    req_not_in_detection_group = true;
 	}
     });
 
-    y2debug("Requires are not in detection group: %1",
+    y2milestone("Requires are not in detection group: %1",
 	req_not_in_detection_group );
     return ! req_not_in_detection_group;
   }

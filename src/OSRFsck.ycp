@@ -193,6 +193,13 @@
     list<map> partitions =	[];
 
     foreach(string dev, map target, Storage::GetTargetMap(), {
+
+	if (target["used_by_type"]:nil == `UB_DMRAID)
+	{
+	    // when dmraid is started, partitions cannot be used
+	    y2milestone ("disk %1 is used by DM Raid, skipping checks", dev);
+	    return;
+	}
 	foreach(map p, target["partitions"]:[], {
 
 	    if (p["delete"]:false == false &&

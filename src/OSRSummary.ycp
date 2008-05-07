@@ -291,7 +291,7 @@ color
       });
 
       // correct order!!!
-      y2debug("Update the richtext by detect_group_list %1", OSRCommon::detect_group_list);
+      y2milestone("Update the richtext by detect_group_list %1", OSRCommon::detect_group_list);
       foreach(string g, OSRCommon::detect_group_list, ``{
 	  text = text + group_text_map[g]:"";
       });

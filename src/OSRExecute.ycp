@@ -59,23 +59,23 @@
 
       if ( result == 0 )
       {
-	  y2debug("OSRExecute::CommandOutput: command succeeded: %1", result);
+	  y2milestone("OSRExecute::CommandOutput: command succeeded: %1", result);
       }
       else if ( result == 126 )
       {
-	  y2debug("OSRExecute::CommandOutput: command found but not executable: %1", result);
+	  y2milestone("OSRExecute::CommandOutput: command found but not executable: %1", result);
       }
       else if ( result == 127 )
       {
-	  y2debug("OSRExecute::CommandOutput: command not found: %1", result);
+	  y2milestone("OSRExecute::CommandOutput: command not found: %1", result);
       }
       else if ( result >= 128 )
       {
-	  y2debug("OSRExecute::CommandOutput: command terminates with fatal sign N (N=%1-128): %1", result);
+	  y2milestone("OSRExecute::CommandOutput: command terminates with fatal sign N (N=%1-128): %1", result);
       }
       else
       {
-	  y2debug("OSRExecute::CommandOutput: command terminates with error code %1", result);
+	  y2milestone("OSRExecute::CommandOutput: command terminates with error code %1", result);
       }
   }
 

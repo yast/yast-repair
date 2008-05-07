@@ -415,6 +415,13 @@ y2internal ("partition to check %1", p);
 		_("Partition is encrypted: check not supported"));
 	    encrypted_partitions	= add (encrypted_partitions, dev_name);
 	}
+	else if (p["used_by_type"]:nil == `UB_MD)
+	{
+	    OSRSummary::DetectOmit (summary_header,
+		// summary text
+		_("Partition is used by MD RAID: check not supported"));
+	    checked_partitions = add(checked_partitions, dev_name );
+	}
 	else
 	{
           boolean fs_ok    = OSRFsck::Check( p );

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May  7 13:09:00 CEST 2008 - jsuchome@suse.cz
+
+- skip checking MD/DM Raid partitions (bnc#304657)
+- more debug messages
+- 2.16.10 
+
+-------------------------------------------------------------------
 Tue Apr 22 11:58:58 CEST 2008 - jsuchome@suse.cz
 
 - extended help text if no partition was found (bnc#366856)
