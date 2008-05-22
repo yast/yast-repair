@@ -224,7 +224,24 @@
     return (list<string>) maplist (string type, map d, existing, ``(d[key]:""));
   }
 
+  /**
+   * Check if given partition is already mounted
+   * workaround; this should be done via Storage API (bnc#372238)
+   */
+  global define boolean partition_mounted (string part, string mp) {
 
+    boolean ret = false;
+    list<map> mtab      = (list<map>) SCR::Read (.etc.mtab);
+    if (mtab == nil) return ret;
+    foreach (map line, mtab, {
+	if (line["spec"]:"" == part && (mp == "" || line["file"]:"" == mp))
+	{
+	    y2milestone ("partition %1 already mounted: %2", part, line);
+	    ret = true;
+	}
+    });
+    return ret;
+}
   /**
    * e.g.: transform a fstab list to a fstab map.
    * list: ["/dev/hda6", "/", "reiserfs", "defaults", "1", "1"]
@@ -318,10 +335,10 @@
     integer i = 0;
     foreach (string partition_item, linux_partition_list, ``{
 
-// FIXME check if already mounted?
-y2internal ("partition to check: %1", partition_item);
+	y2milestone ("partition to check: %1", partition_item);
 	if ((boolean) WFM::Execute (.local.mount,
-		[ partition_item, m_point, OSRExecute::OutputFile() ]))
+		[ partition_item, m_point, OSRExecute::OutputFile() ]) ||
+	    partition_mounted (partition_item, ""))
 	{
 	    mount_possible_list = add (mount_possible_list, partition_item);
 	    if (!(boolean) WFM::Execute(.local.umount, m_point))
@@ -367,7 +384,8 @@ y2internal ("partition to check: %1", partition_item);
     foreach (string partition_item, mount_possible_list, ``{
 
 	if (! (boolean) WFM::Execute(.local.mount,
-		[ partition_item, mount_p , OSRExecute::OutputFile() ]))
+		[ partition_item, mount_p , OSRExecute::OutputFile() ]) &&
+	    ! partition_mounted (partition_item, ""))
 	{
 	    y2error("Partition: %1; not possible to mount to /mnt",
 		partition_item);
@@ -2261,7 +2279,8 @@ scanning.
 	y2milestone("selected root_partition %1" ,root_partition);
 
 	boolean mount		= OSRExecute::Command (.local.bash,
-	    sformat ("/bin/mount %1 %2", root_partition, root_mountpoint));
+	    sformat ("/bin/mount %1 %2", root_partition, root_mountpoint)) ||
+	    partition_mounted (root_partition, root_mountpoint);;
 
 	mounted = add (mounted, $[
 	    "partition" : root_partition,

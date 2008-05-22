@@ -701,7 +701,8 @@ start a new installation.
 
     // check if the specified partition is already mounted to "/mnt",
     // mount only if it is not already done.
-    if ( OSRSystem::TargetRoot() != Storage::DeviceMounted (root_partition))
+    if (OSRSystem::TargetRoot() != Storage::DeviceMounted (root_partition) &&
+	!OSRFstab::partition_mounted (root_partition, OSRSystem::TargetRoot ()))
     {
 	// Mount selected partition to /mnt
         if ((boolean) WFM::Execute (.local.mount,

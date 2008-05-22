@@ -10,6 +10,7 @@ Dump	--------------------------------------------------------------
 Dump	--- status: detect_error
 Dump	--- failed in module: osr_module_partition
 Dump	----------------- start detection [hard disks now ok]: --------
+Read	.etc.mtab [$["file":"/"]]
 Log	Skip detection method (requires not solved ) mount_all
 Log	Skip detection method (requires not solved ) find_package_db
 Log	Skip detection method (requires not solved ) find_minimal_selection
