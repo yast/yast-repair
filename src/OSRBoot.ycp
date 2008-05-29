@@ -1270,11 +1270,12 @@ is bootable, press Skip.
 	    Wizard::CreateDialog ();
 
 	    // prepare environment for saving boot loader settings
-	    string destproc = "/proc";
-	    SCR::Execute (.target.mkdir, destproc, 0755);
-	    SCR::Execute (.target.mount, ["proc", destproc], "-t proc");
-	    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
-
+	    WFM::Execute (.local.bash,
+		sformat ("mount --bind /proc %1/proc", root_mountpoint));
+            WFM::Execute (.local.bash,
+		sformat ("mount --bind /sys %1/sys", root_mountpoint));
+	    WFM::Execute (.local.bash,
+		sformat ("mount --bind /dev %1/dev", root_mountpoint));
 	    boolean g_ret = Bootloader::Write();
 	    Wizard::CloseDialog();
 
@@ -1282,8 +1283,9 @@ is bootable, press Skip.
 		// message popup
 	      Report::Message(_("The boot loader was installed successfully."));
 
-	    SCR::Execute (.target.umount, "/proc");
-	    WFM::Execute(.local.umount, root_mountpoint + "/proc" );
+	    WFM::Execute (.local.umount, root_mountpoint + "/proc");
+            WFM::Execute (.local.umount, root_mountpoint + "/sys");
+	    WFM::Execute (.local.umount, root_mountpoint + "/dev");
 	}
 	return ret;
     }
