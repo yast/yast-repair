@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jun  9 11:49:03 CEST 2008 - jsuchome@suse.cz
+
+- use ReplaceWidget instead of changing button label (bnc#393832)
+- TextEntry is InputField
+- import Product before changing root, product info can be read
+- 2.17.0
+
+-------------------------------------------------------------------
 Thu May 29 11:00:17 CEST 2008 - jsuchome@suse.cz
 
 - mount /proc, /dev, /sys before writing new bootloader (bnc#395302)
