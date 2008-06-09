@@ -29,6 +29,7 @@
 	"target" : $[
 	    "size"	: -1,
 	    "tmpdir"	: "/tmp/",
+	    "string"	: "",
 	],
 	"product"	: $[
 	    "features"	: $[

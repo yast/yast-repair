@@ -47,6 +47,9 @@
 
   string exit_label		= Label::FinishButton();
 
+  // button label
+  string pause_label		= _("&Pause");
+
   /**
    * Captions ...
    */
@@ -598,8 +601,6 @@ go back and start the automatic analysis.</P>
     string system_check_label	= _("System Check");
     // button label
     string show_all_label	= _("&Show All Details");
-    // button label
-    string pause_label		= _("&Pause");
 
     if ( UI::WidgetExists (`id(`local_rich_text_info ))) return;
 
@@ -623,7 +624,9 @@ go back and start the automatic analysis.</P>
 	global_progress_bar,
 	`VSpacing(0.3),
 	`HBox (
-	    `Left (`PushButton(`id(`pause), pause_label)),
+	    `Left (`ReplacePoint (`id (`rpbutton),
+		`PushButton(`id(`pause), pause_label))
+	    ),
 	    `Right (`CheckBox(`id(`details), `opt(`notify), show_all_label,
 		OSRSummary::show_details))
 	),
@@ -755,7 +758,8 @@ Then select one proposal or cancel the repair. </P>
 	    if ( input == `pause )
 	    {
 		set_buttons_enable( true, false, false );
-		UI::ChangeWidget(`id(`pause), `Label, _("&Pause"));
+		UI::ReplaceWidget (`id (`rpbutton),
+		    `PushButton(`id(`pause), pause_label));
 
 		input = OSR::Detect();
 
@@ -775,7 +779,8 @@ Then select one proposal or cancel the repair. </P>
 		if ( input == `pause )
 		{
 		    set_buttons_enable( true,true, true );
-		    UI::ChangeWidget(`id(`pause), `Label,  go_on_label );
+		    UI::ReplaceWidget (`id (`rpbutton),
+			`PushButton(`id(`pause), go_on_label));
 
 		    // wait in pause mode and let the user change the protocol
 		    // mode or abort

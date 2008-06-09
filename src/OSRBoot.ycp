@@ -19,6 +19,9 @@
     import "Installation";
     import "Mode";
     import "Popup";
+    // import Product.ycp now, to correctly read product info from /content
+    // before chrooting to target system
+    import "Product";
     import "Wizard";
 
     import "Bootloader";
