@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 01 15:19:50 CEST 2008 - aschnell@suse.de
+
+- use String::FormatSize
+- 2.17.1
+
+-------------------------------------------------------------------
 Mon Jun  9 11:49:03 CEST 2008 - jsuchome@suse.cz
 
 - use ReplaceWidget instead of changing button label (bnc#393832)
