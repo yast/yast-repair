@@ -25,11 +25,10 @@
   import "StorageDevices";
   import "Mode";
   import "Report";
-
+  import "String";
   import "Label";
   import "Popup";
 
-  include "partitioning/partition_defines.ycp";
 
   textdomain "repair";
 
@@ -338,7 +337,7 @@ Partition table was not successfully repaired.
 			n["fsid"]:131,
 			sformat ("%1", n["region",0]:0),
 			sformat ("%1", n["region",1]:0 + n["region",0]:0 - 1),
-			ByteToHumanString (n["size_k"]:0 * 1024)
+				       String::FormatSize (n["size_k"]:0 * 1024)
 	    ));
 	}
       });
@@ -834,7 +833,7 @@ quite a while when using this option. Be patient.</P>
 	// partition info 2/3, %1 is partition ID (number)
 	sformat(_("ID %1, "),  part["fsid"]:131) +
 	// partition info 3/3, %1 is partition size (number)
-	sformat (_("Size %1"), ByteToHumanString (
+	sformat (_("Size %1"), String::FormatSize (
 	    part["region",1]:0 * maindev["cyl_size"]:0));
     }
 
