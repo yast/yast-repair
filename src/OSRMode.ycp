@@ -135,6 +135,13 @@ Halting the repair system.
 		    save	= true;
 		    ret		= true;
 		}
+		else if ( WFM::Args(arg_no) == "dvd" )
+		{
+		    y2milestone("Started from installation media");
+		    Stage::Set ("initial");
+		    Mode::SetMode ("repair");
+		    ret		= true;
+		}
 		else
 		{
 		    y2error("Unknown option %1.", WFM::Args(arg_no) );

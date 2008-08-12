@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 12 08:13:52 CEST 2008 - jsuchome@suse.cz
+
+- added special handling for starting the module directly from
+  installation media menu (bnc#403472)
+- 2.17.2
+
+-------------------------------------------------------------------
 Fri Aug 01 15:19:50 CEST 2008 - aschnell@suse.de
 
 - use String::FormatSize
