@@ -5,7 +5,7 @@
  */
 
 {
-    // estedfiles: OSRModuleLoading.ycp ModuleLoading.ycp
+    // testedfiles: OSRModuleLoading.ycp ModuleLoading.ycp
 
     include "testsuite.ycp";
 
