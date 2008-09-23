@@ -38,11 +38,8 @@
     if( ! OSRMode::IsValid() ) return `error;
 
     // ===== Open UI ==================================================
-    if( (! Stage::cont ()) && (! Stage::initial ()))
-    {
-	Wizard::CreateDialog();
-	Wizard::HideBackButton ();
-    }
+    Wizard::CreateDialog();
+    Wizard::HideBackButton ();
     Wizard::SetTitleIcon("misc");
 
     // ===== Init the Rescue System =================================
@@ -62,10 +59,7 @@
     OSRModuleLoading::UnloadAll();
 
     // ==== Close the dialog =========================================
-    if( (! Stage::cont ()) && (! Stage::initial ()))
-    {
-	Wizard::CloseDialog();
-    }
+    Wizard::CloseDialog();
     return ret;
   }
 
