@@ -45,7 +45,7 @@
    */
   define boolean OSRPackagesMountAll()``{
 
-      if( ! OSRFstab::ReadedSuccessfully())
+      if( ! OSRFstab::ReadSuccessfully())
       OSRCommon::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
       list<map> mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());

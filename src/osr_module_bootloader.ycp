@@ -239,7 +239,7 @@ the system and start a new installation.
      }
       if ( OSRCommon::RequireBoolean("mounted_all") != true )
       {
-      if( ! OSRFstab::ReadedSuccessfully())
+      if( ! OSRFstab::ReadSuccessfully())
           OSRCommon::ProvideList("just_umounted", OSRFstab::UmountAllFrom( OSRSystem::TargetRoot()));
 
       list<map> mounted      = OSRFstab::MountAll( OSRSystem::TargetRoot());

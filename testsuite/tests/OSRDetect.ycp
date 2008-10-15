@@ -99,6 +99,7 @@
 	    "install_inf"	: $[
 		"Cdrom"	: "",
 	    ],
+	    "bootloader"	: "",
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[

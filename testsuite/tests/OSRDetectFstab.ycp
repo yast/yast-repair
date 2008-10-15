@@ -117,6 +117,7 @@ usbfs	/proc/bus/usb	usbfs	noauto 0 0";
 	    "install_inf"	: $[
 		"Cdrom"	: "",
 	    ],
+	    "bootloader"	: "",
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[
