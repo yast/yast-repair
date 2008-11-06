@@ -17,6 +17,7 @@
 {
   import "FileSystems";
   import "Label";
+  import "Linuxrc";
   import "Mode";
   import "OSR";
   import "OSRCommon";
@@ -34,8 +35,11 @@
   import "Partitions";
   import "Popup";
   import "Report";
+  import "RootPart";
   import "Stage";
   import "Storage";
+  import "Update";
+
 
   textdomain "repair";
 
@@ -1289,6 +1293,69 @@ not successful. Try again.
       return `ok;
   }
 
+  /**
+   * Boot into installed system (hack for fixing bnc#441188)
+   * Ehm, this function is copied from handle_boot() of
+   http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/installation/src/clients/inst_mode.ycp
+   * so some parts of it may not be necessary
+   */
+  define symbol OSRDirectBootInstalledSystem () {
+
+	y2milestone( "User wishes to boot installed system" );
+
+	if (!RootPart::didSearchForRootPartitions)
+	{
+	    UI::OpenDialog (`opt(`decorated ),
+		// label
+		`Label(_("Evaluating root partition. One moment please..."))
+	    );
+	    RootPart::FindRootPartitions ();
+	    UI::CloseDialog ();
+	}
+
+	if (RootPart::numberOfValidRootPartitions == 0)
+	{
+	    // a popup
+	    Popup::Message(_("No Linux root partition found."));
+	    return `cancel;
+	}
+
+	// We must only change RootPart::selectedRootPartition if booting
+	// is inevitable.
+
+	if (RootPart::numberOfValidRootPartitions == 1)
+	{
+	    RootPart::SetSelectedToValid ();
+	}
+	else
+	{
+	    if (WFM::CallFunction ("inst_rootpart", [true, true, `boot_popup]) != `next)
+		return `cancel;
+	}
+
+	string root_part = RootPart::selectedRootPartition;
+
+	y2milestone ("selected root_part %1", root_part);
+
+	UI::OpenDialog( `opt(`decorated),
+			// Information popup: Inform user what partition
+			// will be booted from after user selected
+			// "Boot installed system"
+			`Label( sformat(_("Booting from %1"), root_part ) ) );
+
+	Update::Detach ();
+	RootPart::UnmountPartitions (false);
+
+	sleep (1000);
+
+	Linuxrc::WriteYaSTInf ($["Root" : root_part]);
+	Storage::ActivateHld(true);
+
+	UI::CloseDialog ();
+
+	return `boot;
+  }
+
   //////////////////////////////////////////////////////////////////////
   //
   //  METHODS
@@ -1622,7 +1689,17 @@ table with the stored system information.
                        "method"     : OSRDirectSave2Floppy,
                        "initial_only"   : false,
                        "visible"    : true
-                     ]
+                     ],
+                     $[
+                       "name"       : "direct_methods_boot",
+			// module method action label
+                       "button_text"    : _("Boot Installed System"),
+                        // module method description
+                       "description"    : _("Try to boot into one of the installed Linux systems."),
+                       "method"		: OSRDirectBootInstalledSystem,
+                       "initial_only"   : true,
+                       "visible"	: true
+                     ],
            ]
       ];
 

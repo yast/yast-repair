@@ -1,8 +1,8 @@
 @HEADER-COMMENT@
 
 @HEADER@
-BuildRequires:	perl-XML-Writer update-desktop-files yast2-devtools yast2 yast2-bootloader yast2-testsuite yast2-packager yast2-storage
-Requires:	yast2 gpart reiserfs e2fsprogs yast2-bootloader yast2-storage
+BuildRequires:	perl-XML-Writer update-desktop-files yast2-devtools yast2 yast2-bootloader yast2-testsuite yast2-packager yast2-storage yast2-update
+Requires:	yast2 gpart reiserfs e2fsprogs yast2-bootloader yast2-storage yast2-update
 
 BuildArchitectures:	noarch
 
