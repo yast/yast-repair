@@ -579,6 +579,10 @@ go back and start the automatic analysis.</P>
 
 	    // get a abort return from custom_part or a other tool
 	    if ( rret == `abort ) return `really_abort;
+
+	    // finish yast to boot selected partition
+	    if (rret == `boot)
+		return `boot;
 	}
     } until ( ret == `next || ret == `abort  || ret == `back || ret == `cancel);
 
@@ -880,7 +884,8 @@ global define symbol OsrMainDialog() ``{
 		    `really_abort	: `abort,
 		    `next		: "start",
 		    `error		: `error,
-		    `cancel		: "abort"
+		    `cancel		: "abort",
+		    `boot		: `boot,
 	],
 	"detect" : $[
 		    `abort		: `abort,

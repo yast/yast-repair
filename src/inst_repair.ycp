@@ -32,7 +32,15 @@
 
   any ret = WFM::CallFunction ("repair");
 
-  Linuxrc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
+  if (ret != `boot)
+  {
+    Linuxrc::WriteYaSTInf($["Root" : "reboot", "RebootMsg" : "0"]);
+  }
+  else
+  {
+      y2milestone ("booting to existing system...");
+  }
+
 
   Wizard::CloseDialog();
 
