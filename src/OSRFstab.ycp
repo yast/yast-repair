@@ -1094,7 +1094,10 @@ y2internal ("part map for device %1: %2", p, part);
   define list<term> missing_devs_items( map new_entries)``{
       list<term> item_list = [];
       foreach (string k, map<string,any> e, (map<string,map<string,any> >)new_entries, ``{
-	  item_list = add (item_list, `item(`id(k), k, e["mount"]:""));
+	  string dev_label	= k;
+	  if (e["device_by"]:"" != "")
+	      dev_label	= sformat ("%1 (%2)", k, e["device_by"]:"");
+	  item_list = add (item_list, `item(`id(k), dev_label, e["mount"]:""));
       });
       return item_list;
   }
@@ -1132,6 +1135,8 @@ y2internal ("part map for device %1: %2", p, part);
     integer other_nr = 1;	// count other mounts -> global for wirte_fstab
     map new_entries = $[];
 
+    symbol mount_by	= Storage::GetDefaultMountBy ();
+
     missing_devs = sort (string d1, string d2, missing_devs , ``( d1 < d2));
 
     foreach (string dev, missing_devs, {
@@ -1147,6 +1152,7 @@ y2internal ("part map for device %1: %2", p, part);
 	    string start			= "/data";
 	    integer count			= 2;
 
+
 	    // fstabentry could be empty map for some partitions (e.g.
 	    // with LVM group) -> suggest_missing_entries could report error 4
 	    while (contains (used_mountpoints , fstabentry["mount"]:""))
@@ -1158,6 +1164,22 @@ y2internal ("part map for device %1: %2", p, part);
 	    }
 	    if (size (fstabentry)>0)
 	    {
+		// this is ugly hack - no, this hack could be the definition
+		// of ugliness, it is the ugliness in its deepest form
+		// so: we are trying to build the device name used in current
+		// /etc/fstab (bnc#431418) and adding it to fstab info provided
+		// by Storage.ycp... bleah
+		string device_by	= "";
+		// check only `id, others may require additional options
+		if (mount_by == `id && part["udev_id"]:[] != [])
+		{
+		    device_by	= "/dev/disk/by-id/" + part["udev_id",0]:"";
+		}
+		if (device_by != "")
+		{
+		    fstabentry["device_by"]	= device_by;
+		    y2internal ("updated fstab entry: %1", fstabentry);
+		}
 		new_entries[dev] =  fstabentry;
 	    }
 	}
@@ -1358,7 +1380,8 @@ Really continue?
 	    integer fack_lnr = 0;
 	    foreach (string k, map e, (map<string,map<string,any> >)new_entries, ``{
 		if (e["spec"]:"" != "" && e["mount"]:"" != ""){
-		    list<string> fstlist = [ k , e["mount"]:"",
+		    string dev	= e["device_by"]:k;
+		    list<string> fstlist = [ dev , e["mount"]:"",
 					     e["vfstype"]:"", e["mntops"]:"",
 					     sformat ("%1",e["freq"]:nil),
 					     sformat ("%1",e["passno"]:nil) ];

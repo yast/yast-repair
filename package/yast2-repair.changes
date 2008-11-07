@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov  7 13:17:16 CET 2008 - jsuchome@suse.cz
+
+- offer new lines in /etc/fstab with new device names (bnc#431418)
+- 2.17.7
+
+-------------------------------------------------------------------
 Thu Nov  6 11:05:56 CET 2008 - jsuchome@suse.cz
 
 - added "Boot Installed System" option to Repair Tools (bnc#441188)
