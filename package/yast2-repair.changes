@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 12 08:35:24 CET 2009 - jsuchome@suse.cz
+
+- offer new lines in /etc/fstab with new device names (bnc#431418)
+- 2.13.12
+
+-------------------------------------------------------------------
 Wed Feb 27 07:31:50 CET 2008 - jsuchome@suse.cz
 
 - yast2-storage required for build (bnc#359719)
