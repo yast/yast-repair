@@ -44,7 +44,6 @@
      * Configuration files needed by every boot loader
      */
     global map needed_config_files = $[
-	    "modules"		: "/etc/modprobe.conf",
 	    "initrd"		: "/etc/sysconfig/kernel",
 	    "bootleader"	: "/etc/sysconfig/bootloader"
     ];
@@ -395,15 +394,6 @@
 
 	r1 = (string) SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	if( r1 == nil || r1 == "" ) not_valid_files = add(not_valid_files, needed_config_files["bootloader"]:"");
-
-	integer r2 = Mode::test () ? 0 : (integer) WFM::Execute(.local.bash,
-	    sformat("/usr/bin/test -f %1%2",
-		root_mountpoint, needed_config_files["modules"]:""));
-	if (r2 != 0)
-	{
-	    not_valid_files = add (not_valid_files,
-		needed_config_files["modules"]:"");
-	}
 
 	if( size( not_valid_files ) > 0 )
 	{
@@ -1361,18 +1351,6 @@ which system to start.</P>
      */
     global define symbol RepairSysconfigFiles()``{
 
-	// repairing not possible
-	if( contains ( not_valid_files, needed_config_files["modules"]:"") )
-	{
-	    y2error("repairing %1 is not possible", needed_config_files["modules"]:"");
-	    Report::Error(sformat (_("
-The file %1 was not found.
-It cannot be recovered.
-"), needed_config_files["modules"]:""));
-	    return `error;
-	}
-
-	list<string> t_not_valid_file = filter(string file, not_valid_files, ``( file != needed_config_files["modules"]:"" ));
 
 	error_message = sformat(_("
 The following configuration 
