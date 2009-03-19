@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 19 09:56:18 CET 2009 - jreidinger@suse.cz
+
+- remove check for /etc/modprobe.conf as it no longer exist
+  (bnc #485966) 
+- 2.18.0
+
+-------------------------------------------------------------------
 Fri Nov  7 13:17:16 CET 2008 - jsuchome@suse.cz
 
 - offer new lines in /etc/fstab with new device names (bnc#431418)
