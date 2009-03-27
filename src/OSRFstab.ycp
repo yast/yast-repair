@@ -725,7 +725,7 @@ y2internal ("part map for device %1: %2", p, part);
     else
     {
 	y2warning ("no entry for %1 found in the fstab",p);
-	if (part["used_by"]:"" != "")
+	if (part["used_by_device"]:"" != "")
 	{
 	    y2milestone ("it is a device used by other entity (e.g. LVM, EVMS, MD): ignoring");
 	    return true;
