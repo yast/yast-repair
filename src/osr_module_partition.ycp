@@ -1305,6 +1305,7 @@ not successful. Try again.
 
 	if (!RootPart::didSearchForRootPartitions)
 	{
+            Installation::destdir = "/mnt/";
 	    UI::OpenDialog (`opt(`decorated ),
 		// label
 		`Label(_("Evaluating root partition. One moment please..."))
