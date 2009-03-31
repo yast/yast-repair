@@ -39,6 +39,7 @@
   import "Stage";
   import "Storage";
   import "Update";
+  import "Installation";
 
 
   textdomain "repair";
