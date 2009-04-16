@@ -33,8 +33,7 @@ client_DATA = 			\
 	view_anymsg.ycp		\
 	inst_repair.ycp		\
 	repair.ycp		\
-	osr_module_list.ycp	\
-	osr_verified_packages.ycp
+	osr_module_list.ycp	
 
 ynclude_DATA =          		\
 	osr_module_init.ycp		\

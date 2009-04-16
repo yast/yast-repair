@@ -948,7 +948,9 @@ contains no errors, press Skip.
 	map retval  = $[ ];
 
 	foreach (string e, (list<string>) optlist, ``{
-	    value = BootCommon::mod2ui (SCR::Read(add(p, e)));
+            //FIXME use perl-Bootloader to read settings
+	    //value = BootCommon::mod2ui (SCR::Read(add(p, e)));
+            value = SCR::Read(add(p, e));
 	    if (isSpecial(e))
 	    {
 		retval = add (retval,
