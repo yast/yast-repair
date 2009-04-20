@@ -55,17 +55,21 @@
 	    "lilo"	: [
 		$[
 		    "pkgname"		: "lilo",
-		    "pkgversion"	: "22.3.2-32"
+		    "pkgversion"	: "22.8"
 		],
 		$[
 		    "pkgname"		: "gfxboot",
-		    "pkgversion"	: "1.9-34"
+		    "pkgversion"	: "4.1.19"
 		]
 	    ],
 	    "grub"	: [
 		$[
 		    "pkgname"		: "grub",
 		    "pkgversion"	: "0.92-69"
+		],
+		$[
+		    "pkgname"		: "gfxboot",
+		    "pkgversion"	: "4.1.19"
 		]
 	    ],
 	    "silo"	: [], //"SILO",

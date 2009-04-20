@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Apr 20 14:04:34 CEST 2009 - jreidinger@suse.cz
+
+- update minimal version for bootloaders
+- correctly mount root if selected only bootloader check
+  (bnc #408733)
+- 2.18.1 
+
+-------------------------------------------------------------------
 Thu Mar 19 09:56:18 CET 2009 - jreidinger@suse.cz
 
 - remove check for /etc/modprobe.conf as it no longer exist

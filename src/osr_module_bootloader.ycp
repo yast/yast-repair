@@ -51,8 +51,9 @@
       //
       /////////////////////////////////////////////////////////////////////////
 
-      // change root for SCR
-      OSRSystem::SetTargetRoot();
+      // FIXME consolide these crappy mount/umount things
+      OSRFstab::UmountAllFrom( OSRSystem::TargetRoot());
+      OSRFstab::MountAll( OSRSystem::TargetRoot());
 
       if( ! OSRBoot::CheckSysconfigFiles( OSRSystem::TargetRoot() ) )
       {
