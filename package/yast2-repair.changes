@@ -4,6 +4,7 @@ Mon Apr 20 14:04:34 CEST 2009 - jreidinger@suse.cz
 - update minimal version for bootloaders
 - correctly mount root if selected only bootloader check
   (bnc #408733)
+- correct run direct mount from DVD menu (bnc #450944)
 - 2.18.1 
 
 -------------------------------------------------------------------
