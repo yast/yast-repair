@@ -131,9 +131,6 @@ _("The test failure seems to be caused by an incorrectly built package.")
      * module constructor: read packages with build problems
      */
     global define void OSRPkgVerify()``{
-
-	initial_verified_packages = (map)
-	    WFM::CallFunction ("osr_verified_packages");
 	Reset();
     }
 
