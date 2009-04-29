@@ -730,10 +730,11 @@ y2internal ("part map for device %1: %2", p, part);
 	    y2milestone ("it is a device used by other entity (e.g. LVM, EVMS, MD): ignoring");
 	    return true;
 	}
-	else if ("cdrom" == part["found"]:"")
+	else if ("cdrom" == part["found"]:"" 
+          || "floppy" == part["found"]:"")
 	{
 	    // bug #185575
-	    y2milestone ("cdrom/dvd entry (%1) should not be in fstab", p);
+	    y2milestone ("cdrom/dvd/floppy entry (%1) should not be in fstab", p);
 	    return true;
 	}
 	map disk	= Storage::GetDiskPartition (part["device"]:"");
@@ -1035,11 +1036,15 @@ y2internal ("part map for device %1: %2", p, part);
 	union (
 	    union (checked_partitions, swapable_partition_list),
 	    [
-		fstab_defaults ["usb", "spec"]:"",
 		fstab_defaults ["proc", "spec"]:"",
 		fstab_defaults ["pts", "spec"]:"",
 	    ]
 	);
+
+      if (Hotplug::haveUSB){
+        dev2check = add(dev2check, fstab_defaults ["usb", "spec"]:"");
+      }
+
       dev2check = (list<string>) union (dev2check,
 	maplist (map d, StorageDevices::cddrives(),
 	    ``(d["dev_orig"]:(d["dev_name"]:""))));

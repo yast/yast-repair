@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 29 15:13:37 CEST 2009 - jreidinger@suse.cz
+
+- check for usbfs in fstab only if system has any usb (bnc#499208)
+- don't check for floppy in fstab, as it is now obsolete
+  (bnc#499208)
+
+-------------------------------------------------------------------
 Wed Apr 29 14:12:07 CEST 2009 - jreidinger@suse.cz
 
 - remove obsolete call which breaks bugzilla
