@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 29 14:12:07 CEST 2009 - jreidinger@suse.cz
+
+- remove obsolete call which breaks bugzilla
+- 2.18.2 
+
+-------------------------------------------------------------------
 Mon Apr 20 14:04:34 CEST 2009 - jreidinger@suse.cz
 
 - update minimal version for bootloaders
