@@ -17,7 +17,7 @@
     global define void readDeviceMap () {
 
 	BootCommon::InitializeLibrary (true, "grub");
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (false);
 	device_map	= BootCommon::GetDeviceMap ();
 	y2debug ("device map: %1", device_map);
     }
