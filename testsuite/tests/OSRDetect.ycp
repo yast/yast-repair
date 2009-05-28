@@ -86,7 +86,8 @@
 			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
 	],
 	"etc"	: $[
-	    "mtab"	: [ $["file": "/"] ]
+	    "mtab"	: [ $["file": "/"] ],
+             "bootloader"        : ""
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[
