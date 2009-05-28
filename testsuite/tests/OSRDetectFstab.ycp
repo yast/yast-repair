@@ -23,8 +23,7 @@
 	    "architecture"	: ""
 	],
 	"etc"	: $[
-	    "mtab"	: [],
-             "bootloader"        : ""
+	    "mtab"	: []
 	],
 	"proc"	: $[
 	    "modules"	: $[],
@@ -111,7 +110,8 @@ usbfs	/proc/bus/usb	usbfs	noauto 0 0";
 			    $["file": "/mnt" , "spec": "/dev/hda3"] ],
 	],
 	"etc"	: $[
-	    "mtab"	: [ $["file": "/"] ]
+	    "mtab"	: [ $["file": "/"] ],
+            "bootloader"        : ""
 	],
 	"sysconfig"	: $[
 	    "kernel"	: $[
