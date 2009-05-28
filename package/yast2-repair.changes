@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 28 15:51:45 CEST 2009 - jreidinger@suse.cz
+
+- fix testsuite for new yast2-storage 
+- 2.13.14
+
+-------------------------------------------------------------------
 Mon May 25 09:25:30 CEST 2009 - jreidinger@suse.cz
 
 - adapt to SP3 yast2-bootloader change
