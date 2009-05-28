@@ -23,7 +23,8 @@
 	    "architecture"	: ""
 	],
 	"etc"	: $[
-	    "mtab"	: []
+	    "mtab"	: [],
+             "bootloader"        : ""
 	],
 	"proc"	: $[
 	    "modules"	: $[],
