@@ -2,6 +2,7 @@
 Tue Jun 16 14:27:53 CEST 2009 - mvidner@suse.cz
 
 - Using autodocs-ycp.ami, which contains a fix for automake 1.11.
+- 2.18.3
 
 -------------------------------------------------------------------
 Wed Apr 29 15:13:37 CEST 2009 - jreidinger@suse.cz
