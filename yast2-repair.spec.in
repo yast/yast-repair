@@ -1,6 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
+Group:	System/YaST
 License: GPL v2 or later
 BuildRequires:	perl-XML-Writer update-desktop-files yast2-devtools yast2 yast2-bootloader yast2-testsuite yast2-packager yast2-storage yast2-update
 Requires:	yast2 gpart reiserfs e2fsprogs yast2-bootloader yast2-storage yast2-update
