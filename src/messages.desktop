@@ -17,9 +17,8 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
 Icon=yast-messages
-Exec=/sbin/yast2 view_anymsg /var/log/messages
+Exec=xdg-su -c "/sbin/yast2 view_anymsg /var/log/messages"
 
 Name=System Log
 GenericName=Display the system's log (/var/log/messages)
-X-KDE-SubstituteUID=true
 StartupNotify=true

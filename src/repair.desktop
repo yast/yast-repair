@@ -17,9 +17,8 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
 Icon=yast-repair
-Exec=/sbin/yast2 repair 
+Exec=xdg-su -c "/sbin/yast2 repair"
 
 Name=System Repair
 GenericName=System Repair
-X-KDE-SubstituteUID=true
 StartupNotify=true

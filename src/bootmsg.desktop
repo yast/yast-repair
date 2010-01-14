@@ -17,9 +17,8 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
 Icon=yast-bootmsg
-Exec=/sbin/yast2 view_anymsg /var/log/boot.msg
+Exec=xdg-su -c "/sbin/yast2 view_anymsg /var/log/boot.msg"
 
 Name=Start-Up Log
 GenericName=Display the boot log (/var/log/boot.msg)
-X-KDE-SubstituteUID=true
 StartupNotify=true
