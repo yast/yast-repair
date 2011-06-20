@@ -637,7 +637,7 @@ database was not successful.
 	if (! package_db_repaired )
 	    last_entry = add( last_entry , `opt(`disabled ));
 
-	last_entry = add( last_entry,  _("Revert to Orginal Package Database (saved by YaST)"));
+	last_entry = add( last_entry,  _("Revert to Original Package Database (saved by YaST)"));
 	last_entry = add( last_entry, false);
 	r_options  = add( r_options, last_entry);
 

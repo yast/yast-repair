@@ -662,7 +662,7 @@ press Repair.
 <p>
 The boot loader is the first thing
 you should see after you turn
-on a computer with a Linux installion.
+on a computer with a Linux installation.
 Starting a Linux system without
 a boot loader is not possible.</P>
 ")+
