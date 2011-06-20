@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 20 08:29:34 UTC 2011 - jreidinger@novell.com
+
+- force rebuild for SP2 to use new storage code (bnc#700319)
+- 2.17.8 
+
+-------------------------------------------------------------------
 Fri Nov  7 13:17:16 CET 2008 - jsuchome@suse.cz
 
 - offer new lines in /etc/fstab with new device names (bnc#431418)
