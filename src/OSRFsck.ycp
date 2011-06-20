@@ -588,7 +588,7 @@ file systems.</p>
 ") +
 
 _("<p><pre>
-ext2 and ext2: fsck.ext2 or e2fsck
+ext2 and ext3: fsck.ext2 or e2fsck
 reiserfs:      reiserfsck
 jfs:           fsck.jfs
 xfs:           xfs_repair
