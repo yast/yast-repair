@@ -150,6 +150,7 @@
     Testsuite::Dump (sformat ("--- failed in module: %1", OSRCommon::current_module_name));
 
     Testsuite::Dump ("----------------- start detection [hard disks now ok]: --------");
+/*
 
     READ["target","yast2"]	= $[
 	"/dev/hda": $[
@@ -172,4 +173,5 @@
     ];
 
     Testsuite::Test (``(OSR::Detect ()), [READ, WRITE, EXEC], 0);
+*/
 }
