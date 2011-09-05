@@ -152,6 +152,8 @@
 		// wait popup
 		`Label(_("Reading system settings...")));
 
+      //initialize storage to get lock http://lists.opensuse.org/yast-devel/2008-08/msg00004.html and https://bugzilla.novell.com/show_bug.cgi?id=700323#c5
+      Storage::InitLibstorage(true);
 	    OSRFstab::Reset();
 	    OSRFsck::LoadAllFsModules();
 	    Storage::ReReadTargetMap();
