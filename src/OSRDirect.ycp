@@ -16,6 +16,7 @@
     import "HTML";
     import "Stage";
     import "Storage";
+    import "Installation";
 
     import "OSRCommon";
     import "OSRSystem";
@@ -153,12 +154,13 @@
 		`Label(_("Reading system settings...")));
 
       //initialize storage to get lock http://lists.opensuse.org/yast-devel/2008-08/msg00004.html and https://bugzilla.novell.com/show_bug.cgi?id=700323#c5
-      Storage::InitLibstorage(true);
+           Storage::InitLibstorage(true);
 	    OSRFstab::Reset();
 	    OSRFsck::LoadAllFsModules();
 	    Storage::ReReadTargetMap();
 	    OSRFstab::UmountAllFrom(OSRSystem::TargetRoot());
 	    OSRSystem::SetOrgRoot();
+           Installation::destdir = "/mnt";
 
 	    // mount target system if needed
 	    list<map> mounted  = [];
