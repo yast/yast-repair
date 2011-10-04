@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct  4 13:26:45 UTC 2011 - jreidinger@suse.com
+
+- set installation dest dir even if start repair from boot menu,
+  part of direct boot fix (bnc#700323)
+- 2.17.11
+
+-------------------------------------------------------------------
 Mon Sep  5 14:36:13 UTC 2011 - jreidinger@suse.com
 
 - initialize properly storage otherwise repair crash (bnc#700323)
