@@ -112,6 +112,10 @@ Halting the repair system.
       // check all targets (all disks) for partition entries
       foreach(string target, map values, (map<string,map>) target_map, ``{
 
+      // skip non-disks targets (BNC#747605)
+      if( !Storage::IsDiskType(values["type"]) )
+        continue;
+
       list<map> target_partitions = values["partitions"]:[];
 
       if ( size(target_partitions) == 0 )
