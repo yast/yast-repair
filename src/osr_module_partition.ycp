@@ -113,7 +113,7 @@ Halting the repair system.
       foreach(string target, map values, (map<string,map>) target_map, ``{
 
       // skip non-disks targets (BNC#747605)
-      if( !Storage::IsDiskType(values["type"]) )
+      if( !Storage::IsDiskType(values["type"]:`nothing) )
         continue;
 
       list<map> target_partitions = values["partitions"]:[];
