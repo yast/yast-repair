@@ -1,5 +1,0 @@
-Dump	tool name: System Repair
-Log	The required value "root_device" is not yet set.
-Dump	required 'root_device': 
-Dump	provided 'root_device': true
-Dump	required 'root_device': /

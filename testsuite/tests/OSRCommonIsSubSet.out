@@ -1,5 +1,0 @@
-Dump	is [] subset of []: true
-Dump	is [] subset of ["a", "dfgdggh", "whatever"]: true
-Dump	is ["a", "b"] subset of ["a"]: false
-Dump	is ["a"] subset of ["b", "a"]: true
-Dump	is ["a", "b", "c", "d"] subset of ["b", "a", "d", "d", "c"]: true
