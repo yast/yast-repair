@@ -116,6 +116,10 @@ Halting the repair system.
       if( !Storage::IsDiskType(values["type"]:`nothing) )
         continue;
 
+      // skip disks owned by different devices like RAIDS or multipath (BNC#812810)
+      if (Storage::IsUsedBy(values))
+        continue;
+
       list<map> target_partitions = values["partitions"]:[];
 
       if ( size(target_partitions) == 0 )
